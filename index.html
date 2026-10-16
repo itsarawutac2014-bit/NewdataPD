@@ -95,9 +95,6 @@
 
   <main class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-    <!-- ส่วนที่จะถูกจับภาพบันทึกเป็นรูปภาพความคมชัดสูง (ตั้งแต่หัว KPI, ตาราง, ไปจนจบที่กราฟ) -->
-    <div id="report-printable-area" class="space-y-6 bg-slate-100 p-2 sm:p-3 rounded-2xl">
-
     <!-- KPI Cards Summary -->
     <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
       
@@ -185,6 +182,9 @@
 
     </section>
 
+    <!-- ส่วนที่บันทึกรูปภาพความคมชัดสูง (เริ่มต้นบันทึกตั้งแต่ Waste PRODUCTION รายวันเครื่อง BHS 31 วัน จบที่กราฟ) -->
+    <div id="report-printable-area" class="space-y-6 bg-slate-100 p-2 sm:p-3 rounded-2xl">
+
     <!-- Table Section (ตารางตามภาพต้นฉบับเป๊ะๆ) -->
     <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/50">
@@ -195,8 +195,11 @@
           </div>
           <p class="text-xs text-slate-500 mt-0.5">ช่องที่มีไฮไลต์สีแดงอ่อน คือค่าที่เกิน Target ของคอลัมน์นั้นๆ</p>
         </div>
-        <div class="flex items-center gap-3">
-          <input type="text" id="tableFilterInput" oninput="filterTableRows()" placeholder="ค้นหาวันที่, สถานะ..." class="text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-52 bg-white">
+        <div class="flex items-center gap-2.5 flex-wrap">
+          <input type="text" id="tableFilterInput" oninput="filterTableRows()" placeholder="ค้นหาวันที่, สถานะ..." class="text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-48 bg-white">
+          <button onclick="saveHighResReport()" class="inline-flex items-center px-3 py-2 text-xs font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition shadow-sm border border-emerald-500 cursor-pointer">
+            <i class="fa-solid fa-camera mr-1.5"></i> บันทึกรูปภาพ (HD)
+          </button>
         </div>
       </div>
 
