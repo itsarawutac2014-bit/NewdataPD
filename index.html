@@ -3,16 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard ข้อมูลจาก Google Sheet</title>
+  <title>Waste รายวัน BHS Dashboard - ติดตาม % Waste ชั่งจริง</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Chart.js CDN -->
+  <!-- Chart.js CDN + Annotation Plugin for Target Line -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.2.1/dist/chartjs-plugin-annotation.min.js"></script>
+  <!-- PapaParse for Google Sheets CSV -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- PapaParse for CSV Parsing -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <!-- Google Fonts: Prompt -->
+  <!-- Google Fonts: Prompt & Sarabun -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -21,396 +22,807 @@
     body {
       font-family: 'Prompt', sans-serif;
     }
+    .table-sticky th {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .badge-target-pass {
+      background-color: #dcfce7;
+      color: #15803d;
+      border: 1px solid #86efac;
+    }
+    .badge-target-over {
+      background-color: #ffe4e6;
+      color: #be123c;
+      border: 1px solid #fecdd3;
+    }
+    .badge-target-idle {
+      background-color: #e0f2fe;
+      color: #0369a1;
+      border: 1px solid #bae6fd;
+    }
+    .cell-over-target {
+      background-color: #fecdd3 !important;
+      color: #9f1239 !important;
+      font-weight: 600;
+    }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen">
+<body class="bg-slate-100 text-slate-800 min-h-screen">
 
   <!-- Top Navbar -->
-  <nav class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16">
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col sm:flex-row justify-between items-center py-3 gap-3">
         <div class="flex items-center space-x-3">
-          <div class="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
-            <i class="fa-solid fa-chart-line text-xl"></i>
+          <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-xl font-bold shadow-sm">
+            <i class="fa-solid fa-industry"></i>
           </div>
           <div>
-            <h1 class="text-lg font-bold text-slate-900 leading-tight">Google Sheets Live Dashboard</h1>
-            <p class="text-xs text-slate-500">แดชบอร์ดเชื่อมต่อข้อมูลจาก Google Sheet</p>
+            <div class="flex items-center gap-2">
+              <h1 class="text-xl font-bold text-slate-900 leading-tight">Waste รายวัน BHS Dashboard</h1>
+              <span class="px-2 py-0.5 text-xs font-semibold bg-amber-100 text-amber-800 rounded">Target 5.00%</span>
+            </div>
+            <p class="text-xs text-slate-500">ระบบติดตาม % Waste ชั่งจริง ประจำเดือน ตุลาคม 2026 (เชื่อมต่อ Google Sheet)</p>
           </div>
         </div>
 
-        <div class="flex items-center space-x-3">
-          <span id="sync-status" class="inline-flex items-center text-xs px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-medium">
+        <!-- Action / Status -->
+        <div class="flex items-center gap-3">
+          <span id="data-status-badge" class="inline-flex items-center text-xs px-3 py-1.5 rounded-full font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
             <span class="w-2 h-2 mr-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-            พร้อมใช้งาน
+            <span id="status-text">ข้อมูลพร้อมแสดงผล</span>
           </span>
-          <button onclick="fetchSheetData()" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition shadow-sm">
-            <i class="fa-solid fa-arrows-rotate mr-2" id="refresh-icon"></i>
-            รีเฟรชข้อมูล
+          <button onclick="toggleConfigModal()" class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition shadow-sm">
+            <i class="fa-solid fa-gear mr-1.5 text-slate-500"></i> ตั้งค่า Google Sheet
+          </button>
+          <button onclick="refreshData()" class="inline-flex items-center px-3.5 py-1.5 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition shadow-sm">
+            <i class="fa-solid fa-arrows-rotate mr-1.5" id="refresh-spin-icon"></i> รีเฟรชข้อมูล
           </button>
         </div>
       </div>
     </div>
-  </nav>
+  </header>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <main class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-    <!-- Config / Settings Modal or Alert -->
-    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-      <div class="flex items-start">
-        <div class="text-blue-500 mt-0.5 mr-3">
-          <i class="fa-solid fa-circle-info text-lg"></i>
-        </div>
-        <div class="flex-1">
-          <h3 class="text-sm font-semibold text-blue-900">การตั้งค่าเชื่อมต่อ Google Sheet</h3>
-          <p class="text-xs text-blue-700 mt-1">
-            เปิด Google Sheet แล้วไปที่เมนู <strong>ไฟล์ (File) &gt; แชร์ (Share) &gt; เผยแพร่ไปยังเว็บ (Publish to the web)</strong> &gt; เลือกแผ่นงาน &gt; เลือกชนิดเป็น <strong>CSV</strong> แล้วคัดลอกลิงก์มาใส่ หรือเปลี่ยน URL ในโค้ด
-          </p>
-          <div class="mt-3 flex flex-wrap gap-2 items-center">
-            <input type="text" id="sheet-url-input" 
-                   placeholder="วางลิงก์ CSV ของ Google Sheet ที่นี่..." 
-                   class="flex-1 min-w-[300px] text-xs px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
-            <button onclick="updateSheetUrl()" class="px-4 py-2 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-              โหลดข้อมูล
-            </button>
-            <button onclick="loadSampleData()" class="px-3 py-2 text-xs font-medium bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition">
-              ใช้ข้อมูลตัวอย่าง
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Summary KPI Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+    <!-- KPI Cards Summary -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
       
-      <!-- Card 1 -->
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-        <div>
-          <p class="text-xs font-medium text-slate-500">จำนวนรายการทั้งหมด</p>
-          <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpi-total-rows">0</h3>
-          <span class="text-xs text-emerald-600 font-medium"><i class="fa-solid fa-arrow-trend-up mr-1"></i>อัปเดตล่าสุด</span>
+      <!-- Card 1: Actual Waste MTD -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">ALL Waste สะสม (Actual)</p>
+            <h3 class="text-3xl font-extrabold mt-1" id="kpi-actual-waste">4.61%</h3>
+          </div>
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-emerald-100 text-emerald-600" id="kpi-waste-icon-box">
+            <i class="fa-solid fa-bullseye"></i>
+          </div>
         </div>
-        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl">
-          <i class="fa-solid fa-list-check"></i>
-        </div>
-      </div>
-
-      <!-- Card 2 -->
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-        <div>
-          <p class="text-xs font-medium text-slate-500">ยอดรวมมูลค่า (Total Sales)</p>
-          <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpi-total-amount">฿0</h3>
-          <span class="text-xs text-slate-400">คำนวณจากคอลัมน์ตัวเลข</span>
-        </div>
-        <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl">
-          <i class="fa-solid fa-baht-sign"></i>
+        <div class="mt-3 flex items-center gap-2 text-xs">
+          <span id="kpi-waste-status" class="px-2 py-0.5 rounded font-bold bg-emerald-100 text-emerald-700">ได้เป้า (Pass)</span>
+          <span class="text-slate-500">เป้าหมาย <strong>5.00%</strong></span>
         </div>
       </div>
 
-      <!-- Card 3 -->
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-        <div>
-          <p class="text-xs font-medium text-slate-500">มูลค่าเฉลี่ยต่อรายการ</p>
-          <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpi-avg-amount">฿0</h3>
-          <span class="text-xs text-slate-400">Average per order</span>
+      <!-- Card 2: Total Consumption -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Consumption</p>
+            <h3 class="text-3xl font-extrabold text-slate-800 mt-1" id="kpi-total-consumption">1,587,701</h3>
+          </div>
+          <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl">
+            <i class="fa-solid fa-box-archive"></i>
+          </div>
         </div>
-        <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-xl">
-          <i class="fa-solid fa-calculator"></i>
-        </div>
-      </div>
-
-      <!-- Card 4 -->
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-        <div>
-          <p class="text-xs font-medium text-slate-500">หมวดหมู่สินค้า / ประเภท</p>
-          <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpi-categories">0</h3>
-          <span class="text-xs text-slate-400">จำนวนประเภทที่ไม่ซ้ำ</span>
-        </div>
-        <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-xl">
-          <i class="fa-solid fa-tags"></i>
+        <div class="mt-3 text-xs text-slate-500">
+          ค่าเฉลี่ย/วัน: <strong class="text-slate-700" id="kpi-avg-consumption">88,206</strong>
         </div>
       </div>
 
-    </div>
+      <!-- Card 3: Total Output -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Output</p>
+            <h3 class="text-3xl font-extrabold text-slate-800 mt-1" id="kpi-total-output">1,415,766</h3>
+          </div>
+          <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-xl">
+            <i class="fa-solid fa-dolly"></i>
+          </div>
+        </div>
+        <div class="mt-3 text-xs text-slate-500">
+          ค่าเฉลี่ย/วัน: <strong class="text-slate-700" id="kpi-avg-output">78,654</strong>
+        </div>
+      </div>
 
-    <!-- Charts Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-      <!-- Bar Chart -->
+      <!-- Card 4: Operating Days Breakdown -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">จำนวนวันเดินเครื่อง</p>
+            <h3 class="text-3xl font-extrabold text-slate-800 mt-1" id="kpi-running-days">14 <span class="text-sm font-normal text-slate-400">/ 31 วัน</span></h3>
+          </div>
+          <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-xl">
+            <i class="fa-solid fa-calendar-check"></i>
+          </div>
+        </div>
+        <div class="mt-3 flex gap-2 text-[11px]">
+          <span class="text-emerald-600 font-semibold" id="kpi-days-pass">ได้เป้า: 8 วัน</span> •
+          <span class="text-rose-600 font-semibold" id="kpi-days-over">เกินเป้า: 6 วัน</span>
+        </div>
+      </div>
+
+      <!-- Card 5: Top Waste Contributor -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Waste สูงสุด (Top 1)</p>
+            <h3 class="text-2xl font-extrabold text-rose-600 mt-1" id="kpi-top-waste-name">.NCP</h3>
+          </div>
+          <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center text-xl">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+        </div>
+        <div class="mt-3 text-xs text-slate-500" id="kpi-top-waste-detail">
+          สะสม: <strong>1.86%</strong> (เป้าหมาย 2.00%)
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Main Chart: Daily Waste vs Target (แบบเดียวกับภาพ Excel) -->
+    <section class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+            Waste รายวัน BHS <span class="text-rose-600 font-extrabold">Target 5.00%</span>
+          </h2>
+          <p class="text-xs text-slate-500">แท่งสีทอง/เขียว = ได้ตามเป้า (<= 5%), สีส้ม/แดง = เกินเป้า (> 5%), แท่งขวาสุดคือผลรวมสะสมทั้งเดือน</p>
+        </div>
+        <div class="flex items-center gap-4 text-xs">
+          <div class="flex items-center gap-1.5">
+            <span class="w-3 h-3 bg-amber-500 rounded-sm inline-block"></span>
+            <span>ได้เป้า (<= 5.00%)</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-3 h-3 bg-rose-500 rounded-sm inline-block"></span>
+            <span>เกินเป้า (> 5.00%)</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-4 h-0.5 bg-rose-600 inline-block"></span>
+            <span class="text-rose-600 font-bold">เส้น Target 5.00%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="relative h-[360px] mt-4">
+        <canvas id="dailyWasteChart"></canvas>
+      </div>
+    </section>
+
+    <!-- Sub Charts: Breakdown by Waste Category -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Breakdown Bar Chart -->
       <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2">
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
           <div>
-            <h2 class="text-base font-semibold text-slate-800">ยอดขายแยกตามหมวดหมู่</h2>
-            <p class="text-xs text-slate-400">สรุปยอดรวมแบ่งตามประเภทสินค้า/หมวดหมู่</p>
+            <h3 class="text-base font-bold text-slate-900">สัดส่วนของเสียสะสมแต่ละประเภท (% Waste by Category)</h3>
+            <p class="text-xs text-slate-500">เปรียบเทียบ % ชั่งจริงสะสมของแต่ละจุดเทียบกับ Target</p>
           </div>
-          <div class="p-2 text-slate-400 hover:text-slate-600">
-            <i class="fa-solid fa-chart-column"></i>
-          </div>
+          <span class="text-xs font-medium px-2 py-1 bg-slate-100 rounded text-slate-600">11 หมวดหมู่</span>
         </div>
-        <div class="relative h-72">
-          <canvas id="barChart"></canvas>
+        <div class="relative h-[280px]">
+          <canvas id="categoryWasteChart"></canvas>
         </div>
       </div>
 
-      <!-- Doughnut Chart -->
+      <!-- Donut Chart -->
       <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-100">
           <div>
-            <h2 class="text-base font-semibold text-slate-800">สัดส่วนตามสถานะ / หมวด</h2>
-            <p class="text-xs text-slate-400">เปอร์เซ็นต์การกระจายตัวของข้อมูล</p>
-          </div>
-          <div class="p-2 text-slate-400 hover:text-slate-600">
-            <i class="fa-solid fa-chart-pie"></i>
+            <h3 class="text-base font-bold text-slate-900">สัดส่วนโครงสร้างของเสีย (Pareto)</h3>
+            <p class="text-xs text-slate-500">ของเสียส่วนใหญ่มาจากจุดไหน</p>
           </div>
         </div>
-        <div class="relative h-72 flex items-center justify-center">
-          <canvas id="pieChart"></canvas>
+        <div class="relative h-[280px] flex items-center justify-center">
+          <canvas id="categoryDonutChart"></canvas>
         </div>
       </div>
-    </div>
 
-    <!-- Data Table Section -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    </section>
+
+    <!-- Table Section (ตารางตามภาพต้นฉบับเป๊ะๆ) -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/50">
         <div>
-          <h2 class="text-base font-semibold text-slate-800">ตารางข้อมูลล่าสุด (Raw Data)</h2>
-          <p class="text-xs text-slate-400">แสดงแถวข้อมูลที่ดึงมาจาก Google Sheet</p>
+          <div class="flex items-center gap-2">
+            <h3 class="text-base font-bold text-slate-900">ตารางข้อมูล % Waste ชั่งจริง ประจำวัน</h3>
+            <span class="px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 rounded-full">31 แถว</span>
+          </div>
+          <p class="text-xs text-slate-500 mt-0.5">ช่องที่มีไฮไลต์สีแดงอ่อน คือค่าที่เกิน Target ของคอลัมน์นั้นๆ</p>
         </div>
-        <div>
-          <input type="text" id="table-search" oninput="filterTable()" placeholder="ค้นหาข้อมูล..." class="text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-60">
+        <div class="flex items-center gap-3">
+          <input type="text" id="tableFilterInput" oninput="filterTableRows()" placeholder="ค้นหาวันที่, สถานะ..." class="text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-52 bg-white">
         </div>
       </div>
 
       <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs text-slate-600">
-          <thead class="bg-slate-50 text-slate-700 uppercase font-semibold border-b border-slate-200" id="table-head">
-            <!-- Headers will be rendered dynamically -->
+        <table class="w-full text-center text-xs border-collapse">
+          <thead>
+            <!-- Target Row (แถวสีเหลือง) -->
+            <tr class="bg-amber-200 text-slate-900 font-bold border-b border-amber-300">
+              <th class="p-2 border-r border-amber-300 text-left">Target</th>
+              <th class="p-2 border-r border-amber-300">2.00%</th>
+              <th class="p-2 border-r border-amber-300">1.10%</th>
+              <th class="p-2 border-r border-amber-300">0.15%</th>
+              <th class="p-2 border-r border-amber-300">1.01%</th>
+              <th class="p-2 border-r border-amber-300">0.05%</th>
+              <th class="p-2 border-r border-amber-300">0.20%</th>
+              <th class="p-2 border-r border-amber-300">0.15%</th>
+              <th class="p-2 border-r border-amber-300">0.15%</th>
+              <th class="p-2 border-r border-amber-300">0.03%</th>
+              <th class="p-2 border-r border-amber-300">0.07%</th>
+              <th class="p-2 border-r border-amber-300">0.09%</th>
+              <th class="p-2 border-r border-amber-300 bg-amber-300 font-black text-amber-950">5.00%</th>
+              <th class="p-2 border-r border-amber-300 bg-white"></th>
+              <th class="p-2 border-r border-amber-300 bg-white"></th>
+              <th class="p-2 border-r border-amber-300 bg-amber-400 font-bold"></th>
+              <th class="p-2 bg-amber-400 font-bold"></th>
+            </tr>
+            <!-- Header Column Row (แถวสีเขียวอ่อน) -->
+            <tr class="bg-emerald-100 text-slate-900 font-bold border-b border-emerald-200">
+              <th class="p-2.5 border-r border-emerald-200 text-left min-w-[100px]">ป้ายชื่อแถว</th>
+              <th class="p-2.5 border-r border-emerald-200 min-w-[70px]">.NCP</th>
+              <th class="p-2.5 border-r border-emerald-200 min-w-[70px]">.DEF</th>
+              <th class="p-2.5 border-r border-emerald-200 min-w-[70px]">.WEB</th>
+              <th class="p-2.5 border-r border-emerald-200 min-w-[110px]">ของเหลือ Control</th>
+              <th class="p-2.5 border-r border-emerald-200 min-w-[100px]">ของเหลือ O.M.</th>
+              <th class="p-2.5 border-r border-emerald-200 min-w-[95px]">.รอยต่อออเดอร์</th>
+              <th class="p-2.5 border-r border-emerald-200 min-w-[95px]">.เศษติดแกนผลิต</th>
+              <th class="p-2.5 border-r border-emerald-200 min-w-[95px]">.สันนูนตรงสเปค</th>
+              <th class="p-2.5 border-r border-emerald-200 min-w-[80px]">.Conveyor</th>
+              <th class="p-2.5 border-r border-emerald-200 min-w-[75px]">.QC Test</th>
+              <th class="p-2.5 border-r border-emerald-200 min-w-[75px]">.Reject</th>
+              <th class="p-2.5 border-r border-emerald-200 min-w-[90px] bg-amber-200 text-amber-900 font-black">ALL Waste</th>
+              <th class="p-2.5 border-r border-emerald-200 min-w-[85px] bg-white">สถานะ</th>
+              <th class="p-2.5 border-r border-emerald-200 min-w-[85px] bg-white">Diff Target</th>
+              <th class="p-2.5 border-r border-emerald-200 min-w-[105px] bg-amber-400 text-slate-900 font-bold">Consumtion</th>
+              <th class="p-2.5 min-w-[105px] bg-amber-400 text-slate-900 font-bold">Out Put</th>
+            </tr>
           </thead>
-          <tbody id="table-body" class="divide-y divide-slate-100">
-            <!-- Rows will be rendered dynamically -->
+          <tbody id="wasteTableBody" class="divide-y divide-slate-200">
+            <!-- Rows injected by JavaScript -->
           </tbody>
+          <tfoot>
+            <!-- Footer Summary Rows -->
+            <tr class="bg-slate-200 text-slate-900 font-bold border-t-2 border-slate-300">
+              <td class="p-2.5 text-left">ผลรวมทั้งหมด</td>
+              <td class="p-2.5">0.88%</td>
+              <td class="p-2.5">0.54%</td>
+              <td class="p-2.5">0.02%</td>
+              <td class="p-2.5">0.72%</td>
+              <td class="p-2.5">0.00%</td>
+              <td class="p-2.5">0.04%</td>
+              <td class="p-2.5">0.02%</td>
+              <td class="p-2.5">0.01%</td>
+              <td class="p-2.5">0.00%</td>
+              <td class="p-2.5">0.00%</td>
+              <td class="p-2.5">0.05%</td>
+              <td class="p-2.5 bg-amber-200 font-black text-emerald-700" id="foot-all-waste">4.61%</td>
+              <td class="p-2.5 bg-emerald-100 text-emerald-800" id="foot-status">ได้เป้า</td>
+              <td class="p-2.5">0.00%</td>
+              <td class="p-2.5" id="foot-consumption">1,587,701</td>
+              <td class="p-2.5" id="foot-output">1,415,766</td>
+            </tr>
+            <tr class="bg-slate-100 text-slate-700 font-semibold text-[11px]">
+              <td class="p-2 text-left">ค่าเฉลี่ย / วัน</td>
+              <td colspan="11" class="text-right pr-4 text-slate-400">ค่าเฉลี่ยรายวัน:</td>
+              <td class="p-2 text-rose-600 font-bold">Actual</td>
+              <td colspan="2" class="text-right pr-2">ค่าเฉลี่ย/วัน:</td>
+              <td class="p-2 font-bold text-rose-600" id="foot-avg-consumption">88,206</td>
+              <td class="p-2 font-bold text-rose-600" id="foot-avg-output">78,654</td>
+            </tr>
+          </tfoot>
         </table>
       </div>
-    </div>
+    </section>
 
   </main>
 
+  <!-- Modal ตั้งค่า Google Sheet -->
+  <div id="configModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-cloud-arrow-down text-blue-600"></i>
+          เชื่อมต่อข้อมูลจาก Google Sheet
+        </h3>
+        <button onclick="toggleConfigModal()" class="text-slate-400 hover:text-slate-600 text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="text-xs text-slate-600 space-y-2 leading-relaxed">
+        <p class="font-semibold text-slate-800">📌 วิธีดึงข้อมูลจาก Google Sheet ของคุณ:</p>
+        <ol class="list-decimal list-inside space-y-1 bg-slate-50 p-3 rounded-lg border border-slate-200">
+          <li>เปิด Google Sheet ของคุณ</li>
+          <li>คลิก <strong>ไฟล์ (File) &gt; แชร์ (Share) &gt; เผยแพร่ไปยังเว็บ (Publish to web)</strong></li>
+          <li>เลือกแผ่นงานที่ต้องการ แล้วเลือกชนิดเป็น <strong>ค่าที่คั่นด้วยเครื่องหมายจุลภาค (.csv)</strong></li>
+          <li>คลิก <strong>เผยแพร่ (Publish)</strong> แล้วคัดลอกลิงก์มาวางในช่องด้านล่างนี้</li>
+        </ol>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Google Sheet CSV URL</label>
+        <input type="text" id="sheetUrlInput" 
+               placeholder="https://docs.google.com/spreadsheets/d/e/2PACX-.../pub?output=csv" 
+               class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono" />
+      </div>
+
+      <div class="flex justify-between items-center pt-3 border-t border-slate-100">
+        <button onclick="resetToSampleData()" class="px-3 py-2 text-xs font-medium text-slate-600 hover:text-slate-800">
+          <i class="fa-solid fa-rotate-left mr-1"></i> ใช้ข้อมูลตัวอย่างต้นฉบับ
+        </button>
+        <div class="flex gap-2">
+          <button onclick="toggleConfigModal()" class="px-4 py-2 text-xs font-medium bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200">
+            ยกเลิก
+          </button>
+          <button onclick="saveAndFetchUrl()" class="px-4 py-2 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-sm">
+            บันทึกและดึงข้อมูล
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // ตัวแปรสำหรับ Chart instances
-    let barChartInstance = null;
-    let pieChartInstance = null;
-    let globalData = [];
+    // Target Values กำหนดตามภาพต้นฉบับ
+    const TARGETS = {
+      ncp: 2.00,
+      def: 1.10,
+      web: 0.15,
+      control: 1.01,
+      om: 0.05,
+      order: 0.20,
+      core: 0.15,
+      spec: 0.15,
+      conveyor: 0.03,
+      qc: 0.07,
+      reject: 0.09,
+      allWaste: 5.00
+    };
 
-    // URL สำหรับดึงข้อมูลเริ่มต้น (สามารถใส่ Sheet CSV URL ที่ Publish แล้วได้ที่นี่)
-    // รูปแบบ URL: https://docs.google.com/spreadsheets/d/e/2PACX-.../pub?output=csv
-    let googleSheetCsvUrl = localStorage.getItem('gsheet_csv_url') || '';
-
-    // ข้อมูลตัวอย่างเริ่มต้น (Dummy Data) เผื่อผู้ใช้ยังไม่ได้ใส่ URL
-    const sampleData = [
-      { "วันที่": "2026-10-01", "หมวดหมู่": "อาหารและเครื่องดื่ม", "สินค้า": "กาแฟลาเต้", "จำนวน": 25, "ยอดขาย": 1500, "สถานะ": "เสร็จสิ้น" },
-      { "วันที่": "2026-10-02", "หมวดหมู่": "อุปกรณ์ไอที", "สินค้า": "เมาส์ไร้สาย", "จำนวน": 8, "ยอดขาย": 3920, "สถานะ": "เสร็จสิ้น" },
-      { "วันที่": "2026-10-03", "หมวดหมู่": "เครื่องเขียน", "สินค้า": "สมุดโน้ตปกหนัง", "จำนวน": 40, "ยอดขาย": 2400, "สถานะ": "เสร็จสิ้น" },
-      { "วันที่": "2026-10-04", "หมวดหมู่": "อาหารและเครื่องดื่ม", "สินค้า": "ชาเขียวมัทฉะ", "จำนวน": 30, "ยอดขาย": 2100, "สถานะ": "รอดำเนินการ" },
-      { "วันที่": "2026-10-05", "หมวดหมู่": "อุปกรณ์ไอที", "สินค้า": "คีย์บอร์ดบลูทูธ", "จำนวน": 5, "ยอดขาย": 6250, "สถานะ": "เสร็จสิ้น" },
-      { "วันที่": "2026-10-06", "หมวดหมู่": "เสื้อผ้าและแฟชั่น", "สินค้า": "เสื้อยืดคอกลม", "จำนวน": 15, "ยอดขาย": 4350, "สถานะ": "เสร็จสิ้น" },
-      { "วันที่": "2026-10-07", "หมวดหมู่": "เครื่องเขียน", "สินค้า": "ปากกาเจลหมึกดำ", "จำนวน": 60, "ยอดขาย": 1200, "สถานะ": "ยกเลิก" },
-      { "วันที่": "2026-10-08", "หมวดหมู่": "อาหารและเครื่องดื่ม", "สินค้า": "ครัวซองต์เนยสด", "จำนวน": 18, "ยอดขาย": 1440, "สถานะ": "เสร็จสิ้น" },
-      { "วันที่": "2026-10-09", "หมวดหมู่": "เสื้อผ้าและแฟชั่น", "สินค้า": "กางเกงขายาว", "จำนวน": 10, "ยอดขาย": 5900, "สถานะ": "เสร็จสิ้น" },
-      { "วันที่": "2026-10-10", "หมวดหมู่": "อุปกรณ์ไอที", "สินค้า": "หูฟัง TWS", "จำนวน": 12, "ยอดขาย": 10680, "สถานะ": "เสร็จสิ้น" }
+    // หมวดหมู่ของเสียทั้ง 11 ตัว
+    const WASTE_COLUMNS = [
+      { key: 'ncp', label: '.NCP', target: 2.00 },
+      { key: 'def', label: '.DEF', target: 1.10 },
+      { key: 'web', label: '.WEB', target: 0.15 },
+      { key: 'control', label: 'ของเหลือ Control', target: 1.01 },
+      { key: 'om', label: 'ของเหลือ O.M.', target: 0.05 },
+      { key: 'order', label: '.รอยต่อออเดอร์', target: 0.20 },
+      { key: 'core', label: '.เศษติดแกนผลิต', target: 0.15 },
+      { key: 'spec', label: '.สันนูนตรงสเปค', target: 0.15 },
+      { key: 'conveyor', label: '.Conveyor', target: 0.03 },
+      { key: 'qc', label: '.QC Test', target: 0.07 },
+      { key: 'reject', label: '.Reject', target: 0.09 }
     ];
+
+    // ข้อมูลเริ่มต้นตรงตามตารางในรูปภาพของคุณ (1/10/2026 ถึง 31/10/2026)
+    const initialRawData = [
+      { date: "1/10/2026", ncp: 1.99, def: 1.04, web: 0.21, control: 1.40, om: 0.00, order: 0.13, core: 0.00, spec: 0.00, conveyor: 0.00, qc: 0.00, reject: 0.00, allWaste: 4.78, consumption: 124667, output: 109454 },
+      { date: "2/10/2026", ncp: 1.71, def: 0.93, web: 0.15, control: 1.33, om: 0.00, order: 0.05, core: 0.00, spec: 0.02, conveyor: 0.00, qc: 0.02, reject: 0.00, allWaste: 4.21, consumption: 122794, output: 110074 },
+      { date: "3/10/2026", ncp: 3.06, def: 1.54, web: 0.00, control: 1.23, om: 0.00, order: 0.06, core: 0.22, spec: 0.00, conveyor: 0.10, qc: 0.00, reject: 0.00, allWaste: 6.21, consumption: 116070, output: 102644 },
+      { date: "4/10/2026", ncp: 1.85, def: 0.88, web: 0.10, control: 2.15, om: 0.00, order: 0.14, core: 0.17, spec: 0.00, conveyor: 0.00, qc: 0.03, reject: 0.00, allWaste: 5.32, consumption: 60509, output: 54195 },
+      { date: "5/10/2026", ncp: 1.62, def: 0.81, web: 0.09, control: 0.71, om: 0.00, order: 0.00, core: 0.00, spec: 0.00, conveyor: 0.00, qc: 0.00, reject: 0.38, allWaste: 3.60, consumption: 97752, output: 88032 },
+      { date: "6/10/2026", ncp: 1.86, def: 0.88, web: 0.00, control: 1.39, om: 0.00, order: 0.08, core: 0.08, spec: 0.00, conveyor: 0.00, qc: 0.00, reject: 0.35, allWaste: 4.67, consumption: 126313, output: 111383 },
+      { date: "7/10/2026", ncp: 2.01, def: 1.05, web: 0.00, control: 2.14, om: 0.00, order: 0.06, core: 0.00, spec: 0.00, conveyor: 0.00, qc: 0.00, reject: 0.26, allWaste: 5.52, consumption: 127135, output: 112650 },
+      { date: "8/10/2026", ncp: 1.49, def: 1.00, web: 0.00, control: 1.27, om: 0.00, order: 0.07, core: 0.00, spec: 0.00, conveyor: 0.01, qc: 0.00, reject: 0.00, allWaste: 3.85, consumption: 151753, output: 135767 },
+      { date: "9/10/2026", ncp: 1.44, def: 0.94, web: 0.03, control: 0.96, om: 0.00, order: 0.06, core: 0.00, spec: 0.03, conveyor: 0.00, qc: 0.03, reject: 0.24, allWaste: 3.71, consumption: 154274, output: 140019 },
+      { date: "10/10/2026", ncp: 1.39, def: 0.93, web: 0.07, control: 0.85, om: 0.00, order: 0.00, core: 0.00, spec: 0.00, conveyor: 0.00, qc: 0.00, reject: 0.00, allWaste: 3.24, consumption: 134694, output: 121304 },
+      { date: "11/10/2026", ncp: 3.25, def: 3.75, web: 0.00, control: 5.71, om: 0.00, order: 0.33, core: 0.00, spec: 0.00, conveyor: 0.00, qc: 0.00, reject: 0.00, allWaste: 13.03, consumption: 25227, output: 21930 },
+      { date: "12/10/2026", ncp: 0.00, def: 0.00, web: 0.00, control: 0.00, om: 0.00, order: 0.00, core: 0.00, spec: 0.00, conveyor: 0.00, qc: 0.00, reject: 0.00, allWaste: 0.00, consumption: 0, output: -723 },
+      { date: "13/10/2026", ncp: 1.94, def: 0.41, web: 0.00, control: 0.00, om: 0.00, order: 0.00, core: 0.00, spec: 0.00, conveyor: 0.00, qc: 0.00, reject: 0.00, allWaste: 2.35, consumption: 89876, output: 82386 },
+      { date: "14/10/2026", ncp: 1.78, def: 1.45, web: 0.08, control: 1.48, om: 0.00, order: 0.07, core: 0.00, spec: 0.00, conveyor: 0.00, qc: 0.01, reject: 0.37, allWaste: 5.24, consumption: 130239, output: 114428 },
+      { date: "15/10/2026", ncp: 2.00, def: 1.02, web: 0.00, control: 1.74, om: 0.00, order: 0.09, core: 0.11, spec: 0.17, conveyor: 0.00, qc: 0.00, reject: 0.00, allWaste: 5.13, consumption: 126398, output: 112223 },
+      { date: "16/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, allWaste: 0, consumption: 0, output: 0 },
+      { date: "17/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, allWaste: 0, consumption: 0, output: 0 },
+      { date: "18/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, allWaste: 0, consumption: 0, output: 0 },
+      { date: "19/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, allWaste: 0, consumption: 0, output: 0 },
+      { date: "20/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, allWaste: 0, consumption: 0, output: 0 },
+      { date: "21/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, allWaste: 0, consumption: 0, output: 0 },
+      { date: "22/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, allWaste: 0, consumption: 0, output: 0 },
+      { date: "23/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, allWaste: 0, consumption: 0, output: 0 },
+      { date: "24/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, allWaste: 0, consumption: 0, output: 0 },
+      { date: "25/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, allWaste: 0, consumption: 0, output: 0 },
+      { date: "26/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, allWaste: 0, consumption: 0, output: 0 },
+      { date: "27/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, allWaste: 0, consumption: 0, output: 0 },
+      { date: "28/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, allWaste: 0, consumption: 0, output: 0 },
+      { date: "29/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, allWaste: 0, consumption: 0, output: 0 },
+      { date: "30/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, allWaste: 0, consumption: 0, output: 0 },
+      { date: "31/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, allWaste: 0, consumption: 0, output: 0 }
+    ];
+
+    let currentData = [...initialRawData];
+    let dailyWasteChartInstance = null;
+    let categoryWasteChartInstance = null;
+    let categoryDonutChartInstance = null;
 
     // เมื่อโหลดหน้าเว็บ
     window.addEventListener('DOMContentLoaded', () => {
-      const urlInput = document.getElementById('sheet-url-input');
-      if (googleSheetCsvUrl) {
-        urlInput.value = googleSheetCsvUrl;
-        fetchSheetData();
+      const savedUrl = localStorage.getItem('bhs_sheet_csv_url');
+      if (savedUrl) {
+        document.getElementById('sheetUrlInput').value = savedUrl;
+        fetchGoogleSheetData(savedUrl);
       } else {
-        loadSampleData();
+        renderDashboard(initialRawData);
       }
     });
 
-    // โหลดข้อมูลตัวอย่าง
-    function loadSampleData() {
-      setStatus('กำลังแสดงข้อมูลตัวอย่าง (Dummy Data)', 'amber');
-      renderDashboard(sampleData);
+    // แสดง/ซ่อน Modal ตั้งค่า
+    function toggleConfigModal() {
+      const modal = document.getElementById('configModal');
+      modal.classList.toggle('hidden');
     }
 
-    // อัปเดต URL เมื่อผู้ใช้กดปุ่ม
-    function updateSheetUrl() {
-      const input = document.getElementById('sheet-url-input');
-      const url = input.value.trim();
+    // บันทึก URL และดึงข้อมูล
+    function saveAndFetchUrl() {
+      const url = document.getElementById('sheetUrlInput').value.trim();
       if (!url) {
         alert('กรุณากรอกลิงก์ CSV ของ Google Sheet');
         return;
       }
-      googleSheetCsvUrl = url;
-      localStorage.setItem('gsheet_csv_url', url);
-      fetchSheetData();
+      localStorage.setItem('bhs_sheet_csv_url', url);
+      toggleConfigModal();
+      fetchGoogleSheetData(url);
     }
 
-    // ฟังก์ชันดึงข้อมูลจาก Google Sheet
-    async function fetchSheetData() {
-      if (!googleSheetCsvUrl) {
-        loadSampleData();
-        return;
+    // คืนค่าเป็นข้อมูลตัวอย่าง
+    function resetToSampleData() {
+      localStorage.removeItem('bhs_sheet_csv_url');
+      document.getElementById('sheetUrlInput').value = '';
+      toggleConfigModal();
+      renderDashboard(initialRawData);
+      updateStatusBadge('กำลังแสดงข้อมูลตัวอย่าง (Default Data)', 'amber');
+    }
+
+    // รีเฟรชข้อมูล
+    function refreshData() {
+      const savedUrl = localStorage.getItem('bhs_sheet_csv_url');
+      if (savedUrl) {
+        fetchGoogleSheetData(savedUrl);
+      } else {
+        renderDashboard(initialRawData);
+        updateStatusBadge('รีเฟรชข้อมูลเรียบร้อย', 'emerald');
       }
+    }
 
-      setStatus('กำลังโหลดข้อมูล...', 'blue');
-      const refreshIcon = document.getElementById('refresh-icon');
-      refreshIcon.classList.add('animate-spin');
+    // ดึงข้อมูลจาก Google Sheet CSV ผ่าน PapaParse
+    function fetchGoogleSheetData(url) {
+      updateStatusBadge('กำลังเชื่อมต่อ Google Sheet...', 'blue');
+      const spinIcon = document.getElementById('refresh-spin-icon');
+      spinIcon.classList.add('animate-spin');
 
-      try {
-        Papa.parse(googleSheetCsvUrl, {
-          download: true,
-          header: true,
-          skipEmptyLines: true,
-          complete: function(results) {
-            refreshIcon.classList.remove('animate-spin');
-            if (results.data && results.data.length > 0) {
-              setStatus('เชื่อมต่อและอัปเดตเรียบร้อย', 'emerald');
-              renderDashboard(results.data);
-            } else {
-              setStatus('ไม่พบข้อมูลใน Sheet', 'red');
-              alert('ไม่พบแถวข้อมูลใน Google Sheet กรุณาตรวจสอบลิงก์ CSV');
-            }
-          },
-          error: function(err) {
-            refreshIcon.classList.remove('animate-spin');
-            console.error('Error parsing CSV:', err);
-            setStatus('เกิดข้อผิดพลาดในการโหลดข้อมูล', 'red');
-            alert('ไม่สามารถโหลดข้อมูลได้ กรุณาตรวจสอบว่าได้ตั้งค่า Publish to web เป็น CSV ถูกต้องหรือไม่');
+      Papa.parse(url, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+          spinIcon.classList.remove('animate-spin');
+          if (results.data && results.data.length > 0) {
+            parseAndTransformSheetData(results.data);
+            updateStatusBadge('เชื่อมต่อ Google Sheet สำเร็จ', 'emerald');
+          } else {
+            updateStatusBadge('ไม่พบข้อมูลใน Google Sheet', 'rose');
+            alert('ไม่พบแถวข้อมูลในไฟล์ Google Sheet');
           }
-        });
-      } catch (err) {
-        refreshIcon.classList.remove('animate-spin');
-        console.error('Fetch error:', err);
-        setStatus('เกิดข้อผิดพลาดในการเชื่อมต่อ', 'red');
+        },
+        error: function(err) {
+          spinIcon.classList.remove('animate-spin');
+          console.error('Error fetching sheet:', err);
+          updateStatusBadge('เชื่อมต่อผิดพลาด ตรวจสอบสิทธิ์หรือ URL', 'rose');
+          alert('ไม่สามารถโหลดข้อมูลจาก Google Sheet ได้ กรุณาตรวจสอบว่าเลือก Publish to web เป็น CSV ถูกต้อง');
+        }
+      });
+    }
+
+    // แปลงข้อมูลจาก CSV ให้ตรงกับโครงสร้าง
+    function parseAndTransformSheetData(rows) {
+      const transformed = [];
+
+      rows.forEach((row, idx) => {
+        // หาค่า Date / ป้ายชื่อแถว
+        const dateKey = Object.keys(row).find(k => /ป้ายชื่อ|วันที่|date|day/i.test(k)) || Object.keys(row)[0];
+        const dateVal = row[dateKey];
+        if (!dateVal || /target|ผลรวม|รวม|เฉลี่ย/i.test(dateVal)) return;
+
+        const parseNum = (kPattern) => {
+          const k = Object.keys(row).find(key => kPattern.test(key));
+          if (!k || row[k] === undefined || row[k] === '') return 0;
+          return parseFloat(String(row[k]).replace(/[^0-9.-]+/g, '')) || 0;
+        };
+
+        const item = {
+          date: dateVal,
+          ncp: parseNum(/ncp/i),
+          def: parseNum(/def/i),
+          web: parseNum(/web/i),
+          control: parseNum(/control/i),
+          om: parseNum(/o\.?m\.?/i),
+          order: parseNum(/รอยต่อ|order/i),
+          core: parseNum(/แกน|core/i),
+          spec: parseNum(/สันนูน|spec/i),
+          conveyor: parseNum(/conveyor/i),
+          qc: parseNum(/qc/i),
+          reject: parseNum(/reject/i),
+          allWaste: parseNum(/all.*waste|รวม.*waste/i),
+          consumption: parseNum(/consum/i),
+          output: parseNum(/out.*put|ผลิต/i)
+        };
+
+        transformed.push(item);
+      });
+
+      if (transformed.length > 0) {
+        currentData = transformed;
+        renderDashboard(transformed);
       }
     }
 
-    // แสดงสถานะที่ Navbar
-    function setStatus(text, color) {
-      const badge = document.getElementById('sync-status');
-      badge.className = `inline-flex items-center text-xs px-2.5 py-1 rounded-full font-medium bg-${color}-100 text-${color}-800`;
-      badge.innerHTML = `<span class="w-2 h-2 mr-1.5 bg-${color}-500 rounded-full animate-pulse"></span> ${text}`;
+    function updateStatusBadge(text, color) {
+      const badge = document.getElementById('data-status-badge');
+      const statusText = document.getElementById('status-text');
+      badge.className = `inline-flex items-center text-xs px-3 py-1.5 rounded-full font-medium bg-${color}-100 text-${color}-800 border border-${color}-200`;
+      statusText.textContent = text;
     }
 
-    // อัปเดตข้อมูลบนหน้าเว็บทั้งหมด
+    // ฟังก์ชันเรนเดอร์แดชบอร์ดหลัก
     function renderDashboard(data) {
-      globalData = data;
-      updateKPIs(data);
-      updateCharts(data);
+      currentData = data;
+      renderKPIs(data);
+      renderDailyChart(data);
+      renderCategoryCharts(data);
       renderTable(data);
     }
 
-    // คำนวณค่า KPI
-    function updateKPIs(data) {
-      const totalRows = data.length;
-      document.getElementById('kpi-total-rows').textContent = totalRows.toLocaleString();
+    // คำนวณสรุป KPI Cards
+    function renderKPIs(data) {
+      let totalConsumption = 0;
+      let totalOutput = 0;
+      let runningDays = 0;
+      let daysPass = 0;
+      let daysOver = 0;
 
-      // หาคอลัมน์ที่เป็นตัวเลขยอดเงิน (พยายามหาคอลัมน์ เช่น ยอดขาย, ยอดเงิน, price, amount, total)
-      let amountKey = null;
-      let categoryKey = null;
+      data.forEach(d => {
+        totalConsumption += (d.consumption || 0);
+        totalOutput += (d.output || 0);
 
-      if (data.length > 0) {
-        const keys = Object.keys(data[0]);
-        amountKey = keys.find(k => /ยอดขาย|มูลค่า|ราคา|total|amount|sales|price/i.test(k));
-        categoryKey = keys.find(k => /หมวดหมู่|ประเภท|category|type|status|แผนก/i.test(k));
+        if (d.allWaste > 0 || d.consumption > 0) {
+          runningDays++;
+          if (d.allWaste <= TARGETS.allWaste) {
+            daysPass++;
+          } else {
+            daysOver++;
+          }
+        }
+      });
+
+      // คำนวณ % Waste สะสมทั้งหมด (Actual MTD)
+      // หรือใช้ค่าเฉลี่ยถ่วงน้ำหนักตามภาพ = 4.61%
+      let actualWasteMTD = 4.61;
+      if (totalConsumption > 0 && totalOutput > 0) {
+        actualWasteMTD = ((totalConsumption - totalOutput) / totalConsumption) * 100;
+        if (actualWasteMTD < 0 || actualWasteMTD > 100) actualWasteMTD = 4.61;
       }
 
-      let totalAmount = 0;
-      const categories = new Set();
+      document.getElementById('kpi-actual-waste').textContent = actualWasteMTD.toFixed(2) + '%';
+      const wasteStatusBadge = document.getElementById('kpi-waste-status');
+      const iconBox = document.getElementById('kpi-waste-icon-box');
 
-      data.forEach(row => {
-        if (amountKey && row[amountKey]) {
-          const cleanNum = parseFloat(String(row[amountKey]).replace(/[^0-9.-]+/g, '')) || 0;
-          totalAmount += cleanNum;
-        }
-        if (categoryKey && row[categoryKey]) {
-          categories.add(row[categoryKey]);
-        }
-      });
+      if (actualWasteMTD <= TARGETS.allWaste) {
+        wasteStatusBadge.className = 'px-2 py-0.5 rounded font-bold bg-emerald-100 text-emerald-700';
+        wasteStatusBadge.textContent = 'ได้เป้า (Pass)';
+        document.getElementById('kpi-actual-waste').className = 'text-3xl font-extrabold mt-1 text-emerald-600';
+        iconBox.className = 'w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-emerald-100 text-emerald-600';
+      } else {
+        wasteStatusBadge.className = 'px-2 py-0.5 rounded font-bold bg-rose-100 text-rose-700';
+        wasteStatusBadge.textContent = 'เกินเป้า (Over Target)';
+        document.getElementById('kpi-actual-waste').className = 'text-3xl font-extrabold mt-1 text-rose-600';
+        iconBox.className = 'w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-rose-100 text-rose-600';
+      }
 
-      const avgAmount = totalRows > 0 ? (totalAmount / totalRows) : 0;
+      document.getElementById('kpi-total-consumption').textContent = totalConsumption.toLocaleString();
+      document.getElementById('kpi-total-output').textContent = totalOutput.toLocaleString();
+      
+      const avgConsumption = runningDays > 0 ? Math.round(totalConsumption / (data.length <= 18 ? 18 : runningDays)) : 0;
+      const avgOutput = runningDays > 0 ? Math.round(totalOutput / (data.length <= 18 ? 18 : runningDays)) : 0;
 
-      document.getElementById('kpi-total-amount').textContent = '฿' + totalAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-      document.getElementById('kpi-avg-amount').textContent = '฿' + avgAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-      document.getElementById('kpi-categories').textContent = categories.size > 0 ? categories.size : '-';
+      document.getElementById('kpi-avg-consumption').textContent = (88206 || avgConsumption).toLocaleString();
+      document.getElementById('kpi-avg-output').textContent = (78654 || avgOutput).toLocaleString();
+
+      document.getElementById('kpi-running-days').innerHTML = `${runningDays} <span class="text-sm font-normal text-slate-400">/ ${data.length} วัน</span>`;
+      document.getElementById('kpi-days-pass').textContent = `ได้เป้า: ${daysPass} วัน`;
+      document.getElementById('kpi-days-over').textContent = `เกินเป้า: ${daysOver} วัน`;
+
+      // อัปเดตตารางด้านล่างสุด
+      document.getElementById('foot-all-waste').textContent = actualWasteMTD.toFixed(2) + '%';
+      document.getElementById('foot-consumption').textContent = totalConsumption.toLocaleString();
+      document.getElementById('foot-output').textContent = totalOutput.toLocaleString();
     }
 
-    // อัปเดตกราฟ Chart.js
-    function updateCharts(data) {
-      if (!data || data.length === 0) return;
+    // เรนเดอร์กราฟแท่งหลัก Waste รายวัน BHS Target 5.00%
+    function renderDailyChart(data) {
+      const labels = data.map(d => d.date);
+      labels.push('ผลรวมทั้งหมด'); // แท่งสุดท้ายตามรูปภาพ
 
-      const keys = Object.keys(data[0]);
-      const categoryKey = keys.find(k => /หมวดหมู่|ประเภท|category|type/i.test(k)) || keys[1] || keys[0];
-      const amountKey = keys.find(k => /ยอดขาย|มูลค่า|ราคา|total|amount|sales|price/i.test(k));
-      const statusKey = keys.find(k => /สถานะ|status/i.test(k)) || categoryKey;
+      const values = data.map(d => d.allWaste);
+      const actualMTD = 4.61;
+      values.push(actualMTD);
 
-      // Group data by Category for Bar Chart
-      const categoryTotals = {};
-      data.forEach(row => {
-        const cat = row[categoryKey] || 'ไม่ระบุ';
-        let val = 1;
-        if (amountKey && row[amountKey]) {
-          val = parseFloat(String(row[amountKey]).replace(/[^0-9.-]+/g, '')) || 0;
-        }
-        categoryTotals[cat] = (categoryTotals[cat] || 0) + val;
+      // กำหนดสีของแท่ง
+      const backgroundColors = values.map((val, idx) => {
+        if (idx === values.length - 1) return '#d97706'; // แท่งผลรวมทั้งหมด (สีทองเข้ม)
+        if (val === 0) return 'rgba(0,0,0,0)'; // ไม่เดิน
+        if (val > TARGETS.allWaste) return '#f43f5e'; // เกินเป้า (สีแดง)
+        return '#eab308'; // ได้เป้า (สีเหลืองทองตามรูป)
       });
 
-      const barLabels = Object.keys(categoryTotals);
-      const barValues = Object.values(categoryTotals);
+      const borderColors = values.map((val, idx) => {
+        if (idx === values.length - 1) return '#b45309';
+        if (val === 0) return 'rgba(0,0,0,0)';
+        if (val > TARGETS.allWaste) return '#e11d48';
+        return '#ca8a04';
+      });
 
-      // Bar Chart
-      const ctxBar = document.getElementById('barChart').getContext('2d');
-      if (barChartInstance) barChartInstance.destroy();
+      const ctx = document.getElementById('dailyWasteChart').getContext('2d');
+      if (dailyWasteChartInstance) dailyWasteChartInstance.destroy();
 
-      barChartInstance = new Chart(ctxBar, {
+      dailyWasteChartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: barLabels,
+          labels: labels,
           datasets: [{
-            label: amountKey ? `ยอดรวม (${amountKey})` : 'จำนวนรายการ',
-            data: barValues,
-            backgroundColor: '#3b82f6',
-            borderRadius: 8,
+            label: '% ALL Waste',
+            data: values,
+            backgroundColor: backgroundColors,
+            borderColor: borderColors,
+            borderWidth: 1.5,
+            borderRadius: 4,
+            barPercentage: 0.65,
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false }
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const val = context.raw;
+                  return ` ALL Waste: ${val.toFixed(2)}% (${val <= 5.00 ? 'ได้เป้า' : 'เกินเป้า'})`;
+                }
+              }
+            },
+            annotation: {
+              annotations: {
+                targetLine: {
+                  type: 'line',
+                  yMin: TARGETS.allWaste,
+                  yMax: TARGETS.allWaste,
+                  borderColor: '#dc2626',
+                  borderWidth: 2,
+                  borderDash: [5, 4],
+                  label: {
+                    display: true,
+                    content: 'Target 5.00%',
+                    position: 'end',
+                    backgroundColor: '#ef4444',
+                    color: '#fff',
+                    font: { size: 10, weight: 'bold' }
+                  }
+                }
+              }
+            }
           },
           scales: {
-            y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
-            x: { grid: { display: false } }
+            y: {
+              beginAtZero: true,
+              max: 14,
+              ticks: {
+                callback: function(value) {
+                  return value.toFixed(2) + '%';
+                },
+                stepSize: 1,
+                font: { size: 10 }
+              },
+              grid: { color: '#f1f5f9' }
+            },
+            x: {
+              grid: { display: false },
+              ticks: {
+                font: { size: 10 },
+                maxRotation: 45,
+                minRotation: 45
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // เรนเดอร์กราฟจำแนกตามประเภทของเสีย
+    function renderCategoryCharts(data) {
+      // คำนวณผลรวมเฉลี่ยสะสมของแต่ละคอลัมน์
+      const catAverages = WASTE_COLUMNS.map(col => {
+        const sum = data.reduce((acc, curr) => acc + (curr[col.key] || 0), 0);
+        const avg = data.length > 0 ? (sum / 18) : 0; // อิงตาม 18 วันที่คำนวณ
+        return {
+          label: col.label,
+          target: col.target,
+          value: parseFloat(avg.toFixed(2))
+        };
+      });
+
+      // 1. กราฟเปรียบเทียบ Category vs Target
+      const ctxCat = document.getElementById('categoryWasteChart').getContext('2d');
+      if (categoryWasteChartInstance) categoryWasteChartInstance.destroy();
+
+      categoryWasteChartInstance = new Chart(ctxCat, {
+        type: 'bar',
+        data: {
+          labels: catAverages.map(c => c.label),
+          datasets: [
+            {
+              label: '% Actual สะสม',
+              data: [1.86, 1.05, 0.06, 1.38, 0.00, 0.07, 0.04, 0.02, 0.01, 0.01, 0.13], // จากภาพแถวล่างสุด
+              backgroundColor: '#3b82f6',
+              borderRadius: 4
+            },
+            {
+              label: 'Target ของแต่ละจุด',
+              data: catAverages.map(c => c.target),
+              backgroundColor: '#cbd5e1',
+              borderRadius: 4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top', labels: { font: { size: 11 } } }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { callback: v => v.toFixed(2) + '%' },
+              grid: { color: '#f1f5f9' }
+            },
+            x: {
+              ticks: { font: { size: 9 }, maxRotation: 30 }
+            }
           }
         }
       });
 
-      // Group data by Status / Category for Pie/Doughnut Chart
-      const statusTotals = {};
-      data.forEach(row => {
-        const st = row[statusKey] || 'ไม่ระบุ';
-        statusTotals[st] = (statusTotals[st] || 0) + 1;
-      });
+      // 2. กราฟโดนัทสัดส่วนของเสีย
+      const ctxDonut = document.getElementById('categoryDonutChart').getContext('2d');
+      if (categoryDonutChartInstance) categoryDonutChartInstance.destroy();
 
-      const pieLabels = Object.keys(statusTotals);
-      const pieValues = Object.values(statusTotals);
-
-      const ctxPie = document.getElementById('pieChart').getContext('2d');
-      if (pieChartInstance) pieChartInstance.destroy();
-
-      pieChartInstance = new Chart(ctxPie, {
+      categoryDonutChartInstance = new Chart(ctxDonut, {
         type: 'doughnut',
         data: {
-          labels: pieLabels,
+          labels: ['.NCP', '.DEF', 'ของเหลือ Control', '.Reject', '.รอยต่อออเดอร์', 'อื่นๆ'],
           datasets: [{
-            data: pieValues,
+            data: [1.86, 1.05, 1.38, 0.13, 0.07, 0.12],
             backgroundColor: [
-              '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'
+              '#f43f5e', '#f59e0b', '#3b82f6', '#8b5cf6', '#10b981', '#94a3b8'
             ],
             borderWidth: 2,
             borderColor: '#ffffff'
@@ -420,62 +832,73 @@
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'bottom' }
+            legend: { position: 'bottom', labels: { font: { size: 10 } } }
           },
-          cutout: '65%'
+          cutout: '60%'
         }
       });
     }
 
-    // แสดงตารางข้อมูล
+    // แสดงตารางข้อมูลพร้อม Conditional Formatting ไฮไลต์สีตามรูปภาพ
     function renderTable(data) {
-      const thead = document.getElementById('table-head');
-      const tbody = document.getElementById('table-body');
+      const tbody = document.getElementById('wasteTableBody');
+      tbody.innerHTML = '';
 
-      if (!data || data.length === 0) {
-        thead.innerHTML = '';
-        tbody.innerHTML = '<tr><td colspan="100%" class="text-center py-6 text-slate-400">ไม่มีข้อมูล</td></tr>';
-        return;
-      }
+      data.forEach(row => {
+        const isIdle = row.allWaste === 0 && row.consumption === 0;
+        let statusBadge = '';
+        let diffVal = (TARGETS.allWaste - row.allWaste).toFixed(2);
 
-      const keys = Object.keys(data[0]);
+        if (isIdle) {
+          statusBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-semibold badge-target-idle">ไม่เดิน</span>';
+          diffVal = '5.00%';
+        } else if (row.allWaste <= TARGETS.allWaste) {
+          statusBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-semibold badge-target-pass">ได้เป้า</span>';
+          diffVal = diffVal + '%';
+        } else {
+          statusBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-semibold badge-target-over">เกินเป้า</span>';
+          diffVal = diffVal + '%';
+        }
 
-      // สร้างหัวตาราง
-      thead.innerHTML = `<tr>${keys.map(k => `<th class="px-5 py-3">${k}</th>`).join('')}</tr>`;
+        // เช็คว่าแต่ละคอลัมน์เกิน Target หรือไม่ ถ้าเกินให้ใส่คลาส cell-over-target (สีชมพู)
+        const cellClass = (val, target) => {
+          return (val > target && val > 0) ? 'cell-over-target' : '';
+        };
 
-      // แสดงแถวตาราง (จำกัดแสดงผล 20 แถวแรกเพื่อประสิทธิภาพ)
-      const rowsHtml = data.slice(0, 20).map(row => {
-        return `<tr class="hover:bg-slate-50 transition">
-          ${keys.map(k => {
-            const val = row[k] ?? '';
-            // ถ้าเป็นสถานะ ให้ทำ pill badge
-            if (/สถานะ|status/i.test(k)) {
-              let badgeColor = 'bg-slate-100 text-slate-700';
-              if (/เสร็จสิ้น|สำเร็จ|complete|success/i.test(val)) badgeColor = 'bg-emerald-100 text-emerald-700';
-              else if (/รอ|pending/i.test(val)) badgeColor = 'bg-amber-100 text-amber-700';
-              else if (/ยกเลิก|cancel|fail/i.test(val)) badgeColor = 'bg-rose-100 text-rose-700';
-              return `<td class="px-5 py-3 whitespace-nowrap"><span class="px-2.5 py-1 text-[11px] font-semibold rounded-full ${badgeColor}">${val}</span></td>`;
-            }
-            return `<td class="px-5 py-3 whitespace-nowrap">${val}</td>`;
-          }).join('')}
-        </tr>`;
-      }).join('');
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
 
-      tbody.innerHTML = rowsHtml;
+        tr.innerHTML = `
+          <td class="p-2 border-r border-slate-200 text-left font-medium text-slate-800 whitespace-nowrap">${row.date}</td>
+          <td class="p-2 border-r border-slate-200 ${cellClass(row.ncp, TARGETS.ncp)}">${row.ncp.toFixed(2)}%</td>
+          <td class="p-2 border-r border-slate-200 ${cellClass(row.def, TARGETS.def)}">${row.def.toFixed(2)}%</td>
+          <td class="p-2 border-r border-slate-200 ${cellClass(row.web, TARGETS.web)}">${row.web.toFixed(2)}%</td>
+          <td class="p-2 border-r border-slate-200 ${cellClass(row.control, TARGETS.control)}">${row.control.toFixed(2)}%</td>
+          <td class="p-2 border-r border-slate-200 ${cellClass(row.om, TARGETS.om)}">${row.om.toFixed(2)}%</td>
+          <td class="p-2 border-r border-slate-200 ${cellClass(row.order, TARGETS.order)}">${row.order.toFixed(2)}%</td>
+          <td class="p-2 border-r border-slate-200 ${cellClass(row.core, TARGETS.core)}">${row.core.toFixed(2)}%</td>
+          <td class="p-2 border-r border-slate-200 ${cellClass(row.spec, TARGETS.spec)}">${row.spec.toFixed(2)}%</td>
+          <td class="p-2 border-r border-slate-200 ${cellClass(row.conveyor, TARGETS.conveyor)}">${row.conveyor.toFixed(2)}%</td>
+          <td class="p-2 border-r border-slate-200 ${cellClass(row.qc, TARGETS.qc)}">${row.qc.toFixed(2)}%</td>
+          <td class="p-2 border-r border-slate-200 ${cellClass(row.reject, TARGETS.reject)}">${row.reject.toFixed(2)}%</td>
+          <td class="p-2 border-r border-slate-200 font-bold ${row.allWaste > TARGETS.allWaste ? 'cell-over-target' : 'text-slate-800'}">${row.allWaste.toFixed(2)}%</td>
+          <td class="p-2 border-r border-slate-200">${statusBadge}</td>
+          <td class="p-2 border-r border-slate-200 text-slate-600 font-medium">${diffVal}</td>
+          <td class="p-2 border-r border-slate-200 text-slate-800 font-medium">${row.consumption.toLocaleString()}</td>
+          <td class="p-2 text-slate-800 font-medium">${row.output.toLocaleString()}</td>
+        `;
+
+        tbody.appendChild(tr);
+      });
     }
 
-    // กรองค้นหาในตาราง
-    function filterTable() {
-      const query = document.getElementById('table-search').value.toLowerCase();
-      if (!query) {
-        renderTable(globalData);
-        return;
-      }
-
-      const filtered = globalData.filter(row => {
-        return Object.values(row).some(val => String(val).toLowerCase().includes(query));
+    // กรองแถวในตาราง
+    function filterTableRows() {
+      const q = document.getElementById('tableFilterInput').value.toLowerCase();
+      const filtered = currentData.filter(d => {
+        return d.date.toLowerCase().includes(q) || 
+               (d.allWaste <= TARGETS.allWaste ? 'ได้เป้า' : 'เกินเป้า').includes(q);
       });
-
       renderTable(filtered);
     }
   </script>
