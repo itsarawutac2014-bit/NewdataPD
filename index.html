@@ -94,35 +94,35 @@
         <!-- Filters & Action / Status -->
         <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap justify-end">
           
-          <!-- Machine Filter Dropdown -->
-          <div class="flex items-center bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 shadow-xs hover:border-blue-400 transition">
-            <i class="fa-solid fa-industry text-amber-500 mr-1.5 text-xs"></i>
-            <span class="text-xs text-slate-500 font-semibold mr-1">เครื่อง:</span>
-            <select id="selectedMachine" onchange="onFilterChange()" class="text-xs font-bold text-slate-800 bg-transparent border-none focus:outline-none cursor-pointer">
-              <option value="BHS" selected>BHS</option>
-              <option value="ISOWA">ISOWA</option>
-              <option value="YUELI">YUELI</option>
-              <option value="TOTAL">รวมทุกเครื่อง (TOTAL)</option>
+          <!-- Machine Filter Dropdown (สีเข้ม ตัวหนังสือหนา เด่นชัด) -->
+          <div class="flex items-center bg-slate-900 border-2 border-slate-700 rounded-xl px-3 py-1.5 shadow-sm hover:border-slate-500 transition text-white">
+            <i class="fa-solid fa-industry text-amber-400 mr-2 text-xs"></i>
+            <span class="text-xs text-slate-300 font-bold mr-1.5 whitespace-nowrap">เครื่อง:</span>
+            <select id="selectedMachine" onchange="onFilterChange()" class="text-xs font-black text-white bg-slate-900 border-none focus:outline-none cursor-pointer">
+              <option value="BHS" selected class="bg-slate-900 text-white font-bold">BHS</option>
+              <option value="ISOWA" class="bg-slate-900 text-white font-bold">ISOWA</option>
+              <option value="YUELI" class="bg-slate-900 text-white font-bold">YUELI</option>
+              <option value="TOTAL" class="bg-slate-900 text-white font-bold">รวมทุกเครื่อง (TOTAL)</option>
             </select>
           </div>
 
-          <!-- Month Filter Dropdown -->
-          <div class="flex items-center bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 shadow-xs hover:border-blue-400 transition">
-            <i class="fa-solid fa-calendar-days text-blue-500 mr-1.5 text-xs"></i>
-            <span class="text-xs text-slate-500 font-semibold mr-1">เดือน:</span>
-            <select id="selectedMonth" onchange="onFilterChange()" class="text-xs font-bold text-slate-800 bg-transparent border-none focus:outline-none cursor-pointer">
-              <option value="10" selected>ตุลาคม (10)</option>
-              <option value="9">กันยายน (09)</option>
-              <option value="8">สิงหาคม (08)</option>
-              <option value="7">กรกฎาคม (07)</option>
-              <option value="6">มิถุนายน (06)</option>
-              <option value="5">พฤษภาคม (05)</option>
-              <option value="4">เมษายน (04)</option>
-              <option value="3">มีนาคม (03)</option>
-              <option value="2">กุมภาพันธ์ (02)</option>
-              <option value="1">มกราคม (01)</option>
-              <option value="11">พฤศจิกายน (11)</option>
-              <option value="12">ธันวาคม (12)</option>
+          <!-- Month Filter Dropdown (สีเข้ม ตัวหนังสือหนา เด่นชัด) -->
+          <div class="flex items-center bg-slate-900 border-2 border-slate-700 rounded-xl px-3 py-1.5 shadow-sm hover:border-slate-500 transition text-white">
+            <i class="fa-solid fa-calendar-days text-sky-400 mr-2 text-xs"></i>
+            <span class="text-xs text-slate-300 font-bold mr-1.5 whitespace-nowrap">เดือน:</span>
+            <select id="selectedMonth" onchange="onFilterChange()" class="text-xs font-black text-white bg-slate-900 border-none focus:outline-none cursor-pointer">
+              <option value="10" selected class="bg-slate-900 text-white font-bold">ตุลาคม (10)</option>
+              <option value="9" class="bg-slate-900 text-white font-bold">กันยายน (09)</option>
+              <option value="8" class="bg-slate-900 text-white font-bold">สิงหาคม (08)</option>
+              <option value="7" class="bg-slate-900 text-white font-bold">กรกฎาคม (07)</option>
+              <option value="6" class="bg-slate-900 text-white font-bold">มิถุนายน (06)</option>
+              <option value="5" class="bg-slate-900 text-white font-bold">พฤษภาคม (05)</option>
+              <option value="4" class="bg-slate-900 text-white font-bold">เมษายน (04)</option>
+              <option value="3" class="bg-slate-900 text-white font-bold">มีนาคม (03)</option>
+              <option value="2" class="bg-slate-900 text-white font-bold">กุมภาพันธ์ (02)</option>
+              <option value="1" class="bg-slate-900 text-white font-bold">มกราคม (01)</option>
+              <option value="11" class="bg-slate-900 text-white font-bold">พฤศจิกายน (11)</option>
+              <option value="12" class="bg-slate-900 text-white font-bold">ธันวาคม (12)</option>
             </select>
           </div>
 
@@ -151,36 +151,36 @@
     <!-- KPI Cards Summary -->
     <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
       
-      <!-- Card 1: Actual Waste MTD -->
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+      <!-- Card 1: Actual Waste MTD (สีเข้ม ตัวหนังสือหนา เด่นชัด) -->
+      <div class="bg-gradient-to-br from-emerald-950 via-emerald-900 to-teal-950 p-5 rounded-2xl border-2 border-emerald-500 shadow-md text-white relative overflow-hidden flex flex-col justify-between">
         <div class="flex justify-between items-start">
           <div>
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">ALL Waste สะสม (Actual)</p>
-            <h3 class="text-3xl font-extrabold mt-1" id="kpi-actual-waste">4.61%</h3>
+            <p class="text-xs font-black text-emerald-200 uppercase tracking-wider">ALL Waste สะสม (Actual)</p>
+            <h3 class="text-3xl sm:text-4xl font-black mt-1 text-white tracking-tight drop-shadow-sm" id="kpi-actual-waste">4.61%</h3>
           </div>
-          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-emerald-100 text-emerald-600" id="kpi-waste-icon-box">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-emerald-500/20 text-emerald-300 border border-emerald-400/40" id="kpi-waste-icon-box">
             <i class="fa-solid fa-bullseye"></i>
           </div>
         </div>
         <div class="mt-3 flex items-center gap-2 text-xs">
-          <span id="kpi-waste-status" class="px-2 py-0.5 rounded font-bold bg-emerald-100 text-emerald-700">ได้เป้า (Pass)</span>
-          <span class="text-slate-500">เป้าหมาย <strong>5.00%</strong></span>
+          <span id="kpi-waste-status" class="px-2.5 py-0.5 rounded-full font-black bg-emerald-400 text-emerald-950">ได้เป้า (Pass)</span>
+          <span class="text-emerald-200 font-semibold">เป้าหมาย <strong class="text-white font-bold">5.00%</strong></span>
         </div>
       </div>
 
-      <!-- Card 2: Total Consumption -->
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+      <!-- Card 2: Total Consumption (สีเข้ม ตัวหนังสือหนา เด่นชัด) -->
+      <div class="bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 p-5 rounded-2xl border-2 border-blue-500 shadow-md text-white relative overflow-hidden flex flex-col justify-between">
         <div class="flex justify-between items-start">
           <div>
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Consumption</p>
-            <h3 class="text-3xl font-extrabold text-slate-800 mt-1" id="kpi-total-consumption">1,587,701</h3>
+            <p class="text-xs font-black text-blue-200 uppercase tracking-wider">Total Consumption</p>
+            <h3 class="text-3xl sm:text-4xl font-black text-white mt-1 tracking-tight drop-shadow-sm" id="kpi-total-consumption">1,587,701</h3>
           </div>
-          <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl">
+          <div class="w-12 h-12 bg-blue-500/20 text-blue-300 border border-blue-400/40 rounded-xl flex items-center justify-center text-xl">
             <i class="fa-solid fa-box-archive"></i>
           </div>
         </div>
-        <div class="mt-3 text-xs text-slate-500">
-          ค่าเฉลี่ย/วัน: <strong class="text-slate-700" id="kpi-avg-consumption">88,206</strong>
+        <div class="mt-3 text-xs text-blue-200 font-semibold">
+          ค่าเฉลี่ย/วัน: <strong class="text-cyan-300 font-black text-sm" id="kpi-avg-consumption">88,206</strong>
         </div>
       </div>
 
@@ -272,32 +272,83 @@
       </div>
 
       <!-- Executive Summary Cards Ribbon ด้านบนตาราง สวยงามชัดเจน -->
-      <div class="p-4 bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 border-b border-emerald-100 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div class="bg-white/90 backdrop-blur p-3.5 rounded-xl border border-emerald-200 shadow-xs">
-          <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">ALL Waste สะสม (Actual MTD)</p>
-          <div class="flex items-baseline gap-2 mt-1">
-            <span class="text-2xl sm:text-3xl font-black text-emerald-600" id="top-summary-waste">4.61%</span>
-            <span class="px-2 py-0.5 text-[11px] font-bold bg-emerald-100 text-emerald-800 rounded">ได้เป้า ✅</span>
+      <div class="p-3.5 sm:p-4.5 bg-gradient-to-r from-slate-100 via-emerald-50/30 to-slate-100 border-b border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        
+        <!-- ช่องที่ 1: ALL Waste สะสม (สีเข้ม ช่องใหญ่ ตัวหนังสือหนา เด่นชัด) -->
+        <div class="bg-gradient-to-br from-[#064e3b] via-[#065f46] to-[#022c22] p-4 sm:p-5 rounded-2xl border-2 border-emerald-400/80 shadow-md text-white relative overflow-hidden flex flex-col justify-between min-h-[135px]">
+          <div class="flex items-center justify-between gap-1">
+            <span class="text-xs sm:text-sm font-black text-emerald-200 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-chart-pie text-emerald-400"></i> ALL Waste สะสม (MTD)
+            </span>
+            <span id="top-summary-waste-badge" class="px-2.5 py-0.5 text-xs font-black bg-emerald-400 text-emerald-950 rounded-full shadow-xs">
+              ได้เป้า ✅
+            </span>
           </div>
-          <p class="text-[11px] text-slate-500 mt-1">Target: <strong class="text-slate-700">5.00%</strong> (ประหยัดได้ <strong class="text-emerald-700">+0.39%</strong>)</p>
+          <div class="my-2">
+            <span class="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight drop-shadow-sm" id="top-summary-waste">4.61%</span>
+          </div>
+          <div class="pt-2 border-t border-emerald-800/80 flex items-center justify-between text-xs text-emerald-200 font-semibold">
+            <span>Target: <strong class="text-white font-bold">5.00%</strong></span>
+            <span id="top-summary-waste-diff" class="font-bold text-emerald-300 bg-emerald-950/60 px-2 py-0.5 rounded">ประหยัด +0.39%</span>
+          </div>
         </div>
 
-        <div class="bg-white/90 backdrop-blur p-3.5 rounded-xl border border-blue-200 shadow-xs">
-          <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Consumtion</p>
-          <p class="text-2xl sm:text-3xl font-black text-slate-800 mt-1" id="top-summary-consumption">1,587,701</p>
-          <p class="text-[11px] text-slate-500 mt-1">เฉลี่ยต่อวัน: <strong class="text-blue-700 font-bold" id="top-summary-avg-consumption">88,206</strong></p>
+        <!-- ช่องที่ 2: Total Consumtion (สีเข้ม ช่องใหญ่ ตัวหนังสือหนา เด่นชัด) -->
+        <div class="bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#172554] p-4 sm:p-5 rounded-2xl border-2 border-blue-400/80 shadow-md text-white relative overflow-hidden flex flex-col justify-between min-h-[135px]">
+          <div class="flex items-center justify-between gap-1">
+            <span class="text-xs sm:text-sm font-black text-blue-200 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-boxes-stacked text-blue-400"></i> Total Consumtion
+            </span>
+            <span class="px-2 py-0.5 text-[11px] font-bold bg-blue-900/80 text-blue-200 border border-blue-400/40 rounded-full">
+              กก. (kg)
+            </span>
+          </div>
+          <div class="my-2">
+            <span class="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight drop-shadow-sm" id="top-summary-consumption">1,587,701</span>
+          </div>
+          <div class="pt-2 border-t border-blue-800/80 flex items-center justify-between text-xs text-blue-200 font-semibold">
+            <span>เฉลี่ยต่อวัน:</span>
+            <strong class="text-cyan-300 font-black text-sm bg-blue-950/60 px-2 py-0.5 rounded" id="top-summary-avg-consumption">88,206</strong>
+          </div>
         </div>
 
-        <div class="bg-white/90 backdrop-blur p-3.5 rounded-xl border border-indigo-200 shadow-xs">
-          <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Out Put</p>
-          <p class="text-2xl sm:text-3xl font-black text-slate-800 mt-1" id="top-summary-output">1,415,766</p>
-          <p class="text-[11px] text-slate-500 mt-1">เฉลี่ยต่อวัน: <strong class="text-indigo-700 font-bold" id="top-summary-avg-output">78,654</strong></p>
+        <!-- ช่องที่ 3: Total Out Put -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col justify-between min-h-[135px]">
+          <div class="flex items-center justify-between gap-1">
+            <span class="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-truck-ramp-box text-indigo-500"></i> Total Out Put
+            </span>
+            <span class="px-2 py-0.5 text-[11px] font-bold bg-slate-100 text-slate-600 rounded-full">
+              กก. (kg)
+            </span>
+          </div>
+          <div class="my-2">
+            <span class="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-800" id="top-summary-output">1,415,766</span>
+          </div>
+          <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-semibold">
+            <span>เฉลี่ยต่อวัน:</span>
+            <strong class="text-indigo-700 font-bold text-sm" id="top-summary-avg-output">78,654</strong>
+          </div>
         </div>
 
-        <div class="bg-white/90 backdrop-blur p-3.5 rounded-xl border border-amber-200 shadow-xs">
-          <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">การเดินเครื่องผลิต</p>
-          <p class="text-2xl sm:text-3xl font-black text-slate-800 mt-1">14 <span class="text-sm font-normal text-slate-400">/ 31 วัน</span></p>
-          <p class="text-[11px] text-slate-600 mt-1"><span class="text-emerald-700 font-bold">ได้เป้า 8 วัน</span> • <span class="text-rose-700 font-bold">เกินเป้า 6 วัน</span></p>
+        <!-- ช่องที่ 4: การเดินเครื่องผลิต -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl border-2 border-slate-200 shadow-xs flex flex-col justify-between min-h-[135px]">
+          <div class="flex items-center justify-between gap-1">
+            <span class="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-calendar-check text-amber-500"></i> การเดินเครื่องผลิต
+            </span>
+            <span class="px-2 py-0.5 text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200 rounded-full">
+              วันผลิต
+            </span>
+          </div>
+          <div class="my-2">
+            <span class="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-800" id="top-summary-running-days">14</span>
+            <span class="text-sm font-bold text-slate-400">/ 31 วัน</span>
+          </div>
+          <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-bold">
+            <span class="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200" id="top-summary-pass-days">ได้เป้า 8 วัน</span>
+            <span class="text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200" id="top-summary-over-days">เกินเป้า 6 วัน</span>
+          </div>
         </div>
       </div>
 
@@ -1279,25 +1330,48 @@
 
       if (actualWasteMTD <= TARGETS.allWaste) {
         if (wasteStatusBadge) {
-          wasteStatusBadge.className = 'px-2 py-0.5 rounded font-bold bg-emerald-100 text-emerald-700';
+          wasteStatusBadge.className = 'px-2.5 py-0.5 rounded-full font-black bg-emerald-400 text-emerald-950';
           wasteStatusBadge.textContent = 'ได้เป้า (Pass)';
         }
         if (actualWasteEl) {
-          actualWasteEl.className = 'text-3xl font-extrabold mt-1 text-emerald-600';
+          actualWasteEl.className = 'text-3xl sm:text-4xl font-black mt-1 text-white tracking-tight drop-shadow-sm';
         }
         if (iconBox) {
-          iconBox.className = 'w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-emerald-100 text-emerald-600';
+          iconBox.className = 'w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-emerald-500/20 text-emerald-300 border border-emerald-400/40';
         }
       } else {
         if (wasteStatusBadge) {
-          wasteStatusBadge.className = 'px-2 py-0.5 rounded font-bold bg-rose-100 text-rose-700';
+          wasteStatusBadge.className = 'px-2.5 py-0.5 rounded-full font-black bg-rose-500 text-white';
           wasteStatusBadge.textContent = 'เกินเป้า (Over Target)';
         }
         if (actualWasteEl) {
-          actualWasteEl.className = 'text-3xl font-extrabold mt-1 text-rose-600';
+          actualWasteEl.className = 'text-3xl sm:text-4xl font-black mt-1 text-rose-300 tracking-tight drop-shadow-sm';
         }
         if (iconBox) {
-          iconBox.className = 'w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-rose-100 text-rose-600';
+          iconBox.className = 'w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-rose-500/20 text-rose-300 border border-rose-400/40';
+        }
+      }
+
+      // อัปเดตการ์ดสรุปบนริบบิ้นตาราง (Card 1 & 2 สีเข้ม เด่นชัด)
+      const topSummaryWasteBadge = document.getElementById('top-summary-waste-badge');
+      const topSummaryWasteDiff = document.getElementById('top-summary-waste-diff');
+      if (topSummaryWasteBadge) {
+        if (actualWasteMTD <= TARGETS.allWaste) {
+          topSummaryWasteBadge.className = 'px-2.5 py-0.5 text-xs font-black bg-emerald-400 text-emerald-950 rounded-full shadow-xs';
+          topSummaryWasteBadge.textContent = 'ได้เป้า ✅';
+        } else {
+          topSummaryWasteBadge.className = 'px-2.5 py-0.5 text-xs font-black bg-rose-500 text-white rounded-full shadow-xs';
+          topSummaryWasteBadge.textContent = 'เกินเป้า ❌';
+        }
+      }
+      if (topSummaryWasteDiff) {
+        const diff = (TARGETS.allWaste - actualWasteMTD).toFixed(2);
+        if (actualWasteMTD <= TARGETS.allWaste) {
+          topSummaryWasteDiff.className = 'font-bold text-emerald-300 bg-emerald-950/60 px-2 py-0.5 rounded';
+          topSummaryWasteDiff.textContent = `ประหยัด +${diff}%`;
+        } else {
+          topSummaryWasteDiff.className = 'font-bold text-rose-300 bg-rose-950/60 px-2 py-0.5 rounded';
+          topSummaryWasteDiff.textContent = `เกินเป้า +${Math.abs(diff)}%`;
         }
       }
 
@@ -1356,6 +1430,10 @@
       safeSetHTML('kpi-running-days', `${runningDays} <span class="text-sm font-normal text-slate-400">/ ${data.length} วัน</span>`);
       safeSetText('kpi-days-pass', `ได้เป้า: ${daysPass} วัน`);
       safeSetText('kpi-days-over', `เกินเป้า: ${daysOver} วัน`);
+
+      safeSetText('top-summary-running-days', runningDays);
+      safeSetText('top-summary-pass-days', `ได้เป้า ${daysPass} วัน`);
+      safeSetText('top-summary-over-days', `เกินเป้า ${daysOver} วัน`);
 
       safeSetText('header-days-pass', daysPass);
       safeSetText('header-days-over', daysOver);
