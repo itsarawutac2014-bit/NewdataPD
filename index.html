@@ -300,8 +300,13 @@
               <th class="p-2.5 border-r border-emerald-200 min-w-[110px] bg-amber-400 text-slate-900 font-bold">Consumtion</th>
               <th class="p-2.5 min-w-[110px] bg-amber-400 text-slate-900 font-bold">Out Put</th>
             </tr>
-            <!-- แถวสรุปผลรวมทั้งหมด (ยกขึ้นมาไว้ด้านบนตามที่ผู้ใช้ขอ) -->
-            <tr class="bg-emerald-600 text-white font-bold border-b border-emerald-700 text-xs">
+          </thead>
+          <tbody id="wasteTableBody" class="divide-y divide-slate-200">
+            <!-- Rows injected by JavaScript -->
+          </tbody>
+          <tfoot>
+            <!-- แถวสรุปผลรวมทั้งหมด (ยกมาไว้ด้านล่างแทนที่แถวเดิมตามที่ผู้ใช้ขอ) -->
+            <tr class="bg-emerald-600 text-white font-bold border-t-2 border-emerald-700 text-xs">
               <td class="p-2.5 text-left font-black tracking-wide whitespace-nowrap bg-emerald-700">
                 <i class="fa-solid fa-calculator text-amber-300 mr-1"></i> ผลรวมทั้งหมด
               </td>
@@ -317,52 +322,19 @@
               <td class="p-2 border-r border-emerald-500" id="top-row-qc">0.01%</td>
               <td class="p-2 border-r border-emerald-500" id="top-row-reject">0.13%</td>
               <td class="p-2 border-r border-emerald-500 bg-amber-300 text-slate-900 font-black text-sm" id="top-row-all-waste">4.61%</td>
-              <td class="p-2 border-r border-emerald-500 bg-emerald-800 text-white font-bold" id="top-row-status">ได้เป้า</td>
-              <td class="p-2 border-r border-emerald-500 text-emerald-100 font-bold" id="top-row-diff">+0.39%</td>
+              <td class="p-2 border-r border-emerald-500 bg-emerald-800 text-white font-bold text-center align-middle" id="top-row-status">ได้เป้า</td>
+              <td class="p-2 border-r border-emerald-500 text-emerald-100 font-bold text-center align-middle" id="top-row-diff">+0.39%</td>
               <td class="p-2 border-r border-emerald-500 bg-amber-400 text-slate-900 font-black text-sm" id="top-row-consumption">1,587,701</td>
               <td class="p-2 bg-amber-400 text-slate-900 font-black text-sm" id="top-row-output">1,415,766</td>
             </tr>
-            <!-- แถวค่าเฉลี่ยต่อวัน (ยกขึ้นมาไว้ด้านบน) -->
+            <!-- แถวค่าเฉลี่ยต่อวัน -->
             <tr class="bg-emerald-50 text-emerald-950 font-semibold border-b-2 border-emerald-300 text-[11px]">
               <td class="p-2 text-left font-bold text-emerald-800 bg-emerald-100">ค่าเฉลี่ย / วัน</td>
               <td colspan="11" class="text-right pr-4 text-emerald-800 font-medium">ค่าเฉลี่ยรายวัน (Actual 14 วันเดินเครื่อง):</td>
-              <td class="p-2 bg-amber-100 font-black text-emerald-800">Actual 4.61%</td>
+              <td class="p-2 bg-amber-100 font-black text-emerald-800" id="foot-all-waste">Actual 4.61%</td>
               <td colspan="2" class="text-right pr-2 text-slate-600 font-medium">เฉลี่ย/วัน:</td>
               <td class="p-2 font-black text-slate-900 bg-amber-100" id="top-row-avg-consumption">88,206</td>
               <td class="p-2 font-black text-slate-900 bg-amber-100" id="top-row-avg-output">78,654</td>
-            </tr>
-          </thead>
-          <tbody id="wasteTableBody" class="divide-y divide-slate-200">
-            <!-- Rows injected by JavaScript -->
-          </tbody>
-          <tfoot>
-            <!-- Footer Summary Rows -->
-            <tr class="bg-slate-200 text-slate-900 font-bold border-t-2 border-slate-300">
-              <td class="p-2.5 text-left">ผลรวมทั้งหมด</td>
-              <td class="p-2.5">0.88%</td>
-              <td class="p-2.5">0.54%</td>
-              <td class="p-2.5">0.02%</td>
-              <td class="p-2.5">0.72%</td>
-              <td class="p-2.5">0.00%</td>
-              <td class="p-2.5">0.04%</td>
-              <td class="p-2.5">0.02%</td>
-              <td class="p-2.5">0.01%</td>
-              <td class="p-2.5">0.00%</td>
-              <td class="p-2.5">0.00%</td>
-              <td class="p-2.5">0.05%</td>
-              <td class="p-2.5 bg-amber-200 font-black text-emerald-700" id="foot-all-waste">4.61%</td>
-              <td class="p-2.5 bg-emerald-100 text-emerald-800" id="foot-status">ได้เป้า</td>
-              <td class="p-2.5">0.00%</td>
-              <td class="p-2.5" id="foot-consumption">1,587,701</td>
-              <td class="p-2.5" id="foot-output">1,415,766</td>
-            </tr>
-            <tr class="bg-slate-100 text-slate-700 font-semibold text-[11px]">
-              <td class="p-2 text-left">ค่าเฉลี่ย / วัน</td>
-              <td colspan="11" class="text-right pr-4 text-slate-400">ค่าเฉลี่ยรายวัน:</td>
-              <td class="p-2 text-rose-600 font-bold">Actual</td>
-              <td colspan="2" class="text-right pr-2">ค่าเฉลี่ย/วัน:</td>
-              <td class="p-2 font-bold text-rose-600" id="foot-avg-consumption">88,206</td>
-              <td class="p-2 font-bold text-rose-600" id="foot-avg-output">78,654</td>
             </tr>
           </tfoot>
         </table>
