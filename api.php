@@ -108,37 +108,103 @@ $kgCol = $baseCol + ($mOffset[$machine] ?? 3);
 if ($raw2 && preg_match('/setResponse\((.*)\);/s', $raw2, $m2)) {
     $j2 = json_decode($m2[1], true);
     if (isset($j2['table']['rows'])) {
-        $rows = $j2['table']['rows'];
-        $currentDay = null;
+        $rows2 = $j2['table']['rows'];
 
-        for ($r = 0; $r < count($rows); $r++) {
-            $cCode = trim($rows[$r]['c'][$baseCol]['v'] ?? '');
-            $cKg = floatval($rows[$r]['c'][$kgCol]['v'] ?? 0);
+        // ตรวจสอบว่า Sheet Waste BHS มี format วันที่แบบ "Thu 01/10/26" (จาก pivot/summary)
+        // หรือแบบ "BL18", "BL17" (จาก breakdown detail)
+        // Sheet Waste BHS = Summary format: col0=Day, col7=BHSConsum, col8=BHSOut, col11=WasteBHSKg
+        $isWasteBHSSummary = false;
+        foreach ($rows2 as $testRow) {
+            $v0 = trim($testRow['c'][0]['v'] ?? '');
+            // รูปแบบ "Thu 01/10/26" = day-of-week + date
+            if (preg_match('/^[A-Za-z]{2,3}\s+\d{2}\/\d{2}\/\d{2}$/', $v0)) {
+                $isWasteBHSSummary = true;
+                break;
+            }
+        }
 
-            // ตรวจจับวันที่ของเดือนนั้นๆ เช่น 1/10/2025 หรือ 1/10/2026
-            if (preg_match('/^(\d{1,2})\/' . $month . '\/\d{4}$/', $cCode, $dm) ||
-                preg_match('/^(\d{1,2})\/' . $monthPad . '\/\d{4}$/', $cCode, $dm)) {
-                $currentDay = intval($dm[1]);
-                $dailyBreakdown[$currentDay] = [
-                    'ncp' => 0, 'def' => 0, 'web' => 0, 'control' => 0, 'om' => 0,
-                    'order' => 0, 'core' => 0, 'spec' => 0, 'conveyor' => 0, 'qc' => 0, 'reject' => 0,
-                    'totalKg' => 0
-                ];
-                continue;
+        if ($isWasteBHSSummary) {
+            // Sheet เป็น Summary format: "Thu 01/10/26"
+            // Col indices: 0=Day, 7=BHSConsum, 8=BHSOut, 10=Waste%(con-out)BHS, 11=WasteKgBHS
+            $monthPad2 = str_pad($month, 2, '0', STR_PAD_LEFT);
+            foreach ($rows2 as $row) {
+                $v0 = trim($row['c'][0]['v'] ?? '');
+                // Match "Thu 01/10/26" or "Mon 05/10/26"
+                if (preg_match('/^[A-Za-z]{2,3}\s+(\d{2})\/(\d{2})\/\d{2}$/', $v0, $dm)) {
+                    $rowMonth = intval($dm[2]);
+                    $rowDay   = intval($dm[1]);
+                    if ($rowMonth !== $month) continue;
+
+                    // ใช้ค่า Consumption/Output จาก Sheet นี้ (แม่นยำกว่า Sheet1)
+                    $c = floatval($row['c'][7]['v'] ?? 0);
+                    $o = floatval($row['c'][8]['v'] ?? 0);
+                    $wKg = floatval($row['c'][11]['v'] ?? 0); // Waste kg (BL) BHS
+
+                    // ถ้ายังไม่มีข้อมูลจาก Sheet1 ให้ override ด้วยค่านี้
+                    if ($c > 0) {
+                        $dailySummary[$rowDay]['consum'] = $c;
+                        $dailySummary[$rowDay]['output'] = $o;
+                        // update totals
+                        $totalConsumMTD += $c - ($dailySummary[$rowDay]['consum_orig'] ?? 0);
+                        $totalOutputMTD += $o - ($dailySummary[$rowDay]['output_orig'] ?? 0);
+                    }
+
+                    // ใส่ wasteKg เข้า weightTotals โดยตรง (ยังไม่มี BL breakdown ใน sheet นี้)
+                    // เก็บ totalKg ไว้ใน dailyBreakdown เพื่อคำนวณ %
+                    if (!isset($dailyBreakdown[$rowDay])) {
+                        $dailyBreakdown[$rowDay] = [
+                            'ncp' => 0, 'def' => 0, 'web' => 0, 'control' => 0, 'om' => 0,
+                            'order' => 0, 'core' => 0, 'spec' => 0, 'conveyor' => 0, 'qc' => 0, 'reject' => 0,
+                            'totalKg' => 0
+                        ];
+                    }
+                    // ใช้ Waste kg จาก col11 เป็น totalKg (ยังไม่แยก BL)
+                    if ($wKg > 0) {
+                        $dailyBreakdown[$rowDay]['totalKg'] = $wKg;
+                    }
+                }
             }
 
-            if ($currentDay !== null && $cCode !== '' && $cCode !== 'Reason Code' && $cCode !== 'Total') {
-                $dailyBreakdown[$currentDay]['totalKg'] += $cKg;
-                if ($cCode === 'BL18') $dailyBreakdown[$currentDay]['ncp'] += $cKg;
-                elseif ($cCode === 'BL17') $dailyBreakdown[$currentDay]['def'] += $cKg;
-                elseif ($cCode === 'BL16') $dailyBreakdown[$currentDay]['web'] += $cKg;
-                elseif ($cCode === 'BL21') $dailyBreakdown[$currentDay]['control'] += $cKg;
-                elseif ($cCode === 'BL15') $dailyBreakdown[$currentDay]['order'] += $cKg;
-                elseif ($cCode === 'BL12') $dailyBreakdown[$currentDay]['core'] += $cKg; // เฉพาะ BL12
-                elseif ($cCode === 'BL19') $dailyBreakdown[$currentDay]['spec'] += $cKg; // เฉพาะ BL19
-                elseif ($cCode === 'BL22') $dailyBreakdown[$currentDay]['conveyor'] += $cKg; // เฉพาะ BL22
-                elseif ($cCode === 'BL24') $dailyBreakdown[$currentDay]['qc'] += $cKg; // เฉพาะ BL24
-                elseif ($cCode === 'BL25') $dailyBreakdown[$currentDay]['reject'] += $cKg; // เฉพาะ BL25
+            // Recalculate MTD totals from dailySummary (rebuild)
+            $totalConsumMTD = 0;
+            $totalOutputMTD = 0;
+            foreach ($dailySummary as $ds) {
+                $totalConsumMTD += $ds['consum'] ?? 0;
+                $totalOutputMTD += $ds['output'] ?? 0;
+            }
+
+        } else {
+            // Sheet เป็น Detail format: มี BL codes ในแต่ละแถว
+            $currentDay = null;
+            foreach ($rows2 as $row) {
+                $cCode = trim($row['c'][$baseCol]['v'] ?? '');
+                $cKg = floatval($row['c'][$kgCol]['v'] ?? 0);
+
+                // ตรวจจับวันที่ เช่น 1/10/2026 หรือ 01/10/2026
+                if (preg_match('/^(\d{1,2})\/' . $month . '\/\d{4}$/', $cCode, $dm) ||
+                    preg_match('/^(\d{1,2})\/' . $monthPad . '\/\d{4}$/', $cCode, $dm)) {
+                    $currentDay = intval($dm[1]);
+                    $dailyBreakdown[$currentDay] = [
+                        'ncp' => 0, 'def' => 0, 'web' => 0, 'control' => 0, 'om' => 0,
+                        'order' => 0, 'core' => 0, 'spec' => 0, 'conveyor' => 0, 'qc' => 0, 'reject' => 0,
+                        'totalKg' => 0
+                    ];
+                    continue;
+                }
+
+                if ($currentDay !== null && $cCode !== '' && $cCode !== 'Reason Code' && $cCode !== 'Total') {
+                    $dailyBreakdown[$currentDay]['totalKg'] += $cKg;
+                    if ($cCode === 'BL18')      $dailyBreakdown[$currentDay]['ncp']      += $cKg;
+                    elseif ($cCode === 'BL17')  $dailyBreakdown[$currentDay]['def']      += $cKg;
+                    elseif ($cCode === 'BL16')  $dailyBreakdown[$currentDay]['web']      += $cKg;
+                    elseif ($cCode === 'BL21')  $dailyBreakdown[$currentDay]['control']  += $cKg;
+                    elseif ($cCode === 'BL15')  $dailyBreakdown[$currentDay]['order']    += $cKg;
+                    elseif ($cCode === 'BL12')  $dailyBreakdown[$currentDay]['core']     += $cKg;
+                    elseif ($cCode === 'BL19')  $dailyBreakdown[$currentDay]['spec']     += $cKg;
+                    elseif ($cCode === 'BL22')  $dailyBreakdown[$currentDay]['conveyor'] += $cKg;
+                    elseif ($cCode === 'BL24')  $dailyBreakdown[$currentDay]['qc']       += $cKg;
+                    elseif ($cCode === 'BL25')  $dailyBreakdown[$currentDay]['reject']   += $cKg;
+                }
             }
         }
     }
@@ -173,6 +239,12 @@ for ($d = 1; $d <= $totalDays; $d++) {
     $rejectKg = $breakdown['reject'] ?? 0;
 
     $dayWeightTotal = $ncpKg + $defKg + $webKg + $ctrlKg + $omKg + $orderKg + $coreKg + $specKg + $conveyorKg + $qcKg + $rejectKg;
+
+    // ถ้า BL codes ทั้งหมดเป็น 0 แต่ totalKg มีค่า (Summary sheet mode: ไม่มี BL breakdown)
+    // ให้ใช้ totalKg จาก breakdown แทน dayWeightTotal
+    if ($dayWeightTotal == 0 && $breakdown !== null && ($breakdown['totalKg'] ?? 0) > 0) {
+        $dayWeightTotal = $breakdown['totalKg'];
+    }
 
     // สะสมยอดน้ำหนัก
     $weightTotals['ncp'] += $ncpKg;
@@ -223,6 +295,13 @@ for ($d = 1; $d <= $totalDays; $d++) {
         $reject = round(($rejectKg / $consum) * 100, 2);
 
         $allWaste = round($ncp + $def + $web + $ctrl + $om + $order + $core + $spec + $conveyor + $qc + $reject, 2);
+
+        // ถ้า BL codes ทั้งหมดเป็น 0 แต่ totalKg มีค่า (Summary sheet mode)
+        // ให้คำนวณ allWaste% จาก totalKg โดยตรง
+        if ($allWaste == 0 && $dayWeightTotal > 0) {
+            $allWaste = round(($dayWeightTotal / $consum) * 100, 2);
+        }
+
         $totalWasteKgFromBreakdown += ($breakdown['totalKg'] ?? 0);
     }
 
