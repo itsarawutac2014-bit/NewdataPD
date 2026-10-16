@@ -75,15 +75,52 @@
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <h1 class="text-xl font-bold text-slate-900 leading-tight">Waste รายวัน BHS Dashboard</h1>
+              <h1 class="text-xl font-bold text-slate-900 leading-tight">
+                Waste รายวัน <span id="header-machine-name" class="text-blue-700">BHS</span> Dashboard
+              </h1>
               <span class="px-2 py-0.5 text-xs font-semibold bg-amber-100 text-amber-800 rounded">Target 5.00%</span>
             </div>
-            <p class="text-xs text-slate-500">ระบบติดตาม % Waste ชั่งจริง ประจำเดือน ตุลาคม 2026 (เชื่อมต่อ Google Sheet)</p>
+            <p class="text-xs text-slate-500">
+              ระบบติดตาม % Waste ชั่งจริง ประจำเดือน <span id="header-month-name" class="font-semibold text-slate-700">ตุลาคม 2026</span> (เชื่อมต่อ Google Sheet)
+            </p>
           </div>
         </div>
 
-        <!-- Action / Status -->
-        <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap justify-end">
+        <!-- Filters & Action / Status -->
+        <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap justify-end">
+          
+          <!-- Machine Filter Dropdown -->
+          <div class="flex items-center bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 shadow-xs hover:border-blue-400 transition">
+            <i class="fa-solid fa-industry text-amber-500 mr-1.5 text-xs"></i>
+            <span class="text-xs text-slate-500 font-semibold mr-1">เครื่อง:</span>
+            <select id="selectedMachine" onchange="onFilterChange()" class="text-xs font-bold text-slate-800 bg-transparent border-none focus:outline-none cursor-pointer">
+              <option value="BHS" selected>BHS</option>
+              <option value="ISOWA">ISOWA</option>
+              <option value="YUELI">YUELI</option>
+              <option value="TOTAL">รวมทุกเครื่อง (TOTAL)</option>
+            </select>
+          </div>
+
+          <!-- Month Filter Dropdown -->
+          <div class="flex items-center bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 shadow-xs hover:border-blue-400 transition">
+            <i class="fa-solid fa-calendar-days text-blue-500 mr-1.5 text-xs"></i>
+            <span class="text-xs text-slate-500 font-semibold mr-1">เดือน:</span>
+            <select id="selectedMonth" onchange="onFilterChange()" class="text-xs font-bold text-slate-800 bg-transparent border-none focus:outline-none cursor-pointer">
+              <option value="10" selected>ตุลาคม (10)</option>
+              <option value="9">กันยายน (09)</option>
+              <option value="8">สิงหาคม (08)</option>
+              <option value="7">กรกฎาคม (07)</option>
+              <option value="6">มิถุนายน (06)</option>
+              <option value="5">พฤษภาคม (05)</option>
+              <option value="4">เมษายน (04)</option>
+              <option value="3">มีนาคม (03)</option>
+              <option value="2">กุมภาพันธ์ (02)</option>
+              <option value="1">มกราคม (01)</option>
+              <option value="11">พฤศจิกายน (11)</option>
+              <option value="12">ธันวาคม (12)</option>
+            </select>
+          </div>
+
           <span id="data-status-badge" class="inline-flex items-center text-xs px-3 py-1.5 rounded-full font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
             <span class="w-2 h-2 mr-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
             <span id="status-text">ข้อมูลพร้อมแสดงผล</span>
@@ -94,10 +131,10 @@
             <span id="save-image-text">บันทึกรูปภาพ (HD)</span>
           </button>
           <button onclick="toggleConfigModal()" class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition shadow-sm">
-            <i class="fa-solid fa-gear mr-1.5 text-slate-500"></i> ตั้งค่า Google Sheet
+            <i class="fa-solid fa-gear mr-1.5 text-slate-500"></i> ตั้งค่า
           </button>
           <button onclick="refreshData()" class="inline-flex items-center px-3.5 py-1.5 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition shadow-sm">
-            <i class="fa-solid fa-arrows-rotate mr-1.5" id="refresh-spin-icon"></i> รีเฟรชข้อมูล
+            <i class="fa-solid fa-arrows-rotate mr-1.5" id="refresh-spin-icon"></i> รีเฟรช
           </button>
         </div>
       </div>
@@ -201,8 +238,10 @@
       <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-slate-50/70">
         <div class="flex items-center gap-3 flex-wrap">
           <div class="flex items-center gap-2">
-            <h3 class="text-base sm:text-lg font-black text-slate-900 tracking-tight whitespace-nowrap">Waste PRODUCTION รายวันเครื่อง BHS</h3>
-            <span class="px-2.5 py-1 text-xs font-bold bg-blue-100 text-blue-800 rounded-full border border-blue-200">31 วัน</span>
+            <h3 class="text-base sm:text-lg font-black text-slate-900 tracking-tight whitespace-nowrap">
+              Waste PRODUCTION รายวันเครื่อง <span id="table-machine-name">BHS</span> (<span id="table-month-name">เดือน ตุลาคม</span>)
+            </h3>
+            <span id="table-total-days-badge" class="px-2.5 py-1 text-xs font-bold bg-blue-100 text-blue-800 rounded-full border border-blue-200">31 วัน</span>
           </div>
 
           <!-- ตัวเลขสรุป: ผ่านเป้ากี่วัน ไม่ผ่านกี่วัน ไม่เดินกี่วัน (ตามที่ผู้ใช้ขอ) -->
@@ -364,7 +403,7 @@
         <div class="text-center">
           <h2 class="text-xl sm:text-2xl font-black tracking-wide">
             <span class="text-blue-700">Waste รายวัน</span> 
-            <span class="text-rose-600 font-black ml-1.5">BHS</span> 
+            <span class="text-rose-600 font-black ml-1.5" id="chart-machine-name">BHS</span> 
             <span class="text-emerald-600 font-black ml-1.5">Target 5.00%</span>
           </h2>
         </div>
@@ -590,6 +629,31 @@
       return url;
     }
 
+    // เมื่อมีการเปลี่ยนตัวเลือกเครื่องจักร หรือตัวเลือกเดือน
+    function onFilterChange() {
+      const machineSelect = document.getElementById('selectedMachine');
+      const monthSelect = document.getElementById('selectedMonth');
+      const machine = machineSelect ? machineSelect.value : 'BHS';
+      const month = monthSelect ? monthSelect.value : '10';
+
+      const monthNames = {
+        '1': 'มกราคม', '2': 'กุมภาพันธ์', '3': 'มีนาคม', '4': 'เมษายน',
+        '5': 'พฤษภาคม', '6': 'มิถุนายน', '7': 'กรกฎาคม', '8': 'สิงหาคม',
+        '9': 'กันยายน', '10': 'ตุลาคม', '11': 'พฤศจิกายน', '12': 'ธันวาคม'
+      };
+      const monthName = monthNames[month] || `เดือน ${month}`;
+
+      safeSetText('header-machine-name', machine);
+      safeSetText('header-month-name', `${monthName} 2026`);
+      safeSetText('table-machine-name', machine);
+      safeSetText('table-month-name', `เดือน ${monthName}`);
+      safeSetText('chart-machine-name', machine);
+
+      const defaultSheetUrl = 'https://docs.google.com/spreadsheets/d/1viioRJ5I3BmqiD7KLwSG9_uNQ_9u_a8LYR-4GaPGuYI/edit?gid=0#gid=0';
+      const savedUrl = localStorage.getItem('bhs_sheet_csv_url') || defaultSheetUrl;
+      fetchGoogleSheetData(savedUrl, machine, month);
+    }
+
     // เมื่อโหลดหน้าเว็บ - แสดงข้อมูลทันทีและดึงข้อมูลสดจาก Google Sheet (หน้า Waste) อัตโนมัติ
     window.addEventListener('DOMContentLoaded', () => {
       // 1. เรนเดอร์ข้อมูลตั้งต้นทันที หน้าเว็บจะไม่ว่างเปล่า
@@ -602,7 +666,9 @@
 
       // 2. ดึงข้อมูลสดจาก Google Sheet (หน้า 2 Waste) แบบเรียลไทม์ทันที
       if (window.location.protocol.startsWith('http')) {
-        fetchGoogleSheetData(savedUrl);
+        const machine = document.getElementById('selectedMachine')?.value || 'BHS';
+        const month = document.getElementById('selectedMonth')?.value || '10';
+        fetchGoogleSheetData(savedUrl, machine, month);
       }
     });
 
@@ -618,7 +684,7 @@
       document.getElementById('sheetUrlInput').value = defaultUrl;
       localStorage.setItem('bhs_sheet_csv_url', defaultUrl);
       toggleConfigModal();
-      fetchGoogleSheetData(defaultUrl);
+      onFilterChange();
     }
 
     // บันทึก URL และดึงข้อมูล
@@ -630,7 +696,7 @@
       }
       localStorage.setItem('bhs_sheet_csv_url', rawUrl);
       toggleConfigModal();
-      fetchGoogleSheetData(rawUrl);
+      onFilterChange();
     }
 
     // คืนค่าเป็นข้อมูลตัวอย่าง
@@ -645,15 +711,23 @@
 
     // รีเฟรชข้อมูล
     function refreshData() {
-      const defaultSheetUrl = 'https://docs.google.com/spreadsheets/d/1viioRJ5I3BmqiD7KLwSG9_uNQ_9u_a8LYR-4GaPGuYI/edit?gid=0#gid=0';
-      const savedUrl = localStorage.getItem('bhs_sheet_csv_url') || defaultSheetUrl;
-      fetchGoogleSheetData(savedUrl);
+      onFilterChange();
     }
 
     // ดึงข้อมูลจาก Google Sheet (รองรับทั้ง localhost API, JSONP Direct และ CSV)
-    function fetchGoogleSheetData(rawUrl) {
+    function fetchGoogleSheetData(rawUrl, machine = null, month = null) {
       if (!rawUrl) return;
-      updateStatusBadge('กำลังเชื่อมต่อ Google Sheet...', 'blue');
+      if (!machine) machine = document.getElementById('selectedMachine')?.value || 'BHS';
+      if (!month) month = document.getElementById('selectedMonth')?.value || '10';
+
+      const monthNames = {
+        '1': 'มกราคม', '2': 'กุมภาพันธ์', '3': 'มีนาคม', '4': 'เมษายน',
+        '5': 'พฤษภาคม', '6': 'มิถุนายน', '7': 'กรกฎาคม', '8': 'สิงหาคม',
+        '9': 'กันยายน', '10': 'ตุลาคม', '11': 'พฤศจิกายน', '12': 'ธันวาคม'
+      };
+      const monthName = monthNames[month] || `เดือน ${month}`;
+
+      updateStatusBadge(`กำลังโหลด ${machine} (${monthName})...`, 'blue');
       const spinIcon = document.getElementById('refresh-spin-icon');
       if (spinIcon) spinIcon.classList.add('animate-spin');
 
@@ -678,13 +752,14 @@
 
         // ถ้าเปิดผ่าน localhost หรือ http ให้ใช้ api.php ดึงหน้า Waste และ Summary รวม
         if (window.location.protocol.startsWith('http')) {
-          fetch(`api.php?sheetId=${sheetId}`)
+          fetch(`api.php?sheetId=${sheetId}&machine=${machine}&month=${month}`)
             .then(res => res.json())
             .then(res => {
               finishLoading();
               if (res && res.success && res.data && res.data.length > 0) {
                 renderDashboard(res.data, res.summary);
-                updateStatusBadge('ดึงข้อมูลจาก Google Sheet (หน้า Waste) สำเร็จ', 'emerald');
+                safeSetText('table-total-days-badge', `${res.data.length} วัน`);
+                updateStatusBadge(`ข้อมูลเครื่อง ${machine} (${monthName}) จาก Google Sheet`, 'emerald');
               } else if (res && res.table) {
                 parseAndTransformGvizTable(res.table);
                 updateStatusBadge('เชื่อมต่อ Google Sheet สำเร็จ', 'emerald');
