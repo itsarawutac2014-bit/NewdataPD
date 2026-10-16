@@ -187,17 +187,30 @@
 
     <!-- Table Section (ตารางตามภาพต้นฉบับเป๊ะๆ) -->
     <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/50">
-        <div>
+      <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-slate-50/70">
+        <div class="flex items-center gap-3 flex-wrap">
           <div class="flex items-center gap-2">
-            <h3 class="text-base sm:text-lg font-bold text-slate-900">Waste PRODUCTION รายวันเครื่อง BHS</h3>
-            <span class="px-2.5 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded-full">31 วัน</span>
+            <h3 class="text-base sm:text-lg font-black text-slate-900 tracking-tight whitespace-nowrap">Waste PRODUCTION รายวันเครื่อง BHS</h3>
+            <span class="px-2.5 py-1 text-xs font-bold bg-blue-100 text-blue-800 rounded-full border border-blue-200">31 วัน</span>
           </div>
-          <p class="text-xs text-slate-500 mt-0.5">ช่องที่มีไฮไลต์สีแดงอ่อน คือค่าที่เกิน Target ของคอลัมน์นั้นๆ</p>
+
+          <!-- ตัวเลขสรุป: ผ่านเป้ากี่วัน ไม่ผ่านกี่วัน ไม่เดินกี่วัน (ตามที่ผู้ใช้ขอ) -->
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-xs">
+              <i class="fa-solid fa-circle-check text-emerald-600"></i> ผ่านเป้า: <strong class="text-emerald-950 text-sm" id="header-days-pass">8</strong> วัน
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg bg-rose-100 text-rose-800 border border-rose-300 shadow-xs">
+              <i class="fa-solid fa-circle-xmark text-rose-600"></i> ไม่ผ่าน: <strong class="text-rose-950 text-sm" id="header-days-over">6</strong> วัน
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg bg-sky-100 text-sky-800 border border-sky-300 shadow-xs">
+              <i class="fa-solid fa-pause text-sky-600"></i> ไม่เดิน: <strong class="text-sky-950 text-sm" id="header-days-idle">17</strong> วัน
+            </span>
+          </div>
         </div>
+
         <div class="flex items-center gap-2.5 flex-wrap">
-          <input type="text" id="tableFilterInput" oninput="filterTableRows()" placeholder="ค้นหาวันที่, สถานะ..." class="text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-48 bg-white">
-          <button onclick="saveHighResReport()" class="inline-flex items-center px-3 py-2 text-xs font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition shadow-sm border border-emerald-500 cursor-pointer">
+          <input type="text" id="tableFilterInput" oninput="filterTableRows()" placeholder="ค้นหาวันที่, สถานะ..." class="text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-48 bg-white shadow-xs">
+          <button onclick="saveHighResReport()" class="inline-flex items-center px-3.5 py-2 text-xs font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition shadow-sm border border-emerald-500 cursor-pointer">
             <i class="fa-solid fa-camera mr-1.5"></i> บันทึกรูปภาพ (HD)
           </button>
         </div>
@@ -749,9 +762,14 @@
       if (document.getElementById('top-row-avg-consumption')) document.getElementById('top-row-avg-consumption').textContent = avgConsumption;
       if (document.getElementById('top-row-avg-output')) document.getElementById('top-row-avg-output').textContent = avgOutput;
 
+      const idleDays = Math.max(0, data.length - runningDays);
       document.getElementById('kpi-running-days').innerHTML = `${runningDays} <span class="text-sm font-normal text-slate-400">/ ${data.length} วัน</span>`;
       document.getElementById('kpi-days-pass').textContent = `ได้เป้า: ${daysPass} วัน`;
       document.getElementById('kpi-days-over').textContent = `เกินเป้า: ${daysOver} วัน`;
+
+      if (document.getElementById('header-days-pass')) document.getElementById('header-days-pass').textContent = daysPass;
+      if (document.getElementById('header-days-over')) document.getElementById('header-days-over').textContent = daysOver;
+      if (document.getElementById('header-days-idle')) document.getElementById('header-days-idle').textContent = idleDays;
 
       // อัปเดตตารางด้านล่างสุด
       document.getElementById('foot-all-waste').textContent = formattedWaste;
