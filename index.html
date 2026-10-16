@@ -590,13 +590,19 @@
       return url;
     }
 
-    // เมื่อโหลดหน้าเว็บ - แสดงข้อมูล 31 วันทันทีเสมอ
+    // เมื่อโหลดหน้าเว็บ - แสดงข้อมูลทันทีและดึงข้อมูลสดจาก Google Sheet (หน้า Waste) อัตโนมัติ
     window.addEventListener('DOMContentLoaded', () => {
+      // 1. เรนเดอร์ข้อมูลตั้งต้นทันที หน้าเว็บจะไม่ว่างเปล่า
       renderDashboard(initialRawData);
 
-      const savedUrl = localStorage.getItem('bhs_sheet_csv_url');
-      if (savedUrl) {
-        document.getElementById('sheetUrlInput').value = savedUrl;
+      const defaultSheetUrl = 'https://docs.google.com/spreadsheets/d/1viioRJ5I3BmqiD7KLwSG9_uNQ_9u_a8LYR-4GaPGuYI/edit?gid=0#gid=0';
+      const savedUrl = localStorage.getItem('bhs_sheet_csv_url') || defaultSheetUrl;
+      const urlInput = document.getElementById('sheetUrlInput');
+      if (urlInput) urlInput.value = savedUrl;
+
+      // 2. ดึงข้อมูลสดจาก Google Sheet (หน้า 2 Waste) แบบเรียลไทม์ทันที
+      if (window.location.protocol.startsWith('http')) {
+        fetchGoogleSheetData(savedUrl);
       }
     });
 
@@ -639,13 +645,9 @@
 
     // รีเฟรชข้อมูล
     function refreshData() {
-      const savedUrl = localStorage.getItem('bhs_sheet_csv_url');
-      if (savedUrl) {
-        fetchGoogleSheetData(savedUrl);
-      } else {
-        renderDashboard(initialRawData);
-        updateStatusBadge('รีเฟรชข้อมูลเรียบร้อย', 'emerald');
-      }
+      const defaultSheetUrl = 'https://docs.google.com/spreadsheets/d/1viioRJ5I3BmqiD7KLwSG9_uNQ_9u_a8LYR-4GaPGuYI/edit?gid=0#gid=0';
+      const savedUrl = localStorage.getItem('bhs_sheet_csv_url') || defaultSheetUrl;
+      fetchGoogleSheetData(savedUrl);
     }
 
     // ดึงข้อมูลจาก Google Sheet (รองรับทั้ง localhost API, JSONP Direct และ CSV)
@@ -653,17 +655,17 @@
       if (!rawUrl) return;
       updateStatusBadge('กำลังเชื่อมต่อ Google Sheet...', 'blue');
       const spinIcon = document.getElementById('refresh-spin-icon');
-      spinIcon.classList.add('animate-spin');
+      if (spinIcon) spinIcon.classList.add('animate-spin');
 
-      // ป้องกันค้าง ถ้าเกิน 6 วินาทีให้แจ้งเตือนและปลดสถานะ
+      // ป้องกันค้าง ถ้าเกิน 8 วินาทีให้แจ้งเตือนและปลดสถานะ
       const timeoutTimer = setTimeout(() => {
-        spinIcon.classList.remove('animate-spin');
+        if (spinIcon) spinIcon.classList.remove('animate-spin');
         updateStatusBadge('การเชื่อมต่อใช้เวลานาน กรุณากดลองใหม่', 'amber');
-      }, 6000);
+      }, 8000);
 
       const finishLoading = () => {
         clearTimeout(timeoutTimer);
-        spinIcon.classList.remove('animate-spin');
+        if (spinIcon) spinIcon.classList.remove('animate-spin');
       };
 
       // ตรวจสอบว่าเป็น URL ของ Google Sheet ปกติ (/spreadsheets/d/{ID}/...)
@@ -674,14 +676,17 @@
         const gidMatch = rawUrl.match(/[?#&]gid=([0-9]+)/);
         if (gidMatch) gid = gidMatch[1];
 
-        // ถ้าเปิดผ่าน localhost หรือ http ให้ใช้ api.php เพื่อความเร็วสูงสุด (0.3 วินาที ไม่ติดปัญหาใดๆ)
+        // ถ้าเปิดผ่าน localhost หรือ http ให้ใช้ api.php ดึงหน้า Waste และ Summary รวม
         if (window.location.protocol.startsWith('http')) {
-          fetch(`api.php?sheetId=${sheetId}&gid=${gid}`)
+          fetch(`api.php?sheetId=${sheetId}`)
             .then(res => res.json())
-            .then(data => {
+            .then(res => {
               finishLoading();
-              if (data && data.table) {
-                parseAndTransformGvizTable(data.table);
+              if (res && res.success && res.data && res.data.length > 0) {
+                renderDashboard(res.data, res.summary);
+                updateStatusBadge('ดึงข้อมูลจาก Google Sheet (หน้า Waste) สำเร็จ', 'emerald');
+              } else if (res && res.table) {
+                parseAndTransformGvizTable(res.table);
                 updateStatusBadge('เชื่อมต่อ Google Sheet สำเร็จ', 'emerald');
               } else {
                 fetchViaJsonp(sheetId, gid, finishLoading);
