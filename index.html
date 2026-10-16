@@ -30,25 +30,36 @@
       top: 0;
       z-index: 10;
     }
+    /* เส้นตารางเข้มขึ้น ชัดเจนแบบ Excel */
+    table.waste-table {
+      border-collapse: collapse !important;
+      border: 2px solid #64748b !important;
+    }
+    table.waste-table th, table.waste-table td {
+      border: 1px solid #94a3b8 !important;
+    }
     .badge-target-pass {
-      background-color: #dcfce7;
-      color: #15803d;
-      border: 1px solid #86efac;
+      background-color: #dcfce7 !important;
+      color: #14532d !important;
+      border: 1px solid #4ade80 !important;
+      text-align: center !important;
     }
     .badge-target-over {
-      background-color: #ffe4e6;
-      color: #be123c;
-      border: 1px solid #fecdd3;
+      background-color: #fee2e2 !important;
+      color: #991b1b !important;
+      border: 1px solid #f87171 !important;
+      text-align: center !important;
     }
     .badge-target-idle {
-      background-color: #e0f2fe;
-      color: #0369a1;
-      border: 1px solid #bae6fd;
+      background-color: #e0f2fe !important;
+      color: #0369a1 !important;
+      border: 1px solid #38bdf8 !important;
+      text-align: center !important;
     }
     .cell-over-target {
       background-color: #fecdd3 !important;
       color: #9f1239 !important;
-      font-weight: 600;
+      font-weight: 700 !important;
     }
   </style>
 </head>
@@ -247,7 +258,7 @@
       </div>
 
       <div class="overflow-x-auto">
-        <table class="w-full text-center text-xs border-collapse">
+        <table class="waste-table w-full text-center text-xs border-collapse">
           <thead>
             <!-- Target Row (แถวสีเหลือง) -->
             <tr class="bg-amber-200 text-slate-900 font-bold border-b border-amber-300">
@@ -284,8 +295,8 @@
               <th class="p-2.5 border-r border-emerald-200 min-w-[75px]">.QC Test</th>
               <th class="p-2.5 border-r border-emerald-200 min-w-[75px]">.Reject</th>
               <th class="p-2.5 border-r border-emerald-200 min-w-[95px] bg-amber-200 text-amber-900 font-black">ALL Waste</th>
-              <th class="p-2.5 border-r border-emerald-200 min-w-[85px] bg-white">สถานะ</th>
-              <th class="p-2.5 border-r border-emerald-200 min-w-[85px] bg-white">Diff Target</th>
+              <th class="p-2.5 border-r border-emerald-200 min-w-[85px] bg-white text-center align-middle font-bold">สถานะ</th>
+              <th class="p-2.5 border-r border-emerald-200 min-w-[85px] bg-white text-center align-middle font-bold">Diff Target</th>
               <th class="p-2.5 border-r border-emerald-200 min-w-[110px] bg-amber-400 text-slate-900 font-bold">Consumtion</th>
               <th class="p-2.5 min-w-[110px] bg-amber-400 text-slate-900 font-bold">Out Put</th>
             </tr>
@@ -1018,13 +1029,13 @@
         let diffVal = (TARGETS.allWaste - row.allWaste).toFixed(2);
 
         if (isIdle) {
-          statusBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-semibold badge-target-idle">ไม่เดิน</span>';
+          statusBadge = '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[11px] font-bold badge-target-idle min-w-[56px] text-center mx-auto">ไม่เดิน</span>';
           diffVal = '5.00%';
         } else if (row.allWaste <= TARGETS.allWaste) {
-          statusBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-semibold badge-target-pass">ได้เป้า</span>';
+          statusBadge = '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[11px] font-bold badge-target-pass min-w-[56px] text-center mx-auto">ได้เป้า</span>';
           diffVal = diffVal + '%';
         } else {
-          statusBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-semibold badge-target-over">เกินเป้า</span>';
+          statusBadge = '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[11px] font-bold badge-target-over min-w-[56px] text-center mx-auto">เกินเป้า</span>';
           diffVal = diffVal + '%';
         }
 
@@ -1034,26 +1045,26 @@
         };
 
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+        tr.className = 'hover:bg-slate-50 transition border-b border-slate-300';
 
         tr.innerHTML = `
-          <td class="p-2 border-r border-slate-200 text-left font-medium text-slate-800 whitespace-nowrap">${row.date}</td>
-          <td class="p-2 border-r border-slate-200 ${cellClass(row.ncp, TARGETS.ncp)}">${row.ncp.toFixed(2)}%</td>
-          <td class="p-2 border-r border-slate-200 ${cellClass(row.def, TARGETS.def)}">${row.def.toFixed(2)}%</td>
-          <td class="p-2 border-r border-slate-200 ${cellClass(row.web, TARGETS.web)}">${row.web.toFixed(2)}%</td>
-          <td class="p-2 border-r border-slate-200 ${cellClass(row.control, TARGETS.control)}">${row.control.toFixed(2)}%</td>
-          <td class="p-2 border-r border-slate-200 ${cellClass(row.om, TARGETS.om)}">${row.om.toFixed(2)}%</td>
-          <td class="p-2 border-r border-slate-200 ${cellClass(row.order, TARGETS.order)}">${row.order.toFixed(2)}%</td>
-          <td class="p-2 border-r border-slate-200 ${cellClass(row.core, TARGETS.core)}">${row.core.toFixed(2)}%</td>
-          <td class="p-2 border-r border-slate-200 ${cellClass(row.spec, TARGETS.spec)}">${row.spec.toFixed(2)}%</td>
-          <td class="p-2 border-r border-slate-200 ${cellClass(row.conveyor, TARGETS.conveyor)}">${row.conveyor.toFixed(2)}%</td>
-          <td class="p-2 border-r border-slate-200 ${cellClass(row.qc, TARGETS.qc)}">${row.qc.toFixed(2)}%</td>
-          <td class="p-2 border-r border-slate-200 ${cellClass(row.reject, TARGETS.reject)}">${row.reject.toFixed(2)}%</td>
-          <td class="p-2 border-r border-slate-200 font-bold ${row.allWaste > TARGETS.allWaste ? 'cell-over-target' : 'text-slate-800'}">${row.allWaste.toFixed(2)}%</td>
-          <td class="p-2 border-r border-slate-200">${statusBadge}</td>
-          <td class="p-2 border-r border-slate-200 text-slate-600 font-medium">${diffVal}</td>
-          <td class="p-2 border-r border-slate-200 text-slate-800 font-medium">${row.consumption.toLocaleString()}</td>
-          <td class="p-2 text-slate-800 font-medium">${row.output.toLocaleString()}</td>
+          <td class="p-2 text-left font-semibold text-slate-800 whitespace-nowrap">${row.date}</td>
+          <td class="p-2 ${cellClass(row.ncp, TARGETS.ncp)}">${row.ncp.toFixed(2)}%</td>
+          <td class="p-2 ${cellClass(row.def, TARGETS.def)}">${row.def.toFixed(2)}%</td>
+          <td class="p-2 ${cellClass(row.web, TARGETS.web)}">${row.web.toFixed(2)}%</td>
+          <td class="p-2 ${cellClass(row.control, TARGETS.control)}">${row.control.toFixed(2)}%</td>
+          <td class="p-2 ${cellClass(row.om, TARGETS.om)}">${row.om.toFixed(2)}%</td>
+          <td class="p-2 ${cellClass(row.order, TARGETS.order)}">${row.order.toFixed(2)}%</td>
+          <td class="p-2 ${cellClass(row.core, TARGETS.core)}">${row.core.toFixed(2)}%</td>
+          <td class="p-2 ${cellClass(row.spec, TARGETS.spec)}">${row.spec.toFixed(2)}%</td>
+          <td class="p-2 ${cellClass(row.conveyor, TARGETS.conveyor)}">${row.conveyor.toFixed(2)}%</td>
+          <td class="p-2 ${cellClass(row.qc, TARGETS.qc)}">${row.qc.toFixed(2)}%</td>
+          <td class="p-2 ${cellClass(row.reject, TARGETS.reject)}">${row.reject.toFixed(2)}%</td>
+          <td class="p-2 font-bold ${row.allWaste > TARGETS.allWaste ? 'cell-over-target' : 'text-slate-900'}">${row.allWaste.toFixed(2)}%</td>
+          <td class="p-1.5 text-center align-middle whitespace-nowrap">${statusBadge}</td>
+          <td class="p-2 text-center align-middle text-slate-700 font-bold">${diffVal}</td>
+          <td class="p-2 text-slate-900 font-semibold">${row.consumption.toLocaleString()}</td>
+          <td class="p-2 text-slate-900 font-semibold">${row.output.toLocaleString()}</td>
         `;
 
         tbody.appendChild(tr);
