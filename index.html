@@ -649,12 +649,23 @@
       }
     }
 
-    // ดึงข้อมูลจาก Google Sheet (รองรับทั้ง JSONP Direct และ CSV)
+    // ดึงข้อมูลจาก Google Sheet (รองรับทั้ง localhost API, JSONP Direct และ CSV)
     function fetchGoogleSheetData(rawUrl) {
       if (!rawUrl) return;
       updateStatusBadge('กำลังเชื่อมต่อ Google Sheet...', 'blue');
       const spinIcon = document.getElementById('refresh-spin-icon');
       spinIcon.classList.add('animate-spin');
+
+      // ป้องกันค้าง ถ้าเกิน 6 วินาทีให้แจ้งเตือนและปลดสถานะ
+      const timeoutTimer = setTimeout(() => {
+        spinIcon.classList.remove('animate-spin');
+        updateStatusBadge('การเชื่อมต่อใช้เวลานาน กรุณากดลองใหม่', 'amber');
+      }, 6000);
+
+      const finishLoading = () => {
+        clearTimeout(timeoutTimer);
+        spinIcon.classList.remove('animate-spin');
+      };
 
       // ตรวจสอบว่าเป็น URL ของ Google Sheet ปกติ (/spreadsheets/d/{ID}/...)
       const idMatch = rawUrl.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
@@ -664,8 +675,27 @@
         const gidMatch = rawUrl.match(/[?#&]gid=([0-9]+)/);
         if (gidMatch) gid = gidMatch[1];
 
-        // ดึงผ่าน JSONP โดยตรง ไม่ติดปัญหา CORS 100% แม้รันบน file:///
-        fetchViaJsonp(sheetId, gid);
+        // ถ้าเปิดผ่าน localhost หรือ http ให้ใช้ api.php เพื่อความเร็วสูงสุด (0.3 วินาที ไม่ติดปัญหาใดๆ)
+        if (window.location.protocol.startsWith('http')) {
+          fetch(`api.php?sheetId=${sheetId}&gid=${gid}`)
+            .then(res => res.json())
+            .then(data => {
+              finishLoading();
+              if (data && data.table) {
+                parseAndTransformGvizTable(data.table);
+                updateStatusBadge('เชื่อมต่อ Google Sheet สำเร็จ', 'emerald');
+              } else {
+                fetchViaJsonp(sheetId, gid, finishLoading);
+              }
+            })
+            .catch(() => {
+              fetchViaJsonp(sheetId, gid, finishLoading);
+            });
+          return;
+        }
+
+        // ถ้าเปิดผ่าน file:/// ให้ดึงผ่าน JSONP โดยตรง ไม่ติดปัญหา CORS
+        fetchViaJsonp(sheetId, gid, finishLoading);
         return;
       }
 
@@ -675,7 +705,7 @@
         header: true,
         skipEmptyLines: true,
         complete: function(results) {
-          spinIcon.classList.remove('animate-spin');
+          finishLoading();
           if (results.data && results.data.length > 0) {
             parseAndTransformSheetData(results.data);
             updateStatusBadge('เชื่อมต่อ Google Sheet สำเร็จ', 'emerald');
@@ -685,20 +715,21 @@
           }
         },
         error: function(err) {
-          spinIcon.classList.remove('animate-spin');
+          finishLoading();
           console.error('Error fetching sheet:', err);
           updateStatusBadge('เชื่อมต่อผิดพลาด', 'rose');
-          alert('ไม่สามารถโหลดลิงก์ Publish to web นี้ได้\nแนะนำให้คัดลอกลิงก์จาก Address Bar ด้านบน เช่น:\nhttps://docs.google.com/spreadsheets/d/.../edit\nมาวางเพื่อเชื่อมต่อโดยตรงแบบ JSONP ได้ทันทีครับ');
+          alert('ไม่สามารถโหลดลิงก์ Publish to web นี้ได้\nแนะนำให้คัดลอกลิงก์จาก Address Bar ด้านบน เช่น:\nhttps://docs.google.com/spreadsheets/d/.../edit\nมาวางเพื่อเชื่อมต่อโดยตรงได้ทันทีครับ');
         }
       });
     }
 
     // ดึงข้อมูลผ่าน JSONP (ปลอดภัย รวดเร็ว ไม่ติด CORS แม้เปิดจาก file:///)
-    function fetchViaJsonp(sheetId, gid = '0') {
+    function fetchViaJsonp(sheetId, gid = '0', onFinish) {
       const oldScript = document.getElementById('gviz-jsonp-script');
       if (oldScript) oldScript.remove();
 
       window.handleGoogleSheetJsonp = function(response) {
+        if (onFinish) onFinish();
         const spinIcon = document.getElementById('refresh-spin-icon');
         spinIcon.classList.remove('animate-spin');
 
@@ -721,6 +752,7 @@
       script.id = 'gviz-jsonp-script';
       script.src = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=responseHandler:handleGoogleSheetJsonp&gid=${gid}`;
       script.onerror = function() {
+        if (onFinish) onFinish();
         const spinIcon = document.getElementById('refresh-spin-icon');
         spinIcon.classList.remove('animate-spin');
         updateStatusBadge('เชื่อมต่อผิดพลาด ตรวจสอบสิทธิ์', 'rose');
