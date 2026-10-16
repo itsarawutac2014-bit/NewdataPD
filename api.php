@@ -61,7 +61,6 @@ if ($raw1 && preg_match('/setResponse\((.*)\);/s', $raw1, $m1)) {
     if (isset($j1['table']['rows'])) {
         foreach ($j1['table']['rows'] as $r) {
             $dateVal = $r['c'][0]['v'] ?? '';
-            // จับคู่เดือน เช่น "Thu 01/10/26" หรือ "01/09/2026"
             if (preg_match('/(\d{1,2})\/' . $monthPad . '\//', $dateVal, $dm) ||
                 preg_match('/(\d{1,2})\/' . $month . '\//', $dateVal, $dm)) {
                 $day = intval($dm[1]);
@@ -81,12 +80,22 @@ if ($raw1 && preg_match('/setResponse\((.*)\);/s', $raw1, $m1)) {
     }
 }
 
-// 2. ดึงข้อมูล Sheet 2 (หน้า "Waste": แยก 11 หมวดหมู่ตามเดือนและเครื่อง)
-$url2 = "https://docs.google.com/spreadsheets/d/{$sheetId}/gviz/tq?tqx=out:json&sheet=" . urlencode('Waste');
-$raw2 = @file_get_contents($url2, false, $ctx);
-$dailyBreakdown = [];
+// 2. ดึงข้อมูล Sheet 2 (หน้า "Waste BHS" หรือ "Waste {$machine}" หรือ fallback เป็น "Waste")
+$trySheets = ["Waste {$machine}", "Waste BHS", "Waste"];
+$raw2 = false;
+$usedSheetName = '';
 
-// คำนวณคอลัมน์เริ่มต้นของเดือนใน Sheet 2
+foreach ($trySheets as $sName) {
+    $url2 = "https://docs.google.com/spreadsheets/d/{$sheetId}/gviz/tq?tqx=out:json&sheet=" . urlencode($sName);
+    $tmpRaw = @file_get_contents($url2, false, $ctx);
+    if ($tmpRaw && strpos($tmpRaw, 'setResponse') !== false && strpos($tmpRaw, '"status":"error"') === false) {
+        $raw2 = $tmpRaw;
+        $usedSheetName = $sName;
+        break;
+    }
+}
+
+$dailyBreakdown = [];
 $baseCol = ($month - 1) * 9;
 $mOffset = [
     'ISOWA' => 2,
@@ -106,7 +115,7 @@ if ($raw2 && preg_match('/setResponse\((.*)\);/s', $raw2, $m2)) {
             $cCode = trim($rows[$r]['c'][$baseCol]['v'] ?? '');
             $cKg = floatval($rows[$r]['c'][$kgCol]['v'] ?? 0);
 
-            // ตรวจจับวันที่ของเดือนนั้นๆ เช่น 1/10/2025 หรือ 1/9/2025
+            // ตรวจจับวันที่ของเดือนนั้นๆ เช่น 1/10/2025 หรือ 1/10/2026
             if (preg_match('/^(\d{1,2})\/' . $month . '\/\d{4}$/', $cCode, $dm) ||
                 preg_match('/^(\d{1,2})\/' . $monthPad . '\/\d{4}$/', $cCode, $dm)) {
                 $currentDay = intval($dm[1]);
@@ -125,40 +134,93 @@ if ($raw2 && preg_match('/setResponse\((.*)\);/s', $raw2, $m2)) {
                 elseif ($cCode === 'BL16') $dailyBreakdown[$currentDay]['web'] += $cKg;
                 elseif ($cCode === 'BL21') $dailyBreakdown[$currentDay]['control'] += $cKg;
                 elseif ($cCode === 'BL15') $dailyBreakdown[$currentDay]['order'] += $cKg;
-                elseif ($cCode === 'BL12' || $cCode === 'BL14') $dailyBreakdown[$currentDay]['core'] += $cKg;
-                elseif ($cCode === 'BL19' || $cCode === 'BL39') $dailyBreakdown[$currentDay]['spec'] += $cKg;
-                elseif ($cCode === 'BL22') $dailyBreakdown[$currentDay]['conveyor'] += $cKg;
-                elseif ($cCode === 'BL24' || $cCode === 'BL23') $dailyBreakdown[$currentDay]['qc'] += $cKg;
-                elseif ($cCode === 'BL25' || $cCode === 'BL37' || $cCode === 'BL31') $dailyBreakdown[$currentDay]['reject'] += $cKg;
+                elseif ($cCode === 'BL12') $dailyBreakdown[$currentDay]['core'] += $cKg; // เฉพาะ BL12
+                elseif ($cCode === 'BL19') $dailyBreakdown[$currentDay]['spec'] += $cKg; // เฉพาะ BL19
+                elseif ($cCode === 'BL22') $dailyBreakdown[$currentDay]['conveyor'] += $cKg; // เฉพาะ BL22
+                elseif ($cCode === 'BL24') $dailyBreakdown[$currentDay]['qc'] += $cKg; // เฉพาะ BL24
+                elseif ($cCode === 'BL25') $dailyBreakdown[$currentDay]['reject'] += $cKg; // เฉพาะ BL25
             }
         }
     }
 }
 
-// 3. รวมข้อมูลตามจำนวนวันของเดือนที่เลือก
+// 3. คำนวณตาราง % (transformed) และตารางน้ำหนัก kg (transformedWeight)
 $transformed = [];
+$transformedWeight = [];
 $totalWasteKgFromBreakdown = 0;
+
+$weightTotals = [
+    'ncp' => 0, 'def' => 0, 'web' => 0, 'control' => 0, 'om' => 0,
+    'order' => 0, 'core' => 0, 'spec' => 0, 'conveyor' => 0, 'qc' => 0, 'reject' => 0,
+    'totalAll' => 0
+];
 
 for ($d = 1; $d <= $totalDays; $d++) {
     $consum = $dailySummary[$d]['consum'] ?? 0;
     $output = $dailySummary[$d]['output'] ?? 0;
     $breakdown = $dailyBreakdown[$d] ?? null;
 
+    $ncpKg = $breakdown['ncp'] ?? 0;
+    $defKg = $breakdown['def'] ?? 0;
+    $webKg = $breakdown['web'] ?? 0;
+    $ctrlKg = $breakdown['control'] ?? 0;
+    $omKg = $breakdown['om'] ?? 0;
+    $orderKg = $breakdown['order'] ?? 0;
+    $coreKg = $breakdown['core'] ?? 0;
+    $specKg = $breakdown['spec'] ?? 0;
+    $conveyorKg = $breakdown['conveyor'] ?? 0;
+    $qcKg = $breakdown['qc'] ?? 0;
+    $rejectKg = $breakdown['reject'] ?? 0;
+
+    $dayWeightTotal = $ncpKg + $defKg + $webKg + $ctrlKg + $omKg + $orderKg + $coreKg + $specKg + $conveyorKg + $qcKg + $rejectKg;
+
+    // สะสมยอดน้ำหนัก
+    $weightTotals['ncp'] += $ncpKg;
+    $weightTotals['def'] += $defKg;
+    $weightTotals['web'] += $webKg;
+    $weightTotals['control'] += $ctrlKg;
+    $weightTotals['om'] += $omKg;
+    $weightTotals['order'] += $orderKg;
+    $weightTotals['core'] += $coreKg;
+    $weightTotals['spec'] += $specKg;
+    $weightTotals['conveyor'] += $conveyorKg;
+    $weightTotals['qc'] += $qcKg;
+    $weightTotals['reject'] += $rejectKg;
+    $weightTotals['totalAll'] += $dayWeightTotal;
+
+    $transformedWeight[] = [
+        'date' => "{$d}/{$month}/2026",
+        'ncp' => $ncpKg,
+        'def' => $defKg,
+        'web' => $webKg,
+        'control' => $ctrlKg,
+        'om' => $omKg,
+        'order' => $orderKg,
+        'core' => $coreKg,
+        'spec' => $specKg,
+        'conveyor' => $conveyorKg,
+        'qc' => $qcKg,
+        'reject' => $rejectKg,
+        'totalWeight' => $dayWeightTotal
+    ];
+
+    // ตาราง %
     $ncp = 0; $def = 0; $web = 0; $ctrl = 0; $om = 0;
     $order = 0; $core = 0; $spec = 0; $conveyor = 0; $qc = 0; $reject = 0;
     $allWaste = 0;
 
-    if ($consum > 0 && $breakdown) {
-        $ncp = round(($breakdown['ncp'] / $consum) * 100, 2);
-        $def = round(($breakdown['def'] / $consum) * 100, 2);
-        $web = round(($breakdown['web'] / $consum) * 100, 2);
-        $ctrl = round(($breakdown['control'] / $consum) * 100, 2);
-        $order = round(($breakdown['order'] / $consum) * 100, 2);
-        $core = round(($breakdown['core'] / $consum) * 100, 2);
-        $spec = round(($breakdown['spec'] / $consum) * 100, 2);
-        $conveyor = round(($breakdown['conveyor'] / $consum) * 100, 2);
-        $qc = round(($breakdown['qc'] / $consum) * 100, 2);
-        $reject = round(($breakdown['reject'] / $consum) * 100, 2);
+    if ($consum > 0) {
+        $ncp = round(($ncpKg / $consum) * 100, 2);
+        $def = round(($defKg / $consum) * 100, 2);
+        $web = round(($webKg / $consum) * 100, 2);
+        $ctrl = round(($ctrlKg / $consum) * 100, 2);
+        $om = round(($omKg / $consum) * 100, 2);
+        $order = round(($orderKg / $consum) * 100, 2);
+        $core = round(($coreKg / $consum) * 100, 2);
+        $spec = round(($specKg / $consum) * 100, 2);
+        $conveyor = round(($conveyorKg / $consum) * 100, 2);
+        $qc = round(($qcKg / $consum) * 100, 2);
+        $reject = round(($rejectKg / $consum) * 100, 2);
 
         $allWaste = round($ncp + $def + $web + $ctrl + $om + $order + $core + $spec + $conveyor + $qc + $reject, 2);
         $totalWasteKgFromBreakdown += ($breakdown['totalKg'] ?? 0);
@@ -198,6 +260,7 @@ $summary = [
 echo json_encode([
     'success' => true,
     'source' => 'google_sheet_filtered',
+    'usedSheet' => $usedSheetName,
     'meta' => [
         'machine' => $machine,
         'month' => $month,
@@ -205,5 +268,7 @@ echo json_encode([
         'totalDays' => $totalDays
     ],
     'data' => $transformed,
-    'summary' => $summary
+    'summary' => $summary,
+    'weightData' => $transformedWeight,
+    'weightSummary' => $weightTotals
 ], JSON_UNESCAPED_UNICODE);

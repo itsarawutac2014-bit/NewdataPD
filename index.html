@@ -458,6 +458,88 @@
 
     </section>
 
+    <!-- New Section: ตารางแยกน้ำหนัก 11 รายการ (Waste ชั่งจริง) ตามรูปภาพ -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mt-6">
+      <!-- Top banner of weight table -->
+      <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex flex-wrap justify-between items-center gap-3">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center bg-white border border-slate-300 rounded-lg px-3 py-1 shadow-xs">
+            <span class="text-xs text-slate-500 font-semibold mr-1.5">เดือน:</span>
+            <span id="weight-banner-month" class="text-xs font-black text-slate-800">10</span>
+          </div>
+          <div class="flex items-center bg-white border border-slate-300 rounded-lg px-3 py-1 shadow-xs">
+            <span class="text-xs text-slate-500 font-semibold mr-1.5">เครื่อง:</span>
+            <span id="weight-banner-machine" class="text-xs font-black text-blue-700">BHS</span>
+          </div>
+        </div>
+
+        <div class="text-center">
+          <div class="inline-block bg-amber-300 border-2 border-red-500 px-6 py-1 rounded shadow-xs">
+            <span class="text-base sm:text-lg font-black text-slate-900 tracking-wider">Waste ชั่งจริง (kg)</span>
+          </div>
+        </div>
+
+        <div>
+          <button onclick="refreshData()" class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-black shadow-sm transition cursor-pointer">
+            <i class="fa-solid fa-arrows-rotate"></i> รีเฟรชด้วย
+          </button>
+        </div>
+      </div>
+
+      <!-- Table Content -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-center text-xs border-collapse">
+          <thead>
+            <!-- Header Row with light green background and red vertical separators matching image -->
+            <tr class="bg-[#bbf7d0] text-slate-900 font-bold border-b border-rose-400">
+              <th class="p-2.5 border-r border-rose-400 text-left min-w-[110px]">ป้ายชื่อแถว</th>
+              <th class="p-2.5 border-r border-rose-400 min-w-[70px]">.NCP</th>
+              <th class="p-2.5 border-r border-rose-400 min-w-[70px]">.DEF</th>
+              <th class="p-2.5 border-r border-rose-400 min-w-[70px]">.WEB</th>
+              <th class="p-2.5 border-r border-rose-400 min-w-[110px]">.ของเหลือ Control</th>
+              <th class="p-2.5 border-r border-rose-400 min-w-[95px]">.ของเหลือ O.M.</th>
+              <th class="p-2.5 border-r border-rose-400 min-w-[95px]">.รอยต่อออเดอร์</th>
+              <th class="p-2.5 border-r border-rose-400 min-w-[95px]">.เศษติดแกนผลิต</th>
+              <th class="p-2.5 border-r border-rose-400 min-w-[95px]">.สันนูนตรงสเปค</th>
+              <th class="p-2.5 border-r border-rose-400 min-w-[80px]">.Conveyor</th>
+              <th class="p-2.5 border-r border-rose-400 min-w-[75px]">.QC Test</th>
+              <th class="p-2.5 border-r border-rose-400 min-w-[75px] text-red-600 font-extrabold">.Reject</th>
+              <th class="p-2.5 min-w-[110px] font-black text-slate-900 bg-[#86efac]">รวมน้ำหนัก/วัน</th>
+            </tr>
+          </thead>
+          <tbody id="weightTableBody" class="divide-y divide-slate-200">
+            <!-- Injected by JavaScript -->
+          </tbody>
+          <tfoot>
+            <!-- Total Row at bottom -->
+            <tr class="bg-white text-slate-900 font-black border-t-2 border-slate-400 text-xs">
+              <td class="p-2.5 text-left font-black tracking-wide whitespace-nowrap">ผลรวมทั้งหมด</td>
+              <td class="p-2 border-r border-slate-200" id="weight-total-ncp">29,508</td>
+              <td class="p-2 border-r border-slate-200" id="weight-total-def">16,711</td>
+              <td class="p-2 border-r border-slate-200" id="weight-total-web">875</td>
+              <td class="p-2 border-r border-slate-200" id="weight-total-control">21,922</td>
+              <td class="p-2 border-r border-slate-200" id="weight-total-om">0</td>
+              <td class="p-2 border-r border-slate-200" id="weight-total-order">1,045</td>
+              <td class="p-2 border-r border-slate-200" id="weight-total-core">592</td>
+              <td class="p-2 border-r border-slate-200" id="weight-total-spec">289</td>
+              <td class="p-2 border-r border-slate-200" id="weight-total-conveyor">128</td>
+              <td class="p-2 border-r border-slate-200" id="weight-total-qc">90</td>
+              <td class="p-2 border-r border-slate-200 text-red-600" id="weight-total-reject">1,991</td>
+              <td class="p-2 bg-slate-100 font-black text-slate-950" id="weight-total-sum">73,151</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- Bottom Right Summary Box (ตรงตามรูปภาพเป๊ะๆ) -->
+      <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+        <div class="border-2 border-red-500 bg-amber-300 rounded text-center overflow-hidden shadow-xs min-w-[130px]">
+          <div class="py-1 px-3 text-sm font-black text-slate-950 border-b border-red-400" id="weight-box-total">73151</div>
+          <div class="py-0.5 px-3 text-xs font-black text-red-700">รวมน้ำหนัก</div>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <!-- Modal ตั้งค่า Google Sheet -->
@@ -593,6 +675,60 @@
 
     let currentData = [...initialRawData];
     let currentSummary = null;
+
+    // ข้อมูลน้ำหนัก Waste ชั่งจริง (kg) 11 รายการ เริ่มต้น (ตุลาคม BHS ตามภาพต้นฉบับ)
+    const initialWeightData = [
+      { date: "1/10/2026", ncp: 2479, def: 1301, web: 262, control: 1745, om: 0, order: 168, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, totalWeight: 5955 },
+      { date: "2/10/2026", ncp: 2097, def: 1139, web: 186, control: 1632, om: 0, order: 64, core: 0, spec: 30, conveyor: 0, qc: 20, reject: 0, totalWeight: 5168 },
+      { date: "3/10/2026", ncp: 3546, def: 1793, web: 0, control: 1431, om: 0, order: 71, core: 251, spec: 0, conveyor: 117, qc: 0, reject: 0, totalWeight: 7209 },
+      { date: "4/10/2026", ncp: 1118, def: 533, web: 59, control: 1303, om: 0, order: 85, core: 101, spec: 0, conveyor: 2, qc: 18, reject: 0, totalWeight: 3219 },
+      { date: "5/10/2026", ncp: 1581, def: 787, web: 86, control: 696, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 373, totalWeight: 3523 },
+      { date: "6/10/2026", ncp: 2352, def: 1115, web: 43, control: 1755, om: 0, order: 102, core: 98, spec: 0, conveyor: 0, qc: 0, reject: 439, totalWeight: 5904 },
+      { date: "7/10/2026", ncp: 2561, def: 1331, web: 0, control: 2722, om: 0, order: 80, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 327, totalWeight: 7021 },
+      { date: "8/10/2026", ncp: 2268, def: 1523, web: 0, control: 1929, om: 0, order: 107, core: 0, spec: 0, conveyor: 9, qc: 0, reject: 0, totalWeight: 5836 },
+      { date: "9/10/2026", ncp: 2222, def: 1448, web: 39, control: 1487, om: 0, order: 87, core: 0, spec: 42, conveyor: 0, qc: 40, reject: 366, totalWeight: 5731 },
+      { date: "10/10/2026", ncp: 1875, def: 1248, web: 94, control: 1148, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, totalWeight: 4365 },
+      { date: "11/10/2026", ncp: 820, def: 945, web: 0, control: 1440, om: 0, order: 82, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, totalWeight: 3287 },
+      { date: "12/10/2026", ncp: 0, def: 0, web: 0, control: 505, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, totalWeight: 505 },
+      { date: "13/10/2026", ncp: 1748, def: 366, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, totalWeight: 2114 },
+      { date: "14/10/2026", ncp: 2319, def: 1892, web: 106, control: 1924, om: 0, order: 91, core: 0, spec: 0, conveyor: 0, qc: 12, reject: 486, totalWeight: 6830 },
+      { date: "15/10/2026", ncp: 2522, def: 1290, web: 0, control: 2205, om: 0, order: 108, core: 142, spec: 217, conveyor: 0, qc: 0, reject: 0, totalWeight: 6484 },
+      { date: "16/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, totalWeight: 0 },
+      { date: "17/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, totalWeight: 0 },
+      { date: "18/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, totalWeight: 0 },
+      { date: "19/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, totalWeight: 0 },
+      { date: "20/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, totalWeight: 0 },
+      { date: "21/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, totalWeight: 0 },
+      { date: "22/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, totalWeight: 0 },
+      { date: "23/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, totalWeight: 0 },
+      { date: "24/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, totalWeight: 0 },
+      { date: "25/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, totalWeight: 0 },
+      { date: "26/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, totalWeight: 0 },
+      { date: "27/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, totalWeight: 0 },
+      { date: "28/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, totalWeight: 0 },
+      { date: "29/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, totalWeight: 0 },
+      { date: "30/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, totalWeight: 0 },
+      { date: "31/10/2026", ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0, totalWeight: 0 }
+    ];
+
+    const initialWeightSummary = {
+      ncp: 29508,
+      def: 16711,
+      web: 875,
+      control: 21922,
+      om: 0,
+      order: 1045,
+      core: 592,
+      spec: 289,
+      conveyor: 128,
+      qc: 90,
+      reject: 1991,
+      totalAll: 73151
+    };
+
+    let currentWeightData = [...initialWeightData];
+    let currentWeightSummary = { ...initialWeightSummary };
+
     let dailyWasteChartInstance = null;
     let categoryWasteChartInstance = null;
     let categoryDonutChartInstance = null;
@@ -648,6 +784,8 @@
       safeSetText('table-machine-name', machine);
       safeSetText('table-month-name', `เดือน ${monthName}`);
       safeSetText('chart-machine-name', machine);
+      safeSetText('weight-banner-machine', machine);
+      safeSetText('weight-banner-month', month);
 
       const defaultSheetUrl = 'https://docs.google.com/spreadsheets/d/1viioRJ5I3BmqiD7KLwSG9_uNQ_9u_a8LYR-4GaPGuYI/edit?gid=0#gid=0';
       const savedUrl = localStorage.getItem('bhs_sheet_csv_url') || defaultSheetUrl;
@@ -657,7 +795,7 @@
     // เมื่อโหลดหน้าเว็บ - แสดงข้อมูลทันทีและดึงข้อมูลสดจาก Google Sheet (หน้า Waste) อัตโนมัติ
     window.addEventListener('DOMContentLoaded', () => {
       // 1. เรนเดอร์ข้อมูลตั้งต้นทันที หน้าเว็บจะไม่ว่างเปล่า
-      renderDashboard(initialRawData);
+      renderDashboard(initialRawData, null, initialWeightData, initialWeightSummary);
 
       const defaultSheetUrl = 'https://docs.google.com/spreadsheets/d/1viioRJ5I3BmqiD7KLwSG9_uNQ_9u_a8LYR-4GaPGuYI/edit?gid=0#gid=0';
       const savedUrl = localStorage.getItem('bhs_sheet_csv_url') || defaultSheetUrl;
@@ -704,8 +842,10 @@
       localStorage.removeItem('bhs_sheet_csv_url');
       document.getElementById('sheetUrlInput').value = 'https://docs.google.com/spreadsheets/d/1viioRJ5I3BmqiD7KLwSG9_uNQ_9u_a8LYR-4GaPGuYI/edit?gid=0#gid=0';
       currentSummary = null;
+      currentWeightData = [...initialWeightData];
+      currentWeightSummary = { ...initialWeightSummary };
       toggleConfigModal();
-      renderDashboard(initialRawData);
+      renderDashboard(initialRawData, null, initialWeightData, initialWeightSummary);
       updateStatusBadge('กำลังแสดงข้อมูลตัวอย่าง (Default Data)', 'amber');
     }
 
@@ -757,8 +897,10 @@
             .then(res => {
               finishLoading();
               if (res && res.success && res.data && res.data.length > 0) {
-                renderDashboard(res.data, res.summary);
+                renderDashboard(res.data, res.summary, res.weightData, res.weightSummary);
                 safeSetText('table-total-days-badge', `${res.data.length} วัน`);
+                safeSetText('weight-banner-month', month);
+                safeSetText('weight-banner-machine', machine);
                 updateStatusBadge(`ข้อมูลเครื่อง ${machine} (${monthName}) จาก Google Sheet`, 'emerald');
               } else if (res && res.table) {
                 parseAndTransformGvizTable(res.table);
@@ -1047,10 +1189,12 @@
     }
 
     // ฟังก์ชันเรนเดอร์แดชบอร์ดหลัก
-    function renderDashboard(data, summary = currentSummary) {
+    function renderDashboard(data, summary = currentSummary, weightData = currentWeightData, weightSummary = currentWeightSummary) {
       const finalData = (data && data.length > 0) ? data : initialRawData;
       currentData = finalData;
       currentSummary = summary;
+      if (weightData !== undefined) currentWeightData = weightData;
+      if (weightSummary !== undefined) currentWeightSummary = weightSummary;
 
       // 1. เรนเดอร์ตาราง 31 วันก่อนเสมอ (สำคัญที่สุด เพื่อไม่ให้ตารางหายเมื่อมี error)
       try {
@@ -1078,6 +1222,13 @@
         renderCategoryCharts(finalData, summary);
       } catch (err) {
         console.error('Error rendering category charts:', err);
+      }
+
+      // 5. เรนเดอร์ตารางแยกน้ำหนัก 11 รายการ (Waste ชั่งจริง)
+      try {
+        renderWeightTable(currentWeightData, currentWeightSummary);
+      } catch (err) {
+        console.error('Error rendering weight table:', err);
       }
     }
 
@@ -1543,6 +1694,66 @@
 
         tbody.appendChild(tr);
       });
+    }
+
+    // ฟังก์ชันเรนเดอร์ตารางแยกน้ำหนัก 11 รายการ (Waste ชั่งจริง)
+    function renderWeightTable(weightData, weightSummary) {
+      const tbody = document.getElementById('weightTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const items = (weightData && weightData.length > 0) ? weightData : initialWeightData;
+      const summary = weightSummary || currentWeightSummary || initialWeightSummary;
+
+      const formatNum = (v) => {
+        const num = Math.round(Number(v) || 0);
+        return num.toLocaleString();
+      };
+
+      items.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-amber-50/50 transition border-b border-rose-200 text-xs text-slate-800';
+
+        const rejectVal = Math.round(row.reject || 0);
+        const rejectClass = rejectVal > 0 ? 'text-red-600 font-bold' : 'text-slate-600';
+
+        tr.innerHTML = `
+          <td class="p-2 border-r border-rose-300 text-left font-semibold text-slate-800 whitespace-nowrap">${row.date || ''}</td>
+          <td class="p-2 border-r border-rose-300">${formatNum(row.ncp)}</td>
+          <td class="p-2 border-r border-rose-300">${formatNum(row.def)}</td>
+          <td class="p-2 border-r border-rose-300">${formatNum(row.web)}</td>
+          <td class="p-2 border-r border-rose-300">${formatNum(row.control)}</td>
+          <td class="p-2 border-r border-rose-300">${formatNum(row.om)}</td>
+          <td class="p-2 border-r border-rose-300">${formatNum(row.order)}</td>
+          <td class="p-2 border-r border-rose-300">${formatNum(row.core)}</td>
+          <td class="p-2 border-r border-rose-300">${formatNum(row.spec)}</td>
+          <td class="p-2 border-r border-rose-300">${formatNum(row.conveyor)}</td>
+          <td class="p-2 border-r border-rose-300">${formatNum(row.qc)}</td>
+          <td class="p-2 border-r border-rose-300 ${rejectClass}">${formatNum(row.reject)}</td>
+          <td class="p-2 font-bold text-slate-900 bg-emerald-50">${formatNum(row.totalWeight)}</td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+
+      // อัปเดตแถวผลรวมด้านล่าง (tfoot)
+      if (summary) {
+        safeSetText('weight-total-ncp', formatNum(summary.ncp));
+        safeSetText('weight-total-def', formatNum(summary.def));
+        safeSetText('weight-total-web', formatNum(summary.web));
+        safeSetText('weight-total-control', formatNum(summary.control));
+        safeSetText('weight-total-om', formatNum(summary.om));
+        safeSetText('weight-total-order', formatNum(summary.order));
+        safeSetText('weight-total-core', formatNum(summary.core));
+        safeSetText('weight-total-spec', formatNum(summary.spec));
+        safeSetText('weight-total-conveyor', formatNum(summary.conveyor));
+        safeSetText('weight-total-qc', formatNum(summary.qc));
+        safeSetText('weight-total-reject', formatNum(summary.reject));
+        safeSetText('weight-total-sum', formatNum(summary.totalAll));
+
+        // กล่องสีเหลืองขวาล่าง
+        safeSetText('weight-box-total', formatNum(summary.totalAll).replace(/,/g, ''));
+      }
     }
 
     // กรองแถวในตาราง
