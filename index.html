@@ -955,14 +955,50 @@
       statusText.textContent = text;
     }
 
+    // ฟังก์ชันช่วยตั้งค่าข้อความอย่างปลอดภัย ไม่เกิด error แม้หา element ไม่เจอ
+    function safeSetText(id, val) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    }
+
+    function safeSetHTML(id, val) {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = val;
+    }
+
     // ฟังก์ชันเรนเดอร์แดชบอร์ดหลัก
     function renderDashboard(data, summary = currentSummary) {
-      currentData = data;
+      const finalData = (data && data.length > 0) ? data : initialRawData;
+      currentData = finalData;
       currentSummary = summary;
-      renderKPIs(data, summary);
-      renderDailyChart(data, summary);
-      renderCategoryCharts(data, summary);
-      renderTable(data);
+
+      // 1. เรนเดอร์ตาราง 31 วันก่อนเสมอ (สำคัญที่สุด เพื่อไม่ให้ตารางหายเมื่อมี error)
+      try {
+        renderTable(finalData);
+      } catch (err) {
+        console.error('Error rendering table:', err);
+      }
+
+      // 2. คำนวณและแสดงผลการ์ด KPI ต่างๆ
+      try {
+        renderKPIs(finalData, summary);
+      } catch (err) {
+        console.error('Error rendering KPIs:', err);
+      }
+
+      // 3. เรนเดอร์กราฟแท่งหลัก Waste รายวัน
+      try {
+        renderDailyChart(finalData, summary);
+      } catch (err) {
+        console.error('Error rendering daily chart:', err);
+      }
+
+      // 4. เรนเดอร์กราฟจำแนกหมวดหมู่
+      try {
+        renderCategoryCharts(finalData, summary);
+      } catch (err) {
+        console.error('Error rendering category charts:', err);
+      }
     }
 
     // คำนวณสรุป KPI Cards
@@ -997,91 +1033,105 @@
       }
 
       const formattedWaste = actualWasteMTD.toFixed(2) + '%';
-      document.getElementById('kpi-actual-waste').textContent = formattedWaste;
-      if (document.getElementById('top-summary-waste')) {
-        document.getElementById('top-summary-waste').textContent = formattedWaste;
-      }
-      if (document.getElementById('top-row-all-waste')) {
-        document.getElementById('top-row-all-waste').textContent = formattedWaste;
-      }
+      safeSetText('kpi-actual-waste', formattedWaste);
+      safeSetText('top-summary-waste', formattedWaste);
+      safeSetText('top-row-all-waste', formattedWaste);
 
       const wasteStatusBadge = document.getElementById('kpi-waste-status');
       const iconBox = document.getElementById('kpi-waste-icon-box');
+      const actualWasteEl = document.getElementById('kpi-actual-waste');
 
       if (actualWasteMTD <= TARGETS.allWaste) {
-        wasteStatusBadge.className = 'px-2 py-0.5 rounded font-bold bg-emerald-100 text-emerald-700';
-        wasteStatusBadge.textContent = 'ได้เป้า (Pass)';
-        document.getElementById('kpi-actual-waste').className = 'text-3xl font-extrabold mt-1 text-emerald-600';
-        iconBox.className = 'w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-emerald-100 text-emerald-600';
+        if (wasteStatusBadge) {
+          wasteStatusBadge.className = 'px-2 py-0.5 rounded font-bold bg-emerald-100 text-emerald-700';
+          wasteStatusBadge.textContent = 'ได้เป้า (Pass)';
+        }
+        if (actualWasteEl) {
+          actualWasteEl.className = 'text-3xl font-extrabold mt-1 text-emerald-600';
+        }
+        if (iconBox) {
+          iconBox.className = 'w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-emerald-100 text-emerald-600';
+        }
       } else {
-        wasteStatusBadge.className = 'px-2 py-0.5 rounded font-bold bg-rose-100 text-rose-700';
-        wasteStatusBadge.textContent = 'เกินเป้า (Over Target)';
-        document.getElementById('kpi-actual-waste').className = 'text-3xl font-extrabold mt-1 text-rose-600';
-        iconBox.className = 'w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-rose-100 text-rose-600';
+        if (wasteStatusBadge) {
+          wasteStatusBadge.className = 'px-2 py-0.5 rounded font-bold bg-rose-100 text-rose-700';
+          wasteStatusBadge.textContent = 'เกินเป้า (Over Target)';
+        }
+        if (actualWasteEl) {
+          actualWasteEl.className = 'text-3xl font-extrabold mt-1 text-rose-600';
+        }
+        if (iconBox) {
+          iconBox.className = 'w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-rose-100 text-rose-600';
+        }
       }
 
       // อัปเดตแถวสรุปผลรวมบนตาราง
       if (summary) {
         WASTE_COLUMNS.forEach(col => {
-          const el = document.getElementById(`top-row-${col.key}`);
-          if (el && summary[col.key] !== undefined) {
-            el.textContent = summary[col.key].toFixed(2) + '%';
+          if (summary[col.key] !== undefined) {
+            safeSetText(`top-row-${col.key}`, summary[col.key].toFixed(2) + '%');
           }
         });
       }
 
       const diffTarget = TARGETS.allWaste - actualWasteMTD;
       const diffSign = diffTarget >= 0 ? '+' : '';
-      if (document.getElementById('top-row-diff')) {
-        document.getElementById('top-row-diff').textContent = `${diffSign}${diffTarget.toFixed(2)}%`;
-      }
-      if (document.getElementById('top-row-status')) {
+      safeSetText('top-row-diff', `${diffSign}${diffTarget.toFixed(2)}%`);
+
+      const topRowStatus = document.getElementById('top-row-status');
+      if (topRowStatus) {
         if (actualWasteMTD <= TARGETS.allWaste) {
-          document.getElementById('top-row-status').textContent = 'ได้เป้า';
-          document.getElementById('top-row-status').className = 'p-2 border-r border-emerald-500 bg-emerald-800 text-white font-bold';
+          topRowStatus.textContent = 'ได้เป้า';
+          topRowStatus.className = 'p-2 border-r border-emerald-500 bg-emerald-800 text-white font-bold text-center align-middle';
         } else {
-          document.getElementById('top-row-status').textContent = 'เกินเป้า';
-          document.getElementById('top-row-status').className = 'p-2 border-r border-emerald-500 bg-rose-700 text-white font-bold';
+          topRowStatus.textContent = 'เกินเป้า';
+          topRowStatus.className = 'p-2 border-r border-emerald-500 bg-rose-700 text-white font-bold text-center align-middle';
         }
       }
 
       const formattedConsum = (totalConsumption || 1587701).toLocaleString();
       const formattedOutput = (totalOutput || 1415766).toLocaleString();
 
-      document.getElementById('kpi-total-consumption').textContent = formattedConsum;
-      document.getElementById('kpi-total-output').textContent = formattedOutput;
-      if (document.getElementById('top-summary-consumption')) document.getElementById('top-summary-consumption').textContent = formattedConsum;
-      if (document.getElementById('top-summary-output')) document.getElementById('top-summary-output').textContent = formattedOutput;
-      if (document.getElementById('top-row-consumption')) document.getElementById('top-row-consumption').textContent = formattedConsum;
-      if (document.getElementById('top-row-output')) document.getElementById('top-row-output').textContent = formattedOutput;
+      safeSetText('kpi-total-consumption', formattedConsum);
+      safeSetText('kpi-total-output', formattedOutput);
+      safeSetText('top-summary-consumption', formattedConsum);
+      safeSetText('top-summary-output', formattedOutput);
+      safeSetText('top-row-consumption', formattedConsum);
+      safeSetText('top-row-output', formattedOutput);
       
       const avgConsumption = runningDays > 0 ? Math.round(totalConsumption / runningDays).toLocaleString() : '88,206';
       const avgOutput = runningDays > 0 ? Math.round(totalOutput / runningDays).toLocaleString() : '78,654';
 
-      document.getElementById('kpi-avg-consumption').textContent = avgConsumption;
-      document.getElementById('kpi-avg-output').textContent = avgOutput;
-      if (document.getElementById('top-summary-avg-consumption')) document.getElementById('top-summary-avg-consumption').textContent = avgConsumption;
-      if (document.getElementById('top-summary-avg-output')) document.getElementById('top-summary-avg-output').textContent = avgOutput;
-      if (document.getElementById('top-row-avg-consumption')) document.getElementById('top-row-avg-consumption').textContent = avgConsumption;
-      if (document.getElementById('top-row-avg-output')) document.getElementById('top-row-avg-output').textContent = avgOutput;
+      safeSetText('kpi-avg-consumption', avgConsumption);
+      safeSetText('kpi-avg-output', avgOutput);
+      safeSetText('top-summary-avg-consumption', avgConsumption);
+      safeSetText('top-summary-avg-output', avgOutput);
+      safeSetText('top-row-avg-consumption', avgConsumption);
+      safeSetText('top-row-avg-output', avgOutput);
 
       const idleDays = Math.max(0, data.length - runningDays);
-      document.getElementById('kpi-running-days').innerHTML = `${runningDays} <span class="text-sm font-normal text-slate-400">/ ${data.length} วัน</span>`;
-      document.getElementById('kpi-days-pass').textContent = `ได้เป้า: ${daysPass} วัน`;
-      document.getElementById('kpi-days-over').textContent = `เกินเป้า: ${daysOver} วัน`;
+      safeSetHTML('kpi-running-days', `${runningDays} <span class="text-sm font-normal text-slate-400">/ ${data.length} วัน</span>`);
+      safeSetText('kpi-days-pass', `ได้เป้า: ${daysPass} วัน`);
+      safeSetText('kpi-days-over', `เกินเป้า: ${daysOver} วัน`);
 
-      if (document.getElementById('header-days-pass')) document.getElementById('header-days-pass').textContent = daysPass;
-      if (document.getElementById('header-days-over')) document.getElementById('header-days-over').textContent = daysOver;
-      if (document.getElementById('header-days-idle')) document.getElementById('header-days-idle').textContent = idleDays;
+      safeSetText('header-days-pass', daysPass);
+      safeSetText('header-days-over', daysOver);
+      safeSetText('header-days-idle', idleDays);
 
-      // อัปเดตตารางด้านล่างสุด
-      document.getElementById('foot-all-waste').textContent = formattedWaste;
-      document.getElementById('foot-consumption').textContent = formattedConsum;
-      document.getElementById('foot-output').textContent = formattedOutput;
+      safeSetText('foot-all-waste', formattedWaste);
+      safeSetText('foot-consumption', formattedConsum);
+      safeSetText('foot-output', formattedOutput);
     }
 
     // เรนเดอร์กราฟแท่งหลัก Waste รายวัน BHS Target 5.00%
     function renderDailyChart(data, summary = currentSummary) {
+      const chartEl = document.getElementById('dailyWasteChart');
+      if (!chartEl) return;
+      if (typeof Chart === 'undefined') {
+        console.warn('Chart.js is not loaded');
+        return;
+      }
+
       const labels = data.map(d => d.date);
       labels.push('ผลรวมทั้งหมด'); // แท่งสุดท้ายตามรูปภาพ
 
@@ -1107,12 +1157,22 @@
         return '#047857';
       });
 
-      const ctx = document.getElementById('dailyWasteChart').getContext('2d');
-      if (dailyWasteChartInstance) dailyWasteChartInstance.destroy();
+      if (dailyWasteChartInstance) {
+        try {
+          dailyWasteChartInstance.destroy();
+        } catch(e) {}
+        dailyWasteChartInstance = null;
+      }
 
+      const chartPlugins = [];
+      if (typeof ChartDataLabels !== 'undefined') {
+        chartPlugins.push(ChartDataLabels);
+      }
+
+      const ctx = chartEl.getContext('2d');
       dailyWasteChartInstance = new Chart(ctx, {
         type: 'bar',
-        plugins: [ChartDataLabels],
+        plugins: chartPlugins,
         data: {
           labels: labels,
           datasets: [{
@@ -1150,28 +1210,27 @@
                 }
               }
             },
-            // ตัวเลขบนหัวกราฟทุกแท่ง ตัวหนังสือใหญ่ คมชัด อ่านง่าย
             datalabels: {
               display: true,
               anchor: 'end',
               align: 'top',
               offset: 3,
-              formatter: function(value, context) {
+              formatter: function(value) {
                 return (value || 0).toFixed(2) + '%';
               },
               color: function(context) {
                 const idx = context.dataIndex;
                 const total = context.dataset.data.length;
                 const val = context.dataset.data[idx];
-                if (idx === total - 1) return '#b91c1c'; // ผลรวมสะสมทั้งหมด (สีแดงเข้ม วงกลมแบบในภาพ)
-                if (val > TARGETS.allWaste) return '#b91c1c'; // เกินเป้า (สีแดงเข้ม ชัดเจน)
-                return '#15803d'; // ได้เป้า หรือ 0.00% (สีเขียวเข้ม ชัดเจน)
+                if (idx === total - 1) return '#b91c1c';
+                if (val > TARGETS.allWaste) return '#b91c1c';
+                return '#15803d';
               },
               font: function(context) {
                 const isLast = context.dataIndex === context.dataset.data.length - 1;
                 return {
                   family: "'Prompt', sans-serif",
-                  size: isLast ? 13 : 11, // ตัวหนังสือขนาดใหญ่ขึ้น อ่านง่าย
+                  size: isLast ? 13 : 11,
                   weight: isLast ? '800' : '700'
                 };
               }
@@ -1230,10 +1289,15 @@
 
     // เรนเดอร์กราฟจำแนกตามประเภทของเสีย
     function renderCategoryCharts(data) {
+      if (typeof Chart === 'undefined') return;
+
+      const catEl = document.getElementById('categoryWasteChart');
+      const donutEl = document.getElementById('categoryDonutChart');
+
       // คำนวณผลรวมเฉลี่ยสะสมของแต่ละคอลัมน์
       const catAverages = WASTE_COLUMNS.map(col => {
         const sum = data.reduce((acc, curr) => acc + (curr[col.key] || 0), 0);
-        const avg = data.length > 0 ? (sum / 18) : 0; // อิงตาม 18 วันที่คำนวณ
+        const avg = data.length > 0 ? (sum / 18) : 0;
         return {
           label: col.label,
           target: col.target,
@@ -1242,75 +1306,85 @@
       });
 
       // 1. กราฟเปรียบเทียบ Category vs Target
-      const ctxCat = document.getElementById('categoryWasteChart').getContext('2d');
-      if (categoryWasteChartInstance) categoryWasteChartInstance.destroy();
+      if (catEl) {
+        if (categoryWasteChartInstance) {
+          try { categoryWasteChartInstance.destroy(); } catch(e) {}
+          categoryWasteChartInstance = null;
+        }
 
-      categoryWasteChartInstance = new Chart(ctxCat, {
-        type: 'bar',
-        data: {
-          labels: catAverages.map(c => c.label),
-          datasets: [
-            {
-              label: '% Actual สะสม',
-              data: [1.86, 1.05, 0.06, 1.38, 0.00, 0.07, 0.04, 0.02, 0.01, 0.01, 0.13], // จากภาพแถวล่างสุด
-              backgroundColor: '#3b82f6',
-              borderRadius: 4
-            },
-            {
-              label: 'Target ของแต่ละจุด',
-              data: catAverages.map(c => c.target),
-              backgroundColor: '#cbd5e1',
-              borderRadius: 4
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'top', labels: { font: { size: 11 } } },
-            datalabels: { display: false }
+        const ctxCat = catEl.getContext('2d');
+        categoryWasteChartInstance = new Chart(ctxCat, {
+          type: 'bar',
+          data: {
+            labels: catAverages.map(c => c.label),
+            datasets: [
+              {
+                label: '% Actual สะสม',
+                data: [1.86, 1.05, 0.06, 1.38, 0.00, 0.07, 0.04, 0.02, 0.01, 0.01, 0.13],
+                backgroundColor: '#3b82f6',
+                borderRadius: 4
+              },
+              {
+                label: 'Target ของแต่ละจุด',
+                data: catAverages.map(c => c.target),
+                backgroundColor: '#cbd5e1',
+                borderRadius: 4
+              }
+            ]
           },
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: { callback: v => v.toFixed(2) + '%' },
-              grid: { color: '#f1f5f9' }
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'top', labels: { font: { size: 11 } } },
+              datalabels: { display: false }
             },
-            x: {
-              ticks: { font: { size: 9 }, maxRotation: 30 }
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: { callback: v => v.toFixed(2) + '%' },
+                grid: { color: '#f1f5f9' }
+              },
+              x: {
+                ticks: { font: { size: 9 }, maxRotation: 30 }
+              }
             }
           }
-        }
-      });
+        });
+      }
 
       // 2. กราฟโดนัทสัดส่วนของเสีย
-      const ctxDonut = document.getElementById('categoryDonutChart').getContext('2d');
-      if (categoryDonutChartInstance) categoryDonutChartInstance.destroy();
-
-      categoryDonutChartInstance = new Chart(ctxDonut, {
-        type: 'doughnut',
-        data: {
-          labels: ['.NCP', '.DEF', 'ของเหลือ Control', '.Reject', '.รอยต่อออเดอร์', 'อื่นๆ'],
-          datasets: [{
-            data: [1.86, 1.05, 1.38, 0.13, 0.07, 0.12],
-            backgroundColor: [
-              '#f43f5e', '#f59e0b', '#3b82f6', '#8b5cf6', '#10b981', '#94a3b8'
-            ],
-            borderWidth: 2,
-            borderColor: '#ffffff'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'bottom', labels: { font: { size: 10 } } },
-            datalabels: { display: false }
-          },
-          cutout: '60%'
+      if (donutEl) {
+        if (categoryDonutChartInstance) {
+          try { categoryDonutChartInstance.destroy(); } catch(e) {}
+          categoryDonutChartInstance = null;
         }
-      });
+
+        const ctxDonut = donutEl.getContext('2d');
+        categoryDonutChartInstance = new Chart(ctxDonut, {
+          type: 'doughnut',
+          data: {
+            labels: ['.NCP', '.DEF', 'ของเหลือ Control', '.Reject', '.รอยต่อออเดอร์', 'อื่นๆ'],
+            datasets: [{
+              data: [1.86, 1.05, 1.38, 0.13, 0.07, 0.12],
+              backgroundColor: [
+                '#f43f5e', '#f59e0b', '#3b82f6', '#8b5cf6', '#10b981', '#94a3b8'
+              ],
+              borderWidth: 2,
+              borderColor: '#ffffff'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom', labels: { font: { size: 10 } } },
+              datalabels: { display: false }
+            },
+            cutout: '60%'
+          }
+        });
+      }
     }
 
     // แสดงตารางข้อมูลพร้อม Conditional Formatting ไฮไลต์สีตามรูปภาพ
