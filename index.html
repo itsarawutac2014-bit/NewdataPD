@@ -10,6 +10,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.2.1/dist/chartjs-plugin-annotation.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <!-- html2canvas for High Resolution DOM Image Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <!-- PapaParse for Google Sheets CSV -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <!-- Font Awesome -->
@@ -70,11 +72,16 @@
         </div>
 
         <!-- Action / Status -->
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap justify-end">
           <span id="data-status-badge" class="inline-flex items-center text-xs px-3 py-1.5 rounded-full font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
             <span class="w-2 h-2 mr-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
             <span id="status-text">ข้อมูลพร้อมแสดงผล</span>
           </span>
+          <!-- ปุ่มบันทึกรูปภาพความคมชัดสูง -->
+          <button onclick="saveHighResReport()" id="btn-save-image" class="inline-flex items-center px-3.5 py-1.5 text-xs font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition shadow-sm border border-emerald-500 cursor-pointer">
+            <i class="fa-solid fa-camera mr-1.5" id="save-image-icon"></i> 
+            <span id="save-image-text">บันทึกรูปภาพ (HD)</span>
+          </button>
           <button onclick="toggleConfigModal()" class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition shadow-sm">
             <i class="fa-solid fa-gear mr-1.5 text-slate-500"></i> ตั้งค่า Google Sheet
           </button>
@@ -87,6 +94,9 @@
   </header>
 
   <main class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- ส่วนที่จะถูกจับภาพบันทึกเป็นรูปภาพความคมชัดสูง (ตั้งแต่หัว KPI, ตาราง, ไปจนจบที่กราฟ) -->
+    <div id="report-printable-area" class="space-y-6 bg-slate-100 p-2 sm:p-3 rounded-2xl">
 
     <!-- KPI Cards Summary -->
     <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -375,6 +385,8 @@
         <canvas id="dailyWasteChart"></canvas>
       </div>
     </section>
+
+    </div> <!-- จบส่วน capture สิ้นสุดที่กราฟ ตามที่ผู้ใช้ระบุ -->
 
     <!-- Sub Charts: Breakdown by Waste Category -->
     <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -1035,6 +1047,63 @@
                (d.allWaste <= TARGETS.allWaste ? 'ได้เป้า' : 'เกินเป้า').includes(q);
       });
       renderTable(filtered);
+    }
+
+    // ฟังก์ชันบันทึกรูปภาพความคมชัดสูงพิเศษ (HD 2.5x) ตั้งแต่ส่วนหัวจนจบที่กราฟ
+    async function saveHighResReport() {
+      const area = document.getElementById('report-printable-area');
+      const btn = document.getElementById('btn-save-image');
+      const icon = document.getElementById('save-image-icon');
+      const text = document.getElementById('save-image-text');
+
+      if (!area) return;
+
+      // ปรับสถานะปุ่มกำลังทำงาน
+      btn.disabled = true;
+      btn.classList.add('opacity-75');
+      icon.className = 'fa-solid fa-circle-notch fa-spin mr-1.5';
+      text.textContent = 'กำลังเรนเดอร์ภาพ HD...';
+
+      try {
+        // ให้เวลา DOM และ Font โหลดสมบูรณ์เล็กน้อย
+        await new Promise(r => setTimeout(r, 150));
+
+        // จับภาพ DOM ด้วย html2canvas ความละเอียด 2.5 เท่า (คมชัดพิเศษ ไม่แตก)
+        const canvas = await html2canvas(area, {
+          scale: 2.5,
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          backgroundColor: '#f1f5f9',
+          scrollX: 0,
+          scrollY: 0,
+          windowWidth: document.documentElement.offsetWidth
+        });
+
+        // สร้างลิงก์ดาวน์โหลดรูปภาพ PNG
+        const link = document.createElement('a');
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}_${now.getHours().toString().padStart(2,'0')}${now.getMinutes().toString().padStart(2,'0')}`;
+        link.download = `Waste_BHS_Report_${dateStr}.png`;
+        link.href = canvas.toDataURL('image/png', 1.0);
+        link.click();
+
+        text.textContent = 'บันทึกสำเร็จ!';
+        icon.className = 'fa-solid fa-circle-check mr-1.5';
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.classList.remove('opacity-75');
+          icon.className = 'fa-solid fa-camera mr-1.5';
+          text.textContent = 'บันทึกรูปภาพ (HD)';
+        }, 2000);
+      } catch (err) {
+        console.error('Error generating high-res report image:', err);
+        alert('เกิดข้อผิดพลาดในการบันทึกรูปภาพ กรุณาลองใหม่อีกครั้ง');
+        btn.disabled = false;
+        btn.classList.remove('opacity-75');
+        icon.className = 'fa-solid fa-camera mr-1.5';
+        text.textContent = 'บันทึกรูปภาพ (HD)';
+      }
     }
   </script>
 </body>
