@@ -590,14 +590,13 @@
       return url;
     }
 
-    // เมื่อโหลดหน้าเว็บ
+    // เมื่อโหลดหน้าเว็บ - แสดงข้อมูล 31 วันทันทีเสมอ
     window.addEventListener('DOMContentLoaded', () => {
+      renderDashboard(initialRawData);
+
       const savedUrl = localStorage.getItem('bhs_sheet_csv_url');
       if (savedUrl) {
         document.getElementById('sheetUrlInput').value = savedUrl;
-        fetchGoogleSheetData(savedUrl);
-      } else {
-        renderDashboard(initialRawData);
       }
     });
 
@@ -1317,17 +1316,42 @@
     // แสดงตารางข้อมูลพร้อม Conditional Formatting ไฮไลต์สีตามรูปภาพ
     function renderTable(data) {
       const tbody = document.getElementById('wasteTableBody');
+      if (!tbody) return;
       tbody.innerHTML = '';
 
-      data.forEach(row => {
-        const isIdle = row.allWaste === 0 && row.consumption === 0;
+      const tableData = (data && data.length > 0) ? data : initialRawData;
+
+      const safeNum = (v) => {
+        if (typeof v === 'number') return isNaN(v) ? 0 : v;
+        if (!v) return 0;
+        const cleaned = String(v).replace(/[^0-9.-]+/g, '');
+        return parseFloat(cleaned) || 0;
+      };
+
+      tableData.forEach(row => {
+        const ncp = safeNum(row.ncp);
+        const def = safeNum(row.def);
+        const web = safeNum(row.web);
+        const control = safeNum(row.control);
+        const om = safeNum(row.om);
+        const order = safeNum(row.order);
+        const core = safeNum(row.core);
+        const spec = safeNum(row.spec);
+        const conveyor = safeNum(row.conveyor);
+        const qc = safeNum(row.qc);
+        const reject = safeNum(row.reject);
+        const allWaste = safeNum(row.allWaste);
+        const consumption = safeNum(row.consumption);
+        const output = safeNum(row.output);
+
+        const isIdle = allWaste === 0 && consumption === 0;
         let statusBadge = '';
-        let diffVal = (TARGETS.allWaste - row.allWaste).toFixed(2);
+        let diffVal = (TARGETS.allWaste - allWaste).toFixed(2);
 
         if (isIdle) {
           statusBadge = '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[11px] font-bold badge-target-idle min-w-[56px] text-center mx-auto">ไม่เดิน</span>';
           diffVal = '5.00%';
-        } else if (row.allWaste <= TARGETS.allWaste) {
+        } else if (allWaste <= TARGETS.allWaste) {
           statusBadge = '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[11px] font-bold badge-target-pass min-w-[56px] text-center mx-auto">ได้เป้า</span>';
           diffVal = diffVal + '%';
         } else {
@@ -1344,23 +1368,23 @@
         tr.className = 'hover:bg-slate-50 transition border-b border-slate-300';
 
         tr.innerHTML = `
-          <td class="p-2 text-left font-semibold text-slate-800 whitespace-nowrap">${row.date}</td>
-          <td class="p-2 ${cellClass(row.ncp, TARGETS.ncp)}">${row.ncp.toFixed(2)}%</td>
-          <td class="p-2 ${cellClass(row.def, TARGETS.def)}">${row.def.toFixed(2)}%</td>
-          <td class="p-2 ${cellClass(row.web, TARGETS.web)}">${row.web.toFixed(2)}%</td>
-          <td class="p-2 ${cellClass(row.control, TARGETS.control)}">${row.control.toFixed(2)}%</td>
-          <td class="p-2 ${cellClass(row.om, TARGETS.om)}">${row.om.toFixed(2)}%</td>
-          <td class="p-2 ${cellClass(row.order, TARGETS.order)}">${row.order.toFixed(2)}%</td>
-          <td class="p-2 ${cellClass(row.core, TARGETS.core)}">${row.core.toFixed(2)}%</td>
-          <td class="p-2 ${cellClass(row.spec, TARGETS.spec)}">${row.spec.toFixed(2)}%</td>
-          <td class="p-2 ${cellClass(row.conveyor, TARGETS.conveyor)}">${row.conveyor.toFixed(2)}%</td>
-          <td class="p-2 ${cellClass(row.qc, TARGETS.qc)}">${row.qc.toFixed(2)}%</td>
-          <td class="p-2 ${cellClass(row.reject, TARGETS.reject)}">${row.reject.toFixed(2)}%</td>
-          <td class="p-2 font-bold ${row.allWaste > TARGETS.allWaste ? 'cell-over-target' : 'text-slate-900'}">${row.allWaste.toFixed(2)}%</td>
+          <td class="p-2 text-left font-semibold text-slate-800 whitespace-nowrap">${row.date || ''}</td>
+          <td class="p-2 ${cellClass(ncp, TARGETS.ncp)}">${ncp.toFixed(2)}%</td>
+          <td class="p-2 ${cellClass(def, TARGETS.def)}">${def.toFixed(2)}%</td>
+          <td class="p-2 ${cellClass(web, TARGETS.web)}">${web.toFixed(2)}%</td>
+          <td class="p-2 ${cellClass(control, TARGETS.control)}">${control.toFixed(2)}%</td>
+          <td class="p-2 ${cellClass(om, TARGETS.om)}">${om.toFixed(2)}%</td>
+          <td class="p-2 ${cellClass(order, TARGETS.order)}">${order.toFixed(2)}%</td>
+          <td class="p-2 ${cellClass(core, TARGETS.core)}">${core.toFixed(2)}%</td>
+          <td class="p-2 ${cellClass(spec, TARGETS.spec)}">${spec.toFixed(2)}%</td>
+          <td class="p-2 ${cellClass(conveyor, TARGETS.conveyor)}">${conveyor.toFixed(2)}%</td>
+          <td class="p-2 ${cellClass(qc, TARGETS.qc)}">${qc.toFixed(2)}%</td>
+          <td class="p-2 ${cellClass(reject, TARGETS.reject)}">${reject.toFixed(2)}%</td>
+          <td class="p-2 font-bold ${allWaste > TARGETS.allWaste ? 'cell-over-target' : 'text-slate-900'}">${allWaste.toFixed(2)}%</td>
           <td class="p-1.5 text-center align-middle whitespace-nowrap">${statusBadge}</td>
           <td class="p-2 text-center align-middle text-slate-700 font-bold">${diffVal}</td>
-          <td class="p-2 text-slate-900 font-semibold">${row.consumption.toLocaleString()}</td>
-          <td class="p-2 text-slate-900 font-semibold">${row.output.toLocaleString()}</td>
+          <td class="p-2 text-slate-900 font-semibold">${Math.round(consumption).toLocaleString()}</td>
+          <td class="p-2 text-slate-900 font-semibold">${Math.round(output).toLocaleString()}</td>
         `;
 
         tbody.appendChild(tr);
