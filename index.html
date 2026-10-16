@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard ข้อมูลจาก Google Sheet</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- PapaParse for CSV Parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <!-- Google Fonts: Prompt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Prompt', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+  <!-- Top Navbar -->
+  <nav class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 bg-emerald-100 text-emerald-600 rounded-lg">
+            <i class="fa-solid fa-chart-line text-xl"></i>
+          </div>
+          <div>
+            <h1 class="text-lg font-bold text-slate-900 leading-tight">Google Sheets Live Dashboard</h1>
+            <p class="text-xs text-slate-500">แดชบอร์ดเชื่อมต่อข้อมูลจาก Google Sheet</p>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <span id="sync-status" class="inline-flex items-center text-xs px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-medium">
+            <span class="w-2 h-2 mr-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+            พร้อมใช้งาน
+          </span>
+          <button onclick="fetchSheetData()" class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition shadow-sm">
+            <i class="fa-solid fa-arrows-rotate mr-2" id="refresh-icon"></i>
+            รีเฟรชข้อมูล
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Config / Settings Modal or Alert -->
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+      <div class="flex items-start">
+        <div class="text-blue-500 mt-0.5 mr-3">
+          <i class="fa-solid fa-circle-info text-lg"></i>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-sm font-semibold text-blue-900">การตั้งค่าเชื่อมต่อ Google Sheet</h3>
+          <p class="text-xs text-blue-700 mt-1">
+            เปิด Google Sheet แล้วไปที่เมนู <strong>ไฟล์ (File) &gt; แชร์ (Share) &gt; เผยแพร่ไปยังเว็บ (Publish to the web)</strong> &gt; เลือกแผ่นงาน &gt; เลือกชนิดเป็น <strong>CSV</strong> แล้วคัดลอกลิงก์มาใส่ หรือเปลี่ยน URL ในโค้ด
+          </p>
+          <div class="mt-3 flex flex-wrap gap-2 items-center">
+            <input type="text" id="sheet-url-input" 
+                   placeholder="วางลิงก์ CSV ของ Google Sheet ที่นี่..." 
+                   class="flex-1 min-w-[300px] text-xs px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" />
+            <button onclick="updateSheetUrl()" class="px-4 py-2 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+              โหลดข้อมูล
+            </button>
+            <button onclick="loadSampleData()" class="px-3 py-2 text-xs font-medium bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition">
+              ใช้ข้อมูลตัวอย่าง
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+      
+      <!-- Card 1 -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium text-slate-500">จำนวนรายการทั้งหมด</p>
+          <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpi-total-rows">0</h3>
+          <span class="text-xs text-emerald-600 font-medium"><i class="fa-solid fa-arrow-trend-up mr-1"></i>อัปเดตล่าสุด</span>
+        </div>
+        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl">
+          <i class="fa-solid fa-list-check"></i>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium text-slate-500">ยอดรวมมูลค่า (Total Sales)</p>
+          <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpi-total-amount">฿0</h3>
+          <span class="text-xs text-slate-400">คำนวณจากคอลัมน์ตัวเลข</span>
+        </div>
+        <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl">
+          <i class="fa-solid fa-baht-sign"></i>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium text-slate-500">มูลค่าเฉลี่ยต่อรายการ</p>
+          <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpi-avg-amount">฿0</h3>
+          <span class="text-xs text-slate-400">Average per order</span>
+        </div>
+        <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-xl">
+          <i class="fa-solid fa-calculator"></i>
+        </div>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-medium text-slate-500">หมวดหมู่สินค้า / ประเภท</p>
+          <h3 class="text-2xl font-bold text-slate-800 mt-1" id="kpi-categories">0</h3>
+          <span class="text-xs text-slate-400">จำนวนประเภทที่ไม่ซ้ำ</span>
+        </div>
+        <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-xl">
+          <i class="fa-solid fa-tags"></i>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <!-- Bar Chart -->
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm lg:col-span-2">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-base font-semibold text-slate-800">ยอดขายแยกตามหมวดหมู่</h2>
+            <p class="text-xs text-slate-400">สรุปยอดรวมแบ่งตามประเภทสินค้า/หมวดหมู่</p>
+          </div>
+          <div class="p-2 text-slate-400 hover:text-slate-600">
+            <i class="fa-solid fa-chart-column"></i>
+          </div>
+        </div>
+        <div class="relative h-72">
+          <canvas id="barChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Doughnut Chart -->
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-base font-semibold text-slate-800">สัดส่วนตามสถานะ / หมวด</h2>
+            <p class="text-xs text-slate-400">เปอร์เซ็นต์การกระจายตัวของข้อมูล</p>
+          </div>
+          <div class="p-2 text-slate-400 hover:text-slate-600">
+            <i class="fa-solid fa-chart-pie"></i>
+          </div>
+        </div>
+        <div class="relative h-72 flex items-center justify-center">
+          <canvas id="pieChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Data Table Section -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base font-semibold text-slate-800">ตารางข้อมูลล่าสุด (Raw Data)</h2>
+          <p class="text-xs text-slate-400">แสดงแถวข้อมูลที่ดึงมาจาก Google Sheet</p>
+        </div>
+        <div>
+          <input type="text" id="table-search" oninput="filterTable()" placeholder="ค้นหาข้อมูล..." class="text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-60">
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50 text-slate-700 uppercase font-semibold border-b border-slate-200" id="table-head">
+            <!-- Headers will be rendered dynamically -->
+          </thead>
+          <tbody id="table-body" class="divide-y divide-slate-100">
+            <!-- Rows will be rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // ตัวแปรสำหรับ Chart instances
+    let barChartInstance = null;
+    let pieChartInstance = null;
+    let globalData = [];
+
+    // URL สำหรับดึงข้อมูลเริ่มต้น (สามารถใส่ Sheet CSV URL ที่ Publish แล้วได้ที่นี่)
+    // รูปแบบ URL: https://docs.google.com/spreadsheets/d/e/2PACX-.../pub?output=csv
+    let googleSheetCsvUrl = localStorage.getItem('gsheet_csv_url') || '';
+
+    // ข้อมูลตัวอย่างเริ่มต้น (Dummy Data) เผื่อผู้ใช้ยังไม่ได้ใส่ URL
+    const sampleData = [
+      { "วันที่": "2026-10-01", "หมวดหมู่": "อาหารและเครื่องดื่ม", "สินค้า": "กาแฟลาเต้", "จำนวน": 25, "ยอดขาย": 1500, "สถานะ": "เสร็จสิ้น" },
+      { "วันที่": "2026-10-02", "หมวดหมู่": "อุปกรณ์ไอที", "สินค้า": "เมาส์ไร้สาย", "จำนวน": 8, "ยอดขาย": 3920, "สถานะ": "เสร็จสิ้น" },
+      { "วันที่": "2026-10-03", "หมวดหมู่": "เครื่องเขียน", "สินค้า": "สมุดโน้ตปกหนัง", "จำนวน": 40, "ยอดขาย": 2400, "สถานะ": "เสร็จสิ้น" },
+      { "วันที่": "2026-10-04", "หมวดหมู่": "อาหารและเครื่องดื่ม", "สินค้า": "ชาเขียวมัทฉะ", "จำนวน": 30, "ยอดขาย": 2100, "สถานะ": "รอดำเนินการ" },
+      { "วันที่": "2026-10-05", "หมวดหมู่": "อุปกรณ์ไอที", "สินค้า": "คีย์บอร์ดบลูทูธ", "จำนวน": 5, "ยอดขาย": 6250, "สถานะ": "เสร็จสิ้น" },
+      { "วันที่": "2026-10-06", "หมวดหมู่": "เสื้อผ้าและแฟชั่น", "สินค้า": "เสื้อยืดคอกลม", "จำนวน": 15, "ยอดขาย": 4350, "สถานะ": "เสร็จสิ้น" },
+      { "วันที่": "2026-10-07", "หมวดหมู่": "เครื่องเขียน", "สินค้า": "ปากกาเจลหมึกดำ", "จำนวน": 60, "ยอดขาย": 1200, "สถานะ": "ยกเลิก" },
+      { "วันที่": "2026-10-08", "หมวดหมู่": "อาหารและเครื่องดื่ม", "สินค้า": "ครัวซองต์เนยสด", "จำนวน": 18, "ยอดขาย": 1440, "สถานะ": "เสร็จสิ้น" },
+      { "วันที่": "2026-10-09", "หมวดหมู่": "เสื้อผ้าและแฟชั่น", "สินค้า": "กางเกงขายาว", "จำนวน": 10, "ยอดขาย": 5900, "สถานะ": "เสร็จสิ้น" },
+      { "วันที่": "2026-10-10", "หมวดหมู่": "อุปกรณ์ไอที", "สินค้า": "หูฟัง TWS", "จำนวน": 12, "ยอดขาย": 10680, "สถานะ": "เสร็จสิ้น" }
+    ];
+
+    // เมื่อโหลดหน้าเว็บ
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlInput = document.getElementById('sheet-url-input');
+      if (googleSheetCsvUrl) {
+        urlInput.value = googleSheetCsvUrl;
+        fetchSheetData();
+      } else {
+        loadSampleData();
+      }
+    });
+
+    // โหลดข้อมูลตัวอย่าง
+    function loadSampleData() {
+      setStatus('กำลังแสดงข้อมูลตัวอย่าง (Dummy Data)', 'amber');
+      renderDashboard(sampleData);
+    }
+
+    // อัปเดต URL เมื่อผู้ใช้กดปุ่ม
+    function updateSheetUrl() {
+      const input = document.getElementById('sheet-url-input');
+      const url = input.value.trim();
+      if (!url) {
+        alert('กรุณากรอกลิงก์ CSV ของ Google Sheet');
+        return;
+      }
+      googleSheetCsvUrl = url;
+      localStorage.setItem('gsheet_csv_url', url);
+      fetchSheetData();
+    }
+
+    // ฟังก์ชันดึงข้อมูลจาก Google Sheet
+    async function fetchSheetData() {
+      if (!googleSheetCsvUrl) {
+        loadSampleData();
+        return;
+      }
+
+      setStatus('กำลังโหลดข้อมูล...', 'blue');
+      const refreshIcon = document.getElementById('refresh-icon');
+      refreshIcon.classList.add('animate-spin');
+
+      try {
+        Papa.parse(googleSheetCsvUrl, {
+          download: true,
+          header: true,
+          skipEmptyLines: true,
+          complete: function(results) {
+            refreshIcon.classList.remove('animate-spin');
+            if (results.data && results.data.length > 0) {
+              setStatus('เชื่อมต่อและอัปเดตเรียบร้อย', 'emerald');
+              renderDashboard(results.data);
+            } else {
+              setStatus('ไม่พบข้อมูลใน Sheet', 'red');
+              alert('ไม่พบแถวข้อมูลใน Google Sheet กรุณาตรวจสอบลิงก์ CSV');
+            }
+          },
+          error: function(err) {
+            refreshIcon.classList.remove('animate-spin');
+            console.error('Error parsing CSV:', err);
+            setStatus('เกิดข้อผิดพลาดในการโหลดข้อมูล', 'red');
+            alert('ไม่สามารถโหลดข้อมูลได้ กรุณาตรวจสอบว่าได้ตั้งค่า Publish to web เป็น CSV ถูกต้องหรือไม่');
+          }
+        });
+      } catch (err) {
+        refreshIcon.classList.remove('animate-spin');
+        console.error('Fetch error:', err);
+        setStatus('เกิดข้อผิดพลาดในการเชื่อมต่อ', 'red');
+      }
+    }
+
+    // แสดงสถานะที่ Navbar
+    function setStatus(text, color) {
+      const badge = document.getElementById('sync-status');
+      badge.className = `inline-flex items-center text-xs px-2.5 py-1 rounded-full font-medium bg-${color}-100 text-${color}-800`;
+      badge.innerHTML = `<span class="w-2 h-2 mr-1.5 bg-${color}-500 rounded-full animate-pulse"></span> ${text}`;
+    }
+
+    // อัปเดตข้อมูลบนหน้าเว็บทั้งหมด
+    function renderDashboard(data) {
+      globalData = data;
+      updateKPIs(data);
+      updateCharts(data);
+      renderTable(data);
+    }
+
+    // คำนวณค่า KPI
+    function updateKPIs(data) {
+      const totalRows = data.length;
+      document.getElementById('kpi-total-rows').textContent = totalRows.toLocaleString();
+
+      // หาคอลัมน์ที่เป็นตัวเลขยอดเงิน (พยายามหาคอลัมน์ เช่น ยอดขาย, ยอดเงิน, price, amount, total)
+      let amountKey = null;
+      let categoryKey = null;
+
+      if (data.length > 0) {
+        const keys = Object.keys(data[0]);
+        amountKey = keys.find(k => /ยอดขาย|มูลค่า|ราคา|total|amount|sales|price/i.test(k));
+        categoryKey = keys.find(k => /หมวดหมู่|ประเภท|category|type|status|แผนก/i.test(k));
+      }
+
+      let totalAmount = 0;
+      const categories = new Set();
+
+      data.forEach(row => {
+        if (amountKey && row[amountKey]) {
+          const cleanNum = parseFloat(String(row[amountKey]).replace(/[^0-9.-]+/g, '')) || 0;
+          totalAmount += cleanNum;
+        }
+        if (categoryKey && row[categoryKey]) {
+          categories.add(row[categoryKey]);
+        }
+      });
+
+      const avgAmount = totalRows > 0 ? (totalAmount / totalRows) : 0;
+
+      document.getElementById('kpi-total-amount').textContent = '฿' + totalAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+      document.getElementById('kpi-avg-amount').textContent = '฿' + avgAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+      document.getElementById('kpi-categories').textContent = categories.size > 0 ? categories.size : '-';
+    }
+
+    // อัปเดตกราฟ Chart.js
+    function updateCharts(data) {
+      if (!data || data.length === 0) return;
+
+      const keys = Object.keys(data[0]);
+      const categoryKey = keys.find(k => /หมวดหมู่|ประเภท|category|type/i.test(k)) || keys[1] || keys[0];
+      const amountKey = keys.find(k => /ยอดขาย|มูลค่า|ราคา|total|amount|sales|price/i.test(k));
+      const statusKey = keys.find(k => /สถานะ|status/i.test(k)) || categoryKey;
+
+      // Group data by Category for Bar Chart
+      const categoryTotals = {};
+      data.forEach(row => {
+        const cat = row[categoryKey] || 'ไม่ระบุ';
+        let val = 1;
+        if (amountKey && row[amountKey]) {
+          val = parseFloat(String(row[amountKey]).replace(/[^0-9.-]+/g, '')) || 0;
+        }
+        categoryTotals[cat] = (categoryTotals[cat] || 0) + val;
+      });
+
+      const barLabels = Object.keys(categoryTotals);
+      const barValues = Object.values(categoryTotals);
+
+      // Bar Chart
+      const ctxBar = document.getElementById('barChart').getContext('2d');
+      if (barChartInstance) barChartInstance.destroy();
+
+      barChartInstance = new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+          labels: barLabels,
+          datasets: [{
+            label: amountKey ? `ยอดรวม (${amountKey})` : 'จำนวนรายการ',
+            data: barValues,
+            backgroundColor: '#3b82f6',
+            borderRadius: 8,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+
+      // Group data by Status / Category for Pie/Doughnut Chart
+      const statusTotals = {};
+      data.forEach(row => {
+        const st = row[statusKey] || 'ไม่ระบุ';
+        statusTotals[st] = (statusTotals[st] || 0) + 1;
+      });
+
+      const pieLabels = Object.keys(statusTotals);
+      const pieValues = Object.values(statusTotals);
+
+      const ctxPie = document.getElementById('pieChart').getContext('2d');
+      if (pieChartInstance) pieChartInstance.destroy();
+
+      pieChartInstance = new Chart(ctxPie, {
+        type: 'doughnut',
+        data: {
+          labels: pieLabels,
+          datasets: [{
+            data: pieValues,
+            backgroundColor: [
+              '#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'
+            ],
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' }
+          },
+          cutout: '65%'
+        }
+      });
+    }
+
+    // แสดงตารางข้อมูล
+    function renderTable(data) {
+      const thead = document.getElementById('table-head');
+      const tbody = document.getElementById('table-body');
+
+      if (!data || data.length === 0) {
+        thead.innerHTML = '';
+        tbody.innerHTML = '<tr><td colspan="100%" class="text-center py-6 text-slate-400">ไม่มีข้อมูล</td></tr>';
+        return;
+      }
+
+      const keys = Object.keys(data[0]);
+
+      // สร้างหัวตาราง
+      thead.innerHTML = `<tr>${keys.map(k => `<th class="px-5 py-3">${k}</th>`).join('')}</tr>`;
+
+      // แสดงแถวตาราง (จำกัดแสดงผล 20 แถวแรกเพื่อประสิทธิภาพ)
+      const rowsHtml = data.slice(0, 20).map(row => {
+        return `<tr class="hover:bg-slate-50 transition">
+          ${keys.map(k => {
+            const val = row[k] ?? '';
+            // ถ้าเป็นสถานะ ให้ทำ pill badge
+            if (/สถานะ|status/i.test(k)) {
+              let badgeColor = 'bg-slate-100 text-slate-700';
+              if (/เสร็จสิ้น|สำเร็จ|complete|success/i.test(val)) badgeColor = 'bg-emerald-100 text-emerald-700';
+              else if (/รอ|pending/i.test(val)) badgeColor = 'bg-amber-100 text-amber-700';
+              else if (/ยกเลิก|cancel|fail/i.test(val)) badgeColor = 'bg-rose-100 text-rose-700';
+              return `<td class="px-5 py-3 whitespace-nowrap"><span class="px-2.5 py-1 text-[11px] font-semibold rounded-full ${badgeColor}">${val}</span></td>`;
+            }
+            return `<td class="px-5 py-3 whitespace-nowrap">${val}</td>`;
+          }).join('')}
+        </tr>`;
+      }).join('');
+
+      tbody.innerHTML = rowsHtml;
+    }
+
+    // กรองค้นหาในตาราง
+    function filterTable() {
+      const query = document.getElementById('table-search').value.toLowerCase();
+      if (!query) {
+        renderTable(globalData);
+        return;
+      }
+
+      const filtered = globalData.filter(row => {
+        return Object.values(row).some(val => String(val).toLowerCase().includes(query));
+      });
+
+      renderTable(filtered);
+    }
+  </script>
+</body>
+</html>
