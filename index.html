@@ -860,6 +860,15 @@
 
       // 2. ดึงข้อมูลสดจาก Google Sheet (หน้า 2 Waste) แบบเรียลไทม์ทันที
       if (window.location.protocol.startsWith('http')) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlMachine = urlParams.get('machine');
+        const urlMonth = urlParams.get('month');
+        if (urlMachine && document.getElementById('selectedMachine')) {
+          document.getElementById('selectedMachine').value = urlMachine.toUpperCase();
+        }
+        if (urlMonth && document.getElementById('selectedMonth')) {
+          document.getElementById('selectedMonth').value = urlMonth;
+        }
         const machine = document.getElementById('selectedMachine')?.value || 'BHS';
         const month = document.getElementById('selectedMonth')?.value || '10';
         fetchGoogleSheetData(savedUrl, machine, month);
@@ -955,6 +964,11 @@
               if (res && res.success && res.data && res.data.length > 0) {
                 renderDashboard(res.data, res.summary, res.weightData, res.weightSummary);
                 safeSetText('table-total-days-badge', `${res.data.length} วัน`);
+                safeSetText('table-machine-name', machine);
+                safeSetText('table-month-name', `เดือน ${monthName}`);
+                safeSetText('header-machine-name', machine);
+                safeSetText('header-month-name', `${monthName} 2026`);
+                safeSetText('chart-machine-name', machine);
                 safeSetText('weight-banner-month', month);
                 safeSetText('weight-banner-machine', machine);
                 updateStatusBadge(`ข้อมูลเครื่อง ${machine} (${monthName}) จาก Google Sheet`, 'emerald');
