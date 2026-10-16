@@ -245,7 +245,8 @@ for ($d = 1; $d <= $totalDays; $d++) {
     ];
 }
 
-$effectiveWasteKg = ($totalWasteKgMTD > 0) ? $totalWasteKgMTD : $totalWasteKgFromBreakdown;
+// ค่าเฉลี่ยสะสม ALL Waste MTD = รวมน้ำหนัก 11 รายการชั่งจริง / รวม Consumption
+$effectiveWasteKg = ($weightTotals['totalAll'] > 0) ? $weightTotals['totalAll'] : $totalWasteKgMTD;
 $actualMTD = 0;
 if ($totalConsumMTD > 0 && $effectiveWasteKg > 0) {
     $actualMTD = round(($effectiveWasteKg / $totalConsumMTD) * 100, 2);
@@ -254,7 +255,18 @@ if ($totalConsumMTD > 0 && $effectiveWasteKg > 0) {
 $summary = [
     'consumption' => round($totalConsumMTD),
     'output' => round($totalOutputMTD),
-    'allWaste' => $actualMTD
+    'allWaste' => $actualMTD,
+    'ncp' => ($totalConsumMTD > 0) ? round(($weightTotals['ncp'] / $totalConsumMTD) * 100, 2) : 0,
+    'def' => ($totalConsumMTD > 0) ? round(($weightTotals['def'] / $totalConsumMTD) * 100, 2) : 0,
+    'web' => ($totalConsumMTD > 0) ? round(($weightTotals['web'] / $totalConsumMTD) * 100, 2) : 0,
+    'control' => ($totalConsumMTD > 0) ? round(($weightTotals['control'] / $totalConsumMTD) * 100, 2) : 0,
+    'om' => ($totalConsumMTD > 0) ? round(($weightTotals['om'] / $totalConsumMTD) * 100, 2) : 0,
+    'order' => ($totalConsumMTD > 0) ? round(($weightTotals['order'] / $totalConsumMTD) * 100, 2) : 0,
+    'core' => ($totalConsumMTD > 0) ? round(($weightTotals['core'] / $totalConsumMTD) * 100, 2) : 0,
+    'spec' => ($totalConsumMTD > 0) ? round(($weightTotals['spec'] / $totalConsumMTD) * 100, 2) : 0,
+    'conveyor' => ($totalConsumMTD > 0) ? round(($weightTotals['conveyor'] / $totalConsumMTD) * 100, 2) : 0,
+    'qc' => ($totalConsumMTD > 0) ? round(($weightTotals['qc'] / $totalConsumMTD) * 100, 2) : 0,
+    'reject' => ($totalConsumMTD > 0) ? round(($weightTotals['reject'] / $totalConsumMTD) * 100, 2) : 0
 ];
 
 echo json_encode([
