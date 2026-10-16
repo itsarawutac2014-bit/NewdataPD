@@ -1387,14 +1387,18 @@
 
       // กำหนดสีของแท่ง: ถ้าได้เป้าให้เป็นสีเขียว ถ้าเกินเป้าให้เป็นสีแดง
       const backgroundColors = values.map((val, idx) => {
-        if (idx === values.length - 1) return '#059669'; // แท่งผลรวมทั้งหมด (สีเขียวเข้มเด่น)
+        if (idx === values.length - 1) {
+          return val <= TARGETS.allWaste ? '#059669' : '#dc2626'; // แท่งผลรวมทั้งหมด เปลี่ยนตามเป้า
+        }
         if (val === 0) return 'rgba(0,0,0,0)'; // ไม่เดิน
         if (val > TARGETS.allWaste) return '#ef4444'; // เกินเป้า (สีแดง)
         return '#10b981'; // ได้เป้า (สีเขียวสดใส ชัดเจน)
       });
 
       const borderColors = values.map((val, idx) => {
-        if (idx === values.length - 1) return '#047857';
+        if (idx === values.length - 1) {
+          return val <= TARGETS.allWaste ? '#047857' : '#991b1b';
+        }
         if (val === 0) return 'rgba(0,0,0,0)';
         if (val > TARGETS.allWaste) return '#b91c1c';
         return '#047857';
@@ -1433,9 +1437,9 @@
           maintainAspectRatio: false,
           layout: {
             padding: {
-              top: 32, // เว้นที่ด้านบนให้ตัวเลข % แสดงได้ชัดเจน ไม่ตกขอบ
+              top: 38, // เว้นที่ด้านบนให้ badge สรุปสีเหลืองตัวเลขใหญ่แสดงได้ชัดเจน ไม่ตกขอบ
               left: 5,
-              right: 15,
+              right: 20,
               bottom: 5
             }
           },
@@ -1457,15 +1461,38 @@
               display: true,
               anchor: 'end',
               align: 'top',
-              offset: 3,
+              offset: 4,
               formatter: function(value) {
                 return (value || 0).toFixed(2) + '%';
+              },
+              backgroundColor: function(context) {
+                const isLast = context.dataIndex === context.dataset.data.length - 1;
+                // กราฟอันสุดท้าย: พื้นหลังสีเหลืองตามที่ขอ
+                return isLast ? '#fef08a' : null;
+              },
+              borderColor: function(context) {
+                const isLast = context.dataIndex === context.dataset.data.length - 1;
+                if (!isLast) return null;
+                const val = context.dataset.data[context.dataIndex];
+                return (val <= TARGETS.allWaste) ? '#ca8a04' : '#dc2626';
+              },
+              borderWidth: function(context) {
+                const isLast = context.dataIndex === context.dataset.data.length - 1;
+                return isLast ? 1.5 : 0;
+              },
+              borderRadius: 6,
+              padding: function(context) {
+                const isLast = context.dataIndex === context.dataset.data.length - 1;
+                return isLast ? { top: 3, bottom: 3, left: 7, right: 7 } : 0;
               },
               color: function(context) {
                 const idx = context.dataIndex;
                 const total = context.dataset.data.length;
                 const val = context.dataset.data[idx];
-                if (idx === total - 1) return '#b91c1c';
+                if (idx === total - 1) {
+                  // แท่งสุดท้าย: ถ้าได้เป้าตัวเลขสีเขียว ถ้าไม่ได้เป้าตัวเลขสีแดง บนพื้นหลังสีเหลือง
+                  return (val <= TARGETS.allWaste) ? '#15803d' : '#dc2626';
+                }
                 if (val > TARGETS.allWaste) return '#b91c1c';
                 return '#15803d';
               },
@@ -1473,8 +1500,8 @@
                 const isLast = context.dataIndex === context.dataset.data.length - 1;
                 return {
                   family: "'Prompt', sans-serif",
-                  size: isLast ? 13 : 11,
-                  weight: isLast ? '800' : '700'
+                  size: isLast ? 16 : 11, // ตัวเลขใหญ่ขึ้นเด่นชัดตามที่ขอ
+                  weight: isLast ? '900' : '700'
                 };
               }
             },
