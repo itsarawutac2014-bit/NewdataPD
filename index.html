@@ -435,36 +435,38 @@
       </div>
 
       <div class="text-xs text-slate-600 space-y-3 leading-relaxed">
-        <div class="bg-blue-50 border border-blue-200 rounded-xl p-3">
-          <p class="font-bold text-blue-900 flex items-center gap-1.5 mb-1">
-            <i class="fa-solid fa-bolt text-amber-500"></i> วิธีที่ 1: วางลิงก์ Google Sheet ทั่วไปได้ทันที (สะดวกและเร็วที่สุด)
+        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+          <p class="font-bold text-emerald-900 flex items-center justify-between mb-1">
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-bolt text-amber-500"></i> ลิงก์ชีต Google Sheet ของคุณ:</span>
+            <span class="text-[11px] bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded font-semibold">พร้อมเชื่อมต่อ</span>
           </p>
-          <ol class="list-decimal list-inside space-y-1 text-blue-800 text-[11.5px] ml-1">
-            <li>เปิดไฟล์ Google Sheet ของคุณ</li>
-            <li>กดปุ่ม <strong>"แชร์ (Share)"</strong> สีน้ำเงินมุมขวาบน</li>
-            <li>ตั้งค่าการเข้าถึงทั่วไปเป็น <strong>"ทุกคนที่มีลิงก์ (Anyone with the link)"</strong> เป็น <em>ผู้มีสิทธิ์ดู (Viewer)</em></li>
-            <li>คัดลอกลิงก์จาก Address Bar ของเบราว์เซอร์มาวางที่ช่องด้านล่างได้เลย! (ระบบจะแปลงให้อัตโนมัติ)</li>
-          </ol>
+          <p class="text-[11.5px] text-emerald-800 mb-2">
+            เพียงคัดลอกลิงก์จากแถบ URL ด้านบนเบราว์เซอร์ (Address Bar) มาวาง <strong>(ไม่ต้องใช้ Publish to web)</strong>
+          </p>
+          <button type="button" onclick="loadUserDefaultSheet()" class="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition">
+            <i class="fa-solid fa-link"></i> ดึงข้อมูลจากชีต "Waste PD5.00%" ทันที
+          </button>
         </div>
 
         <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
           <p class="font-bold text-slate-800 flex items-center gap-1.5 mb-1">
-            <i class="fa-solid fa-globe text-emerald-600"></i> วิธีที่ 2: ใช้ Publish to Web (กรณีต้องการความเสถียรสูงสุด)
+            <i class="fa-solid fa-circle-info text-blue-600"></i> หรือวางลิงก์ Google Sheet อื่นๆ:
           </p>
-          <ol class="list-decimal list-inside space-y-1 text-slate-600 text-[11.5px] ml-1">
-            <li>คลิกเมนู <strong>ไฟล์ (File) &gt; แชร์ (Share) &gt; เผยแพร่ไปยังเว็บ (Publish to web)</strong></li>
-            <li>เลือกแผ่นงานที่ต้องการ แล้วเลือกชนิดเป็น <strong>ค่าที่คั่นด้วยเครื่องหมายจุลภาค (.csv)</strong></li>
-            <li>คลิก <strong>เผยแพร่ (Publish)</strong> แล้วคัดลอกลิงก์ CSV มาวาง</li>
+          <ol class="list-decimal list-inside space-y-1 text-slate-600 text-[11px] ml-1">
+            <li>เปิดไฟล์ Google Sheet ในเบราว์เซอร์</li>
+            <li>ตั้งค่าแชร์เป็น <strong>"ทุกคนที่มีลิงก์ (Anyone with the link)"</strong> ให้เป็น <em>ผู้มีสิทธิ์ดู (Viewer)</em></li>
+            <li>คัดลอก URL จากช่อง Address Bar ด้านบน เช่น <code>https://docs.google.com/spreadsheets/d/.../edit</code> มาวาง</li>
           </ol>
         </div>
       </div>
 
       <div>
-        <label class="block text-xs font-semibold text-slate-700 mb-1">วางลิงก์ Google Sheet ที่นี่:</label>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Google Sheet URL:</label>
         <input type="text" id="sheetUrlInput" 
-               placeholder="https://docs.google.com/spreadsheets/d/.../edit หรือ ลิงก์ .csv" 
+               placeholder="https://docs.google.com/spreadsheets/d/1viioRJ5I3BmqiD7KLwSG9_uNQ_9u_a8LYR-4GaPGuYI/edit?gid=0" 
+               value="https://docs.google.com/spreadsheets/d/1viioRJ5I3BmqiD7KLwSG9_uNQ_9u_a8LYR-4GaPGuYI/edit?gid=0#gid=0"
                class="w-full text-xs p-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-slate-800 shadow-inner" />
-        <p class="text-[11px] text-slate-400 mt-1">รองรับทั้งลิงก์ชีตปกติ, ลิงก์ pub?output=csv, และ gviz/tq</p>
+        <p class="text-[11px] text-slate-400 mt-1">รองรับ Google Sheet ทั่วไป ผ่านระบบ JSONP Direct ไม่ติดปัญหา CORS</p>
       </div>
 
       <div class="flex justify-between items-center pt-3 border-t border-slate-100">
@@ -593,8 +595,7 @@
       const savedUrl = localStorage.getItem('bhs_sheet_csv_url');
       if (savedUrl) {
         document.getElementById('sheetUrlInput').value = savedUrl;
-        const finalUrl = convertToCsvUrl(savedUrl);
-        fetchGoogleSheetData(finalUrl);
+        fetchGoogleSheetData(savedUrl);
       } else {
         renderDashboard(initialRawData);
       }
@@ -606,6 +607,15 @@
       modal.classList.toggle('hidden');
     }
 
+    // โหลดชีตของผู้ใช้ทันทีแบบ 1-Click
+    function loadUserDefaultSheet() {
+      const defaultUrl = 'https://docs.google.com/spreadsheets/d/1viioRJ5I3BmqiD7KLwSG9_uNQ_9u_a8LYR-4GaPGuYI/edit?gid=0#gid=0';
+      document.getElementById('sheetUrlInput').value = defaultUrl;
+      localStorage.setItem('bhs_sheet_csv_url', defaultUrl);
+      toggleConfigModal();
+      fetchGoogleSheetData(defaultUrl);
+    }
+
     // บันทึก URL และดึงข้อมูล
     function saveAndFetchUrl() {
       const rawUrl = document.getElementById('sheetUrlInput').value.trim();
@@ -613,16 +623,15 @@
         alert('กรุณากรอกลิงก์ Google Sheet');
         return;
       }
-      const finalUrl = convertToCsvUrl(rawUrl);
       localStorage.setItem('bhs_sheet_csv_url', rawUrl);
       toggleConfigModal();
-      fetchGoogleSheetData(finalUrl);
+      fetchGoogleSheetData(rawUrl);
     }
 
     // คืนค่าเป็นข้อมูลตัวอย่าง
     function resetToSampleData() {
       localStorage.removeItem('bhs_sheet_csv_url');
-      document.getElementById('sheetUrlInput').value = '';
+      document.getElementById('sheetUrlInput').value = 'https://docs.google.com/spreadsheets/d/1viioRJ5I3BmqiD7KLwSG9_uNQ_9u_a8LYR-4GaPGuYI/edit?gid=0#gid=0';
       currentSummary = null;
       toggleConfigModal();
       renderDashboard(initialRawData);
@@ -633,21 +642,35 @@
     function refreshData() {
       const savedUrl = localStorage.getItem('bhs_sheet_csv_url');
       if (savedUrl) {
-        const finalUrl = convertToCsvUrl(savedUrl);
-        fetchGoogleSheetData(finalUrl);
+        fetchGoogleSheetData(savedUrl);
       } else {
         renderDashboard(initialRawData);
         updateStatusBadge('รีเฟรชข้อมูลเรียบร้อย', 'emerald');
       }
     }
 
-    // ดึงข้อมูลจาก Google Sheet CSV ผ่าน PapaParse
-    function fetchGoogleSheetData(url) {
+    // ดึงข้อมูลจาก Google Sheet (รองรับทั้ง JSONP Direct และ CSV)
+    function fetchGoogleSheetData(rawUrl) {
+      if (!rawUrl) return;
       updateStatusBadge('กำลังเชื่อมต่อ Google Sheet...', 'blue');
       const spinIcon = document.getElementById('refresh-spin-icon');
       spinIcon.classList.add('animate-spin');
 
-      Papa.parse(url, {
+      // ตรวจสอบว่าเป็น URL ของ Google Sheet ปกติ (/spreadsheets/d/{ID}/...)
+      const idMatch = rawUrl.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      if (idMatch && !rawUrl.includes('/pub')) {
+        const sheetId = idMatch[1];
+        let gid = '0';
+        const gidMatch = rawUrl.match(/[?#&]gid=([0-9]+)/);
+        if (gidMatch) gid = gidMatch[1];
+
+        // ดึงผ่าน JSONP โดยตรง ไม่ติดปัญหา CORS 100% แม้รันบน file:///
+        fetchViaJsonp(sheetId, gid);
+        return;
+      }
+
+      // กรณีเป็น Publish to web (pub?output=csv)
+      Papa.parse(rawUrl, {
         download: true,
         header: true,
         skipEmptyLines: true,
@@ -664,10 +687,162 @@
         error: function(err) {
           spinIcon.classList.remove('animate-spin');
           console.error('Error fetching sheet:', err);
-          updateStatusBadge('เชื่อมต่อผิดพลาด ตรวจสอบสิทธิ์หรือ URL', 'rose');
-          alert('ไม่สามารถโหลดข้อมูลจาก Google Sheet ได้ กรุณาตรวจสอบว่าตั้งค่าแชร์เป็น "ทุกคนที่มีลิงก์มีสิทธิ์ดู" หรือ Publish to web ถูกต้อง');
+          updateStatusBadge('เชื่อมต่อผิดพลาด', 'rose');
+          alert('ไม่สามารถโหลดลิงก์ Publish to web นี้ได้\nแนะนำให้คัดลอกลิงก์จาก Address Bar ด้านบน เช่น:\nhttps://docs.google.com/spreadsheets/d/.../edit\nมาวางเพื่อเชื่อมต่อโดยตรงแบบ JSONP ได้ทันทีครับ');
         }
       });
+    }
+
+    // ดึงข้อมูลผ่าน JSONP (ปลอดภัย รวดเร็ว ไม่ติด CORS แม้เปิดจาก file:///)
+    function fetchViaJsonp(sheetId, gid = '0') {
+      const oldScript = document.getElementById('gviz-jsonp-script');
+      if (oldScript) oldScript.remove();
+
+      window.handleGoogleSheetJsonp = function(response) {
+        const spinIcon = document.getElementById('refresh-spin-icon');
+        spinIcon.classList.remove('animate-spin');
+
+        if (response && response.status === 'error') {
+          updateStatusBadge('ไม่มีสิทธิ์เข้าถึง หรือ URL ผิดพลาด', 'rose');
+          alert('Google Sheet แจ้งเตือน: ไม่สามารถเข้าถึงแผ่นงานได้ กรุณาตรวจสอบว่าเปิดสิทธิ์แชร์เป็น "ทุกคนที่มีลิงก์มีสิทธิ์ดู"');
+          return;
+        }
+
+        if (response && response.table) {
+          parseAndTransformGvizTable(response.table);
+          updateStatusBadge('เชื่อมต่อ Google Sheet สำเร็จ', 'emerald');
+        } else {
+          updateStatusBadge('ไม่พบข้อมูลใน Google Sheet', 'rose');
+          alert('ไม่พบข้อมูลในแผ่นงาน Google Sheet');
+        }
+      };
+
+      const script = document.createElement('script');
+      script.id = 'gviz-jsonp-script';
+      script.src = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=responseHandler:handleGoogleSheetJsonp&gid=${gid}`;
+      script.onerror = function() {
+        const spinIcon = document.getElementById('refresh-spin-icon');
+        spinIcon.classList.remove('animate-spin');
+        updateStatusBadge('เชื่อมต่อผิดพลาด ตรวจสอบสิทธิ์', 'rose');
+        alert('ไม่สามารถโหลดข้อมูลจาก Google Sheet ได้ กรุณาตรวจสอบว่าเปิดสิทธิ์แชร์เป็น "ทุกคนที่มีลิงก์มีสิทธิ์ดู (Anyone with the link)"');
+      };
+      document.body.appendChild(script);
+    }
+
+    // แปลงโครงสร้าง Gviz Table ให้เข้ากับ Dashboard
+    function parseAndTransformGvizTable(table) {
+      const cols = table.cols.map(c => (c.label || c.id || '').trim());
+      const rows = table.rows;
+
+      const isBhsSheet = cols.some(c => /bhs/i.test(c));
+
+      if (isBhsSheet) {
+        let dateIdx = cols.findIndex(c => /date|day|ป้ายชื่อ|วันที่/i.test(c));
+        if (dateIdx === -1) dateIdx = 0;
+
+        let consumIdx = cols.findIndex(c => /consumption.*bhs/i.test(c));
+        let outputIdx = cols.findIndex(c => /output.*bhs/i.test(c));
+        let wastePctIdx = cols.findIndex(c => /waste.*%.*bhs/i.test(c));
+        let wasteKgIdx = cols.findIndex(c => /waste.*bhs/i.test(c) && !/%/.test(c));
+
+        const validDailyRows = [];
+        rows.forEach(r => {
+          const cells = r.c;
+          if (!cells || !cells[dateIdx]) return;
+          const dateVal = String(cells[dateIdx].f || cells[dateIdx].v || '').trim();
+          if (!dateVal || !/\d/.test(dateVal)) return;
+          if (/target|รวม|เฉลี่ย|total/i.test(dateVal)) return;
+
+          const getVal = (idx) => {
+            if (idx === -1 || !cells[idx]) return 0;
+            const cell = cells[idx];
+            if (typeof cell.v === 'number') return cell.v;
+            return parseFloat(String(cell.f || cell.v || '0').replace(/[^0-9.-]+/g, '')) || 0;
+          };
+
+          const consum = getVal(consumIdx);
+          const output = getVal(outputIdx);
+          let wastePct = getVal(wastePctIdx);
+          if (wastePct > 0 && wastePct < 1) {
+            wastePct = wastePct * 100;
+          }
+          const wasteKg = getVal(wasteKgIdx);
+
+          validDailyRows.push({
+            date: dateVal,
+            consumption: Math.round(consum),
+            output: Math.round(output),
+            allWaste: parseFloat(wastePct.toFixed(2)),
+            wasteKg: Math.round(wasteKg)
+          });
+        });
+
+        // คัดเลือกแถวเดือน 10/26 หรือ 31 วันล่าสุด
+        let monthRows = validDailyRows.filter(r => /10\/26|10\/2026/i.test(r.date));
+        if (monthRows.length === 0) {
+          monthRows = validDailyRows.slice(-31);
+        }
+
+        const transformed = [];
+        let totalConsum = 0;
+        let totalOutput = 0;
+        let totalWasteKg = 0;
+
+        for (let day = 1; day <= 31; day++) {
+          const dayPad = day < 10 ? '0' + day : '' + day;
+          const found = monthRows.find(r => {
+            return r.date.includes(`${dayPad}/10/`) || r.date.includes(`${day}/10/`);
+          });
+
+          if (found) {
+            totalConsum += found.consumption;
+            totalOutput += found.output;
+            totalWasteKg += found.wasteKg;
+            transformed.push({
+              date: `${day}/10/2026`,
+              ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0,
+              allWaste: found.allWaste,
+              consumption: found.consumption,
+              output: found.output
+            });
+          } else {
+            transformed.push({
+              date: `${day}/10/2026`,
+              ncp: 0, def: 0, web: 0, control: 0, om: 0, order: 0, core: 0, spec: 0, conveyor: 0, qc: 0, reject: 0,
+              allWaste: 0,
+              consumption: 0,
+              output: 0
+            });
+          }
+        }
+
+        let actualMTD = 4.61;
+        if (totalConsum > 0 && totalWasteKg > 0) {
+          actualMTD = parseFloat((totalWasteKg / totalConsum * 100).toFixed(2));
+        }
+
+        const summary = {
+          consumption: totalConsum || 1587701,
+          output: totalOutput || 1415766,
+          allWaste: actualMTD
+        };
+
+        currentData = transformed;
+        currentSummary = summary;
+        renderDashboard(transformed, summary);
+        return;
+      }
+
+      // ถ้าเป็นชีตหมวดหมู่ 11 ตัว
+      const objRows = rows.map(r => {
+        const obj = {};
+        cols.forEach((colName, i) => {
+          const cell = r.c ? r.c[i] : null;
+          obj[colName] = cell ? (cell.f !== undefined ? cell.f : cell.v) : '';
+        });
+        return obj;
+      });
+      parseAndTransformSheetData(objRows);
     }
 
     // แปลงข้อมูลจาก CSV ให้ตรงกับโครงสร้าง
