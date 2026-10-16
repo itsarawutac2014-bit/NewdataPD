@@ -305,20 +305,20 @@
               <td class="p-2.5 text-left font-black tracking-wide whitespace-nowrap bg-emerald-700">
                 <i class="fa-solid fa-calculator text-amber-300 mr-1"></i> ผลรวมทั้งหมด
               </td>
-              <td class="p-2 border-r border-emerald-500">1.86%</td>
-              <td class="p-2 border-r border-emerald-500">1.05%</td>
-              <td class="p-2 border-r border-emerald-500">0.06%</td>
-              <td class="p-2 border-r border-emerald-500">1.38%</td>
-              <td class="p-2 border-r border-emerald-500">0.00%</td>
-              <td class="p-2 border-r border-emerald-500">0.07%</td>
-              <td class="p-2 border-r border-emerald-500">0.04%</td>
-              <td class="p-2 border-r border-emerald-500">0.02%</td>
-              <td class="p-2 border-r border-emerald-500">0.01%</td>
-              <td class="p-2 border-r border-emerald-500">0.01%</td>
-              <td class="p-2 border-r border-emerald-500">0.13%</td>
+              <td class="p-2 border-r border-emerald-500" id="top-row-ncp">1.86%</td>
+              <td class="p-2 border-r border-emerald-500" id="top-row-def">1.05%</td>
+              <td class="p-2 border-r border-emerald-500" id="top-row-web">0.06%</td>
+              <td class="p-2 border-r border-emerald-500" id="top-row-control">1.38%</td>
+              <td class="p-2 border-r border-emerald-500" id="top-row-om">0.00%</td>
+              <td class="p-2 border-r border-emerald-500" id="top-row-order">0.07%</td>
+              <td class="p-2 border-r border-emerald-500" id="top-row-core">0.04%</td>
+              <td class="p-2 border-r border-emerald-500" id="top-row-spec">0.02%</td>
+              <td class="p-2 border-r border-emerald-500" id="top-row-conveyor">0.01%</td>
+              <td class="p-2 border-r border-emerald-500" id="top-row-qc">0.01%</td>
+              <td class="p-2 border-r border-emerald-500" id="top-row-reject">0.13%</td>
               <td class="p-2 border-r border-emerald-500 bg-amber-300 text-slate-900 font-black text-sm" id="top-row-all-waste">4.61%</td>
               <td class="p-2 border-r border-emerald-500 bg-emerald-800 text-white font-bold" id="top-row-status">ได้เป้า</td>
-              <td class="p-2 border-r border-emerald-500 text-emerald-100 font-bold">+0.39%</td>
+              <td class="p-2 border-r border-emerald-500 text-emerald-100 font-bold" id="top-row-diff">+0.39%</td>
               <td class="p-2 border-r border-emerald-500 bg-amber-400 text-slate-900 font-black text-sm" id="top-row-consumption">1,587,701</td>
               <td class="p-2 bg-amber-400 text-slate-900 font-black text-sm" id="top-row-output">1,415,766</td>
             </tr>
@@ -462,33 +462,49 @@
         </button>
       </div>
 
-      <div class="text-xs text-slate-600 space-y-2 leading-relaxed">
-        <p class="font-semibold text-slate-800">📌 วิธีดึงข้อมูลจาก Google Sheet ของคุณ:</p>
-        <ol class="list-decimal list-inside space-y-1 bg-slate-50 p-3 rounded-lg border border-slate-200">
-          <li>เปิด Google Sheet ของคุณ</li>
-          <li>คลิก <strong>ไฟล์ (File) &gt; แชร์ (Share) &gt; เผยแพร่ไปยังเว็บ (Publish to web)</strong></li>
-          <li>เลือกแผ่นงานที่ต้องการ แล้วเลือกชนิดเป็น <strong>ค่าที่คั่นด้วยเครื่องหมายจุลภาค (.csv)</strong></li>
-          <li>คลิก <strong>เผยแพร่ (Publish)</strong> แล้วคัดลอกลิงก์มาวางในช่องด้านล่างนี้</li>
-        </ol>
+      <div class="text-xs text-slate-600 space-y-3 leading-relaxed">
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-3">
+          <p class="font-bold text-blue-900 flex items-center gap-1.5 mb-1">
+            <i class="fa-solid fa-bolt text-amber-500"></i> วิธีที่ 1: วางลิงก์ Google Sheet ทั่วไปได้ทันที (สะดวกและเร็วที่สุด)
+          </p>
+          <ol class="list-decimal list-inside space-y-1 text-blue-800 text-[11.5px] ml-1">
+            <li>เปิดไฟล์ Google Sheet ของคุณ</li>
+            <li>กดปุ่ม <strong>"แชร์ (Share)"</strong> สีน้ำเงินมุมขวาบน</li>
+            <li>ตั้งค่าการเข้าถึงทั่วไปเป็น <strong>"ทุกคนที่มีลิงก์ (Anyone with the link)"</strong> เป็น <em>ผู้มีสิทธิ์ดู (Viewer)</em></li>
+            <li>คัดลอกลิงก์จาก Address Bar ของเบราว์เซอร์มาวางที่ช่องด้านล่างได้เลย! (ระบบจะแปลงให้อัตโนมัติ)</li>
+          </ol>
+        </div>
+
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
+          <p class="font-bold text-slate-800 flex items-center gap-1.5 mb-1">
+            <i class="fa-solid fa-globe text-emerald-600"></i> วิธีที่ 2: ใช้ Publish to Web (กรณีต้องการความเสถียรสูงสุด)
+          </p>
+          <ol class="list-decimal list-inside space-y-1 text-slate-600 text-[11.5px] ml-1">
+            <li>คลิกเมนู <strong>ไฟล์ (File) &gt; แชร์ (Share) &gt; เผยแพร่ไปยังเว็บ (Publish to web)</strong></li>
+            <li>เลือกแผ่นงานที่ต้องการ แล้วเลือกชนิดเป็น <strong>ค่าที่คั่นด้วยเครื่องหมายจุลภาค (.csv)</strong></li>
+            <li>คลิก <strong>เผยแพร่ (Publish)</strong> แล้วคัดลอกลิงก์ CSV มาวาง</li>
+          </ol>
+        </div>
       </div>
 
       <div>
-        <label class="block text-xs font-semibold text-slate-700 mb-1">Google Sheet CSV URL</label>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">วางลิงก์ Google Sheet ที่นี่:</label>
         <input type="text" id="sheetUrlInput" 
-               placeholder="https://docs.google.com/spreadsheets/d/e/2PACX-.../pub?output=csv" 
-               class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono" />
+               placeholder="https://docs.google.com/spreadsheets/d/.../edit หรือ ลิงก์ .csv" 
+               class="w-full text-xs p-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-slate-800 shadow-inner" />
+        <p class="text-[11px] text-slate-400 mt-1">รองรับทั้งลิงก์ชีตปกติ, ลิงก์ pub?output=csv, และ gviz/tq</p>
       </div>
 
       <div class="flex justify-between items-center pt-3 border-t border-slate-100">
-        <button onclick="resetToSampleData()" class="px-3 py-2 text-xs font-medium text-slate-600 hover:text-slate-800">
+        <button onclick="resetToSampleData()" class="px-3 py-2 text-xs font-medium text-slate-600 hover:text-slate-800 transition">
           <i class="fa-solid fa-rotate-left mr-1"></i> ใช้ข้อมูลตัวอย่างต้นฉบับ
         </button>
         <div class="flex gap-2">
-          <button onclick="toggleConfigModal()" class="px-4 py-2 text-xs font-medium bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200">
+          <button onclick="toggleConfigModal()" class="px-4 py-2 text-xs font-medium bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition">
             ยกเลิก
           </button>
-          <button onclick="saveAndFetchUrl()" class="px-4 py-2 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-sm">
-            บันทึกและดึงข้อมูล
+          <button onclick="saveAndFetchUrl()" class="px-4 py-2 text-xs font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-sm transition">
+            <i class="fa-solid fa-cloud-arrow-down mr-1"></i> บันทึกและดึงข้อมูล
           </button>
         </div>
       </div>
@@ -563,16 +579,50 @@
     ];
 
     let currentData = [...initialRawData];
+    let currentSummary = null;
     let dailyWasteChartInstance = null;
     let categoryWasteChartInstance = null;
     let categoryDonutChartInstance = null;
+
+    // แปลง Google Sheet URL ให้เป็น CSV URL แบบอัตโนมัติ
+    function convertToCsvUrl(rawUrl) {
+      if (!rawUrl) return '';
+      let url = rawUrl.trim();
+
+      // กรณีที่ 1: เป็น Publish to web HTML (pubhtml) -> แปลงเป็น pub?output=csv
+      if (url.includes('/pubhtml')) {
+        return url.replace('/pubhtml', '/pub?output=csv');
+      }
+      if (url.includes('/pub?')) {
+        if (!url.includes('output=csv')) {
+          return url + '&output=csv';
+        }
+        return url;
+      }
+
+      // กรณีที่ 2: เป็น URL ของ Google Sheet ปกติ (/spreadsheets/d/{ID}/...)
+      const idMatch = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      if (idMatch && !url.includes('/pub')) {
+        const sheetId = idMatch[1];
+        let gid = '0';
+        const gidMatch = url.match(/[?#&]gid=([0-9]+)/);
+        if (gidMatch) {
+          gid = gidMatch[1];
+        }
+        // ใช้ Google Visualization CSV endpoint (ต้องการแค่สิทธิ์ Anyone with the link can view)
+        return `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=${gid}`;
+      }
+
+      return url;
+    }
 
     // เมื่อโหลดหน้าเว็บ
     window.addEventListener('DOMContentLoaded', () => {
       const savedUrl = localStorage.getItem('bhs_sheet_csv_url');
       if (savedUrl) {
         document.getElementById('sheetUrlInput').value = savedUrl;
-        fetchGoogleSheetData(savedUrl);
+        const finalUrl = convertToCsvUrl(savedUrl);
+        fetchGoogleSheetData(finalUrl);
       } else {
         renderDashboard(initialRawData);
       }
@@ -586,20 +636,22 @@
 
     // บันทึก URL และดึงข้อมูล
     function saveAndFetchUrl() {
-      const url = document.getElementById('sheetUrlInput').value.trim();
-      if (!url) {
-        alert('กรุณากรอกลิงก์ CSV ของ Google Sheet');
+      const rawUrl = document.getElementById('sheetUrlInput').value.trim();
+      if (!rawUrl) {
+        alert('กรุณากรอกลิงก์ Google Sheet');
         return;
       }
-      localStorage.setItem('bhs_sheet_csv_url', url);
+      const finalUrl = convertToCsvUrl(rawUrl);
+      localStorage.setItem('bhs_sheet_csv_url', rawUrl);
       toggleConfigModal();
-      fetchGoogleSheetData(url);
+      fetchGoogleSheetData(finalUrl);
     }
 
     // คืนค่าเป็นข้อมูลตัวอย่าง
     function resetToSampleData() {
       localStorage.removeItem('bhs_sheet_csv_url');
       document.getElementById('sheetUrlInput').value = '';
+      currentSummary = null;
       toggleConfigModal();
       renderDashboard(initialRawData);
       updateStatusBadge('กำลังแสดงข้อมูลตัวอย่าง (Default Data)', 'amber');
@@ -609,7 +661,8 @@
     function refreshData() {
       const savedUrl = localStorage.getItem('bhs_sheet_csv_url');
       if (savedUrl) {
-        fetchGoogleSheetData(savedUrl);
+        const finalUrl = convertToCsvUrl(savedUrl);
+        fetchGoogleSheetData(finalUrl);
       } else {
         renderDashboard(initialRawData);
         updateStatusBadge('รีเฟรชข้อมูลเรียบร้อย', 'emerald');
@@ -640,7 +693,7 @@
           spinIcon.classList.remove('animate-spin');
           console.error('Error fetching sheet:', err);
           updateStatusBadge('เชื่อมต่อผิดพลาด ตรวจสอบสิทธิ์หรือ URL', 'rose');
-          alert('ไม่สามารถโหลดข้อมูลจาก Google Sheet ได้ กรุณาตรวจสอบว่าเลือก Publish to web เป็น CSV ถูกต้อง');
+          alert('ไม่สามารถโหลดข้อมูลจาก Google Sheet ได้ กรุณาตรวจสอบว่าตั้งค่าแชร์เป็น "ทุกคนที่มีลิงก์มีสิทธิ์ดู" หรือ Publish to web ถูกต้อง');
         }
       });
     }
@@ -648,35 +701,63 @@
     // แปลงข้อมูลจาก CSV ให้ตรงกับโครงสร้าง
     function parseAndTransformSheetData(rows) {
       const transformed = [];
+      let detectedSummary = null;
+
+      const parseNum = (row, kPattern) => {
+        const k = Object.keys(row).find(key => kPattern.test(key));
+        if (!k || row[k] === undefined || row[k] === '') return 0;
+        return parseFloat(String(row[k]).replace(/[^0-9.-]+/g, '')) || 0;
+      };
 
       rows.forEach((row, idx) => {
         // หาค่า Date / ป้ายชื่อแถว
         const dateKey = Object.keys(row).find(k => /ป้ายชื่อ|วันที่|date|day/i.test(k)) || Object.keys(row)[0];
-        const dateVal = row[dateKey];
-        if (!dateVal || /target|ผลรวม|รวม|เฉลี่ย/i.test(dateVal)) return;
+        const dateVal = row[dateKey] ? String(row[dateKey]).trim() : '';
+        if (!dateVal) return;
 
-        const parseNum = (kPattern) => {
-          const k = Object.keys(row).find(key => kPattern.test(key));
-          if (!k || row[k] === undefined || row[k] === '') return 0;
-          return parseFloat(String(row[k]).replace(/[^0-9.-]+/g, '')) || 0;
-        };
+        // ข้ามแถว Target
+        if (/target|เป้าหมาย/i.test(dateVal)) return;
+
+        // ตรวจจับแถวผลรวมสะสม
+        if (/ผลรวม|รวมทั้งหมด|total/i.test(dateVal)) {
+          detectedSummary = {
+            ncp: parseNum(row, /ncp/i),
+            def: parseNum(row, /def/i),
+            web: parseNum(row, /web/i),
+            control: parseNum(row, /control/i),
+            om: parseNum(row, /o\.?m\.?/i),
+            order: parseNum(row, /รอยต่อ|order/i),
+            core: parseNum(row, /แกน|core/i),
+            spec: parseNum(row, /สันนูน|spec/i),
+            conveyor: parseNum(row, /conveyor/i),
+            qc: parseNum(row, /qc/i),
+            reject: parseNum(row, /reject/i),
+            allWaste: parseNum(row, /all.*waste|รวม.*waste/i),
+            consumption: parseNum(row, /consum/i),
+            output: parseNum(row, /out.*put|ผลิต/i)
+          };
+          return;
+        }
+
+        // ข้ามแถวค่าเฉลี่ย
+        if (/เฉลี่ย|average/i.test(dateVal)) return;
 
         const item = {
           date: dateVal,
-          ncp: parseNum(/ncp/i),
-          def: parseNum(/def/i),
-          web: parseNum(/web/i),
-          control: parseNum(/control/i),
-          om: parseNum(/o\.?m\.?/i),
-          order: parseNum(/รอยต่อ|order/i),
-          core: parseNum(/แกน|core/i),
-          spec: parseNum(/สันนูน|spec/i),
-          conveyor: parseNum(/conveyor/i),
-          qc: parseNum(/qc/i),
-          reject: parseNum(/reject/i),
-          allWaste: parseNum(/all.*waste|รวม.*waste/i),
-          consumption: parseNum(/consum/i),
-          output: parseNum(/out.*put|ผลิต/i)
+          ncp: parseNum(row, /ncp/i),
+          def: parseNum(row, /def/i),
+          web: parseNum(row, /web/i),
+          control: parseNum(row, /control/i),
+          om: parseNum(row, /o\.?m\.?/i),
+          order: parseNum(row, /รอยต่อ|order/i),
+          core: parseNum(row, /แกน|core/i),
+          spec: parseNum(row, /สันนูน|spec/i),
+          conveyor: parseNum(row, /conveyor/i),
+          qc: parseNum(row, /qc/i),
+          reject: parseNum(row, /reject/i),
+          allWaste: parseNum(row, /all.*waste|รวม.*waste/i),
+          consumption: parseNum(row, /consum/i),
+          output: parseNum(row, /out.*put|ผลิต/i)
         };
 
         transformed.push(item);
@@ -684,7 +765,8 @@
 
       if (transformed.length > 0) {
         currentData = transformed;
-        renderDashboard(transformed);
+        currentSummary = detectedSummary;
+        renderDashboard(transformed, detectedSummary);
       }
     }
 
@@ -696,16 +778,17 @@
     }
 
     // ฟังก์ชันเรนเดอร์แดชบอร์ดหลัก
-    function renderDashboard(data) {
+    function renderDashboard(data, summary = currentSummary) {
       currentData = data;
-      renderKPIs(data);
-      renderDailyChart(data);
-      renderCategoryCharts(data);
+      currentSummary = summary;
+      renderKPIs(data, summary);
+      renderDailyChart(data, summary);
+      renderCategoryCharts(data, summary);
       renderTable(data);
     }
 
     // คำนวณสรุป KPI Cards
-    function renderKPIs(data) {
+    function renderKPIs(data, summary = currentSummary) {
       let totalConsumption = 0;
       let totalOutput = 0;
       let runningDays = 0;
@@ -726,9 +809,15 @@
         }
       });
 
-      // คำนวณ % Waste สะสมทั้งหมด (Actual MTD) ให้ตรงกับเอกสาร Excel จริง = 4.61%
+      // ถ้ามี summary จาก Google Sheet ให้ใช้ค่านั้น ถ้าไม่มีให้ใช้อิงตามค่าตัวเลขจริง
+      if (summary && summary.consumption > 0) totalConsumption = summary.consumption;
+      if (summary && summary.output > 0) totalOutput = summary.output;
+
       let actualWasteMTD = 4.61;
-      
+      if (summary && summary.allWaste > 0) {
+        actualWasteMTD = summary.allWaste;
+      }
+
       const formattedWaste = actualWasteMTD.toFixed(2) + '%';
       document.getElementById('kpi-actual-waste').textContent = formattedWaste;
       if (document.getElementById('top-summary-waste')) {
@@ -753,6 +842,31 @@
         iconBox.className = 'w-12 h-12 rounded-xl flex items-center justify-center text-xl bg-rose-100 text-rose-600';
       }
 
+      // อัปเดตแถวสรุปผลรวมบนตาราง
+      if (summary) {
+        WASTE_COLUMNS.forEach(col => {
+          const el = document.getElementById(`top-row-${col.key}`);
+          if (el && summary[col.key] !== undefined) {
+            el.textContent = summary[col.key].toFixed(2) + '%';
+          }
+        });
+      }
+
+      const diffTarget = TARGETS.allWaste - actualWasteMTD;
+      const diffSign = diffTarget >= 0 ? '+' : '';
+      if (document.getElementById('top-row-diff')) {
+        document.getElementById('top-row-diff').textContent = `${diffSign}${diffTarget.toFixed(2)}%`;
+      }
+      if (document.getElementById('top-row-status')) {
+        if (actualWasteMTD <= TARGETS.allWaste) {
+          document.getElementById('top-row-status').textContent = 'ได้เป้า';
+          document.getElementById('top-row-status').className = 'p-2 border-r border-emerald-500 bg-emerald-800 text-white font-bold';
+        } else {
+          document.getElementById('top-row-status').textContent = 'เกินเป้า';
+          document.getElementById('top-row-status').className = 'p-2 border-r border-emerald-500 bg-rose-700 text-white font-bold';
+        }
+      }
+
       const formattedConsum = (totalConsumption || 1587701).toLocaleString();
       const formattedOutput = (totalOutput || 1415766).toLocaleString();
 
@@ -763,8 +877,8 @@
       if (document.getElementById('top-row-consumption')) document.getElementById('top-row-consumption').textContent = formattedConsum;
       if (document.getElementById('top-row-output')) document.getElementById('top-row-output').textContent = formattedOutput;
       
-      const avgConsumption = (88206).toLocaleString();
-      const avgOutput = (78654).toLocaleString();
+      const avgConsumption = runningDays > 0 ? Math.round(totalConsumption / runningDays).toLocaleString() : '88,206';
+      const avgOutput = runningDays > 0 ? Math.round(totalOutput / runningDays).toLocaleString() : '78,654';
 
       document.getElementById('kpi-avg-consumption').textContent = avgConsumption;
       document.getElementById('kpi-avg-output').textContent = avgOutput;
@@ -789,12 +903,15 @@
     }
 
     // เรนเดอร์กราฟแท่งหลัก Waste รายวัน BHS Target 5.00%
-    function renderDailyChart(data) {
+    function renderDailyChart(data, summary = currentSummary) {
       const labels = data.map(d => d.date);
       labels.push('ผลรวมทั้งหมด'); // แท่งสุดท้ายตามรูปภาพ
 
       const values = data.map(d => d.allWaste);
-      const actualMTD = 4.61;
+      let actualMTD = 4.61;
+      if (summary && summary.allWaste > 0) {
+        actualMTD = summary.allWaste;
+      }
       values.push(actualMTD);
 
       // กำหนดสีของแท่ง: ถ้าได้เป้าให้เป็นสีเขียว ถ้าเกินเป้าให้เป็นสีแดง
