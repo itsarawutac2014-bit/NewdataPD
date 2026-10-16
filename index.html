@@ -180,8 +180,8 @@
       <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/50">
         <div>
           <div class="flex items-center gap-2">
-            <h3 class="text-base font-bold text-slate-900">ตารางข้อมูล % Waste ชั่งจริง ประจำวัน</h3>
-            <span class="px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 rounded-full">31 แถว</span>
+            <h3 class="text-base sm:text-lg font-bold text-slate-900">Waste PRODUCTION รายวันเครื่อง BHS</h3>
+            <span class="px-2.5 py-1 text-xs font-semibold bg-blue-100 text-blue-700 rounded-full">31 วัน</span>
           </div>
           <p class="text-xs text-slate-500 mt-0.5">ช่องที่มีไฮไลต์สีแดงอ่อน คือค่าที่เกิน Target ของคอลัมน์นั้นๆ</p>
         </div>
@@ -275,35 +275,42 @@
     <section class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
       <div class="flex flex-col md:flex-row items-center justify-between pb-3 border-b border-slate-100 gap-4">
         <!-- Legend Left -->
-        <div class="flex items-center gap-4 text-xs font-semibold">
+        <div class="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm font-semibold">
           <div class="flex items-center gap-1.5">
-            <span class="w-4 h-3 bg-amber-500 border border-amber-600 rounded-sm inline-block"></span>
-            <span class="text-slate-700">ALL Waste</span>
+            <span class="w-4 h-3.5 bg-emerald-500 border border-emerald-600 rounded-sm inline-block shadow-sm"></span>
+            <span class="text-slate-800 font-bold">ได้เป้า (&le; 5.00%)</span>
           </div>
           <div class="flex items-center gap-1.5">
-            <span class="w-5 h-0.5 bg-rose-600 inline-block"></span>
-            <span class="text-rose-600 font-bold">Target</span>
+            <span class="w-4 h-3.5 bg-rose-500 border border-rose-600 rounded-sm inline-block shadow-sm"></span>
+            <span class="text-slate-800 font-bold">เกินเป้า (&gt; 5.00%)</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-6 h-1 bg-rose-600 inline-block rounded"></span>
+            <span class="text-rose-600 font-extrabold">Target 5.00%</span>
           </div>
         </div>
 
-        <!-- Title Center (แบบเดียวกับรูปภาพ) -->
+        <!-- Title Center (แบบเดียวกับรูปภาพ สไตล์ตัวหนังสือใหญ่ชัดเจน) -->
         <div class="text-center">
-          <h2 class="text-xl font-extrabold tracking-wide">
+          <h2 class="text-xl sm:text-2xl font-black tracking-wide">
             <span class="text-blue-700">Waste รายวัน</span> 
             <span class="text-rose-600 font-black ml-1.5">BHS</span> 
-            <span class="text-emerald-600 font-extrabold ml-1.5">Target5.00%</span>
+            <span class="text-emerald-600 font-black ml-1.5">Target 5.00%</span>
           </h2>
         </div>
 
         <!-- Legend Right / Target info -->
-        <div class="flex items-center gap-3 text-xs">
-          <span class="px-2.5 py-1 rounded bg-slate-100 text-slate-600 font-medium">
-            <i class="fa-solid fa-chart-column mr-1 text-amber-500"></i> แสดง % ตัวเลขบนทุกแท่งกราฟ
+        <div class="flex items-center gap-2 text-xs">
+          <span class="px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">
+            <i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i> ตัวเลขสีเขียว = ได้เป้า
+          </span>
+          <span class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-800 font-bold border border-rose-200">
+            <i class="fa-solid fa-triangle-exclamation mr-1 text-rose-600"></i> สีแดง = เกินเป้า
           </span>
         </div>
       </div>
 
-      <div class="relative h-[390px] mt-4">
+      <div class="relative h-[420px] mt-4">
         <canvas id="dailyWasteChart"></canvas>
       </div>
     </section>
@@ -671,19 +678,19 @@
       const actualMTD = 4.61;
       values.push(actualMTD);
 
-      // กำหนดสีของแท่ง
+      // กำหนดสีของแท่ง: ถ้าได้เป้าให้เป็นสีเขียว ถ้าเกินเป้าให้เป็นสีแดง
       const backgroundColors = values.map((val, idx) => {
-        if (idx === values.length - 1) return '#d97706'; // แท่งผลรวมทั้งหมด (สีทองเข้ม)
+        if (idx === values.length - 1) return '#059669'; // แท่งผลรวมทั้งหมด (สีเขียวเข้มเด่น)
         if (val === 0) return 'rgba(0,0,0,0)'; // ไม่เดิน
-        if (val > TARGETS.allWaste) return '#f43f5e'; // เกินเป้า (สีแดง)
-        return '#eab308'; // ได้เป้า (สีเหลืองทองตามรูป)
+        if (val > TARGETS.allWaste) return '#ef4444'; // เกินเป้า (สีแดง)
+        return '#10b981'; // ได้เป้า (สีเขียวสดใส ชัดเจน)
       });
 
       const borderColors = values.map((val, idx) => {
-        if (idx === values.length - 1) return '#b45309';
+        if (idx === values.length - 1) return '#047857';
         if (val === 0) return 'rgba(0,0,0,0)';
-        if (val > TARGETS.allWaste) return '#e11d48';
-        return '#ca8a04';
+        if (val > TARGETS.allWaste) return '#b91c1c';
+        return '#047857';
       });
 
       const ctx = document.getElementById('dailyWasteChart').getContext('2d');
@@ -700,7 +707,7 @@
             backgroundColor: backgroundColors,
             borderColor: borderColors,
             borderWidth: 1.5,
-            borderRadius: 4,
+            borderRadius: 5,
             barPercentage: 0.65,
           }]
         },
@@ -709,25 +716,32 @@
           maintainAspectRatio: false,
           layout: {
             padding: {
-              top: 25 // เว้นที่ด้านบนให้ตัวเลข % แสดงได้ชัดเจน
+              top: 32, // เว้นที่ด้านบนให้ตัวเลข % แสดงได้ชัดเจน ไม่ตกขอบ
+              left: 5,
+              right: 15,
+              bottom: 5
             }
           },
           plugins: {
             legend: { display: false },
             tooltip: {
+              backgroundColor: '#1e293b',
+              titleFont: { family: "'Prompt', sans-serif", size: 12, weight: 'bold' },
+              bodyFont: { family: "'Prompt', sans-serif", size: 12 },
+              padding: 10,
               callbacks: {
                 label: function(context) {
                   const val = context.raw;
-                  return ` ALL Waste: ${val.toFixed(2)}% (${val <= 5.00 ? 'ได้เป้า' : 'เกินเป้า'})`;
+                  return ` ALL Waste: ${val.toFixed(2)}% (${val <= 5.00 ? 'ได้เป้า ✅' : 'เกินเป้า ❌'})`;
                 }
               }
             },
-            // ตัวเลขบนหัวกราฟทุกแท่ง
+            // ตัวเลขบนหัวกราฟทุกแท่ง ตัวหนังสือใหญ่ คมชัด อ่านง่าย
             datalabels: {
               display: true,
               anchor: 'end',
               align: 'top',
-              offset: 2,
+              offset: 3,
               formatter: function(value, context) {
                 return (value || 0).toFixed(2) + '%';
               },
@@ -735,16 +749,16 @@
                 const idx = context.dataIndex;
                 const total = context.dataset.data.length;
                 const val = context.dataset.data[idx];
-                if (idx === total - 1) return '#dc2626'; // ผลรวมสะสมทั้งหมด (สีแดงเข้ม)
-                if (val > TARGETS.allWaste) return '#dc2626'; // สีแดงเมื่อเกินเป้า
-                return '#15803d'; // สีเขียวเมื่อได้เป้า หรือ 0.00%
+                if (idx === total - 1) return '#b91c1c'; // ผลรวมสะสมทั้งหมด (สีแดงเข้ม วงกลมแบบในภาพ)
+                if (val > TARGETS.allWaste) return '#b91c1c'; // เกินเป้า (สีแดงเข้ม ชัดเจน)
+                return '#15803d'; // ได้เป้า หรือ 0.00% (สีเขียวเข้ม ชัดเจน)
               },
               font: function(context) {
                 const isLast = context.dataIndex === context.dataset.data.length - 1;
                 return {
                   family: "'Prompt', sans-serif",
-                  size: isLast ? 11 : 9.5,
-                  weight: 'bold'
+                  size: isLast ? 13 : 11, // ตัวหนังสือขนาดใหญ่ขึ้น อ่านง่าย
+                  weight: isLast ? '800' : '700'
                 };
               }
             },
@@ -756,14 +770,16 @@
                   yMax: TARGETS.allWaste,
                   borderColor: '#dc2626',
                   borderWidth: 2,
-                  borderDash: [5, 4],
+                  borderDash: [6, 4],
                   label: {
                     display: true,
                     content: 'Target 5.00%',
                     position: 'end',
-                    backgroundColor: '#ef4444',
-                    color: '#fff',
-                    font: { size: 10, weight: 'bold' }
+                    backgroundColor: '#dc2626',
+                    color: '#ffffff',
+                    font: { family: "'Prompt', sans-serif", size: 12, weight: 'bold' },
+                    padding: { top: 4, bottom: 4, left: 6, right: 6 },
+                    borderRadius: 4
                   }
                 }
               }
@@ -777,15 +793,17 @@
                 callback: function(value) {
                   return value.toFixed(2) + '%';
                 },
-                stepSize: 1,
-                font: { size: 10 }
+                stepSize: 2,
+                font: { family: "'Prompt', sans-serif", size: 11, weight: '600' },
+                color: '#334155'
               },
-              grid: { color: '#f1f5f9' }
+              grid: { color: '#e2e8f0' }
             },
             x: {
               grid: { display: false },
               ticks: {
-                font: { size: 10 },
+                font: { family: "'Prompt', sans-serif", size: 11, weight: '600' },
+                color: '#0f172a',
                 maxRotation: 45,
                 minRotation: 45
               }
