@@ -363,27 +363,42 @@ for ($d = 1; $d <= $totalDays; $d++) {
     ];
 }
 
-// ค่าเฉลี่ยสะสม ALL Waste MTD = รวมน้ำหนัก 11 รายการชั่งจริง / รวม Consumption (เอาแค่ 11 รายการ ไม่เอารวม)
+// คำนวณยอด Consumption เฉพาะวันที่ชั่ง Waste เพื่อคิด % สะสมให้ตรงตามจริง
+$totalConsumWithWaste = 0;
+for ($d = 1; $d <= $totalDays; $d++) {
+    $c = $dailySummary[$d]['consum'] ?? 0;
+    $b = $dailyBreakdown[$d] ?? null;
+    $dayKg = 0;
+    if ($b) {
+        $dayKg = ($b['ncp']??0) + ($b['def']??0) + ($b['web']??0) + ($b['control']??0) + ($b['om']??0) + ($b['order']??0) + ($b['core']??0) + ($b['spec']??0) + ($b['conveyor']??0) + ($b['qc']??0) + ($b['reject']??0);
+    }
+    if ($dayKg > 0 && $c > 0) {
+        $totalConsumWithWaste += $c;
+    }
+}
+
+$denom = $totalConsumWithWaste > 0 ? $totalConsumWithWaste : $totalConsumMTD;
 $actualMTD = 0;
-if ($totalConsumMTD > 0 && $weightTotals['totalAll'] > 0) {
-    $actualMTD = round(($weightTotals['totalAll'] / $totalConsumMTD) * 100, 2);
+if ($denom > 0 && $weightTotals['totalAll'] > 0) {
+    $actualMTD = round(($weightTotals['totalAll'] / $denom) * 100, 2);
 }
 
 $summary = [
     'consumption' => round($totalConsumMTD),
     'output' => round($totalOutputMTD),
+    'consumptionWithWaste' => round($totalConsumWithWaste),
     'allWaste' => $actualMTD,
-    'ncp' => ($totalConsumMTD > 0) ? round(($weightTotals['ncp'] / $totalConsumMTD) * 100, 2) : 0,
-    'def' => ($totalConsumMTD > 0) ? round(($weightTotals['def'] / $totalConsumMTD) * 100, 2) : 0,
-    'web' => ($totalConsumMTD > 0) ? round(($weightTotals['web'] / $totalConsumMTD) * 100, 2) : 0,
-    'control' => ($totalConsumMTD > 0) ? round(($weightTotals['control'] / $totalConsumMTD) * 100, 2) : 0,
-    'om' => ($totalConsumMTD > 0) ? round(($weightTotals['om'] / $totalConsumMTD) * 100, 2) : 0,
-    'order' => ($totalConsumMTD > 0) ? round(($weightTotals['order'] / $totalConsumMTD) * 100, 2) : 0,
-    'core' => ($totalConsumMTD > 0) ? round(($weightTotals['core'] / $totalConsumMTD) * 100, 2) : 0,
-    'spec' => ($totalConsumMTD > 0) ? round(($weightTotals['spec'] / $totalConsumMTD) * 100, 2) : 0,
-    'conveyor' => ($totalConsumMTD > 0) ? round(($weightTotals['conveyor'] / $totalConsumMTD) * 100, 2) : 0,
-    'qc' => ($totalConsumMTD > 0) ? round(($weightTotals['qc'] / $totalConsumMTD) * 100, 2) : 0,
-    'reject' => ($totalConsumMTD > 0) ? round(($weightTotals['reject'] / $totalConsumMTD) * 100, 2) : 0
+    'ncp' => ($denom > 0) ? round(($weightTotals['ncp'] / $denom) * 100, 2) : 0,
+    'def' => ($denom > 0) ? round(($weightTotals['def'] / $denom) * 100, 2) : 0,
+    'web' => ($denom > 0) ? round(($weightTotals['web'] / $denom) * 100, 2) : 0,
+    'control' => ($denom > 0) ? round(($weightTotals['control'] / $denom) * 100, 2) : 0,
+    'om' => ($denom > 0) ? round(($weightTotals['om'] / $denom) * 100, 2) : 0,
+    'order' => ($denom > 0) ? round(($weightTotals['order'] / $denom) * 100, 2) : 0,
+    'core' => ($denom > 0) ? round(($weightTotals['core'] / $denom) * 100, 2) : 0,
+    'spec' => ($denom > 0) ? round(($weightTotals['spec'] / $denom) * 100, 2) : 0,
+    'conveyor' => ($denom > 0) ? round(($weightTotals['conveyor'] / $denom) * 100, 2) : 0,
+    'qc' => ($denom > 0) ? round(($weightTotals['qc'] / $denom) * 100, 2) : 0,
+    'reject' => ($denom > 0) ? round(($weightTotals['reject'] / $denom) * 100, 2) : 0
 ];
 
 echo json_encode([
