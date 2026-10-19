@@ -401,6 +401,233 @@ $summary = [
     'reject' => ($denom > 0) ? round(($weightTotals['reject'] / $denom) * 100, 2) : 0
 ];
 
+// 4. คำนวณแนวโน้มรายปี (Yearly Trend 12 เดือน) และแยก Week (Weekly Trend ตาม Week Num)
+$allDaysData = [];
+
+// 4.1 ดึงประวัติทั้งปีจาก Sheet 1 (con out)
+if ($raw1 && isset($j1['table']['rows'])) {
+    foreach ($j1['table']['rows'] as $r) {
+        $dateVal = $r['c'][0]['v'] ?? '';
+        if (preg_match('/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/', $dateVal, $dm)) {
+            $d = intval($dm[1]);
+            $mo = intval($dm[2]);
+            $yr = intval($dm[3]);
+            if ($yr < 100) $yr += 2000;
+            $isoDate = sprintf('%04d-%02d-%02d', $yr, $mo, $d);
+            
+            $c = 0; $o = 0;
+            if ($machine === 'BHS') {
+                $c = floatval($r['c'][7]['v'] ?? 0);
+                $o = floatval($r['c'][8]['v'] ?? 0);
+            } elseif ($machine === 'YUELI') {
+                $c = floatval($r['c'][13]['v'] ?? 0);
+                $o = floatval($r['c'][14]['v'] ?? 0);
+            } elseif ($machine === 'ISOWA') {
+                $c = floatval($r['c'][1]['v'] ?? 0);
+                $o = floatval($r['c'][2]['v'] ?? 0);
+            } elseif ($machine === 'TOTAL') {
+                $c = floatval($r['c'][7]['v'] ?? 0) + floatval($r['c'][13]['v'] ?? 0) + floatval($r['c'][1]['v'] ?? 0);
+                $o = floatval($r['c'][8]['v'] ?? 0) + floatval($r['c'][14]['v'] ?? 0) + floatval($r['c'][2]['v'] ?? 0);
+            }
+            
+            $allDaysData[$isoDate] = [
+                'consum' => $c,
+                'output' => $o,
+                'waste11' => 0,
+                'day' => $d,
+                'month' => $mo,
+                'year' => $yr
+            ];
+        }
+    }
+}
+
+// 4.2 ดึงของเสีย 11 รายการทั้งปีจาก Sheet 2 (Waste )
+if ($raw2 && isset($j2['table']['rows'])) {
+    $rows2All = $j2['table']['rows'];
+    $allowedCodes11 = ['BL18', 'BL17', 'BL16', 'BL21', 'BL15', 'BL12', 'BL19', 'BL22', 'BL24', 'BL25'];
+    
+    for ($mo = 1; $mo <= 12; $mo++) {
+        $mBaseCol = ($mo - 1) * 9;
+        $mKgCol = $mBaseCol + ($mOffset[$machine] ?? 3);
+        $currIso = null;
+        
+        for ($r = 0; $r < count($rows2All); $r++) {
+            $cCode = trim($rows2All[$r]['c'][$mBaseCol]['v'] ?? '');
+            $cKg = floatval($rows2All[$r]['c'][$mKgCol]['v'] ?? 0);
+            
+            if (preg_match('/^(\d{1,2})\/' . $mo . '\/\d{2,4}$/', $cCode, $dm) ||
+                preg_match('/^(\d{1,2})\/' . sprintf('%02d', $mo) . '\/\d{2,4}$/', $cCode, $dm)) {
+                $d = intval($dm[1]);
+                $currIso = sprintf('2026-%02d-%02d', $mo, $d);
+                continue;
+            }
+            
+            if ($currIso && in_array($cCode, $allowedCodes11)) {
+                if (!isset($allDaysData[$currIso])) {
+                    $allDaysData[$currIso] = ['consum' => 0, 'output' => 0, 'waste11' => 0, 'day' => $d, 'month' => $mo, 'year' => 2026];
+                }
+                $allDaysData[$currIso]['waste11'] += $cKg;
+            }
+        }
+    }
+}
+
+// 4.3 รวมประวัติจาก imported_data.json เข้าไปในภาพรวมทั้งปีด้วย
+if (isset($importedJson) && is_array($importedJson)) {
+    if (isset($importedJson['con_out']) && is_array($importedJson['con_out'])) {
+        foreach ($importedJson['con_out'] as $dateKey => $cRow) {
+            if (preg_match('/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/', $dateKey, $dm)) {
+                $d = intval($dm[1]);
+                $mo = intval($dm[2]);
+                $yr = intval($dm[3]);
+                if ($yr < 100) $yr += 2000;
+                $isoDate = sprintf('%04d-%02d-%02d', $yr, $mo, $d);
+                $c = 0; $o = 0;
+                if ($machine === 'BHS') {
+                    $c = floatval($cRow['bhs_consum'] ?? 0);
+                    $o = floatval($cRow['bhs_output'] ?? 0);
+                } elseif ($machine === 'YUELI') {
+                    $c = floatval($cRow['yueli_consum'] ?? 0);
+                    $o = floatval($cRow['yueli_output'] ?? 0);
+                } elseif ($machine === 'ISOWA') {
+                    $c = floatval($cRow['isowa_consum'] ?? 0);
+                    $o = floatval($cRow['isowa_output'] ?? 0);
+                } elseif ($machine === 'TOTAL') {
+                    $c = floatval($cRow['bhs_consum'] ?? 0) + floatval($cRow['yueli_consum'] ?? 0) + floatval($cRow['isowa_consum'] ?? 0);
+                    $o = floatval($cRow['bhs_output'] ?? 0) + floatval($cRow['yueli_output'] ?? 0) + floatval($cRow['isowa_output'] ?? 0);
+                }
+                if ($c > 0 || $o > 0) {
+                    if (!isset($allDaysData[$isoDate])) {
+                        $allDaysData[$isoDate] = ['consum' => 0, 'output' => 0, 'waste11' => 0, 'day' => $d, 'month' => $mo, 'year' => $yr];
+                    }
+                    $allDaysData[$isoDate]['consum'] = $c;
+                    $allDaysData[$isoDate]['output'] = $o;
+                }
+            }
+        }
+    }
+    if (isset($importedJson['waste']) && is_array($importedJson['waste'])) {
+        $allowedCodes11 = ['BL18', 'BL17', 'BL16', 'BL21', 'BL15', 'BL12', 'BL19', 'BL22', 'BL24', 'BL25'];
+        foreach ($importedJson['waste'] as $dateKey => $mList) {
+            if (preg_match('/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/', $dateKey, $dm)) {
+                $d = intval($dm[1]);
+                $mo = intval($dm[2]);
+                $yr = intval($dm[3]);
+                if ($yr < 100) $yr += 2000;
+                $isoDate = sprintf('%04d-%02d-%02d', $yr, $mo, $d);
+                $wItems = $mList[$machine]['items'] ?? ($mList['ALL']['items'] ?? null);
+                if ($wItems && is_array($wItems)) {
+                    if (!isset($allDaysData[$isoDate])) {
+                        $allDaysData[$isoDate] = ['consum' => 0, 'output' => 0, 'waste11' => 0, 'day' => $d, 'month' => $mo, 'year' => $yr];
+                    }
+                    $allDaysData[$isoDate]['waste11'] = 0;
+                    foreach ($wItems as $it) {
+                        $cd = strtoupper(trim($it['code'] ?? ''));
+                        if (in_array($cd, $allowedCodes11)) {
+                            $allDaysData[$isoDate]['waste11'] += floatval($it['kg'] ?? 0);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// 4.4 สร้างชุดข้อมูลแนวโน้มรายปี (Yearly Trend 1-12 เดือน)
+$monthShortNamesTh = [
+    1 => 'ม.ค.', 2 => 'ก.พ.', 3 => 'มี.ค.', 4 => 'เม.ย.',
+    5 => 'พ.ค.', 6 => 'มิ.ย.', 7 => 'ก.ค.', 8 => 'ส.ค.',
+    9 => 'ก.ย.', 10 => 'ต.ค.', 11 => 'พ.ย.', 12 => 'ธ.ค.'
+];
+$yearlyTrend = [];
+for ($m = 1; $m <= 12; $m++) {
+    $yearlyTrend[] = [
+        'month' => $m,
+        'label' => $monthShortNamesTh[$m],
+        'fullName' => $monthNamesTh[$m],
+        'consumption' => 0,
+        'consumptionWithWaste' => 0,
+        'output' => 0,
+        'wasteKg' => 0,
+        'wastePct' => 0,
+        'daysCount' => 0
+    ];
+}
+foreach ($allDaysData as $iso => $val) {
+    $mIdx = $val['month'] - 1;
+    if (isset($yearlyTrend[$mIdx])) {
+        $c = $val['consum'];
+        $w = $val['waste11'];
+        $yearlyTrend[$mIdx]['consumption'] += $c;
+        $yearlyTrend[$mIdx]['output'] += $val['output'];
+        $yearlyTrend[$mIdx]['wasteKg'] += $w;
+        if ($w > 0 && $c > 0) {
+            $yearlyTrend[$mIdx]['consumptionWithWaste'] += $c;
+        }
+        if ($c > 0 || $w > 0) {
+            $yearlyTrend[$mIdx]['daysCount']++;
+        }
+    }
+}
+foreach ($yearlyTrend as &$y) {
+    $denom = $y['consumptionWithWaste'] > 0 ? $y['consumptionWithWaste'] : $y['consumption'];
+    $y['wastePct'] = ($denom > 0 && $y['wasteKg'] > 0) ? round(($y['wasteKg'] / $denom) * 100, 2) : 0;
+    $y['consumption'] = round($y['consumption']);
+    $y['consumptionWithWaste'] = round($y['consumptionWithWaste']);
+    $y['output'] = round($y['output']);
+    $y['wasteKg'] = round($y['wasteKg']);
+}
+unset($y);
+
+// 4.5 สร้างชุดข้อมูลแยกตาม Week Number (Weekly Trend)
+$weeklyMap = [];
+foreach ($allDaysData as $iso => $val) {
+    $dt = new DateTime($iso);
+    $wNum = intval($dt->format('W'));
+    $wKey = sprintf('W%02d', $wNum);
+    
+    if (!isset($weeklyMap[$wKey])) {
+        $weeklyMap[$wKey] = [
+            'weekNum' => $wNum,
+            'weekKey' => $wKey,
+            'label' => "W{$wNum}",
+            'consumption' => 0,
+            'consumptionWithWaste' => 0,
+            'output' => 0,
+            'wasteKg' => 0,
+            'wastePct' => 0,
+            'startDate' => $iso,
+            'endDate' => $iso,
+            'daysCount' => 0
+        ];
+    }
+    $c = $val['consum'];
+    $w = $val['waste11'];
+    $weeklyMap[$wKey]['consumption'] += $c;
+    $weeklyMap[$wKey]['output'] += $val['output'];
+    $weeklyMap[$wKey]['wasteKg'] += $w;
+    if ($w > 0 && $c > 0) {
+        $weeklyMap[$wKey]['consumptionWithWaste'] += $c;
+    }
+    if ($c > 0 || $w > 0) {
+        $weeklyMap[$wKey]['daysCount']++;
+    }
+    if ($iso < $weeklyMap[$wKey]['startDate']) $weeklyMap[$wKey]['startDate'] = $iso;
+    if ($iso > $weeklyMap[$wKey]['endDate']) $weeklyMap[$wKey]['endDate'] = $iso;
+}
+ksort($weeklyMap);
+$weeklyTrend = [];
+foreach ($weeklyMap as $wKey => $wObj) {
+    $denom = $wObj['consumptionWithWaste'] > 0 ? $wObj['consumptionWithWaste'] : $wObj['consumption'];
+    $wObj['wastePct'] = ($denom > 0 && $wObj['wasteKg'] > 0) ? round(($wObj['wasteKg'] / $denom) * 100, 2) : 0;
+    $wObj['consumption'] = round($wObj['consumption']);
+    $wObj['consumptionWithWaste'] = round($wObj['consumptionWithWaste']);
+    $wObj['output'] = round($wObj['output']);
+    $wObj['wasteKg'] = round($wObj['wasteKg']);
+    $weeklyTrend[] = $wObj;
+}
+
 echo json_encode([
     'success' => true,
     'source' => 'google_sheet_filtered',
@@ -414,5 +641,8 @@ echo json_encode([
     'data' => $transformed,
     'summary' => $summary,
     'weightData' => $transformedWeight,
-    'weightSummary' => $weightTotals
+    'weightSummary' => $weightTotals,
+    'yearlyTrend' => $yearlyTrend,
+    'weeklyTrend' => $weeklyTrend
 ], JSON_UNESCAPED_UNICODE);
+

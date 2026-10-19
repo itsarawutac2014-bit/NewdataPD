@@ -617,6 +617,59 @@
       </div>
     </section>
 
+    <!-- ======================================================== -->
+    <!-- กราฟแนวโน้มรายปี (Yearly Trend 12 เดือน) -->
+    <!-- ======================================================== -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mt-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-sm shadow-xs border border-blue-100">
+              <i class="fa-solid fa-chart-line"></i>
+            </span>
+            กราฟแนวโน้ม % Waste รายปี (<span id="yearly-chart-machine-name">BHS</span>)
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">ภาพรวม % ของเสียสะสมรายเดือน 12 เดือน (ม.ค. - ธ.ค. 2026) เทียบกับ Target 5.00%</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span> Target: 5.00%
+          </span>
+        </div>
+      </div>
+      <div class="relative h-[320px] sm:h-[360px] w-full">
+        <canvas id="yearlyWasteChart"></canvas>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- กราฟแนวโน้มแยกตามสัปดาห์ (Weekly Trend - Week Num) -->
+    <!-- ======================================================== -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mt-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm shadow-xs border border-indigo-100">
+              <i class="fa-solid fa-calendar-week"></i>
+            </span>
+            กราฟแนวโน้ม % Waste แยกสัปดาห์ (Week Num: W1 - W52)
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">วิเคราะห์ของเสียรายสัปดาห์ตามมาตรฐานสากล (ISO Week Number)</p>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <span id="weekly-count-badge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">
+            42 สัปดาห์
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span> Target: 5.00%
+          </span>
+        </div>
+      </div>
+      <div class="relative h-[340px] sm:h-[380px] w-full overflow-x-auto">
+        <canvas id="weeklyWasteChart"></canvas>
+      </div>
+    </section>
+
   </main>
 
   <!-- Modal ตั้งค่า Google Sheet -->
@@ -809,6 +862,11 @@
     let dailyWasteChartInstance = null;
     let categoryWasteChartInstance = null;
     let categoryDonutChartInstance = null;
+    let yearlyWasteChartInstance = null;
+    let weeklyWasteChartInstance = null;
+
+    let currentYearlyTrend = [];
+    let currentWeeklyTrend = [];
 
     // แปลง Google Sheet URL ให้เป็น CSV URL แบบอัตโนมัติ
     function convertToCsvUrl(rawUrl) {
@@ -989,7 +1047,7 @@
             .then(res => {
               finishLoading();
               if (res && res.success && res.data && res.data.length > 0) {
-                renderDashboard(res.data, res.summary, res.weightData, res.weightSummary);
+                renderDashboard(res.data, res.summary, res.weightData, res.weightSummary, res.yearlyTrend, res.weeklyTrend);
                 safeSetText('table-total-days-badge', `${res.data.length} วัน`);
                 safeSetText('table-machine-name', machine);
                 safeSetText('table-month-name', `เดือน ${monthName}`);
@@ -1306,12 +1364,14 @@
     }
 
     // ฟังก์ชันเรนเดอร์แดชบอร์ดหลัก
-    function renderDashboard(data, summary = currentSummary, weightData = currentWeightData, weightSummary = currentWeightSummary) {
+    function renderDashboard(data, summary = currentSummary, weightData = currentWeightData, weightSummary = currentWeightSummary, yearlyTrend = currentYearlyTrend, weeklyTrend = currentWeeklyTrend) {
       const finalData = (data && data.length > 0) ? data : initialRawData;
       currentData = finalData;
       currentSummary = summary;
       if (weightData !== undefined) currentWeightData = weightData;
       if (weightSummary !== undefined) currentWeightSummary = weightSummary;
+      if (yearlyTrend !== undefined && yearlyTrend.length > 0) currentYearlyTrend = yearlyTrend;
+      if (weeklyTrend !== undefined && weeklyTrend.length > 0) currentWeeklyTrend = weeklyTrend;
 
       // 1. เรนเดอร์ตาราง 31 วันก่อนเสมอ (สำคัญที่สุด เพื่อไม่ให้ตารางหายเมื่อมี error)
       try {
@@ -1346,6 +1406,20 @@
         renderWeightTable(currentWeightData, currentWeightSummary);
       } catch (err) {
         console.error('Error rendering weight table:', err);
+      }
+
+      // 6. เรนเดอร์กราฟแนวโน้มรายปี (Yearly Trend 12 เดือน)
+      try {
+        renderYearlyChart(currentYearlyTrend);
+      } catch (err) {
+        console.error('Error rendering yearly chart:', err);
+      }
+
+      // 7. เรนเดอร์กราฟแนวโน้มแยกตามสัปดาห์ (Weekly Trend - Week Num)
+      try {
+        renderWeeklyChart(currentWeeklyTrend);
+      } catch (err) {
+        console.error('Error rendering weekly chart:', err);
       }
     }
 
@@ -1787,6 +1861,299 @@
           }
         });
       }
+    }
+
+    // ========================================================
+    // เรนเดอร์กราฟแนวโน้มรายปี (Yearly Trend 12 เดือน)
+    // ========================================================
+    function renderYearlyChart(yearlyData) {
+      const chartEl = document.getElementById('yearlyWasteChart');
+      if (!chartEl || typeof Chart === 'undefined') return;
+
+      const currentMachine = (document.getElementById('selectedMachine')?.value || 'BHS').toUpperCase();
+      safeSetText('yearly-chart-machine-name', currentMachine);
+
+      // ข้อมูลสำรองหากยังไม่มีข้อมูลจาก API
+      const fallbackYearly = [
+        { label: 'ม.ค.', wastePct: 5.02, consumption: 4215448, wasteKg: 211687 },
+        { label: 'ก.พ.', wastePct: 5.28, consumption: 3698969, wasteKg: 195386 },
+        { label: 'มี.ค.', wastePct: 5.15, consumption: 4284578, wasteKg: 220608 },
+        { label: 'เม.ย.', wastePct: 4.52, consumption: 4188253, wasteKg: 189167 },
+        { label: 'พ.ค.', wastePct: 4.38, consumption: 3921369, wasteKg: 171718 },
+        { label: 'มิ.ย.', wastePct: 4.56, consumption: 3030727, wasteKg: 138341 },
+        { label: 'ก.ค.', wastePct: 5.19, consumption: 3502884, wasteKg: 181834 },
+        { label: 'ส.ค.', wastePct: 5.20, consumption: 3478507, wasteKg: 180906 },
+        { label: 'ก.ย.', wastePct: 5.35, consumption: 3194347, wasteKg: 170811 },
+        { label: 'ต.ค.', wastePct: 4.61, consumption: 1913972, wasteKg: 86434 },
+        { label: 'พ.ย.', wastePct: 0, consumption: 0, wasteKg: 0 },
+        { label: 'ธ.ค.', wastePct: 0, consumption: 0, wasteKg: 0 }
+      ];
+
+      const dataToUse = (yearlyData && yearlyData.length > 0) ? yearlyData : fallbackYearly;
+
+      const labels = dataToUse.map(d => d.label);
+      const values = dataToUse.map(d => d.wastePct || 0);
+
+      const backgroundColors = values.map(v => {
+        if (v === 0) return '#e2e8f0';
+        return (v <= TARGETS.allWaste) ? '#22c55e' : '#ef4444';
+      });
+
+      const borderColors = values.map(v => {
+        if (v === 0) return '#cbd5e1';
+        return (v <= TARGETS.allWaste) ? '#16a34a' : '#dc2626';
+      });
+
+      if (yearlyWasteChartInstance) {
+        try { yearlyWasteChartInstance.destroy(); } catch (e) {}
+        yearlyWasteChartInstance = null;
+      }
+
+      const ctx = chartEl.getContext('2d');
+      yearlyWasteChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '% Waste สะสม',
+            data: values,
+            backgroundColor: backgroundColors,
+            borderColor: borderColors,
+            borderWidth: 1.5,
+            borderRadius: 6,
+            maxBarThickness: 46
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: {
+            padding: { top: 28, left: 10, right: 15, bottom: 5 }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#1e293b',
+              titleFont: { family: "'Prompt', sans-serif", size: 12, weight: 'bold' },
+              bodyFont: { family: "'Prompt', sans-serif", size: 12 },
+              padding: 10,
+              callbacks: {
+                label: function(context) {
+                  const idx = context.dataIndex;
+                  const item = dataToUse[idx];
+                  const val = context.raw;
+                  if (val === 0) return ' ไม่มีข้อมูล';
+                  const status = val <= TARGETS.allWaste ? 'ได้เป้า ✅' : 'เกินเป้า ❌';
+                  const kg = item.wasteKg ? ` (Waste: ${Number(item.wasteKg).toLocaleString()} กก.)` : '';
+                  return ` % Waste: ${val.toFixed(2)}% [${status}]${kg}`;
+                }
+              }
+            },
+            datalabels: {
+              display: true,
+              anchor: 'end',
+              align: 'top',
+              offset: 3,
+              formatter: function(value) {
+                return value > 0 ? value.toFixed(2) + '%' : '-';
+              },
+              color: function(context) {
+                const val = context.dataset.data[context.dataIndex];
+                if (val === 0) return '#94a3b8';
+                return (val <= TARGETS.allWaste) ? '#15803d' : '#b91c1c';
+              },
+              font: {
+                family: "'Prompt', sans-serif",
+                size: 11,
+                weight: '700'
+              }
+            },
+            annotation: {
+              annotations: {
+                targetLine: {
+                  type: 'line',
+                  yMin: TARGETS.allWaste,
+                  yMax: TARGETS.allWaste,
+                  borderColor: '#f59e0b',
+                  borderWidth: 2,
+                  borderDash: [5, 5],
+                  label: {
+                    display: true,
+                    content: `Target ${TARGETS.allWaste.toFixed(2)}%`,
+                    position: 'end',
+                    backgroundColor: 'rgba(245, 158, 11, 0.95)',
+                    color: '#ffffff',
+                    font: { family: "'Prompt', sans-serif", size: 10, weight: 'bold' },
+                    padding: { top: 2, bottom: 2, left: 6, right: 6 }
+                  }
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              suggestedMax: 7,
+              grid: { color: '#f1f5f9' },
+              ticks: {
+                font: { family: "'Prompt', sans-serif", size: 11 },
+                callback: function(value) { return value.toFixed(1) + '%'; }
+              }
+            },
+            x: {
+              grid: { display: false },
+              ticks: {
+                font: { family: "'Prompt', sans-serif", size: 11, weight: 'bold' },
+                color: '#334155'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // ========================================================
+    // เรนเดอร์กราฟแนวโน้มแยกตามสัปดาห์ (Weekly Trend - Week Num)
+    // ========================================================
+    function renderWeeklyChart(weeklyData) {
+      const chartEl = document.getElementById('weeklyWasteChart');
+      if (!chartEl || typeof Chart === 'undefined') return;
+
+      const dataToUse = (weeklyData && weeklyData.length > 0) ? weeklyData : [];
+      safeSetText('weekly-count-badge', `${dataToUse.length} สัปดาห์ (W1 - W${dataToUse.length})`);
+
+      if (dataToUse.length === 0) return;
+
+      const labels = dataToUse.map(d => d.label || `W${d.weekNum}`);
+      const values = dataToUse.map(d => d.wastePct || 0);
+
+      const backgroundColors = values.map(v => {
+        if (v === 0) return '#e2e8f0';
+        return (v <= TARGETS.allWaste) ? '#22c55e' : '#ef4444';
+      });
+
+      const borderColors = values.map(v => {
+        if (v === 0) return '#cbd5e1';
+        return (v <= TARGETS.allWaste) ? '#16a34a' : '#dc2626';
+      });
+
+      if (weeklyWasteChartInstance) {
+        try { weeklyWasteChartInstance.destroy(); } catch (e) {}
+        weeklyWasteChartInstance = null;
+      }
+
+      const ctx = chartEl.getContext('2d');
+      weeklyWasteChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '% Waste ประจำสัปดาห์',
+            data: values,
+            backgroundColor: backgroundColors,
+            borderColor: borderColors,
+            borderWidth: 1.2,
+            borderRadius: 4,
+            maxBarThickness: 22
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: {
+            padding: { top: 28, left: 10, right: 15, bottom: 5 }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#1e293b',
+              titleFont: { family: "'Prompt', sans-serif", size: 12, weight: 'bold' },
+              bodyFont: { family: "'Prompt', sans-serif", size: 11 },
+              padding: 10,
+              callbacks: {
+                title: function(items) {
+                  if (!items || items.length === 0) return '';
+                  const idx = items[0].dataIndex;
+                  const it = dataToUse[idx];
+                  return `${it.label || 'Week ' + it.weekNum} (${it.startDate} ถึง ${it.endDate})`;
+                },
+                label: function(context) {
+                  const idx = context.dataIndex;
+                  const item = dataToUse[idx];
+                  const val = context.raw;
+                  if (val === 0) return ' ไม่มีข้อมูล';
+                  const status = val <= TARGETS.allWaste ? 'ได้เป้า ✅' : 'เกินเป้า ❌';
+                  const kg = item.wasteKg ? ` | Waste: ${Number(item.wasteKg).toLocaleString()} กก.` : '';
+                  const con = item.consumption ? ` | Con: ${Number(item.consumption).toLocaleString()} กก.` : '';
+                  return [
+                    ` % Waste: ${val.toFixed(2)}% [${status}]`,
+                    `${kg}${con}`
+                  ];
+                }
+              }
+            },
+            datalabels: {
+              display: true,
+              anchor: 'end',
+              align: 'top',
+              offset: 2,
+              formatter: function(value) {
+                return value > 0 ? value.toFixed(1) + '%' : '';
+              },
+              color: function(context) {
+                const val = context.dataset.data[context.dataIndex];
+                return (val <= TARGETS.allWaste) ? '#15803d' : '#b91c1c';
+              },
+              font: {
+                family: "'Prompt', sans-serif",
+                size: 9,
+                weight: '700'
+              }
+            },
+            annotation: {
+              annotations: {
+                targetLine: {
+                  type: 'line',
+                  yMin: TARGETS.allWaste,
+                  yMax: TARGETS.allWaste,
+                  borderColor: '#f59e0b',
+                  borderWidth: 2,
+                  borderDash: [5, 5],
+                  label: {
+                    display: true,
+                    content: `Target ${TARGETS.allWaste.toFixed(2)}%`,
+                    position: 'end',
+                    backgroundColor: 'rgba(245, 158, 11, 0.95)',
+                    color: '#ffffff',
+                    font: { family: "'Prompt', sans-serif", size: 10, weight: 'bold' },
+                    padding: { top: 2, bottom: 2, left: 6, right: 6 }
+                  }
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              suggestedMax: 8,
+              grid: { color: '#f1f5f9' },
+              ticks: {
+                font: { family: "'Prompt', sans-serif", size: 11 },
+                callback: function(value) { return value.toFixed(1) + '%'; }
+              }
+            },
+            x: {
+              grid: { display: false },
+              ticks: {
+                font: { family: "'Prompt', sans-serif", size: 10, weight: 'bold' },
+                color: '#334155',
+                maxRotation: 0,
+                autoSkip: false
+              }
+            }
+          }
+        }
+      });
     }
 
     // แสดงตารางข้อมูลพร้อม Conditional Formatting ไฮไลต์สีตามรูปภาพ
