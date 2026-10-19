@@ -148,6 +148,24 @@
 
   <main class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
+    <!-- แจ้งเตือนเมื่อเปิดผ่าน File:// แทนที่จะเปิดผ่าน http://localhost/NewdataPD/ -->
+    <div id="file-protocol-warning" class="hidden bg-amber-50 border-2 border-amber-400 p-4 rounded-2xl shadow-sm text-slate-900 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-xl bg-amber-500 text-white flex items-center justify-center text-xl shrink-0 shadow-sm">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div>
+          <h4 class="font-extrabold text-sm md:text-base text-amber-950">กำลังเปิดไฟล์ตรงๆ ผ่าน File:// (ทำให้ระบบ PHP หลังบ้านไม่ทำงาน)</h4>
+          <p class="text-xs md:text-sm text-amber-900 mt-0.5">
+            หากต้องการให้ดึงข้อมูล <strong>11 รายการแยกเครื่อง YUELI / BHS</strong> อย่างสมบูรณ์ กรุณาเปิดผ่าน Web Server จำลอง (XAMPP)
+          </p>
+        </div>
+      </div>
+      <a href="http://localhost/NewdataPD/" class="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs md:text-sm font-bold transition shadow-sm whitespace-nowrap">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i> เปิดผ่าน http://localhost/NewdataPD/
+      </a>
+    </div>
+
     <!-- KPI Cards Summary -->
     <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
       
@@ -858,9 +876,15 @@
       const urlInput = document.getElementById('sheetUrlInput');
       if (urlInput) urlInput.value = savedUrl;
 
-      // 2. ดึงข้อมูลสดจาก Google Sheet (หน้า 2 Waste) แบบเรียลไทม์ทันที
-      if (window.location.protocol.startsWith('http')) {
-        const urlParams = new URLSearchParams(window.location.search);
+      // 2. ตรวจสอบการเปิดไฟล์ผ่าน file:///
+      if (window.location.protocol === 'file:') {
+        const fileWarn = document.getElementById('file-protocol-warning');
+        if (fileWarn) fileWarn.classList.remove('hidden');
+      }
+
+      // 3. ดึงข้อมูลสดจาก Google Sheet แบบเรียลไทม์ทันที
+      const urlParams = window.location.search ? new URLSearchParams(window.location.search) : null;
+      if (urlParams) {
         const urlMachine = urlParams.get('machine');
         const urlMonth = urlParams.get('month');
         if (urlMachine && document.getElementById('selectedMachine')) {
@@ -869,10 +893,10 @@
         if (urlMonth && document.getElementById('selectedMonth')) {
           document.getElementById('selectedMonth').value = urlMonth;
         }
-        const machine = document.getElementById('selectedMachine')?.value || 'BHS';
-        const month = document.getElementById('selectedMonth')?.value || '10';
-        fetchGoogleSheetData(savedUrl, machine, month);
       }
+      const machine = document.getElementById('selectedMachine')?.value || 'BHS';
+      const month = document.getElementById('selectedMonth')?.value || '10';
+      fetchGoogleSheetData(savedUrl, machine, month);
     });
 
     // แสดง/ซ่อน Modal ตั้งค่า
@@ -1057,16 +1081,32 @@
       const cols = table.cols.map(c => (c.label || c.id || '').trim());
       const rows = table.rows;
 
-      const isBhsSheet = cols.some(c => /bhs/i.test(c));
+      const currentMachine = (document.getElementById('selectedMachine')?.value || 'BHS').toUpperCase();
+      const mLow = currentMachine.toLowerCase();
 
-      if (isBhsSheet) {
+      const isMachineSheet = cols.some(c => /bhs|yueli|isowa|consumption/i.test(c));
+
+      if (isMachineSheet) {
         let dateIdx = cols.findIndex(c => /date|day|ป้ายชื่อ|วันที่/i.test(c));
         if (dateIdx === -1) dateIdx = 0;
 
-        let consumIdx = cols.findIndex(c => /consumption.*bhs/i.test(c));
-        let outputIdx = cols.findIndex(c => /output.*bhs/i.test(c));
-        let wastePctIdx = cols.findIndex(c => /waste.*%.*bhs/i.test(c));
-        let wasteKgIdx = cols.findIndex(c => /waste.*bhs/i.test(c) && !/%/.test(c));
+        let consumIdx = cols.findIndex(c => new RegExp(`consumption.*${mLow}|${mLow}.*consumption`, 'i').test(c));
+        let outputIdx = cols.findIndex(c => new RegExp(`output.*${mLow}|${mLow}.*output`, 'i').test(c));
+        let wastePctIdx = cols.findIndex(c => new RegExp(`waste.*%.*${mLow}|${mLow}.*waste.*%`, 'i').test(c));
+        let wasteKgIdx = cols.findIndex(c => new RegExp(`waste.*${mLow}|${mLow}.*waste`, 'i').test(c) && !/%/.test(c));
+
+        // Fallback ตำแหน่งคอลัมน์มาตรฐานแผ่นงาน con out หาก header ไม่มีชื่อเครื่อง
+        if (consumIdx === -1) {
+          if (currentMachine === 'ISOWA') {
+            consumIdx = 1; outputIdx = 2; wasteKgIdx = 3; wastePctIdx = 4;
+          } else if (currentMachine === 'BHS') {
+            consumIdx = 7; outputIdx = 8; wasteKgIdx = 9; wastePctIdx = 10;
+          } else if (currentMachine === 'YUELI') {
+            consumIdx = 13; outputIdx = 14; wasteKgIdx = 15; wastePctIdx = 16;
+          } else if (currentMachine === 'TOTAL') {
+            consumIdx = 19; outputIdx = 20; wasteKgIdx = 21; wastePctIdx = 22;
+          }
+        }
 
         const validDailyRows = [];
         rows.forEach(r => {
@@ -1139,20 +1179,24 @@
           }
         }
 
-        let actualMTD = 4.61;
+        let actualMTD = 0;
         if (totalConsum > 0 && totalWasteKg > 0) {
           actualMTD = parseFloat((totalWasteKg / totalConsum * 100).toFixed(2));
         }
 
         const summary = {
-          consumption: totalConsum || 1587701,
-          output: totalOutput || 1415766,
+          consumption: totalConsum,
+          output: totalOutput,
           allWaste: actualMTD
         };
 
         currentData = transformed;
         currentSummary = summary;
         renderDashboard(transformed, summary);
+        safeSetText('table-machine-name', currentMachine);
+        safeSetText('chart-machine-name', currentMachine);
+        safeSetText('weight-banner-machine', currentMachine);
+        safeSetText('header-machine-name', currentMachine);
         return;
       }
 
