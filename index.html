@@ -635,8 +635,8 @@
           <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
             <span class="w-2 h-2 rounded-full bg-amber-500"></span> Target: 5.00%
           </span>
-          <button type="button" onclick="downloadYearlyChartImage()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-xl text-xs font-bold shadow-sm hover:shadow transition cursor-pointer">
-            <i class="fa-solid fa-download"></i> บันทึกกราฟ (PNG)
+          <button type="button" onclick="downloadYearlyChartImage()" class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:from-blue-800 active:to-indigo-800 text-white rounded-xl text-xs font-black shadow-md hover:shadow-lg transition cursor-pointer">
+            <i class="fa-solid fa-download"></i> บันทึกกราฟ 4K (Ultra HD)
           </button>
         </div>
       </div>
@@ -1997,55 +1997,236 @@
     }
 
     // ========================================================
-    // ฟังก์ชันดาวน์โหลด/บันทึกภาพเฉพาะกราฟรายเดือน (PNG คมชัดสูง)
+    // ฟังก์ชันดาวน์โหลด/บันทึกภาพเฉพาะกราฟรายเดือน (ความละเอียดระดับ 4K Ultra HD คมชัดสูงสุด)
     // ========================================================
     function downloadYearlyChartImage() {
       const chartEl = document.getElementById('yearlyWasteChart');
-      if (!chartEl) {
+      if (!chartEl || !yearlyWasteChartInstance) {
         alert('ไม่พบกราฟรายเดือน');
         return;
       }
 
       const currentMachine = (document.getElementById('selectedMachine')?.value || 'BHS').toUpperCase();
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 
-      // สร้าง Canvas ใหม่เพื่อใส่พื้นหลังสีขาวและหัวข้อ
+      // กำหนดความละเอียดระดับ 4K Ultra HD (กว้าง 3840px, สูงประมาณ 2160px มาตรฐาน 4K UHD 16:9)
+      const targetWidth = 3840;
+      const targetHeight = 2160;
+      const paddingX = 140;
+      const paddingTop = 120;
+      const paddingBottom = 100;
+      const headerHeight = 220;
+
+      // 1. สร้าง Offscreen Canvas สำหรับเรนเดอร์ Chart ที่ความละเอียด 4K
+      const chartCanvas4K = document.createElement('canvas');
+      const chartDrawWidth = targetWidth - (paddingX * 2);
+      const chartDrawHeight = targetHeight - headerHeight - paddingTop - paddingBottom;
+      chartCanvas4K.width = chartDrawWidth;
+      chartCanvas4K.height = chartDrawHeight;
+
+      // คัดลอก config จาก instance เดิมมาเรนเดอร์ในสเกล 4K คมกริบ
+      const originalConfig = yearlyWasteChartInstance.config;
+      const chartPlugins = [];
+      if (typeof ChartDataLabels !== 'undefined') chartPlugins.push(ChartDataLabels);
+
+      const ctx4K = chartCanvas4K.getContext('2d');
+      const temp4KChart = new Chart(ctx4K, {
+        type: 'bar',
+        plugins: chartPlugins,
+        data: JSON.parse(JSON.stringify(originalConfig.data)),
+        options: {
+          animation: false, // ปิด animation เพื่อเรนเดอร์ให้เสร็จทันที
+          responsive: false,
+          maintainAspectRatio: false,
+          layout: {
+            padding: { top: 75, left: 20, right: 30, bottom: 20 }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: false },
+            datalabels: {
+              display: true,
+              anchor: 'end',
+              align: 'top',
+              offset: 12,
+              formatter: function(value) {
+                return value > 0 ? value.toFixed(2) + '%' : '-';
+              },
+              backgroundColor: function(context) {
+                const val = context.dataset.data[context.dataIndex];
+                return val > 0 ? '#ffffff' : null;
+              },
+              borderColor: function(context) {
+                const val = context.dataset.data[context.dataIndex];
+                if (val === 0) return null;
+                return (val <= TARGETS.allWaste) ? '#16a34a' : '#dc2626';
+              },
+              borderWidth: 4,
+              borderRadius: 14,
+              padding: { top: 8, bottom: 8, left: 22, right: 22 },
+              color: function(context) {
+                const val = context.dataset.data[context.dataIndex];
+                if (val === 0) return '#94a3b8';
+                return (val <= TARGETS.allWaste) ? '#15803d' : '#b91c1c';
+              },
+              font: {
+                family: "'Prompt', 'Sarabun', sans-serif",
+                size: 34,
+                weight: '900'
+              }
+            },
+            annotation: {
+              annotations: {
+                targetLine: {
+                  type: 'line',
+                  yMin: TARGETS.allWaste,
+                  yMax: TARGETS.allWaste,
+                  borderColor: '#f59e0b',
+                  borderWidth: 6,
+                  borderDash: [15, 12],
+                  label: {
+                    display: true,
+                    content: `Target ${TARGETS.allWaste.toFixed(2)}%`,
+                    position: 'end',
+                    backgroundColor: 'rgba(245, 158, 11, 0.95)',
+                    color: '#ffffff',
+                    font: { family: "'Prompt', sans-serif", size: 28, weight: 'bold' },
+                    padding: { top: 8, bottom: 8, left: 20, right: 20 },
+                    borderRadius: 10
+                  }
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              suggestedMax: 7.5,
+              grid: { color: '#e2e8f0', lineWidth: 2 },
+              ticks: {
+                font: { family: "'Prompt', sans-serif", size: 30, weight: '600' },
+                color: '#475569',
+                padding: 15,
+                callback: function(value) { return value.toFixed(1) + '%'; }
+              }
+            },
+            x: {
+              grid: { display: false },
+              ticks: {
+                font: { family: "'Prompt', sans-serif", size: 32, weight: 'bold' },
+                color: '#0f172a',
+                padding: 15
+              }
+            }
+          }
+        }
+      });
+
+      // 2. สร้าง Canvas ปลายทางขนาด 4K เต็มผืน
       const exportCanvas = document.createElement('canvas');
-      const padding = 24;
-      const headerHeight = 70;
-      exportCanvas.width = chartEl.width + (padding * 2);
-      exportCanvas.height = chartEl.height + headerHeight + padding;
-
+      exportCanvas.width = targetWidth;
+      exportCanvas.height = targetHeight;
       const expCtx = exportCanvas.getContext('2d');
 
-      // พื้นหลังสีขาว
+      // พื้นหลังสีขาวเนียน
       expCtx.fillStyle = '#ffffff';
-      expCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+      expCtx.fillRect(0, 0, targetWidth, targetHeight);
 
-      // วาดหัวข้อกราฟ
-      expCtx.fillStyle = '#0f172a';
-      expCtx.font = "bold 20px 'Prompt', 'Sarabun', sans-serif";
-      expCtx.fillText(`กราฟแนวโน้ม % Waste รายเดือน/รายปี (${currentMachine})`, padding, 36);
-
-      expCtx.fillStyle = '#64748b';
-      expCtx.font = "13px 'Prompt', 'Sarabun', sans-serif";
-      expCtx.fillText(`ภาพรวม 12 เดือน (ม.ค. - ธ.ค. 2026) เทียบกับ Target 5.00% | บันทึกเมื่อ ${new Date().toLocaleDateString('th-TH')}`, padding, 60);
-
-      // วาดเส้นคั่นหัวข้อ
+      // กรอบตกแต่งรอบนอกการ์ดสไตล์โมเดิร์น
       expCtx.strokeStyle = '#e2e8f0';
-      expCtx.lineWidth = 1;
+      expCtx.lineWidth = 4;
+      expCtx.strokeRect(50, 50, targetWidth - 100, targetHeight - 100);
+
+      // แถบสีด้านบนสุดเพื่อความพรีเมียม
+      const topGrad = expCtx.createLinearGradient(50, 50, targetWidth - 50, 50);
+      topGrad.addColorStop(0, '#2563eb');
+      topGrad.addColorStop(0.5, '#4f46e5');
+      topGrad.addColorStop(1, '#06b6d4');
+      expCtx.fillStyle = topGrad;
+      expCtx.fillRect(52, 52, targetWidth - 104, 16);
+
+      // วาดหัวข้อหลัก (Main Title 4K)
+      expCtx.fillStyle = '#0f172a';
+      expCtx.font = "900 68px 'Prompt', 'Sarabun', sans-serif";
+      expCtx.fillText(`กราฟแนวโน้ม % Waste รายเดือน/รายปี (${currentMachine})`, paddingX, paddingTop + 60);
+
+      // วาดคำบรรยายและวันที่ออกรายงาน
+      expCtx.fillStyle = '#64748b';
+      expCtx.font = "500 34px 'Prompt', 'Sarabun', sans-serif";
+      expCtx.fillText(`ภาพรวม 12 เดือน (มกราคม - ธันวาคม 2026) เทียบกับ Target 5.00%  •  เครื่องจักร: ${currentMachine}  •  บันทึกข้อมูลเมื่อ: ${dateStr}`, paddingX, paddingTop + 125);
+
+      // วาด Badge "4K ULTRA HD" และ Target
+      const badgeText = "4K ULTRA HD • 3840 × 2160";
+      expCtx.font = "bold 26px 'Prompt', monospace";
+      const bWidth = expCtx.measureText(badgeText).width + 40;
+      const bX = targetWidth - paddingX - bWidth;
+      const bY = paddingTop + 18;
+
+      expCtx.fillStyle = '#eff6ff';
+      expCtx.strokeStyle = '#3b82f6';
+      expCtx.lineWidth = 3;
       expCtx.beginPath();
-      expCtx.moveTo(padding, headerHeight - 2);
-      expCtx.lineTo(exportCanvas.width - padding, headerHeight - 2);
+      expCtx.roundRect(bX, bY, bWidth, 52, 12);
+      expCtx.fill();
       expCtx.stroke();
 
-      // วาดตัวกราฟ
-      expCtx.drawImage(chartEl, padding, headerHeight);
+      expCtx.fillStyle = '#1d4ed8';
+      expCtx.fillText(badgeText, bX + 20, bY + 36);
 
-      // ดาวน์โหลดไฟล์ภาพ PNG
-      const link = document.createElement('a');
-      link.download = `Waste_Trend_Yearly_${currentMachine}_${new Date().toISOString().slice(0,10)}.png`;
-      link.href = exportCanvas.toDataURL('image/png', 1.0);
-      link.click();
+      // Badge Target 5.00%
+      const targetBadgeText = "TARGET: 5.00%";
+      expCtx.font = "bold 26px 'Prompt', monospace";
+      const tWidth = expCtx.measureText(targetBadgeText).width + 40;
+      const tX = bX - tWidth - 20;
+
+      expCtx.fillStyle = '#fffbeb';
+      expCtx.strokeStyle = '#f59e0b';
+      expCtx.lineWidth = 3;
+      expCtx.beginPath();
+      expCtx.roundRect(tX, bY, tWidth, 52, 12);
+      expCtx.fill();
+      expCtx.stroke();
+
+      expCtx.fillStyle = '#b45309';
+      expCtx.fillText(targetBadgeText, tX + 20, bY + 36);
+
+      // เส้นคั่นส่วนหัว
+      expCtx.strokeStyle = '#e2e8f0';
+      expCtx.lineWidth = 3;
+      expCtx.beginPath();
+      expCtx.moveTo(paddingX, paddingTop + headerHeight - 40);
+      expCtx.lineTo(targetWidth - paddingX, paddingTop + headerHeight - 40);
+      expCtx.stroke();
+
+      // วาดตัวกราฟ 4K ลงบนผืนผ้าใบหลัก
+      expCtx.drawImage(chartCanvas4K, paddingX, paddingTop + headerHeight - 20);
+
+      // ลายน้ำ/Footer ท้ายภาพ
+      expCtx.fillStyle = '#94a3b8';
+      expCtx.font = "500 26px 'Prompt', 'Sarabun', sans-serif";
+      expCtx.fillText("ระบบรายงานสรุป Waste Production Dashboard  •  โรงงานผลิตกล่องกระดาษลูกฟูก", paddingX, targetHeight - 55);
+
+      const copyRight = "Generated in 4K Ultra HD Resolution";
+      const cWidth = expCtx.measureText(copyRight).width;
+      expCtx.fillText(copyRight, targetWidth - paddingX - cWidth, targetHeight - 55);
+
+      // 3. ทำลาย Chart ชั่วคราวเพื่อคืน Memory
+      temp4KChart.destroy();
+
+      // 4. บันทึกและดาวน์โหลดภาพ 4K PNG
+      exportCanvas.toBlob(function(blob) {
+        if (!blob) {
+          alert('ไม่สามารถประมวลผลภาพ 4K ได้');
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.download = `Waste_Trend_Yearly_${currentMachine}_4K_${now.toISOString().slice(0,10)}.png`;
+        link.href = url;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+      }, 'image/png');
     }
 
     // แสดงตารางข้อมูลพร้อม Conditional Formatting ไฮไลต์สีตามรูปภาพ
