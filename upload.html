@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>นำเข้าไฟล์ Excel (con out & Waste) | Production Dashboard</title>
+  <!-- Tailwind CSS & FontAwesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&family=Inter:wght@400;500;600;700;800;900&family=Sarabun:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- SheetJS Library สำหรับอ่านไฟล์ Excel .xlsx, .xls, .csv -->
+  <script src="xlsx.full.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', 'Sarabun', sans-serif;
+    }
+    .font-num {
+      font-family: 'Chakra Petch', monospace;
+    }
+    .dropzone {
+      transition: all 0.2s ease-in-out;
+    }
+    .dropzone.dragover {
+      border-color: #3b82f6 !important;
+      background-color: #eff6ff !important;
+      transform: scale(1.01);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-30 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row justify-between items-center gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-black text-white flex items-center gap-2">
+            ระบบนำเข้าไฟล์ Excel <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold">con out & Waste</span>
+          </h1>
+          <p class="text-xs text-slate-400">อัปเดตข้อมูลขึ้น Google Sheet อัตโนมัติและแสดงผลบน Dashboard ทันที</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 flex-wrap">
+        <button onclick="toggleWebhookModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition">
+          <i class="fa-brands fa-google text-amber-400"></i> ตั้งค่า Google Sheet Sync
+        </button>
+        <a href="index.html" class="inline-flex items-center gap-2 px-4 py-1.5 text-xs font-black text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition shadow-md shadow-blue-900/30">
+          <i class="fa-solid fa-chart-line"></i> กลับสู่ Dashboard
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 flex-1 w-full">
+
+    <!-- แถบสถานะการเชื่อมต่อ Google Apps Script -->
+    <div id="webhook-status-card" class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg shrink-0">
+          <i class="fa-solid fa-arrows-rotate"></i>
+        </div>
+        <div>
+          <h4 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+            การเชื่อมต่อ Google Sheet:
+            <span id="webhook-badge" class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+              พร้อมส่งข้อมูล (Local Cache & Webhook)
+            </span>
+          </h4>
+          <p class="text-xs text-slate-500 mt-0.5" id="webhook-hint">
+            ไฟล์ที่อัปโหลดจะถูกนำมาแสดงใน Dashboard ทันที และส่งไปบันทึกลง Google Sheet ผ่าน Apps Script อัตโนมัติ
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 w-full md:w-auto">
+        <a href="index.html" id="btn-view-dashboard-top" class="w-full md:w-auto text-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm">
+          <i class="fa-solid fa-eye mr-1"></i> ดูผลบน Dashboard ทันที
+        </a>
+      </div>
+    </div>
+
+    <!-- โซน 2 ฝั่ง: ฝั่งซ้าย con out, ฝั่งขวา Waste -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- ========================================== -->
+      <!-- CARD 1: โยนไฟล์ con out (Consumption & Output) -->
+      <!-- ========================================== -->
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+        <div class="p-5 border-b border-slate-100 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white flex justify-between items-center">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-lg bg-blue-500/30 text-blue-300 flex items-center justify-center font-bold text-sm border border-blue-400/30">1</span>
+            <div>
+              <h3 class="font-extrabold text-base tracking-tight">ไฟล์ con out (ยอดผลิตและใช้กระดาษ)</h3>
+              <p class="text-xs text-blue-200">Consumption & Output รายวัน (BHS, YUELI, ISOWA)</p>
+            </div>
+          </div>
+          <span class="text-xs px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 font-semibold">.xlsx / .xls / .csv</span>
+        </div>
+
+        <div class="p-5 space-y-4 flex-1 flex flex-col">
+          <!-- Dropzone -->
+          <div id="dropzone-con-out" class="dropzone border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50/40 transition bg-slate-50/60">
+            <input type="file" id="file-con-out" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleConOutFile(this.files[0])">
+            <div class="flex flex-col items-center justify-center space-y-2 pointer-events-none">
+              <div class="w-14 h-14 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center text-2xl">
+                <i class="fa-solid fa-file-excel"></i>
+              </div>
+              <p class="text-sm font-bold text-slate-700">ลากไฟล์ con out มาวางที่นี่ หรือ <span class="text-blue-600 underline">คลิกเลือกไฟล์</span></p>
+              <p class="text-xs text-slate-400">รองรับไฟล์ Excel ของชีต con out หรือรายงานผลผลิตประจำวัน</p>
+            </div>
+          </div>
+
+          <!-- สถานะไฟล์ con out ที่เลือก -->
+          <div id="con-out-file-info" class="hidden bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center justify-between text-xs text-blue-900">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+              <div>
+                <span class="font-bold" id="con-out-filename">filename.xlsx</span>
+                <span class="text-slate-500 ml-1" id="con-out-filesize">(0 KB)</span>
+              </div>
+            </div>
+            <button onclick="clearConOut()" class="text-rose-600 hover:underline font-bold">เปลี่ยนไฟล์</button>
+          </div>
+
+          <!-- ตารางพรีวิวข้อมูล con out -->
+          <div id="con-out-preview-container" class="hidden flex-1 flex flex-col space-y-2">
+            <div class="flex justify-between items-center text-xs font-bold text-slate-700">
+              <span>พรีวิวข้อมูลที่ตรวจพบ: <strong class="text-blue-600" id="con-out-parsed-days">0 วัน</strong></span>
+              <span class="text-slate-500">ตรวจสอบความถูกต้องก่อนกดบันทึก</span>
+            </div>
+            <div class="max-h-48 overflow-y-auto border border-slate-200 rounded-xl">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-100 text-slate-700 sticky top-0 font-bold border-b border-slate-200">
+                  <tr>
+                    <th class="p-2">วันที่</th>
+                    <th class="p-2 text-right">BHS Con</th>
+                    <th class="p-2 text-right">BHS Out</th>
+                    <th class="p-2 text-right">YUELI Con</th>
+                    <th class="p-2 text-right">YUELI Out</th>
+                  </tr>
+                </thead>
+                <tbody id="con-out-preview-tbody" class="divide-y divide-slate-100 font-num">
+                  <!-- แทรกแถวด้วย JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ปุ่มกดยืนยันบันทึก con out -->
+          <div class="pt-2">
+            <button id="btn-save-con-out" disabled onclick="saveConOutData()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition shadow-md flex items-center justify-center gap-2 text-sm">
+              <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล con out ลงระบบ & Google Sheet
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- CARD 2: โยนไฟล์ Waste (ของเสีย 11 รายการ) -->
+      <!-- ========================================== -->
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+        <div class="p-5 border-b border-slate-100 bg-gradient-to-r from-emerald-950 via-teal-900 to-slate-900 text-white flex justify-between items-center">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-lg bg-emerald-500/30 text-emerald-300 flex items-center justify-center font-bold text-sm border border-emerald-400/30">2</span>
+            <div>
+              <h3 class="font-extrabold text-base tracking-tight">ไฟล์ Waste (ของเสีย 11 รายการ)</h3>
+              <p class="text-xs text-emerald-200">ระบุวันที่และเครื่องจักรเพื่อลงข้อมูลตรงวันเป๊ะๆ</p>
+            </div>
+          </div>
+          <span class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-semibold">.xlsx / .xls / .csv</span>
+        </div>
+
+        <div class="p-5 space-y-4 flex-1 flex flex-col">
+          
+          <!-- ช่องระบุวันที่ & เครื่องจักร (ตามที่ผู้ใช้ร้องขอ) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-amber-50/80 border border-amber-200 p-3.5 rounded-xl">
+            <div>
+              <label class="block text-xs font-black text-amber-900 mb-1 flex items-center gap-1.5">
+                <i class="fa-solid fa-calendar-day text-amber-600"></i> ระบุวันที่ของข้อมูล Waste:
+              </label>
+              <input type="date" id="waste-date-picker" onchange="onWasteDateChange()" class="w-full px-3 py-1.5 bg-white border border-amber-300 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+              <span class="text-[11px] text-amber-800 mt-0.5 block">รูปแบบแสดงผล: <strong id="waste-date-display" class="font-num text-slate-900">19/10/2026</strong></span>
+            </div>
+
+            <div>
+              <label class="block text-xs font-black text-amber-900 mb-1 flex items-center gap-1.5">
+                <i class="fa-solid fa-industry text-amber-600"></i> ระบุเครื่องจักร:
+              </label>
+              <select id="waste-machine-picker" class="w-full px-3 py-1.5 bg-white border border-amber-300 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                <option value="BHS">เครื่อง BHS</option>
+                <option value="YUELI">เครื่อง YUELI</option>
+                <option value="ISOWA">เครื่อง ISOWA</option>
+                <option value="ALL">ไฟล์รวม (มีคอลัมน์ BHS & YUELI)</option>
+              </select>
+              <span class="text-[11px] text-amber-800 mt-0.5 block">ระบบจะจับคู่คอลัมน์ของเครื่องที่เลือก</span>
+            </div>
+          </div>
+
+          <!-- Dropzone Waste -->
+          <div id="dropzone-waste" class="dropzone border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center cursor-pointer hover:border-emerald-500 hover:bg-emerald-50/40 transition bg-slate-50/60">
+            <input type="file" id="file-waste" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleWasteFile(this.files[0])">
+            <div class="flex flex-col items-center justify-center space-y-2 pointer-events-none">
+              <div class="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl">
+                <i class="fa-solid fa-trash-can-arrow-up"></i>
+              </div>
+              <p class="text-sm font-bold text-slate-700">ลากไฟล์ Waste มาวางที่นี่ หรือ <span class="text-emerald-600 underline">คลิกเลือกไฟล์</span></p>
+              <p class="text-xs text-slate-400">ระบบจะดึงเฉพาะของเสีย 11 หมวดหมู่ (NCP, DEF, WEB, CONTROL ฯลฯ) อัตโนมัติ</p>
+            </div>
+          </div>
+
+          <!-- สถานะไฟล์ Waste ที่เลือก -->
+          <div id="waste-file-info" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center justify-between text-xs text-emerald-900">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+              <div>
+                <span class="font-bold" id="waste-filename">waste.xlsx</span>
+                <span class="text-slate-500 ml-1" id="waste-filesize">(0 KB)</span>
+              </div>
+            </div>
+            <button onclick="clearWaste()" class="text-rose-600 hover:underline font-bold">เปลี่ยนไฟล์</button>
+          </div>
+
+          <!-- ตารางพรีวิวข้อมูล Waste 11 รายการ -->
+          <div id="waste-preview-container" class="hidden flex-1 flex flex-col space-y-2">
+            <div class="flex justify-between items-center text-xs font-bold text-slate-700">
+              <span>พรีวิวของเสีย 11 รายการ: <strong class="text-emerald-600" id="waste-total-weight">0 กก.</strong></span>
+              <span class="text-slate-500" id="waste-detected-date-badge">วันที่ 19/10/2026</span>
+            </div>
+            <div class="max-h-48 overflow-y-auto border border-slate-200 rounded-xl">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-100 text-slate-700 sticky top-0 font-bold border-b border-slate-200">
+                  <tr>
+                    <th class="p-2">รหัส</th>
+                    <th class="p-2">หมวดหมู่ของเสีย (11 รายการ)</th>
+                    <th class="p-2 text-right">น้ำหนัก (กก.)</th>
+                  </tr>
+                </thead>
+                <tbody id="waste-preview-tbody" class="divide-y divide-slate-100 font-num">
+                  <!-- แทรกแถวด้วย JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ปุ่มกดยืนยันบันทึก Waste -->
+          <div class="pt-2">
+            <button id="btn-save-waste" disabled onclick="saveWasteData()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition shadow-md flex items-center justify-center gap-2 text-sm">
+              <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล Waste ลงระบบ & Google Sheet
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- กล่องสรุปผล และนำทางไปดู Dashboard -->
+    <section class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 border border-slate-800">
+      <div class="space-y-1 text-center md:text-left">
+        <h3 class="text-lg font-black text-white flex items-center justify-center md:justify-start gap-2">
+          <i class="fa-solid fa-circle-check text-emerald-400"></i> ข้อมูลพร้อมเปิดดูบน Dashboard ทันที
+        </h3>
+        <p class="text-xs text-slate-300">
+          เมื่อกดบันทึกแล้ว ระบบจะรวมข้อมูลที่อัปโหลดเข้ากับหน้า Dashboard เรียลไทม์โดยไม่ต้องรอการรีเฟรชชีต
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3 w-full md:w-auto">
+        <button onclick="clearAllImportedCache()" class="w-full md:w-auto px-4 py-2.5 bg-slate-800 hover:bg-rose-900/60 hover:border-rose-500 text-slate-300 hover:text-white rounded-xl text-xs font-semibold border border-slate-700 transition">
+          <i class="fa-solid fa-trash-can mr-1.5"></i> ล้างประวัติที่นำเข้า
+        </button>
+        <a href="index.html" class="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-slate-950 font-black rounded-xl text-sm transition shadow-lg flex items-center justify-center gap-2">
+          เปิดดู Dashboard <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal: ตั้งค่า Google Apps Script Sync -->
+  <div id="webhook-modal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="p-5 border-b border-slate-200 bg-slate-900 text-white flex justify-between items-center">
+        <h3 class="font-extrabold text-base flex items-center gap-2">
+          <i class="fa-brands fa-google text-amber-400"></i> ตั้งค่า Google Sheet Auto-Sync (Apps Script)
+        </h3>
+        <button onclick="toggleWebhookModal()" class="text-slate-400 hover:text-white text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4 overflow-y-auto text-xs text-slate-700">
+        <p class="text-slate-600 leading-relaxed">
+          หากต้องการให้ไฟล์ที่โยนเข้าไปถูก <strong>เขียนลง Google Sheet อัตโนมัติ</strong> ให้คัดลอกโค้ดสคริปต์ในไฟล์ <code class="bg-slate-100 text-blue-600 px-1 py-0.5 rounded font-mono font-bold">google_apps_script.js</code> ไปวางใน Google Sheet ของคุณเพียงครั้งเดียว
+        </p>
+
+        <div class="bg-amber-50 border border-amber-200 p-3.5 rounded-xl space-y-1.5 text-amber-900">
+          <p class="font-bold flex items-center gap-1.5">
+            <i class="fa-solid fa-lightbulb text-amber-600"></i> ขั้นตอนติดตั้ง 3 ขั้นตอน:
+          </p>
+          <ol class="list-decimal list-inside space-y-1 ml-1 text-slate-800">
+            <li>เปิด Google Sheet ของคุณ > เมนู <strong>ส่วนขยาย (Extensions)</strong> > <strong>Apps Script</strong></li>
+            <li>วางโค้ดจากไฟล์ <a href="google_apps_script.js" target="_blank" class="text-blue-600 underline font-bold">google_apps_script.js</a> แล้วกดบันทึก</li>
+            <li>กดปุ่มขวาบน <strong>Deploy (การทำให้ใช้งานได้)</strong> > เลือก <strong>Web app</strong> > สิทธิ์: <strong>ทุกคน (Anyone)</strong> > คัดลอก URL มาวางด้านล่างนี้</li>
+          </ol>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-800 mb-1">Google Apps Script Web App URL:</label>
+          <input type="text" id="webhook-url-input" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div class="flex items-center gap-2 pt-2">
+          <input type="checkbox" id="auto-sync-checkbox" class="w-4 h-4 rounded text-blue-600" checked>
+          <label for="auto-sync-checkbox" class="font-semibold text-slate-700 cursor-pointer">
+            ส่งข้อมูลไปยัง Google Sheet ทันทีที่กดบันทึก
+          </label>
+        </div>
+      </div>
+
+      <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-2">
+        <button onclick="testWebhookConnection()" id="btn-test-webhook" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-xl text-xs transition">
+          <i class="fa-solid fa-satellite-dish mr-1"></i> ทดสอบการเชื่อมต่อ
+        </button>
+        <button onclick="saveWebhookSettings()" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow-sm">
+          <i class="fa-solid fa-check mr-1"></i> บันทึกการตั้งค่า
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-6 right-6 max-w-md bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border border-slate-700 z-50 transform translate-y-32 opacity-0 transition-all duration-300 flex items-center gap-3">
+    <div id="toast-icon" class="text-emerald-400 text-xl shrink-0">
+      <i class="fa-solid fa-circle-check"></i>
+    </div>
+    <div class="flex-1 text-xs">
+      <h5 id="toast-title" class="font-bold text-sm text-white">แจ้งเตือน</h5>
+      <p id="toast-message" class="text-slate-300 mt-0.5">ข้อความแจ้งเตือน</p>
+    </div>
+  </div>
+
+  <script>
+    // State ตัวแปรเก็บข้อมูลที่ parse แล้ว
+    let parsedConOutRows = [];
+    let parsedWasteItems = [];
+
+    // แผนที่ 11 หมวดหมู่ของเสียมาตรฐาน
+    const standardWaste11 = [
+      { code: 'BL18', name: 'NCP', key: 'ncp' },
+      { code: 'BL17', name: 'Def', key: 'def' },
+      { code: 'BL16', name: 'Web', key: 'web' },
+      { code: 'BL21', name: 'Control', key: 'control' },
+      { code: 'BL00', name: 'OM', key: 'om' },
+      { code: 'BL15', name: 'รอยต่อออร์เดอร์ (Order)', key: 'order' },
+      { code: 'BL12', name: 'แกน-ผลิต (Core)', key: 'core' },
+      { code: 'BL19', name: 'สันนูนตรงสเปค (Spec)', key: 'spec' },
+      { code: 'BL22', name: 'Conveyor', key: 'conveyor' },
+      { code: 'BL24', name: 'QC TEST', key: 'qc' },
+      { code: 'BL25', name: 'Reject QC', key: 'reject' }
+    ];
+
+    // โหลดค่าเริ่มต้น
+    window.addEventListener('DOMContentLoaded', () => {
+      // ตั้งค่าวันที่เริ่มต้นเป็น วันนี้ หรือ 19/10/2026
+      const picker = document.getElementById('waste-date-picker');
+      const now = new Date();
+      // ถ้าเดือนเป็นตุลาคม 2026 ให้ตั้ง 2026-10-19
+      picker.value = '2026-10-19';
+      onWasteDateChange();
+
+      // โหลด Webhook URL ที่บันทึกไว้
+      const savedWebhook = localStorage.getItem('google_apps_script_webhook_url');
+      if (savedWebhook) {
+        document.getElementById('webhook-url-input').value = savedWebhook;
+      }
+
+      setupDragAndDrop('dropzone-con-out', 'file-con-out', handleConOutFile);
+      setupDragAndDrop('dropzone-waste', 'file-waste', handleWasteFile);
+    });
+
+    // วันที่ Waste เปลี่ยน
+    function onWasteDateChange() {
+      const picker = document.getElementById('waste-date-picker');
+      if (!picker.value) return;
+      const parts = picker.value.split('-'); // YYYY-MM-DD
+      const d = parseInt(parts[2], 10);
+      const m = parseInt(parts[1], 10);
+      const y = parts[0];
+      const dPad = d < 10 ? '0' + d : d;
+      const mPad = m < 10 ? '0' + m : m;
+      const formatted = `${dPad}/${mPad}/${y}`;
+      document.getElementById('waste-date-display').textContent = formatted;
+      const badge = document.getElementById('waste-detected-date-badge');
+      if (badge) badge.textContent = `วันที่ ${formatted}`;
+    }
+
+    // ฟังก์ชัน Drag & Drop
+    function setupDragAndDrop(zoneId, inputId, handler) {
+      const zone = document.getElementById(zoneId);
+      const input = document.getElementById(inputId);
+
+      zone.addEventListener('click', () => input.click());
+
+      ['dragenter', 'dragover'].forEach(eventName => {
+        zone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          zone.classList.add('dragover');
+        }, false);
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        zone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          zone.classList.remove('dragover');
+        }, false);
+      });
+
+      zone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length > 0) {
+          handler(files[0]);
+        }
+      });
+    }
+
+    // แสดง Toast แจ้งเตือน
+    function showToast(title, message, isSuccess = true) {
+      const toast = document.getElementById('toast');
+      const icon = document.getElementById('toast-icon');
+      document.getElementById('toast-title').textContent = title;
+      document.getElementById('toast-message').textContent = message;
+
+      if (isSuccess) {
+        icon.className = 'text-emerald-400 text-xl shrink-0';
+        icon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+      } else {
+        icon.className = 'text-rose-400 text-xl shrink-0';
+        icon.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+      }
+
+      toast.classList.remove('translate-y-32', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-32', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 4000);
+    }
+
+    // ========================================================
+    // 1. จัดการไฟล์ con out
+    // ========================================================
+    function handleConOutFile(file) {
+      if (!file) return;
+      document.getElementById('con-out-filename').textContent = file.name;
+      document.getElementById('con-out-filesize').textContent = `(${(file.size / 1024).toFixed(1)} KB)`;
+      document.getElementById('con-out-file-info').classList.remove('hidden');
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+
+        // เลือกชีตแรก หรือชีตที่มีชื่อ con out
+        const sheetName = workbook.SheetNames.find(n => /con.*out/i.test(n)) || workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const rawJson = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+        parseConOutSheet(rawJson);
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function parseConOutSheet(rows) {
+      if (!rows || rows.length < 2) {
+        showToast('ผิดพลาด', 'ไม่พบข้อมูลในไฟล์ con out', false);
+        return;
+      }
+
+      // หา Header แถวแรก
+      const header = rows[0].map(h => String(h || '').trim());
+      let dateCol = header.findIndex(h => /date|day|ป้ายชื่อ|วันที่/i.test(h));
+      if (dateCol === -1) dateCol = 0;
+
+      // ค้นหาคอลัมน์ของแต่ละเครื่อง
+      let bhsConsumCol = header.findIndex(h => /consumption.*bhs/i.test(h));
+      let bhsOutputCol = header.findIndex(h => /output.*bhs/i.test(h));
+      let yueliConsumCol = header.findIndex(h => /consumption.*yueli/i.test(h));
+      let yueliOutputCol = header.findIndex(h => /output.*yueli/i.test(h));
+      let isowaConsumCol = header.findIndex(h => /consumption.*isowa/i.test(h));
+      let isowaOutputCol = header.findIndex(h => /output.*isowa/i.test(h));
+
+      // Fallback ถ้าไม่มีชื่อเครื่องชัดเจนใน header
+      if (bhsConsumCol === -1) bhsConsumCol = 7;
+      if (bhsOutputCol === -1) bhsOutputCol = 8;
+      if (yueliConsumCol === -1) yueliConsumCol = 13;
+      if (yueliOutputCol === -1) yueliOutputCol = 14;
+      if (isowaConsumCol === -1) isowaConsumCol = 1;
+      if (isowaOutputCol === -1) isowaOutputCol = 2;
+
+      const parsed = [];
+      for (let r = 1; r < rows.length; r++) {
+        const row = rows[r];
+        if (!row || !row[dateCol]) continue;
+        const rawDate = String(row[dateCol]).trim();
+        if (/target|รวม|total|เฉลี่ย/i.test(rawDate)) continue;
+
+        // แปลงวันที่ เช่น 01/10/26 หรือ Thu 01/10/26
+        const dateMatch = rawDate.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})/);
+        if (!dateMatch) continue;
+        const cleanDate = dateMatch[1];
+
+        const parseNum = (val) => {
+          if (val === undefined || val === null || val === '') return 0;
+          return parseFloat(String(val).replace(/[^0-9.-]+/g, '')) || 0;
+        };
+
+        const bCon = parseNum(row[bhsConsumCol]);
+        const bOut = parseNum(row[bhsOutputCol]);
+        const yCon = parseNum(row[yueliConsumCol]);
+        const yOut = parseNum(row[yueliOutputCol]);
+        const iCon = parseNum(row[isowaConsumCol]);
+        const iOut = parseNum(row[isowaOutputCol]);
+
+        parsed.push({
+          date: cleanDate,
+          bhs_consum: Math.round(bCon),
+          bhs_output: Math.round(bOut),
+          yueli_consum: Math.round(yCon),
+          yueli_output: Math.round(yOut),
+          isowa_consum: Math.round(iCon),
+          isowa_output: Math.round(iOut)
+        });
+      }
+
+      parsedConOutRows = parsed;
+      renderConOutPreview(parsed);
+    }
+
+    function renderConOutPreview(rows) {
+      const tbody = document.getElementById('con-out-preview-tbody');
+      tbody.innerHTML = '';
+      document.getElementById('con-out-parsed-days').textContent = `${rows.length} วัน`;
+      document.getElementById('con-out-preview-container').classList.remove('hidden');
+
+      rows.slice(0, 15).forEach(r => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition';
+        tr.innerHTML = `
+          <td class="p-2 font-semibold text-slate-800">${r.date}</td>
+          <td class="p-2 text-right text-blue-600">${r.bhs_consum.toLocaleString()}</td>
+          <td class="p-2 text-right text-slate-700">${r.bhs_output.toLocaleString()}</td>
+          <td class="p-2 text-right text-indigo-600">${r.yueli_consum.toLocaleString()}</td>
+          <td class="p-2 text-right text-slate-700">${r.yueli_output.toLocaleString()}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      if (rows.length > 15) {
+        const tr = document.createElement('tr');
+        tr.className = 'bg-slate-50 text-slate-400 italic text-[11px]';
+        tr.innerHTML = `<td colspan="5" class="p-2 text-center">... และอีก ${rows.length - 15} วัน ...</td>`;
+        tbody.appendChild(tr);
+      }
+
+      const btn = document.getElementById('btn-save-con-out');
+      btn.disabled = false;
+    }
+
+    function clearConOut() {
+      parsedConOutRows = [];
+      document.getElementById('file-con-out').value = '';
+      document.getElementById('con-out-file-info').classList.add('hidden');
+      document.getElementById('con-out-preview-container').classList.add('hidden');
+      document.getElementById('btn-save-con-out').disabled = true;
+    }
+
+    // บันทึก con out
+    async function saveConOutData() {
+      if (parsedConOutRows.length === 0) return;
+      const btn = document.getElementById('btn-save-con-out');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> กำลังบันทึก...';
+
+      try {
+        // 1. บันทึกลง local JSON API
+        const res = await fetch('upload_api.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'save_con_out',
+            rows: parsedConOutRows
+          })
+        });
+        const json = await res.json();
+
+        // 2. ถ้าตั้งค่า Google Sheet Webhook ไว้ ให้ส่งต่อไป Google Sheet ด้วย
+        const webhookUrl = localStorage.getItem('google_apps_script_webhook_url');
+        const autoSync = document.getElementById('auto-sync-checkbox')?.checked;
+        if (webhookUrl && autoSync) {
+          fetch('upload_api.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'sync_google_sheet',
+              webhook_url: webhookUrl,
+              payload: {
+                action: 'update_con_out',
+                rows: parsedConOutRows
+              }
+            })
+          }).catch(e => console.warn('Webhook sync error:', e));
+        }
+
+        showToast('บันทึกสำเร็จ!', `บันทึกข้อมูล con out จำนวน ${parsedConOutRows.length} วันเรียบร้อยแล้ว`, true);
+        btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> บันทึกสำเร็จแล้ว!';
+        setTimeout(() => {
+          btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล con out ลงระบบ & Google Sheet';
+          btn.disabled = false;
+        }, 3000);
+      } catch (err) {
+        console.error(err);
+        showToast('บันทึกผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่', false);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล con out ลงระบบ & Google Sheet';
+      }
+    }
+
+    // ========================================================
+    // 2. จัดการไฟล์ Waste (ของเสีย 11 รายการ)
+    // ========================================================
+    function handleWasteFile(file) {
+      if (!file) return;
+      document.getElementById('waste-filename').textContent = file.name;
+      document.getElementById('waste-filesize').textContent = `(${(file.size / 1024).toFixed(1)} KB)`;
+      document.getElementById('waste-file-info').classList.remove('hidden');
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+
+        // หาชีตที่มีคำว่า Waste หรือชีตแรก
+        const sheetName = workbook.SheetNames.find(n => /waste/i.test(n)) || workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const rawJson = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+        parseWasteSheet(rawJson);
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function parseWasteSheet(rows) {
+      if (!rows || rows.length < 2) {
+        showToast('ผิดพลาด', 'ไม่พบข้อมูลในไฟล์ Waste', false);
+        return;
+      }
+
+      const selectedMachine = document.getElementById('waste-machine-picker').value;
+
+      // จัดเตรียมถังสะสมน้ำหนัก 11 รายการ
+      const breakdownMap = {
+        'BL18': { name: 'NCP', kg: 0 },
+        'BL17': { name: 'Def', kg: 0 },
+        'BL16': { name: 'Web', kg: 0 },
+        'BL21': { name: 'Control', kg: 0 },
+        'BL00': { name: 'OM', kg: 0 },
+        'BL15': { name: 'รอยต่อออร์เดอร์ (Order)', kg: 0 },
+        'BL12': { name: 'แกน-ผลิต (Core)', kg: 0 },
+        'BL19': { name: 'สันนูนตรงสเปค (Spec)', kg: 0 },
+        'BL22': { name: 'Conveyor', kg: 0 },
+        'BL24': { name: 'QC TEST', kg: 0 },
+        'BL25': { name: 'Reject QC', kg: 0 }
+      };
+
+      // วนลูปอ่านทุกแถวในไฟล์
+      for (let r = 0; r < rows.length; r++) {
+        const row = rows[r];
+        if (!row || row.length === 0) continue;
+
+        // ค้นหาคอลัมน์ที่มีรหัส BL
+        let blCode = '';
+        let desc = '';
+        let kgVal = 0;
+
+        for (let c = 0; c < row.length; c++) {
+          const cellStr = String(row[c] || '').trim().toUpperCase();
+          if (/^BL\d{2}$/.test(cellStr)) {
+            blCode = cellStr;
+            desc = String(row[c+1] || '').trim();
+            
+            // หาค่าน้ำหนัก kg ในคอลัมน์ถัดไป
+            if (selectedMachine === 'YUELI' && row[c+3] !== undefined) {
+              kgVal = parseFloat(String(row[c+3]).replace(/[^0-9.-]+/g, '')) || 0;
+            } else if (selectedMachine === 'BHS' && row[c+2] !== undefined) {
+              kgVal = parseFloat(String(row[c+2]).replace(/[^0-9.-]+/g, '')) || 0;
+            } else {
+              // ค้นหาตัวเลขตัวแรกที่เจอถัดจากชื่อ
+              for (let k = c+2; k < Math.min(row.length, c+6); k++) {
+                const num = parseFloat(String(row[k] || '').replace(/[^0-9.-]+/g, ''));
+                if (!isNaN(num) && num > 0) {
+                  kgVal = num;
+                  break;
+                }
+              }
+            }
+            break;
+          }
+        }
+
+        // จับคู่กับ 11 รายการ
+        if (blCode && breakdownMap[blCode]) {
+          breakdownMap[blCode].kg += Math.round(kgVal);
+        } else if (desc) {
+          // แมปตามชื่อถ้าไม่มีรหัส BL
+          const dLow = desc.toLowerCase();
+          if (dLow.includes('ncp')) breakdownMap['BL18'].kg += Math.round(kgVal);
+          else if (dLow.includes('def')) breakdownMap['BL17'].kg += Math.round(kgVal);
+          else if (dLow.includes('web')) breakdownMap['BL16'].kg += Math.round(kgVal);
+          else if (dLow.includes('control')) breakdownMap['BL21'].kg += Math.round(kgVal);
+          else if (dLow.includes('order') || dLow.includes('รอยต่อ')) breakdownMap['BL15'].kg += Math.round(kgVal);
+          else if (dLow.includes('core') || dLow.includes('แกน')) breakdownMap['BL12'].kg += Math.round(kgVal);
+          else if (dLow.includes('spec') || dLow.includes('สันนูน')) breakdownMap['BL19'].kg += Math.round(kgVal);
+          else if (dLow.includes('conveyor')) breakdownMap['BL22'].kg += Math.round(kgVal);
+          else if (dLow.includes('qc test')) breakdownMap['BL24'].kg += Math.round(kgVal);
+          else if (dLow.includes('reject')) breakdownMap['BL25'].kg += Math.round(kgVal);
+        }
+      }
+
+      // แปลงเป็น Array รายการ
+      parsedWasteItems = Object.keys(breakdownMap).map(k => ({
+        code: k,
+        name: breakdownMap[k].name,
+        kg: breakdownMap[k].kg
+      }));
+
+      renderWastePreview(parsedWasteItems);
+    }
+
+    function renderWastePreview(items) {
+      const tbody = document.getElementById('waste-preview-tbody');
+      tbody.innerHTML = '';
+      let totalKg = 0;
+
+      items.forEach(it => {
+        totalKg += it.kg;
+        const tr = document.createElement('tr');
+        tr.className = it.kg > 0 ? 'hover:bg-emerald-50/50 transition' : 'opacity-40';
+        tr.innerHTML = `
+          <td class="p-2 font-bold ${it.kg > 0 ? 'text-emerald-700' : 'text-slate-400'}">${it.code}</td>
+          <td class="p-2 font-semibold text-slate-800">${it.name}</td>
+          <td class="p-2 text-right font-black ${it.kg > 0 ? 'text-slate-900' : 'text-slate-400'}">${it.kg.toLocaleString()}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('waste-total-weight').textContent = `${totalKg.toLocaleString()} กก.`;
+      document.getElementById('waste-preview-container').classList.remove('hidden');
+
+      const btn = document.getElementById('btn-save-waste');
+      btn.disabled = false;
+    }
+
+    function clearWaste() {
+      parsedWasteItems = [];
+      document.getElementById('file-waste').value = '';
+      document.getElementById('waste-file-info').classList.add('hidden');
+      document.getElementById('waste-preview-container').classList.add('hidden');
+      document.getElementById('btn-save-waste').disabled = true;
+    }
+
+    // บันทึกข้อมูล Waste
+    async function saveWasteData() {
+      if (parsedWasteItems.length === 0) return;
+      const dateStr = document.getElementById('waste-date-display').textContent.trim();
+      const machine = document.getElementById('waste-machine-picker').value;
+
+      const btn = document.getElementById('btn-save-waste');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> กำลังบันทึก...';
+
+      try {
+        // 1. บันทึกลง local JSON API
+        const res = await fetch('upload_api.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'save_waste',
+            date: dateStr,
+            machine: machine,
+            items: parsedWasteItems
+          })
+        });
+        const json = await res.json();
+
+        // 2. ถ้าตั้งค่า Google Sheet Webhook ไว้ ให้ส่งต่อไป Google Sheet ด้วย
+        const webhookUrl = localStorage.getItem('google_apps_script_webhook_url');
+        const autoSync = document.getElementById('auto-sync-checkbox')?.checked;
+        if (webhookUrl && autoSync) {
+          fetch('upload_api.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'sync_google_sheet',
+              webhook_url: webhookUrl,
+              payload: {
+                action: 'update_waste',
+                date: dateStr,
+                machine: machine,
+                items: parsedWasteItems
+              }
+            })
+          }).catch(e => console.warn('Webhook sync error:', e));
+        }
+
+        showToast('บันทึกสำเร็จ!', `บันทึกข้อมูล Waste วันที่ ${dateStr} เครื่อง ${machine} เรียบร้อยแล้ว`, true);
+        btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> บันทึกสำเร็จแล้ว!';
+        setTimeout(() => {
+          btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล Waste ลงระบบ & Google Sheet';
+          btn.disabled = false;
+        }, 3000);
+      } catch (err) {
+        console.error(err);
+        showToast('บันทึกผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่', false);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล Waste ลงระบบ & Google Sheet';
+      }
+    }
+
+    // ล้าง Cache ข้อมูลที่นำเข้า
+    async function clearAllImportedCache() {
+      if (!confirm('คุณต้องการล้างข้อมูลที่นำเข้าทั้งหมดในเครื่องนี้หรือไม่?')) return;
+      try {
+        const res = await fetch('upload_api.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'clear' })
+        });
+        showToast('ล้างข้อมูลสำเร็จ', 'ล้างข้อมูลที่นำเข้าเรียบร้อยแล้ว', true);
+        clearConOut();
+        clearWaste();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // ========================================================
+    // Modal & Webhook Settings
+    // ========================================================
+    function toggleWebhookModal() {
+      const modal = document.getElementById('webhook-modal');
+      modal.classList.toggle('hidden');
+    }
+
+    function saveWebhookSettings() {
+      const url = document.getElementById('webhook-url-input').value.trim();
+      localStorage.setItem('google_apps_script_webhook_url', url);
+      toggleWebhookModal();
+      showToast('บันทึกการตั้งค่าสำเร็จ', 'บันทึก Google Apps Script Web App URL เรียบร้อยแล้ว', true);
+    }
+
+    async function testWebhookConnection() {
+      const url = document.getElementById('webhook-url-input').value.trim();
+      if (!url) {
+        alert('กรุณากรอก Web App URL ก่อน');
+        return;
+      }
+      const btn = document.getElementById('btn-test-webhook');
+      btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> กำลังทดสอบ...';
+      try {
+        const res = await fetch('upload_api.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'sync_google_sheet',
+            webhook_url: url,
+            payload: { action: 'ping' }
+          })
+        });
+        const json = await res.json();
+        if (json.success) {
+          alert('เชื่อมต่อ Google Apps Script Web App สำเร็จ! (HTTP ' + json.httpCode + ')');
+        } else {
+          alert('เชื่อมต่อไม่สำเร็จ: ' + (json.error || 'ตรวจสอบสิทธิ์การ Deploy'));
+        }
+      } catch (err) {
+        alert('เชื่อมต่อผิดพลาด: ' + err.message);
+      } finally {
+        btn.innerHTML = '<i class="fa-solid fa-satellite-dish mr-1"></i> ทดสอบการเชื่อมต่อ';
+      }
+    }
+  </script>
+</body>
+</html>

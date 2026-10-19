@@ -169,6 +169,97 @@ if ($raw2 && preg_match('/setResponse\((.*)\);/s', $raw2, $m2)) {
     }
 }
 
+// 2.5 รวมข้อมูลที่นำเข้าจากหน้า upload.html (ถ้ามี)
+$importedFile = __DIR__ . '/data/imported_data.json';
+if (file_exists($importedFile)) {
+    $importedContent = @file_get_contents($importedFile);
+    $importedJson = json_decode($importedContent, true);
+    if (is_array($importedJson)) {
+        // รวม con_out
+        if (isset($importedJson['con_out']) && is_array($importedJson['con_out'])) {
+            foreach ($importedJson['con_out'] as $dateKey => $cRow) {
+                if (preg_match('/(\d{1,2})\/' . $monthPad . '\//', $dateKey, $dm) ||
+                    preg_match('/(\d{1,2})\/' . $month . '\//', $dateKey, $dm)) {
+                    $day = intval($dm[1]);
+                    $c = 0; $o = 0;
+                    if ($machine === 'BHS') {
+                        $c = floatval($cRow['bhs_consum'] ?? 0);
+                        $o = floatval($cRow['bhs_output'] ?? 0);
+                    } elseif ($machine === 'YUELI') {
+                        $c = floatval($cRow['yueli_consum'] ?? 0);
+                        $o = floatval($cRow['yueli_output'] ?? 0);
+                    } elseif ($machine === 'ISOWA') {
+                        $c = floatval($cRow['isowa_consum'] ?? 0);
+                        $o = floatval($cRow['isowa_output'] ?? 0);
+                    } elseif ($machine === 'TOTAL') {
+                        $c = floatval($cRow['bhs_consum'] ?? 0) + floatval($cRow['yueli_consum'] ?? 0) + floatval($cRow['isowa_consum'] ?? 0);
+                        $o = floatval($cRow['bhs_output'] ?? 0) + floatval($cRow['yueli_output'] ?? 0) + floatval($cRow['isowa_output'] ?? 0);
+                    }
+                    if ($c > 0 || $o > 0) {
+                        if (isset($dailySummary[$day])) {
+                            $totalConsumMTD -= $dailySummary[$day]['consum'];
+                            $totalOutputMTD -= $dailySummary[$day]['output'];
+                        }
+                        $dailySummary[$day] = [
+                            'consum' => $c,
+                            'output' => $o,
+                            'wasteKg' => 0
+                        ];
+                        $totalConsumMTD += $c;
+                        $totalOutputMTD += $o;
+                    }
+                }
+            }
+        }
+
+        // รวม waste
+        if (isset($importedJson['waste']) && is_array($importedJson['waste'])) {
+            foreach ($importedJson['waste'] as $dateKey => $mList) {
+                if (preg_match('/(\d{1,2})\/' . $monthPad . '\//', $dateKey, $dm) ||
+                    preg_match('/(\d{1,2})\/' . $month . '\//', $dateKey, $dm)) {
+                    $day = intval($dm[1]);
+                    $wItems = $mList[$machine]['items'] ?? ($mList['ALL']['items'] ?? null);
+                    if ($wItems && is_array($wItems)) {
+                        if (!isset($dailyBreakdown[$day])) {
+                            $dailyBreakdown[$day] = [
+                                'ncp' => 0, 'def' => 0, 'web' => 0, 'control' => 0, 'om' => 0,
+                                'order' => 0, 'core' => 0, 'spec' => 0, 'conveyor' => 0, 'qc' => 0, 'reject' => 0,
+                                'totalKg' => 0
+                            ];
+                        }
+                        foreach ($wItems as $it) {
+                            $cd = strtoupper(trim($it['code'] ?? ''));
+                            $kg = floatval($it['kg'] ?? 0);
+                            $nm = $it['name'] ?? '';
+                            if ($cd === 'BL18' || stripos($nm, 'ncp') !== false) {
+                                $dailyBreakdown[$day]['ncp'] = $kg;
+                            } elseif ($cd === 'BL17' || stripos($nm, 'def') !== false) {
+                                $dailyBreakdown[$day]['def'] = $kg;
+                            } elseif ($cd === 'BL16' || stripos($nm, 'web') !== false) {
+                                $dailyBreakdown[$day]['web'] = $kg;
+                            } elseif ($cd === 'BL21' || stripos($nm, 'control') !== false) {
+                                $dailyBreakdown[$day]['control'] = $kg;
+                            } elseif ($cd === 'BL15' || stripos($nm, 'order') !== false || stripos($nm, 'รอยต่อ') !== false) {
+                                $dailyBreakdown[$day]['order'] = $kg;
+                            } elseif ($cd === 'BL12' || stripos($nm, 'core') !== false || stripos($nm, 'แกน') !== false) {
+                                $dailyBreakdown[$day]['core'] = $kg;
+                            } elseif ($cd === 'BL19' || stripos($nm, 'spec') !== false || stripos($nm, 'สันนูน') !== false) {
+                                $dailyBreakdown[$day]['spec'] = $kg;
+                            } elseif ($cd === 'BL22' || stripos($nm, 'conveyor') !== false) {
+                                $dailyBreakdown[$day]['conveyor'] = $kg;
+                            } elseif ($cd === 'BL24' || stripos($nm, 'qc') !== false) {
+                                $dailyBreakdown[$day]['qc'] = $kg;
+                            } elseif ($cd === 'BL25' || stripos($nm, 'reject') !== false) {
+                                $dailyBreakdown[$day]['reject'] = $kg;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 // 3. คำนวณตาราง % (transformed) และตารางน้ำหนัก kg (transformedWeight) - เอาเฉพาะ 11 รายการ ไม่เอารวม
 $transformed = [];
 $transformedWeight = [];
