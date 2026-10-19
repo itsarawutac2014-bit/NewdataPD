@@ -659,6 +659,8 @@
       reader.readAsArrayBuffer(file);
     }
 
+    let allParsedWasteBatches = [];
+
     function parseWasteSheet(rows) {
       if (!rows || rows.length < 2) {
         showToast('ผิดพลาด', 'ไม่พบข้อมูลในไฟล์ Waste', false);
@@ -666,9 +668,31 @@
       }
 
       const selectedMachine = document.getElementById('waste-machine-picker').value;
+      const defaultDateStr = document.getElementById('waste-date-display').textContent.trim();
 
-      // จัดเตรียมถังสะสมน้ำหนัก 11 รายการ
-      const breakdownMap = {
+      // ตรวจหาคอลัมน์ Reason Code, BHS, YUELI, Total จากหัวตาราง
+      let bhsOffset = 3;
+      let yueliOffset = 4;
+      let totalOffset = 5;
+
+      for (let r = 0; r < Math.min(rows.length, 15); r++) {
+        const row = rows[r];
+        if (!row) continue;
+        for (let c = 0; c < row.length; c++) {
+          const val = String(row[c] || '').trim();
+          if (/reason.*code/i.test(val)) {
+            for (let k = c + 1; k < Math.min(row.length, c + 8); k++) {
+              const hVal = String(row[k] || '').trim().toUpperCase();
+              if (hVal === 'BHS') bhsOffset = k - c;
+              else if (hVal === 'YUELI') yueliOffset = k - c;
+              else if (hVal.includes('TOTAL') || hVal.includes('GRAND')) totalOffset = k - c;
+            }
+          }
+        }
+      }
+
+      // ฟังก์ชันสร้างถัง 11 รายการ
+      const createEmpty11 = () => ({
         'BL18': { name: 'NCP', kg: 0 },
         'BL17': { name: 'Def', kg: 0 },
         'BL16': { name: 'Web', kg: 0 },
@@ -680,68 +704,133 @@
         'BL22': { name: 'Conveyor', kg: 0 },
         'BL24': { name: 'QC TEST', kg: 0 },
         'BL25': { name: 'Reject QC', kg: 0 }
-      };
+      });
 
-      // วนลูปอ่านทุกแถวในไฟล์
+      // ค้นหาตำแหน่งวันที่ทั้งหมดในไฟล์ (ถ้ามี)
+      const dateRowIndices = [];
       for (let r = 0; r < rows.length; r++) {
         const row = rows[r];
-        if (!row || row.length === 0) continue;
-
-        // ค้นหาคอลัมน์ที่มีรหัส BL
-        let blCode = '';
-        let desc = '';
-        let kgVal = 0;
-
+        if (!row) continue;
         for (let c = 0; c < row.length; c++) {
-          const cellStr = String(row[c] || '').trim().toUpperCase();
-          if (/^BL\d{2}$/.test(cellStr)) {
-            blCode = cellStr;
-            desc = String(row[c+1] || '').trim();
-            
-            // หาค่าน้ำหนัก kg ในคอลัมน์ถัดไป
-            if (selectedMachine === 'YUELI' && row[c+3] !== undefined) {
-              kgVal = parseFloat(String(row[c+3]).replace(/[^0-9.-]+/g, '')) || 0;
-            } else if (selectedMachine === 'BHS' && row[c+2] !== undefined) {
-              kgVal = parseFloat(String(row[c+2]).replace(/[^0-9.-]+/g, '')) || 0;
-            } else {
-              // ค้นหาตัวเลขตัวแรกที่เจอถัดจากชื่อ
-              for (let k = c+2; k < Math.min(row.length, c+6); k++) {
-                const num = parseFloat(String(row[k] || '').replace(/[^0-9.-]+/g, ''));
-                if (!isNaN(num) && num > 0) {
-                  kgVal = num;
-                  break;
-                }
-              }
-            }
+          const val = String(row[c] || '').trim();
+          const dm = val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+          if (dm) {
+            const d = parseInt(dm[1], 10);
+            const m = parseInt(dm[2], 10);
+            const y = dm[3].length === 2 ? '20' + dm[3] : dm[3];
+            const dPad = d < 10 ? '0' + d : d;
+            const mPad = m < 10 ? '0' + m : m;
+            dateRowIndices.push({
+              row: r,
+              col: c,
+              date: `${dPad}/${mPad}/2026`
+            });
             break;
           }
         }
+      }
 
-        // จับคู่กับ 11 รายการ
-        if (blCode && breakdownMap[blCode]) {
-          breakdownMap[blCode].kg += Math.round(kgVal);
-        } else if (desc) {
-          // แมปตามชื่อถ้าไม่มีรหัส BL
-          const dLow = desc.toLowerCase();
-          if (dLow.includes('ncp')) breakdownMap['BL18'].kg += Math.round(kgVal);
-          else if (dLow.includes('def')) breakdownMap['BL17'].kg += Math.round(kgVal);
-          else if (dLow.includes('web')) breakdownMap['BL16'].kg += Math.round(kgVal);
-          else if (dLow.includes('control')) breakdownMap['BL21'].kg += Math.round(kgVal);
-          else if (dLow.includes('order') || dLow.includes('รอยต่อ')) breakdownMap['BL15'].kg += Math.round(kgVal);
-          else if (dLow.includes('core') || dLow.includes('แกน')) breakdownMap['BL12'].kg += Math.round(kgVal);
-          else if (dLow.includes('spec') || dLow.includes('สันนูน')) breakdownMap['BL19'].kg += Math.round(kgVal);
-          else if (dLow.includes('conveyor')) breakdownMap['BL22'].kg += Math.round(kgVal);
-          else if (dLow.includes('qc test')) breakdownMap['BL24'].kg += Math.round(kgVal);
-          else if (dLow.includes('reject')) breakdownMap['BL25'].kg += Math.round(kgVal);
+      const batches = [];
+
+      if (dateRowIndices.length > 0) {
+        // วนตามช่วงวันที่ที่พบในไฟล์
+        for (let i = 0; i < dateRowIndices.length; i++) {
+          const startR = dateRowIndices[i].row;
+          const endR = (i + 1 < dateRowIndices.length) ? dateRowIndices[i+1].row : rows.length;
+          const dStr = dateRowIndices[i].date;
+
+          const bhsMap = createEmpty11();
+          const yueliMap = createEmpty11();
+          let hasData = false;
+
+          for (let r = startR; r < endR; r++) {
+            const row = rows[r];
+            if (!row) continue;
+            for (let c = 0; c < row.length; c++) {
+              const cellStr = String(row[c] || '').trim().toUpperCase();
+              if (/^BL\d{2}$/.test(cellStr)) {
+                const blCode = cellStr;
+                const bKg = parseFloat(String(row[c + bhsOffset] || '0').replace(/[^0-9.-]+/g, '')) || 0;
+                const yKg = parseFloat(String(row[c + yueliOffset] || '0').replace(/[^0-9.-]+/g, '')) || 0;
+
+                if (bhsMap[blCode]) {
+                  bhsMap[blCode].kg += Math.round(bKg);
+                  yueliMap[blCode].kg += Math.round(yKg);
+                  hasData = true;
+                }
+                break;
+              }
+            }
+          }
+
+          if (hasData) {
+            batches.push({
+              date: dStr,
+              machine: 'BHS',
+              items: Object.keys(bhsMap).map(k => ({ code: k, name: bhsMap[k].name, kg: bhsMap[k].kg }))
+            });
+            batches.push({
+              date: dStr,
+              machine: 'YUELI',
+              items: Object.keys(yueliMap).map(k => ({ code: k, name: yueliMap[k].name, kg: yueliMap[k].kg }))
+            });
+          }
         }
       }
 
-      // แปลงเป็น Array รายการ
-      parsedWasteItems = Object.keys(breakdownMap).map(k => ({
-        code: k,
-        name: breakdownMap[k].name,
-        kg: breakdownMap[k].kg
-      }));
+      // หากไม่พบวันที่ในไฟล์ ให้ใช้วันที่ที่ระบุในช่อง Date Picker
+      if (batches.length === 0) {
+        const bhsMap = createEmpty11();
+        const yueliMap = createEmpty11();
+
+        for (let r = 0; r < rows.length; r++) {
+          const row = rows[r];
+          if (!row) continue;
+          for (let c = 0; c < row.length; c++) {
+            const cellStr = String(row[c] || '').trim().toUpperCase();
+            if (/^BL\d{2}$/.test(cellStr)) {
+              const blCode = cellStr;
+              const bKg = parseFloat(String(row[c + bhsOffset] || '0').replace(/[^0-9.-]+/g, '')) || 0;
+              const yKg = parseFloat(String(row[c + yueliOffset] || '0').replace(/[^0-9.-]+/g, '')) || 0;
+
+              if (bhsMap[blCode]) {
+                bhsMap[blCode].kg += Math.round(bKg);
+                yueliMap[blCode].kg += Math.round(yKg);
+              }
+              break;
+            }
+          }
+        }
+
+        batches.push({
+          date: defaultDateStr,
+          machine: 'BHS',
+          items: Object.keys(bhsMap).map(k => ({ code: k, name: bhsMap[k].name, kg: bhsMap[k].kg }))
+        });
+        batches.push({
+          date: defaultDateStr,
+          machine: 'YUELI',
+          items: Object.keys(yueliMap).map(k => ({ code: k, name: yueliMap[k].name, kg: yueliMap[k].kg }))
+        });
+      }
+
+      allParsedWasteBatches = batches;
+
+      // คัดเลือกรายการมาแสดงพรีวิว
+      const targetDate = document.getElementById('waste-date-display').textContent.trim();
+      let previewBatch = batches.find(b => b.date === targetDate && b.machine === selectedMachine);
+      if (!previewBatch) {
+        previewBatch = batches.find(b => b.machine === selectedMachine) || batches[0];
+      }
+
+      parsedWasteItems = previewBatch ? previewBatch.items : [];
+      const datesFound = [...new Set(batches.map(b => b.date))];
+      const badge = document.getElementById('waste-detected-date-badge');
+      if (badge) {
+        badge.textContent = datesFound.length > 1 
+          ? `พบข้อมูล ${datesFound.length} วัน (${datesFound[0]} - ${datesFound[datesFound.length - 1]})`
+          : `วันที่ ${previewBatch ? previewBatch.date : targetDate}`;
+      }
 
       renderWastePreview(parsedWasteItems);
     }
@@ -772,6 +861,7 @@
 
     function clearWaste() {
       parsedWasteItems = [];
+      allParsedWasteBatches = [];
       document.getElementById('file-waste').value = '';
       document.getElementById('waste-file-info').classList.add('hidden');
       document.getElementById('waste-preview-container').classList.add('hidden');
@@ -780,24 +870,30 @@
 
     // บันทึกข้อมูล Waste
     async function saveWasteData() {
-      if (parsedWasteItems.length === 0) return;
-      const dateStr = document.getElementById('waste-date-display').textContent.trim();
-      const machine = document.getElementById('waste-machine-picker').value;
+      if (!allParsedWasteBatches || allParsedWasteBatches.length === 0) {
+        if (parsedWasteItems.length === 0) return;
+      }
 
       const btn = document.getElementById('btn-save-waste');
       btn.disabled = true;
       btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> กำลังบันทึก...';
 
       try {
-        // 1. บันทึกลง local JSON API
+        const batchesToSend = (allParsedWasteBatches && allParsedWasteBatches.length > 0)
+          ? allParsedWasteBatches
+          : [{
+              date: document.getElementById('waste-date-display').textContent.trim(),
+              machine: document.getElementById('waste-machine-picker').value,
+              items: parsedWasteItems
+            }];
+
+        // 1. บันทึกลง local JSON API แบบชุด
         const res = await fetch('upload_api.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            action: 'save_waste',
-            date: dateStr,
-            machine: machine,
-            items: parsedWasteItems
+            action: 'save_waste_batch',
+            batches: batchesToSend
           })
         });
         const json = await res.json();
@@ -806,23 +902,26 @@
         const webhookUrl = localStorage.getItem('google_apps_script_webhook_url');
         const autoSync = document.getElementById('auto-sync-checkbox')?.checked;
         if (webhookUrl && autoSync) {
-          fetch('upload_api.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              action: 'sync_google_sheet',
-              webhook_url: webhookUrl,
-              payload: {
-                action: 'update_waste',
-                date: dateStr,
-                machine: machine,
-                items: parsedWasteItems
-              }
-            })
-          }).catch(e => console.warn('Webhook sync error:', e));
+          batchesToSend.forEach(b => {
+            fetch('upload_api.php', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'sync_google_sheet',
+                webhook_url: webhookUrl,
+                payload: {
+                  action: 'update_waste',
+                  date: b.date,
+                  machine: b.machine,
+                  items: b.items
+                }
+              })
+            }).catch(e => console.warn('Webhook sync error:', e));
+          });
         }
 
-        showToast('บันทึกสำเร็จ!', `บันทึกข้อมูล Waste วันที่ ${dateStr} เครื่อง ${machine} เรียบร้อยแล้ว`, true);
+        const countDays = [...new Set(batchesToSend.map(b => b.date))].length;
+        showToast('บันทึกสำเร็จ!', `บันทึกข้อมูล Waste จำนวน ${countDays} วัน (BHS & YUELI) เรียบร้อยแล้ว`, true);
         btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> บันทึกสำเร็จแล้ว!';
         setTimeout(() => {
           btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล Waste ลงระบบ & Google Sheet';

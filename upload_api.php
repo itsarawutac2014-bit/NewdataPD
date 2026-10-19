@@ -123,6 +123,56 @@ switch ($action) {
         ]);
         break;
 
+    case 'save_waste_batch':
+        $batches = $input['batches'] ?? [];
+        if (empty($batches)) {
+            echo json_encode(['success' => false, 'error' => 'ไม่มีข้อมูลชุด Waste']);
+            exit;
+        }
+
+        $savedCount = 0;
+        foreach ($batches as $b) {
+            $date = trim($b['date'] ?? '');
+            $machine = strtoupper(trim($b['machine'] ?? 'BHS'));
+            $items = $b['items'] ?? [];
+            if (!$date || empty($items)) continue;
+
+            if (!isset($imported['waste'][$date])) {
+                $imported['waste'][$date] = [];
+            }
+
+            $totalKg = 0;
+            $mappedItems = [];
+            foreach ($items as $it) {
+                $code = strtoupper(trim($it['code'] ?? ''));
+                $name = trim($it['name'] ?? '');
+                $kg = floatval($it['kg'] ?? 0);
+                $totalKg += $kg;
+                $mappedItems[] = [
+                    'code' => $code,
+                    'name' => $name,
+                    'kg' => $kg
+                ];
+            }
+
+            $imported['waste'][$date][$machine] = [
+                'date' => $date,
+                'machine' => $machine,
+                'items' => $mappedItems,
+                'totalKg' => $totalKg,
+                'updated_at' => date('Y-m-d H:i:s')
+            ];
+            $savedCount++;
+        }
+
+        saveImportedData($dataFile, $imported);
+        echo json_encode([
+            'success' => true,
+            'message' => "บันทึกข้อมูล Waste สำเร็จ {$savedCount} รายการ",
+            'count' => $savedCount
+        ]);
+        break;
+
     case 'sync_google_sheet':
         $webhookUrl = trim($input['webhook_url'] ?? '');
         $payload = $input['payload'] ?? null;

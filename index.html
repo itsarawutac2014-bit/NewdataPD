@@ -83,7 +83,6 @@
               <h1 class="text-xl font-bold text-slate-900 leading-tight">
                 Waste รายวัน <span id="header-machine-name" class="text-blue-700">BHS</span> Dashboard
               </h1>
-              <span class="px-2 py-0.5 text-xs font-semibold bg-amber-100 text-amber-800 rounded">Target 5.00%</span>
             </div>
             <p class="text-xs text-slate-500">
               ระบบติดตาม % Waste ชั่งจริง ประจำเดือน <span id="header-month-name" class="font-semibold text-slate-700">ตุลาคม 2026</span> (เชื่อมต่อ Google Sheet)
@@ -1819,12 +1818,16 @@
         const output = safeNum(row.output);
 
         const isIdle = allWaste === 0 && consumption === 0;
+        const isPendingWaste = consumption > 0 && allWaste === 0;
         let statusBadge = '';
         let diffVal = (TARGETS.allWaste - allWaste).toFixed(2);
 
         if (isIdle) {
           statusBadge = '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[11px] font-bold badge-target-idle min-w-[56px] text-center mx-auto">ไม่เดิน</span>';
           diffVal = '5.00%';
+        } else if (isPendingWaste) {
+          statusBadge = '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300 min-w-[56px] text-center mx-auto">รอข้อมูล</span>';
+          diffVal = '-';
         } else if (allWaste <= TARGETS.allWaste) {
           statusBadge = '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[11px] font-bold badge-target-pass min-w-[56px] text-center mx-auto">ได้เป้า</span>';
           diffVal = diffVal + '%';
@@ -1838,11 +1841,11 @@
           return (val > target && val > 0) ? 'cell-over-target' : '';
         };
 
-        // กำหนดสีของเซลล์ ALL Waste: ถ้าเกินเป้าเป็นสีชมพู/แดง ถ้าต่ำกว่าเป้า (และเดินเครื่อง) เติมช่องเขียวตามที่ผู้ใช้ขอ
+        // กำหนดสีของเซลล์ ALL Waste: ถ้าเกินเป้าเป็นสีชมพู/แดง ถ้าต่ำกว่าเป้า (และเดินเครื่อง+มีข้อมูล) เติมช่องเขียวตามที่ผู้ใช้ขอ
         let allWasteClass = 'text-slate-900';
         if (allWaste > TARGETS.allWaste) {
           allWasteClass = 'cell-over-target';
-        } else if (!isIdle && allWaste <= TARGETS.allWaste) {
+        } else if (!isIdle && !isPendingWaste && allWaste <= TARGETS.allWaste) {
           allWasteClass = 'cell-pass-target';
         }
 
