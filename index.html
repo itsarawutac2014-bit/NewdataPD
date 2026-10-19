@@ -640,7 +640,7 @@
           </button>
         </div>
       </div>
-      <div class="relative h-[340px] sm:h-[380px] w-full">
+      <div class="relative h-[440px] sm:h-[500px] w-full mt-3">
         <canvas id="yearlyWasteChart"></canvas>
       </div>
     </section>
@@ -1890,9 +1890,11 @@
             data: values,
             backgroundColor: backgroundColors,
             borderColor: borderColors,
-            borderWidth: 1.5,
-            borderRadius: 6,
-            maxBarThickness: 46
+            borderWidth: 2,
+            borderRadius: 8,
+            maxBarThickness: 64,
+            barPercentage: 0.72,
+            categoryPercentage: 0.85
           }]
         },
         options: {
@@ -1900,15 +1902,16 @@
           responsive: true,
           maintainAspectRatio: false,
           layout: {
-            padding: { top: 38, left: 10, right: 15, bottom: 5 }
+            padding: { top: 48, left: 15, right: 25, bottom: 10 }
           },
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: '#1e293b',
-              titleFont: { family: "'Prompt', sans-serif", size: 12, weight: 'bold' },
-              bodyFont: { family: "'Prompt', sans-serif", size: 12 },
-              padding: 10,
+              backgroundColor: '#0f172a',
+              titleFont: { family: "'Prompt', sans-serif", size: 14, weight: 'bold' },
+              bodyFont: { family: "'Prompt', sans-serif", size: 13 },
+              padding: 12,
+              cornerRadius: 8,
               callbacks: {
                 label: function(context) {
                   const idx = context.dataIndex;
@@ -1925,7 +1928,7 @@
               display: true,
               anchor: 'end',
               align: 'top',
-              offset: 4,
+              offset: 6,
               formatter: function(value) {
                 return value > 0 ? value.toFixed(2) + '%' : '-';
               },
@@ -1938,9 +1941,9 @@
                 if (val === 0) return null;
                 return (val <= TARGETS.allWaste) ? '#16a34a' : '#dc2626';
               },
-              borderWidth: 1.5,
-              borderRadius: 5,
-              padding: { top: 2, bottom: 2, left: 6, right: 6 },
+              borderWidth: 2,
+              borderRadius: 6,
+              padding: { top: 4, bottom: 4, left: 8, right: 8 },
               color: function(context) {
                 const val = context.dataset.data[context.dataIndex];
                 if (val === 0) return '#94a3b8';
@@ -1948,7 +1951,7 @@
               },
               font: {
                 family: "'Prompt', sans-serif",
-                size: 13,
+                size: 15,
                 weight: '900'
               }
             },
@@ -1959,16 +1962,17 @@
                   yMin: TARGETS.allWaste,
                   yMax: TARGETS.allWaste,
                   borderColor: '#f59e0b',
-                  borderWidth: 2,
-                  borderDash: [5, 5],
+                  borderWidth: 2.5,
+                  borderDash: [8, 6],
                   label: {
                     display: true,
                     content: `Target ${TARGETS.allWaste.toFixed(2)}%`,
                     position: 'end',
                     backgroundColor: 'rgba(245, 158, 11, 0.95)',
                     color: '#ffffff',
-                    font: { family: "'Prompt', sans-serif", size: 10, weight: 'bold' },
-                    padding: { top: 2, bottom: 2, left: 6, right: 6 }
+                    font: { family: "'Prompt', sans-serif", size: 12, weight: 'bold' },
+                    padding: { top: 4, bottom: 4, left: 10, right: 10 },
+                    borderRadius: 6
                   }
                 }
               }
@@ -1977,18 +1981,19 @@
           scales: {
             y: {
               beginAtZero: true,
-              suggestedMax: 7.5,
+              suggestedMax: 6.8,
               grid: { color: '#f1f5f9' },
               ticks: {
-                font: { family: "'Prompt', sans-serif", size: 11 },
+                font: { family: "'Prompt', sans-serif", size: 13, weight: '600' },
+                color: '#475569',
                 callback: function(value) { return value.toFixed(1) + '%'; }
               }
             },
             x: {
               grid: { display: false },
               ticks: {
-                font: { family: "'Prompt', sans-serif", size: 12, weight: 'bold' },
-                color: '#1e293b'
+                font: { family: "'Prompt', sans-serif", size: 14, weight: 'bold' },
+                color: '#0f172a'
               }
             }
           }
@@ -2030,17 +2035,26 @@
       const chartPlugins = [];
       if (typeof ChartDataLabels !== 'undefined') chartPlugins.push(ChartDataLabels);
 
+      const chartData4K = JSON.parse(JSON.stringify(originalConfig.data));
+      if (chartData4K.datasets && chartData4K.datasets[0]) {
+        chartData4K.datasets[0].maxBarThickness = 150;
+        chartData4K.datasets[0].barPercentage = 0.82;
+        chartData4K.datasets[0].categoryPercentage = 0.88;
+        chartData4K.datasets[0].borderRadius = 16;
+        chartData4K.datasets[0].borderWidth = 4;
+      }
+
       const ctx4K = chartCanvas4K.getContext('2d');
       const temp4KChart = new Chart(ctx4K, {
         type: 'bar',
         plugins: chartPlugins,
-        data: JSON.parse(JSON.stringify(originalConfig.data)),
+        data: chartData4K,
         options: {
           animation: false, // ปิด animation เพื่อเรนเดอร์ให้เสร็จทันที
           responsive: false,
           maintainAspectRatio: false,
           layout: {
-            padding: { top: 75, left: 20, right: 30, bottom: 20 }
+            padding: { top: 95, left: 30, right: 40, bottom: 25 }
           },
           plugins: {
             legend: { display: false },
@@ -2049,7 +2063,7 @@
               display: true,
               anchor: 'end',
               align: 'top',
-              offset: 12,
+              offset: 16,
               formatter: function(value) {
                 return value > 0 ? value.toFixed(2) + '%' : '-';
               },
@@ -2062,9 +2076,9 @@
                 if (val === 0) return null;
                 return (val <= TARGETS.allWaste) ? '#16a34a' : '#dc2626';
               },
-              borderWidth: 4,
-              borderRadius: 14,
-              padding: { top: 8, bottom: 8, left: 22, right: 22 },
+              borderWidth: 5,
+              borderRadius: 16,
+              padding: { top: 10, bottom: 10, left: 26, right: 26 },
               color: function(context) {
                 const val = context.dataset.data[context.dataIndex];
                 if (val === 0) return '#94a3b8';
@@ -2072,7 +2086,7 @@
               },
               font: {
                 family: "'Prompt', 'Sarabun', sans-serif",
-                size: 34,
+                size: 42,
                 weight: '900'
               }
             },
@@ -2083,17 +2097,17 @@
                   yMin: TARGETS.allWaste,
                   yMax: TARGETS.allWaste,
                   borderColor: '#f59e0b',
-                  borderWidth: 6,
-                  borderDash: [15, 12],
+                  borderWidth: 7,
+                  borderDash: [18, 14],
                   label: {
                     display: true,
                     content: `Target ${TARGETS.allWaste.toFixed(2)}%`,
                     position: 'end',
                     backgroundColor: 'rgba(245, 158, 11, 0.95)',
                     color: '#ffffff',
-                    font: { family: "'Prompt', sans-serif", size: 28, weight: 'bold' },
-                    padding: { top: 8, bottom: 8, left: 20, right: 20 },
-                    borderRadius: 10
+                    font: { family: "'Prompt', sans-serif", size: 34, weight: 'bold' },
+                    padding: { top: 10, bottom: 10, left: 24, right: 24 },
+                    borderRadius: 12
                   }
                 }
               }
@@ -2102,21 +2116,21 @@
           scales: {
             y: {
               beginAtZero: true,
-              suggestedMax: 7.5,
-              grid: { color: '#e2e8f0', lineWidth: 2 },
+              suggestedMax: 6.8,
+              grid: { color: '#e2e8f0', lineWidth: 2.5 },
               ticks: {
-                font: { family: "'Prompt', sans-serif", size: 30, weight: '600' },
-                color: '#475569',
-                padding: 15,
+                font: { family: "'Prompt', sans-serif", size: 36, weight: '700' },
+                color: '#334155',
+                padding: 20,
                 callback: function(value) { return value.toFixed(1) + '%'; }
               }
             },
             x: {
               grid: { display: false },
               ticks: {
-                font: { family: "'Prompt', sans-serif", size: 32, weight: 'bold' },
+                font: { family: "'Prompt', sans-serif", size: 40, weight: '900' },
                 color: '#0f172a',
-                padding: 15
+                padding: 20
               }
             }
           }
