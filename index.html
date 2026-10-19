@@ -1361,13 +1361,16 @@
         totalConsumption += (d.consumption || 0);
         totalOutput += (d.output || 0);
 
-        if (d.allWaste > 0 || d.consumption > 0) {
+        if (d.allWaste > 0) {
           runningDays++;
           if (d.allWaste <= TARGETS.allWaste) {
             daysPass++;
           } else {
             daysOver++;
           }
+        } else if (d.consumption > 0) {
+          // วันที่มี Consumption แต่ยังไม่มี Waste (รอข้อมูล) ให้นับเป็นวันเดินเครื่อง แต่ไม่นับว่าได้เป้า/เกินเป้า
+          runningDays++;
         }
       });
 
