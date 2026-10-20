@@ -1840,16 +1840,16 @@
 
       // ข้อมูลสำรองหากยังไม่มีข้อมูลจาก API
       const fallbackYearly = [
-        { label: 'ม.ค.', wastePct: 5.02, consumption: 4215448, wasteKg: 211687 },
-        { label: 'ก.พ.', wastePct: 5.28, consumption: 3698969, wasteKg: 195386 },
-        { label: 'มี.ค.', wastePct: 5.15, consumption: 4284578, wasteKg: 220608 },
-        { label: 'เม.ย.', wastePct: 4.52, consumption: 4188253, wasteKg: 189167 },
-        { label: 'พ.ค.', wastePct: 4.38, consumption: 3921369, wasteKg: 171718 },
-        { label: 'มิ.ย.', wastePct: 4.56, consumption: 3030727, wasteKg: 138341 },
-        { label: 'ก.ค.', wastePct: 5.19, consumption: 3502884, wasteKg: 181834 },
-        { label: 'ส.ค.', wastePct: 5.20, consumption: 3478507, wasteKg: 180906 },
-        { label: 'ก.ย.', wastePct: 5.35, consumption: 3194347, wasteKg: 170811 },
-        { label: 'ต.ค.', wastePct: 4.61, consumption: 1913972, wasteKg: 86434 },
+        { label: 'ม.ค.', wastePct: 9.96, consumption: 4215448, wasteKg: 419701 },
+        { label: 'ก.พ.', wastePct: 10.96, consumption: 3698969, wasteKg: 405421 },
+        { label: 'มี.ค.', wastePct: 10.35, consumption: 4284578, wasteKg: 443415 },
+        { label: 'เม.ย.', wastePct: 9.30, consumption: 4188253, wasteKg: 389667 },
+        { label: 'พ.ค.', wastePct: 9.48, consumption: 3921369, wasteKg: 371677 },
+        { label: 'มิ.ย.', wastePct: 9.21, consumption: 3030727, wasteKg: 279011 },
+        { label: 'ก.ค.', wastePct: 9.82, consumption: 3502884, wasteKg: 343945 },
+        { label: 'ส.ค.', wastePct: 10.02, consumption: 3478507, wasteKg: 348544 },
+        { label: 'ก.ย.', wastePct: 10.17, consumption: 3194347, wasteKg: 324837 },
+        { label: 'ต.ค.', wastePct: 9.21, consumption: 2024121, wasteKg: 186378 },
         { label: 'พ.ย.', wastePct: 0, consumption: 0, wasteKg: 0 },
         { label: 'ธ.ค.', wastePct: 0, consumption: 0, wasteKg: 0 }
       ];
@@ -1858,6 +1858,10 @@
 
       const labels = dataToUse.map(d => d.label);
       const values = dataToUse.map(d => d.wastePct || 0);
+
+      // คำนวณความสูงแกน Y ให้พ้นหัวตัวเลข DataLabels สวยงาม
+      const maxVal = Math.max(...values, TARGETS.allWaste, 8);
+      const ySuggestedMax = Math.ceil(maxVal * 1.18);
 
       const backgroundColors = values.map(v => {
         if (v === 0) return '#e2e8f0';
@@ -1981,7 +1985,7 @@
           scales: {
             y: {
               beginAtZero: true,
-              suggestedMax: 6.8,
+              suggestedMax: ySuggestedMax,
               grid: { color: '#f1f5f9' },
               ticks: {
                 font: { family: "'Prompt', sans-serif", size: 13, weight: '600' },
@@ -2036,6 +2040,10 @@
       if (typeof ChartDataLabels !== 'undefined') chartPlugins.push(ChartDataLabels);
 
       const chartData4K = JSON.parse(JSON.stringify(originalConfig.data));
+      const values4K = (chartData4K.datasets && chartData4K.datasets[0] && chartData4K.datasets[0].data) ? chartData4K.datasets[0].data : [];
+      const maxVal4K = Math.max(...values4K, TARGETS.allWaste, 8);
+      const ySuggestedMax4K = Math.ceil(maxVal4K * 1.18);
+
       if (chartData4K.datasets && chartData4K.datasets[0]) {
         chartData4K.datasets[0].maxBarThickness = 150;
         chartData4K.datasets[0].barPercentage = 0.82;
@@ -2116,7 +2124,7 @@
           scales: {
             y: {
               beginAtZero: true,
-              suggestedMax: 6.8,
+              suggestedMax: ySuggestedMax4K,
               grid: { color: '#e2e8f0', lineWidth: 2.5 },
               ticks: {
                 font: { family: "'Prompt', sans-serif", size: 36, weight: '700' },
