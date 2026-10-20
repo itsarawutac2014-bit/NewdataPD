@@ -490,7 +490,7 @@
     </section>
 
     <!-- Main Chart: Daily Waste vs Target (ต่อข้างล่างตาราง เติมชื่อ เติมตัวเลขบนกราฟ) -->
-    <section class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+    <section class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
       <div class="flex flex-col md:flex-row items-center justify-between pb-3 border-b border-slate-100 gap-4">
         <!-- Legend Left -->
         <div class="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm font-semibold">
@@ -538,7 +538,7 @@
     <!-- ======================================================== -->
     <!-- กราฟวิเคราะห์แยกของเสีย 11 รายการ (Filtered Breakdown Chart) -->
     <!-- ======================================================== -->
-    <section id="filter-waste-chart-card" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 mt-6 w-full">
+    <section id="filter-waste-chart-card" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 mt-6 w-full">
       <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4 pb-4 border-b border-slate-100">
         <div>
           <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
@@ -1780,9 +1780,9 @@
             borderColor: borderColors,
             borderWidth: 2,
             borderRadius: 6,
-            barPercentage: 0.82,
-            categoryPercentage: 0.90,
-            maxBarThickness: 46
+            barPercentage: 0.88,
+            categoryPercentage: 0.94,
+            maxBarThickness: 52
           }]
         },
         options: {
@@ -1791,9 +1791,9 @@
           maintainAspectRatio: false,
           layout: {
             padding: {
-              top: 42, // เว้นที่ด้านบนให้ badge ตัวเลขใหญ่แสดงได้ชัดเจน ไม่ตกขอบ
-              left: 6,
-              right: 15,
+              top: 42,
+              left: 2,
+              right: 2,
               bottom: 5
             }
           },
@@ -2189,9 +2189,9 @@
             backgroundColor: col.color,
             borderRadius: 4,
             stack: 'allWasteStack',
-            barPercentage: 0.82,
-            categoryPercentage: 0.90,
-            maxBarThickness: 46
+            barPercentage: 0.88,
+            categoryPercentage: 0.94,
+            maxBarThickness: 52
           };
         });
 
@@ -2208,17 +2208,7 @@
               yMax: 5.00,
               borderColor: '#dc2626',
               borderWidth: 2,
-              borderDash: [6, 4],
-              label: {
-                display: true,
-                content: 'Target 5.00%',
-                position: 'end',
-                backgroundColor: '#dc2626',
-                color: '#ffffff',
-                font: { family: "'Prompt', sans-serif", size: 11, weight: 'bold' },
-                padding: { top: 2, bottom: 2, left: 6, right: 6 },
-                borderRadius: 4
-              }
+              borderDash: [6, 4]
             }
           };
         }
@@ -2258,9 +2248,9 @@
           borderColor: borderColors,
           borderWidth: 2,
           borderRadius: 6,
-          barPercentage: 0.82,
-          categoryPercentage: 0.90,
-          maxBarThickness: 46
+          barPercentage: 0.88,
+          categoryPercentage: 0.94,
+          maxBarThickness: 52
         }];
 
         const maxVal = Math.max(...values, isPct ? colDef.target : 100);
@@ -2274,17 +2264,7 @@
               yMax: colDef.target,
               borderColor: '#f59e0b',
               borderWidth: 2,
-              borderDash: [6, 4],
-              label: {
-                display: true,
-                content: `Target ${colDef.label} ${colDef.target.toFixed(2)}%`,
-                position: 'end',
-                backgroundColor: '#d97706',
-                color: '#ffffff',
-                font: { family: "'Prompt', sans-serif", size: 11, weight: 'bold' },
-                padding: { top: 2, bottom: 2, left: 6, right: 6 },
-                borderRadius: 4
-              }
+              borderDash: [6, 4]
             }
           };
         }
@@ -2311,7 +2291,7 @@
           responsive: true,
           maintainAspectRatio: false,
           layout: {
-            padding: { top: 40, left: 8, right: 18, bottom: 5 }
+            padding: { top: 38, left: 2, right: 2, bottom: 5 }
           },
           plugins: {
             legend: {
@@ -3042,11 +3022,11 @@
         await new Promise(r => setTimeout(r, 200));
 
         // คำนวณ Scale ให้ภาพมีความกว้างอย่างน้อย 3840px (True 4K UHD)
-        const currentWidth = area.offsetWidth || 1200;
+        const currentWidth = Math.max(area.scrollWidth || 0, area.offsetWidth || 0, 1200);
         const targetWidth = 3840; // มาตรฐาน 4K UHD
         const calculatedScale = Math.max(3.0, Math.round((targetWidth / currentWidth) * 10) / 10);
 
-        // จับภาพ DOM ด้วย html2canvas ความละเอียด 4K คมชัดระดับพิกเซล
+        // จับภาพ DOM ด้วย html2canvas ความละเอียด 4K คมชัดระดับพิกเซล เต็มความกว้างพอดีเป๊ะ
         const canvas = await html2canvas(area, {
           scale: calculatedScale,
           useCORS: true,
@@ -3055,10 +3035,12 @@
           backgroundColor: '#f1f5f9',
           scrollX: 0,
           scrollY: 0,
-          windowWidth: 1600, // คงเลย์เอาต์เดสก์ท็อปไม่ให้ตารางหรือกราฟถูกบีบ
+          windowWidth: currentWidth,
           onclone: (clonedDoc) => {
             const clonedArea = clonedDoc.getElementById('report-printable-area');
             if (clonedArea) {
+              clonedArea.style.width = currentWidth + 'px';
+              clonedArea.style.maxWidth = currentWidth + 'px';
               clonedArea.style.webkitFontSmoothing = 'antialiased';
               clonedArea.style.mozOsxFontSmoothing = 'grayscale';
               clonedArea.style.textRendering = 'optimizeLegibility';
