@@ -66,6 +66,38 @@
       color: #14532d !important;
       font-weight: 700 !important;
     }
+    .filter-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      white-space: nowrap;
+      border: 1.5px solid #e2e8f0;
+      background-color: #ffffff;
+      color: #475569;
+      transition: all 0.15s ease-in-out;
+      cursor: pointer;
+    }
+    .filter-pill:hover {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      border-color: #cbd5e1;
+    }
+    .filter-pill.active {
+      background-color: #4338ca !important;
+      color: #ffffff !important;
+      border-color: #3730a3 !important;
+      box-shadow: 0 2px 4px rgba(67, 56, 202, 0.25) !important;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen">
@@ -503,6 +535,120 @@
 
     </div> <!-- จบส่วน capture สิ้นสุดที่กราฟ ตามที่ผู้ใช้ระบุ -->
 
+    <!-- ======================================================== -->
+    <!-- กราฟวิเคราะห์แยกของเสีย 11 รายการ (Filtered Breakdown Chart) -->
+    <!-- ======================================================== -->
+    <section id="filter-waste-chart-card" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 mt-6 w-full">
+      <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4 pb-4 border-b border-slate-100">
+        <div>
+          <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm shadow-xs border border-indigo-100">
+              <i class="fa-solid fa-chart-column"></i>
+            </span>
+            <span>กราฟวิเคราะห์แยกของเสีย 11 รายการ (<span id="filter-chart-machine-name">BHS</span>)</span>
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">เลือกกรองดูของเสียแยกตาม 11 รายการ หรือเปรียบเทียบทุกรายการ พร้อมเลือกกรองแยกเดือนได้อิสระ</p>
+        </div>
+
+        <div class="flex items-center gap-3 flex-wrap">
+          <!-- Month Selector -->
+          <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 shadow-2xs">
+            <label for="filterChartMonthSelect" class="text-xs font-bold text-slate-600 flex items-center gap-1">
+              <i class="fa-regular fa-calendar-days text-indigo-500"></i> เดือน:
+            </label>
+            <select id="filterChartMonthSelect" onchange="onFilterChartMonthChange(this.value)" class="text-xs font-black bg-white border border-slate-300 rounded-lg px-2 py-1 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer">
+              <option value="1">1 - ม.ค. 2026</option>
+              <option value="2">2 - ก.พ. 2026</option>
+              <option value="3">3 - มี.ค. 2026</option>
+              <option value="4">4 - เม.ย. 2026</option>
+              <option value="5">5 - พ.ค. 2026</option>
+              <option value="6">6 - มิ.ย. 2026</option>
+              <option value="7">7 - ก.ค. 2026</option>
+              <option value="8">8 - ส.ค. 2026</option>
+              <option value="9">9 - ก.ย. 2026</option>
+              <option value="10" selected>10 - ต.ค. 2026</option>
+              <option value="11">11 - พ.ย. 2026</option>
+              <option value="12">12 - ธ.ค. 2026</option>
+            </select>
+          </div>
+
+          <!-- Metric Toggle (% vs kg) -->
+          <div class="inline-flex rounded-xl border border-slate-200 bg-slate-100 p-1 text-xs font-bold shadow-2xs">
+            <button type="button" id="btn-metric-pct" onclick="setFilterChartMetric('pct')" class="px-3 py-1 rounded-lg bg-white text-indigo-700 shadow-xs transition">
+              <i class="fa-solid fa-percent mr-1"></i> % Waste
+            </button>
+            <button type="button" id="btn-metric-kg" onclick="setFilterChartMetric('kg')" class="px-3 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition">
+              <i class="fa-solid fa-weight-hanging mr-1"></i> น้ำหนัก (kg)
+            </button>
+          </div>
+
+          <!-- Download Filter Chart -->
+          <button type="button" onclick="downloadFilterChartImage()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition cursor-pointer">
+            <i class="fa-solid fa-download"></i> บันทึกกราฟ
+          </button>
+        </div>
+      </div>
+
+      <!-- Pill Filter Bar (11 รายการ + รวมทั้งหมด) -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-2.5 pt-1 border-b border-slate-100 no-scrollbar">
+        <button type="button" onclick="setFilterWasteCode('ALL')" id="filter-btn-ALL" class="filter-pill active">
+          <i class="fa-solid fa-layer-group mr-1.5 text-indigo-300"></i>ทั้งหมด 11 รายการ
+        </button>
+        <button type="button" onclick="setFilterWasteCode('ncp')" id="filter-btn-ncp" class="filter-pill">
+          <span class="w-2 h-2 rounded-full bg-rose-500 mr-1.5"></span>.NCP (BL18)
+        </button>
+        <button type="button" onclick="setFilterWasteCode('def')" id="filter-btn-def" class="filter-pill">
+          <span class="w-2 h-2 rounded-full bg-orange-500 mr-1.5"></span>.DEF (BL17)
+        </button>
+        <button type="button" onclick="setFilterWasteCode('web')" id="filter-btn-web" class="filter-pill">
+          <span class="w-2 h-2 rounded-full bg-amber-500 mr-1.5"></span>.WEB (BL16)
+        </button>
+        <button type="button" onclick="setFilterWasteCode('control')" id="filter-btn-control" class="filter-pill">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span>ของเหลือ Control (BL21)
+        </button>
+        <button type="button" onclick="setFilterWasteCode('om')" id="filter-btn-om" class="filter-pill">
+          <span class="w-2 h-2 rounded-full bg-cyan-500 mr-1.5"></span>ของเหลือ O.M. (BL20)
+        </button>
+        <button type="button" onclick="setFilterWasteCode('order')" id="filter-btn-order" class="filter-pill">
+          <span class="w-2 h-2 rounded-full bg-blue-500 mr-1.5"></span>.รอยต่อออเดอร์ (BL15)
+        </button>
+        <button type="button" onclick="setFilterWasteCode('core')" id="filter-btn-core" class="filter-pill">
+          <span class="w-2 h-2 rounded-full bg-indigo-500 mr-1.5"></span>.เศษติดแกนผลิต (BL12)
+        </button>
+        <button type="button" onclick="setFilterWasteCode('spec')" id="filter-btn-spec" class="filter-pill">
+          <span class="w-2 h-2 rounded-full bg-violet-500 mr-1.5"></span>.สันนูนตรงสเปค (BL19)
+        </button>
+        <button type="button" onclick="setFilterWasteCode('conveyor')" id="filter-btn-conveyor" class="filter-pill">
+          <span class="w-2 h-2 rounded-full bg-pink-500 mr-1.5"></span>.Conveyor (BL22)
+        </button>
+        <button type="button" onclick="setFilterWasteCode('qc')" id="filter-btn-qc" class="filter-pill">
+          <span class="w-2 h-2 rounded-full bg-teal-500 mr-1.5"></span>.QC Test (BL24)
+        </button>
+        <button type="button" onclick="setFilterWasteCode('reject')" id="filter-btn-reject" class="filter-pill">
+          <span class="w-2 h-2 rounded-full bg-red-600 mr-1.5"></span>.Reject (BL25)
+        </button>
+      </div>
+
+      <!-- Selected Item KPI Ribbon -->
+      <div id="filter-item-info-bar" class="mt-3 py-2 px-3.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-3">
+          <span class="font-bold text-slate-700">กำลังแสดง:</span>
+          <span id="filter-info-title" class="font-black text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-lg">ทั้งหมด 11 รายการ</span>
+          <span id="filter-info-target-badge" class="font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-lg">Target: 5.00%</span>
+        </div>
+        <div class="flex items-center gap-4">
+          <span class="text-slate-600">ยอดรวมสะสม: <strong id="filter-info-total-kg" class="text-slate-900 font-black">0 กก.</strong></span>
+          <span class="text-slate-600">อัตราส่วนเฉลี่ย: <strong id="filter-info-avg-pct" class="text-slate-900 font-black">0.00%</strong></span>
+          <span id="filter-info-status-badge" class="px-2.5 py-0.5 rounded-lg font-black bg-emerald-100 text-emerald-800">ได้เป้า ✅</span>
+        </div>
+      </div>
+
+      <!-- Canvas -->
+      <div class="relative h-[440px] sm:h-[480px] w-full mt-3">
+        <canvas id="filterWasteChart"></canvas>
+      </div>
+    </section>
+
     <!-- Sub Charts: Breakdown by Waste Category -->
     <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       
@@ -730,17 +876,17 @@
 
     // หมวดหมู่ของเสียทั้ง 11 ตัว
     const WASTE_COLUMNS = [
-      { key: 'ncp', label: '.NCP', target: 2.00 },
-      { key: 'def', label: '.DEF', target: 1.10 },
-      { key: 'web', label: '.WEB', target: 0.15 },
-      { key: 'control', label: 'ของเหลือ Control', target: 1.01 },
-      { key: 'om', label: 'ของเหลือ O.M.', target: 0.05 },
-      { key: 'order', label: '.รอยต่อออเดอร์', target: 0.20 },
-      { key: 'core', label: '.เศษติดแกนผลิต', target: 0.15 },
-      { key: 'spec', label: '.สันนูนตรงสเปค', target: 0.15 },
-      { key: 'conveyor', label: '.Conveyor', target: 0.03 },
-      { key: 'qc', label: '.QC Test', target: 0.07 },
-      { key: 'reject', label: '.Reject', target: 0.09 }
+      { key: 'ncp', label: '.NCP', code: 'BL18', target: 2.00, color: '#f43f5e' },
+      { key: 'def', label: '.DEF', code: 'BL17', target: 1.10, color: '#f97316' },
+      { key: 'web', label: '.WEB', code: 'BL16', target: 0.15, color: '#eab308' },
+      { key: 'control', label: 'ของเหลือ Control', code: 'BL21', target: 1.01, color: '#10b981' },
+      { key: 'om', label: 'ของเหลือ O.M.', code: 'BL20', target: 0.05, color: '#06b6d4' },
+      { key: 'order', label: '.รอยต่อออเดอร์', code: 'BL15', target: 0.20, color: '#3b82f6' },
+      { key: 'core', label: '.เศษติดแกนผลิต', code: 'BL12', target: 0.15, color: '#6366f1' },
+      { key: 'spec', label: '.สันนูนตรงสเปค', code: 'BL19', target: 0.15, color: '#8b5cf6' },
+      { key: 'conveyor', label: '.Conveyor', code: 'BL22', target: 0.03, color: '#ec4899' },
+      { key: 'qc', label: '.QC Test', code: 'BL24', target: 0.07, color: '#14b8a6' },
+      { key: 'reject', label: '.Reject', code: 'BL25', target: 0.09, color: '#ef4444' }
     ];
 
     // ข้อมูลเริ่มต้นตรงตามตารางในรูปภาพของคุณ (1/10/2026 ถึง 31/10/2026)
@@ -838,8 +984,13 @@
     let categoryWasteChartInstance = null;
     let categoryDonutChartInstance = null;
     let yearlyWasteChartInstance = null;
+    let filterWasteChartInstance = null;
 
     let currentYearlyTrend = [];
+    let currentFilterWasteCode = 'ALL';
+    let currentFilterChartMetric = 'pct'; // 'pct' หรือ 'kg'
+    let currentFilterMonth = 10;
+    let monthlyBreakdownCache = {};
 
     // แปลง Google Sheet URL ให้เป็น CSV URL แบบอัตโนมัติ
     function convertToCsvUrl(rawUrl) {
@@ -1366,6 +1517,25 @@
         console.error('Error rendering daily chart:', err);
       }
 
+      // 3.5 บันทึกข้อมูลแคชและเรนเดอร์กราฟวิเคราะห์แยกของเสีย 11 รายการ (Filtered Breakdown Chart)
+      try {
+        const machine = (document.getElementById('selectedMachine')?.value || 'BHS').toUpperCase();
+        const curMo = parseInt(document.getElementById('selectedMonth')?.value || 10);
+        monthlyBreakdownCache[`${machine}_${curMo}`] = {
+          data: finalData,
+          summary: summary,
+          weightData: currentWeightData,
+          weightSummary: currentWeightSummary
+        };
+        const mSel = document.getElementById('filterChartMonthSelect');
+        if (mSel && currentFilterMonth === curMo) {
+          mSel.value = curMo;
+        }
+        renderFilterWasteChart();
+      } catch (err) {
+        console.error('Error rendering filter waste chart:', err);
+      }
+
       // 4. เรนเดอร์กราฟจำแนกหมวดหมู่
       try {
         renderCategoryCharts(finalData, summary);
@@ -1608,9 +1778,11 @@
             data: values,
             backgroundColor: backgroundColors,
             borderColor: borderColors,
-            borderWidth: 1.5,
-            borderRadius: 5,
-            barPercentage: 0.65,
+            borderWidth: 2,
+            borderRadius: 6,
+            barPercentage: 0.82,
+            categoryPercentage: 0.90,
+            maxBarThickness: 46
           }]
         },
         options: {
@@ -1619,9 +1791,9 @@
           maintainAspectRatio: false,
           layout: {
             padding: {
-              top: 38, // เว้นที่ด้านบนให้ badge สรุปสีเหลืองตัวเลขใหญ่แสดงได้ชัดเจน ไม่ตกขอบ
-              left: 5,
-              right: 20,
+              top: 42, // เว้นที่ด้านบนให้ badge ตัวเลขใหญ่แสดงได้ชัดเจน ไม่ตกขอบ
+              left: 6,
+              right: 15,
               bottom: 5
             }
           },
@@ -1640,39 +1812,37 @@
               }
             },
             datalabels: {
-              display: true,
+              display: function(context) {
+                const val = context.dataset.data[context.dataIndex];
+                return val !== undefined && val !== null && val > 0;
+              },
               anchor: 'end',
               align: 'top',
               offset: 4,
               formatter: function(value) {
-                return (value || 0).toFixed(2) + '%';
+                return (value && value > 0) ? value.toFixed(2) + '%' : '';
               },
               backgroundColor: function(context) {
                 const isLast = context.dataIndex === context.dataset.data.length - 1;
-                // กราฟอันสุดท้าย: พื้นหลังสีเหลืองตามที่ขอ
-                return isLast ? '#fef08a' : null;
+                return isLast ? '#fef08a' : '#ffffff';
               },
               borderColor: function(context) {
                 const isLast = context.dataIndex === context.dataset.data.length - 1;
-                if (!isLast) return null;
                 const val = context.dataset.data[context.dataIndex];
-                return (val <= TARGETS.allWaste) ? '#ca8a04' : '#dc2626';
+                if (isLast) return (val <= TARGETS.allWaste) ? '#ca8a04' : '#dc2626';
+                return (val <= TARGETS.allWaste) ? '#86efac' : '#fca5a5';
               },
-              borderWidth: function(context) {
-                const isLast = context.dataIndex === context.dataset.data.length - 1;
-                return isLast ? 1.5 : 0;
-              },
+              borderWidth: 1.5,
               borderRadius: 6,
               padding: function(context) {
                 const isLast = context.dataIndex === context.dataset.data.length - 1;
-                return isLast ? { top: 3, bottom: 3, left: 7, right: 7 } : 0;
+                return isLast ? { top: 3, bottom: 3, left: 8, right: 8 } : { top: 1.5, bottom: 1.5, left: 4.5, right: 4.5 };
               },
               color: function(context) {
                 const idx = context.dataIndex;
                 const total = context.dataset.data.length;
                 const val = context.dataset.data[idx];
                 if (idx === total - 1) {
-                  // แท่งสุดท้าย: ถ้าได้เป้าตัวเลขสีเขียว ถ้าไม่ได้เป้าตัวเลขสีแดง บนพื้นหลังสีเหลือง
                   return (val <= TARGETS.allWaste) ? '#15803d' : '#dc2626';
                 }
                 if (val > TARGETS.allWaste) return '#b91c1c';
@@ -1682,8 +1852,8 @@
                 const isLast = context.dataIndex === context.dataset.data.length - 1;
                 return {
                   family: "'Prompt', sans-serif",
-                  size: isLast ? 16 : 11, // ตัวเลขใหญ่ขึ้นเด่นชัดตามที่ขอ
-                  weight: isLast ? '900' : '700'
+                  size: isLast ? 16 : 11,
+                  weight: '800'
                 };
               }
             },
@@ -1729,22 +1899,26 @@
     }
 
     // เรนเดอร์กราฟจำแนกตามประเภทของเสีย
-    function renderCategoryCharts(data) {
+    function renderCategoryCharts(data, summary = currentSummary) {
       if (typeof Chart === 'undefined') return;
 
       const catEl = document.getElementById('categoryWasteChart');
       const donutEl = document.getElementById('categoryDonutChart');
 
-      // คำนวณผลรวมเฉลี่ยสะสมของแต่ละคอลัมน์
-      const catAverages = WASTE_COLUMNS.map(col => {
+      // ดึงค่า % Actual จริงของแต่ละหมวดจาก summary (ไม่ Hardcode)
+      const actuals = WASTE_COLUMNS.map(col => {
+        if (summary && summary[col.key] !== undefined) return summary[col.key];
         const sum = data.reduce((acc, curr) => acc + (curr[col.key] || 0), 0);
-        const avg = data.length > 0 ? (sum / 18) : 0;
-        return {
-          label: col.label,
-          target: col.target,
-          value: parseFloat(avg.toFixed(2))
-        };
+        return data.length > 0 ? parseFloat((sum / data.length).toFixed(2)) : 0;
       });
+      const targets = WASTE_COLUMNS.map(c => c.target);
+
+      const actualColors = actuals.map((val, idx) => {
+        return (val <= targets[idx]) ? '#10b981' : '#ef4444';
+      });
+
+      const maxCatVal = Math.max(...actuals, ...targets, 2);
+      const suggestedMaxCat = Math.ceil(maxCatVal * 1.25);
 
       // 1. กราฟเปรียบเทียบ Category vs Target
       if (catEl) {
@@ -1753,79 +1927,514 @@
           categoryWasteChartInstance = null;
         }
 
+        const catPlugins = (typeof ChartDataLabels !== 'undefined') ? [ChartDataLabels] : [];
         const ctxCat = catEl.getContext('2d');
         categoryWasteChartInstance = new Chart(ctxCat, {
           type: 'bar',
+          plugins: catPlugins,
           data: {
-            labels: catAverages.map(c => c.label),
+            labels: WASTE_COLUMNS.map(c => c.label),
             datasets: [
               {
                 label: '% Actual สะสม',
-                data: [1.86, 1.05, 0.06, 1.38, 0.00, 0.07, 0.04, 0.02, 0.01, 0.01, 0.13],
-                backgroundColor: '#3b82f6',
-                borderRadius: 4
+                data: actuals,
+                backgroundColor: actualColors,
+                borderRadius: 6,
+                barPercentage: 0.82,
+                categoryPercentage: 0.88,
+                maxBarThickness: 36
               },
               {
-                label: 'Target ของแต่ละจุด',
-                data: catAverages.map(c => c.target),
+                label: 'Target แต่ละจุด',
+                data: targets,
                 backgroundColor: '#cbd5e1',
-                borderRadius: 4
+                borderRadius: 6,
+                barPercentage: 0.82,
+                categoryPercentage: 0.88,
+                maxBarThickness: 36
               }
             ]
           },
           options: {
+            devicePixelRatio: Math.max(window.devicePixelRatio || 1, 3),
             responsive: true,
             maintainAspectRatio: false,
+            layout: {
+              padding: { top: 25, left: 5, right: 10, bottom: 5 }
+            },
             plugins: {
-              legend: { position: 'top', labels: { font: { size: 11 } } },
-              datalabels: { display: false }
+              legend: {
+                position: 'top',
+                labels: { font: { family: "'Prompt', sans-serif", size: 11, weight: 'bold' } }
+              },
+              datalabels: {
+                display: true,
+                anchor: 'end',
+                align: 'top',
+                offset: 2,
+                formatter: function(value) {
+                  return value > 0 ? value.toFixed(2) + '%' : '';
+                },
+                font: { family: "'Prompt', sans-serif", size: 9.5, weight: '800' },
+                color: function(ctx) {
+                  return ctx.datasetIndex === 0 ? '#0f172a' : '#64748b';
+                }
+              }
             },
             scales: {
               y: {
                 beginAtZero: true,
-                ticks: { callback: v => v.toFixed(2) + '%' },
+                suggestedMax: suggestedMaxCat,
+                ticks: {
+                  callback: v => v.toFixed(1) + '%',
+                  font: { family: "'Prompt', sans-serif", size: 10, weight: '600' }
+                },
                 grid: { color: '#f1f5f9' }
               },
               x: {
-                ticks: { font: { size: 9 }, maxRotation: 30 }
+                ticks: {
+                  font: { family: "'Prompt', sans-serif", size: 10, weight: 'bold' },
+                  maxRotation: 35,
+                  minRotation: 35
+                },
+                grid: { display: false }
               }
             }
           }
         });
       }
 
-      // 2. กราฟโดนัทสัดส่วนของเสีย
+      // 2. กราฟโดนัทสัดส่วนของเสีย (ดึงข้อมูลจริงจาก 11 หมวดหมู่)
       if (donutEl) {
         if (categoryDonutChartInstance) {
           try { categoryDonutChartInstance.destroy(); } catch(e) {}
           categoryDonutChartInstance = null;
         }
 
+        const catItems = WASTE_COLUMNS.map((col, idx) => ({
+          label: col.label,
+          val: actuals[idx] || 0,
+          color: col.color
+        })).filter(c => c.val > 0).sort((a, b) => b.val - a.val);
+
+        const donutLabels = catItems.map(c => `${c.label} (${c.val.toFixed(2)}%)`);
+        const donutData = catItems.map(c => c.val);
+        const donutColors = catItems.map(c => c.color);
+
         const ctxDonut = donutEl.getContext('2d');
         categoryDonutChartInstance = new Chart(ctxDonut, {
           type: 'doughnut',
           data: {
-            labels: ['.NCP', '.DEF', 'ของเหลือ Control', '.Reject', '.รอยต่อออเดอร์', 'อื่นๆ'],
+            labels: donutLabels.length > 0 ? donutLabels : ['.NCP', '.DEF', 'ของเหลือ Control', 'อื่นๆ'],
             datasets: [{
-              data: [1.86, 1.05, 1.38, 0.13, 0.07, 0.12],
-              backgroundColor: [
-                '#f43f5e', '#f59e0b', '#3b82f6', '#8b5cf6', '#10b981', '#94a3b8'
-              ],
+              data: donutData.length > 0 ? donutData : [1.82, 1.40, 1.45, 0.59],
+              backgroundColor: donutColors.length > 0 ? donutColors : ['#f43f5e', '#f97316', '#10b981', '#94a3b8'],
               borderWidth: 2,
               borderColor: '#ffffff'
             }]
           },
           options: {
+            devicePixelRatio: Math.max(window.devicePixelRatio || 1, 3),
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-              legend: { position: 'bottom', labels: { font: { size: 10 } } },
+              legend: {
+                position: 'bottom',
+                labels: {
+                  font: { family: "'Prompt', sans-serif", size: 10, weight: '600' },
+                  boxWidth: 10,
+                  padding: 8
+                }
+              },
               datalabels: { display: false }
             },
-            cutout: '60%'
+            cutout: '52%'
           }
         });
       }
+    }
+
+    // ========================================================
+    // ฟังก์ชันจัดการกราฟวิเคราะห์แยกของเสีย 11 รายการ (Filtered Breakdown Chart)
+    // ========================================================
+    function onFilterChartMonthChange(val) {
+      currentFilterMonth = parseInt(val) || 10;
+      const machine = (document.getElementById('selectedMachine')?.value || 'BHS').toUpperCase();
+      const cacheKey = `${machine}_${currentFilterMonth}`;
+
+      if (monthlyBreakdownCache[cacheKey]) {
+        renderFilterWasteChart();
+      } else {
+        const sheetId = '1viioRJ5I3BmqiD7KLwSG9_uNQ_9u_a8LYR-4GaPGuYI';
+        const url = `api.php?sheetId=${encodeURIComponent(sheetId)}&machine=${machine}&month=${currentFilterMonth}`;
+        
+        fetch(url)
+          .then(res => res.json())
+          .then(res => {
+            if (res && res.success && res.data) {
+              monthlyBreakdownCache[cacheKey] = {
+                data: res.data,
+                summary: res.summary,
+                weightData: res.weightData,
+                weightSummary: res.weightSummary
+              };
+              renderFilterWasteChart();
+            }
+          })
+          .catch(err => {
+            console.error('Error fetching month for filter chart:', err);
+          });
+      }
+    }
+
+    function setFilterWasteCode(code) {
+      currentFilterWasteCode = code;
+      document.querySelectorAll('.filter-pill').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      const activeBtn = document.getElementById(`filter-btn-${code}`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      renderFilterWasteChart();
+    }
+
+    function setFilterChartMetric(metric) {
+      currentFilterChartMetric = metric;
+      const btnPct = document.getElementById('btn-metric-pct');
+      const btnKg = document.getElementById('btn-metric-kg');
+      if (metric === 'pct') {
+        btnPct.className = 'px-3 py-1 rounded-lg bg-white text-indigo-700 shadow-xs transition';
+        btnKg.className = 'px-3 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition';
+      } else {
+        btnKg.className = 'px-3 py-1 rounded-lg bg-white text-indigo-700 shadow-xs transition';
+        btnPct.className = 'px-3 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition';
+      }
+      renderFilterWasteChart();
+    }
+
+    function renderFilterWasteChart() {
+      const chartEl = document.getElementById('filterWasteChart');
+      if (!chartEl || typeof Chart === 'undefined') return;
+
+      const machine = (document.getElementById('selectedMachine')?.value || 'BHS').toUpperCase();
+      safeSetText('filter-chart-machine-name', machine);
+
+      const cacheKey = `${machine}_${currentFilterMonth}`;
+      const mData = monthlyBreakdownCache[cacheKey] || {
+        data: currentData,
+        summary: currentSummary,
+        weightData: currentWeightData,
+        weightSummary: currentWeightSummary
+      };
+
+      const daysData = mData.data || [];
+      const weightData = mData.weightData || [];
+      const summary = mData.summary || {};
+      const weightSummary = mData.weightSummary || {};
+
+      const labels = daysData.map(d => {
+        const parts = (d.date || '').split('/');
+        return parts[0] ? `${parts[0]}` : d.date;
+      });
+      labels.push('สะสม MTD');
+
+      let datasets = [];
+      let annotations = {};
+      let suggestedMax = 10;
+      const isPct = (currentFilterChartMetric === 'pct');
+
+      // อัปเดตแถบข้อมูลสรุปด้านบนกราฟ (Selected Item KPI Ribbon)
+      if (currentFilterWasteCode === 'ALL') {
+        safeSetText('filter-info-title', 'ทั้งหมด 11 รายการ (All Waste)');
+        safeSetText('filter-info-target-badge', 'Target: 5.00%');
+        const totKg = weightSummary.totalAll || 0;
+        const avgPct = summary.allWaste || 0;
+        safeSetText('filter-info-total-kg', `${Number(totKg).toLocaleString()} กก.`);
+        safeSetText('filter-info-avg-pct', `${avgPct.toFixed(2)}%`);
+        const statusEl = document.getElementById('filter-info-status-badge');
+        if (statusEl) {
+          const pass = avgPct <= TARGETS.allWaste;
+          statusEl.className = pass ? 'px-2.5 py-0.5 rounded-lg font-black bg-emerald-100 text-emerald-800' : 'px-2.5 py-0.5 rounded-lg font-black bg-rose-100 text-rose-800';
+          statusEl.textContent = pass ? `ได้เป้า ✅ (Diff: +${(TARGETS.allWaste - avgPct).toFixed(2)}%)` : `เกินเป้า ❌ (Diff: ${(TARGETS.allWaste - avgPct).toFixed(2)}%)`;
+        }
+      } else {
+        const colDef = WASTE_COLUMNS.find(c => c.key === currentFilterWasteCode) || WASTE_COLUMNS[0];
+        safeSetText('filter-info-title', `${colDef.label} (${colDef.code})`);
+        safeSetText('filter-info-target-badge', `Target: ${colDef.target.toFixed(2)}%`);
+        const totKg = weightSummary[colDef.key] || 0;
+        const avgPct = summary[colDef.key] || 0;
+        safeSetText('filter-info-total-kg', `${Number(totKg).toLocaleString()} กก.`);
+        safeSetText('filter-info-avg-pct', `${avgPct.toFixed(2)}%`);
+        const statusEl = document.getElementById('filter-info-status-badge');
+        if (statusEl) {
+          const pass = avgPct <= colDef.target;
+          statusEl.className = pass ? 'px-2.5 py-0.5 rounded-lg font-black bg-emerald-100 text-emerald-800' : 'px-2.5 py-0.5 rounded-lg font-black bg-rose-100 text-rose-800';
+          statusEl.textContent = pass ? `ได้เป้า ✅ (Diff: +${(colDef.target - avgPct).toFixed(2)}%)` : `เกินเป้า ❌ (Diff: ${(colDef.target - avgPct).toFixed(2)}%)`;
+        }
+      }
+
+      // สร้างชุดข้อมูลตามตัวกรอง
+      if (currentFilterWasteCode === 'ALL') {
+        datasets = WASTE_COLUMNS.map(col => {
+          const dailyVals = isPct 
+            ? daysData.map(d => d[col.key] || 0)
+            : weightData.map(d => d[col.key] || 0);
+          
+          const mtdVal = isPct ? (summary[col.key] || 0) : (weightSummary[col.key] || 0);
+          dailyVals.push(mtdVal);
+
+          return {
+            label: col.label,
+            data: dailyVals,
+            backgroundColor: col.color,
+            borderRadius: 4,
+            stack: 'allWasteStack',
+            barPercentage: 0.82,
+            categoryPercentage: 0.90,
+            maxBarThickness: 46
+          };
+        });
+
+        const dailyTotals = daysData.map(d => isPct ? (d.allWaste || 0) : (d.totalWeight || 0));
+        dailyTotals.push(isPct ? (summary.allWaste || 0) : (weightSummary.totalAll || 0));
+        const maxVal = Math.max(...dailyTotals, isPct ? 5.00 : 1000);
+        suggestedMax = Math.ceil(maxVal * 1.25);
+
+        if (isPct) {
+          annotations = {
+            targetLine: {
+              type: 'line',
+              yMin: 5.00,
+              yMax: 5.00,
+              borderColor: '#dc2626',
+              borderWidth: 2,
+              borderDash: [6, 4],
+              label: {
+                display: true,
+                content: 'Target 5.00%',
+                position: 'end',
+                backgroundColor: '#dc2626',
+                color: '#ffffff',
+                font: { family: "'Prompt', sans-serif", size: 11, weight: 'bold' },
+                padding: { top: 2, bottom: 2, left: 6, right: 6 },
+                borderRadius: 4
+              }
+            }
+          };
+        }
+      } else {
+        const colDef = WASTE_COLUMNS.find(c => c.key === currentFilterWasteCode) || WASTE_COLUMNS[0];
+        const values = isPct 
+          ? daysData.map(d => d[colDef.key] || 0)
+          : weightData.map(d => d[colDef.key] || 0);
+        
+        const mtdVal = isPct ? (summary[colDef.key] || 0) : (weightSummary[colDef.key] || 0);
+        values.push(mtdVal);
+
+        const backgroundColors = values.map((val, idx) => {
+          if (idx === values.length - 1) {
+            if (!isPct) return '#4338ca';
+            return val <= colDef.target ? '#059669' : '#dc2626';
+          }
+          if (val === 0) return '#f1f5f9';
+          if (!isPct) return colDef.color;
+          return val <= colDef.target ? '#10b981' : '#ef4444';
+        });
+
+        const borderColors = values.map((val, idx) => {
+          if (idx === values.length - 1) {
+            if (!isPct) return '#312e81';
+            return val <= colDef.target ? '#047857' : '#991b1b';
+          }
+          if (val === 0) return '#cbd5e1';
+          if (!isPct) return colDef.color;
+          return val <= colDef.target ? '#059669' : '#dc2626';
+        });
+
+        datasets = [{
+          label: isPct ? `% ${colDef.label}` : `${colDef.label} (กก.)`,
+          data: values,
+          backgroundColor: backgroundColors,
+          borderColor: borderColors,
+          borderWidth: 2,
+          borderRadius: 6,
+          barPercentage: 0.82,
+          categoryPercentage: 0.90,
+          maxBarThickness: 46
+        }];
+
+        const maxVal = Math.max(...values, isPct ? colDef.target : 100);
+        suggestedMax = Math.ceil(maxVal * 1.25);
+
+        if (isPct) {
+          annotations = {
+            targetLine: {
+              type: 'line',
+              yMin: colDef.target,
+              yMax: colDef.target,
+              borderColor: '#f59e0b',
+              borderWidth: 2,
+              borderDash: [6, 4],
+              label: {
+                display: true,
+                content: `Target ${colDef.label} ${colDef.target.toFixed(2)}%`,
+                position: 'end',
+                backgroundColor: '#d97706',
+                color: '#ffffff',
+                font: { family: "'Prompt', sans-serif", size: 11, weight: 'bold' },
+                padding: { top: 2, bottom: 2, left: 6, right: 6 },
+                borderRadius: 4
+              }
+            }
+          };
+        }
+      }
+
+      if (filterWasteChartInstance) {
+        try { filterWasteChartInstance.destroy(); } catch (e) {}
+        filterWasteChartInstance = null;
+      }
+
+      const chartPlugins = [];
+      if (typeof ChartDataLabels !== 'undefined') chartPlugins.push(ChartDataLabels);
+
+      const ctx = chartEl.getContext('2d');
+      filterWasteChartInstance = new Chart(ctx, {
+        type: 'bar',
+        plugins: chartPlugins,
+        data: {
+          labels: labels,
+          datasets: datasets
+        },
+        options: {
+          devicePixelRatio: Math.max(window.devicePixelRatio || 1, 3),
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: {
+            padding: { top: 40, left: 8, right: 18, bottom: 5 }
+          },
+          plugins: {
+            legend: {
+              display: (currentFilterWasteCode === 'ALL'),
+              position: 'top',
+              labels: {
+                font: { family: "'Prompt', sans-serif", size: 10, weight: 'bold' },
+                boxWidth: 12,
+                padding: 10
+              }
+            },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleFont: { family: "'Prompt', sans-serif", size: 12, weight: 'bold' },
+              bodyFont: { family: "'Prompt', sans-serif", size: 11 },
+              padding: 10,
+              cornerRadius: 8,
+              callbacks: {
+                label: function(ctx) {
+                  const val = ctx.raw || 0;
+                  const label = ctx.dataset.label || '';
+                  return isPct 
+                    ? ` ${label}: ${val.toFixed(2)}%`
+                    : ` ${label}: ${Number(val).toLocaleString()} กก.`;
+                }
+              }
+            },
+            datalabels: {
+              display: function(context) {
+                if (currentFilterWasteCode === 'ALL') {
+                  return context.datasetIndex === datasets.length - 1;
+                }
+                const val = context.dataset.data[context.dataIndex];
+                return val !== undefined && val !== null && val > 0;
+              },
+              anchor: 'end',
+              align: 'top',
+              offset: 4,
+              formatter: function(value, context) {
+                if (currentFilterWasteCode === 'ALL') {
+                  const dayIdx = context.dataIndex;
+                  let total = 0;
+                  datasets.forEach(ds => { total += (ds.data[dayIdx] || 0); });
+                  if (total === 0) return '';
+                  return isPct ? `${total.toFixed(2)}%` : Number(Math.round(total)).toLocaleString();
+                }
+                if (!value || value === 0) return '';
+                return isPct ? `${value.toFixed(2)}%` : Number(Math.round(value)).toLocaleString();
+              },
+              backgroundColor: function(context) {
+                const isLast = context.dataIndex === context.dataset.data.length - 1;
+                return isLast ? '#fef08a' : '#ffffff';
+              },
+              borderColor: function(context) {
+                const isLast = context.dataIndex === context.dataset.data.length - 1;
+                if (isLast) return '#ca8a04';
+                return '#cbd5e1';
+              },
+              borderWidth: 1.5,
+              borderRadius: 6,
+              padding: { top: 2, bottom: 2, left: 6, right: 6 },
+              color: function(context) {
+                const isLast = context.dataIndex === context.dataset.data.length - 1;
+                if (isLast) return '#854d0e';
+                return '#0f172a';
+              },
+              font: function(context) {
+                const isLast = context.dataIndex === context.dataset.data.length - 1;
+                return {
+                  family: "'Prompt', sans-serif",
+                  size: isLast ? 13 : 11,
+                  weight: '800'
+                };
+              }
+            },
+            annotation: {
+              annotations: annotations
+            }
+          },
+          scales: {
+            x: {
+              stacked: (currentFilterWasteCode === 'ALL'),
+              grid: { display: false },
+              ticks: {
+                font: { family: "'Prompt', sans-serif", size: 11.5, weight: '700' },
+                color: '#334155',
+                maxRotation: 0,
+                minRotation: 0
+              }
+            },
+            y: {
+              stacked: (currentFilterWasteCode === 'ALL'),
+              beginAtZero: true,
+              suggestedMax: suggestedMax,
+              grid: { color: '#f1f5f9' },
+              ticks: {
+                font: { family: "'Prompt', sans-serif", size: 11, weight: '600' },
+                color: '#475569',
+                callback: function(val) {
+                  return isPct ? `${val.toFixed(1)}%` : Number(val).toLocaleString();
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // ฟังก์ชันดาวน์โหลดภาพกราฟแยกของเสีย
+    function downloadFilterChartImage() {
+      const chartEl = document.getElementById('filterWasteChart');
+      if (!chartEl || !filterWasteChartInstance) {
+        alert('ไม่พบกราฟที่ต้องการบันทึก');
+        return;
+      }
+      const machine = (document.getElementById('selectedMachine')?.value || 'BHS').toUpperCase();
+      const codeName = currentFilterWasteCode === 'ALL' ? 'All_11_Items' : currentFilterWasteCode.toUpperCase();
+      const metricName = currentFilterChartMetric === 'pct' ? 'Pct' : 'Kg';
+      
+      const link = document.createElement('a');
+      link.download = `Waste_Breakdown_${machine}_Month${currentFilterMonth}_${codeName}_${metricName}.png`;
+      link.href = chartEl.toDataURL('image/png', 1.0);
+      link.click();
     }
 
     // ========================================================
@@ -1896,9 +2505,9 @@
             borderColor: borderColors,
             borderWidth: 2,
             borderRadius: 8,
-            maxBarThickness: 64,
-            barPercentage: 0.72,
-            categoryPercentage: 0.85
+            maxBarThickness: 72,
+            barPercentage: 0.84,
+            categoryPercentage: 0.90
           }]
         },
         options: {
@@ -1906,7 +2515,7 @@
           responsive: true,
           maintainAspectRatio: false,
           layout: {
-            padding: { top: 48, left: 15, right: 25, bottom: 10 }
+            padding: { top: 48, left: 8, right: 18, bottom: 10 }
           },
           plugins: {
             legend: { display: false },
