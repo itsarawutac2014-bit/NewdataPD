@@ -529,6 +529,9 @@
           <span class="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-800 font-bold border border-rose-200">
             <i class="fa-solid fa-triangle-exclamation mr-1 text-rose-600"></i> สีแดง = เกินเป้า
           </span>
+          <button type="button" onclick="downloadDailyChartImage()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-xs font-bold shadow-xs transition cursor-pointer ml-1">
+            <i class="fa-solid fa-download"></i> บันทึกกราฟ
+          </button>
         </div>
       </div>
 
@@ -2654,20 +2657,378 @@
       });
     }
 
-    // ฟังก์ชันดาวน์โหลดภาพกราฟแยกของเสีย
+    // ========================================================
+    // ฟังก์ชันดาวน์โหลดภาพกราฟแยกของเสีย พร้อมหัวข้อและข้อมูลสรุปแบบคมชัดสูง (High-Res Header + KPI Ribbon)
+    // ========================================================
     function downloadFilterChartImage() {
       const chartEl = document.getElementById('filterWasteChart');
       if (!chartEl || !filterWasteChartInstance) {
         alert('ไม่พบกราฟที่ต้องการบันทึก');
         return;
       }
+
       const machine = (document.getElementById('selectedMachine')?.value || 'BHS').toUpperCase();
+      const monthNames = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+      const mIdx = Math.max(0, Math.min(11, (parseInt(currentFilterMonth) || 10) - 1));
+      const monthNameThai = monthNames[mIdx];
+      const isPct = (currentFilterChartMetric === 'pct');
+      const metricLabel = isPct ? '% Waste ชั่งจริง' : 'น้ำหนักของเสีย (กก.)';
+
+      let itemName = 'ทั้งหมด 11 รายการ (All Waste)';
+      let itemCode = '11 หมวดหมู่';
+      let itemColor = '#4f46e5';
+      let targetText = `${TARGETS.allWaste.toFixed(2)}%`;
+
+      if (currentFilterWasteCode !== 'ALL') {
+        const colDef = WASTE_COLUMNS.find(c => c.key === currentFilterWasteCode);
+        if (colDef) {
+          itemName = colDef.label;
+          itemCode = colDef.code;
+          itemColor = colDef.color;
+          targetText = `${colDef.target.toFixed(2)}%`;
+        }
+      }
+
+      // ดึงข้อมูลสรุปจาก Ribbon
+      const totalKgText = document.getElementById('filter-info-total-kg')?.textContent || '-';
+      const avgPctText = document.getElementById('filter-info-avg-pct')?.textContent || '-';
+      const statusBadgeEl = document.getElementById('filter-info-status-badge');
+      const statusText = statusBadgeEl ? statusBadgeEl.textContent.trim() : 'ได้เป้า ✅';
+      const isPass = statusText.includes('ได้เป้า') || statusText.includes('✅');
+
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+      // chartEl มี devicePixelRatio อยู่แล้ว จึงมีความละเอียดสูงระดับพิกเซลจริง
+      const chartWidth = chartEl.width;
+      const chartHeight = chartEl.height;
+
+      // สเกลอ้างอิงสำหรับขนาดตัวหนังสือและระยะเว้น
+      const scale = Math.max(1, chartWidth / 1400);
+
+      const padX = Math.round(50 * scale);
+      const padTop = Math.round(40 * scale);
+      const headerH = Math.round(180 * scale);
+      const footerH = Math.round(50 * scale);
+
+      const exportWidth = chartWidth + (padX * 2);
+      const exportHeight = chartHeight + headerH + padTop + footerH;
+
+      const exportCanvas = document.createElement('canvas');
+      exportCanvas.width = exportWidth;
+      exportCanvas.height = exportHeight;
+      const ctx = exportCanvas.getContext('2d');
+
+      // 1. พื้นหลังการ์ดสีขาวนวล
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, exportWidth, exportHeight);
+
+      // 2. แถบสีพรีเมียมด้านบนสุด
+      const topGrad = ctx.createLinearGradient(0, 0, exportWidth, 0);
+      topGrad.addColorStop(0, '#4f46e5');
+      topGrad.addColorStop(0.5, '#2563eb');
+      topGrad.addColorStop(1, '#06b6d4');
+      ctx.fillStyle = topGrad;
+      ctx.fillRect(0, 0, exportWidth, Math.round(10 * scale));
+
+      // 3. วาด Icon & Main Title
+      const titleY = padTop + Math.round(35 * scale);
+      
+      // วาดจุดสีแทนประเภทของเสีย
+      ctx.fillStyle = itemColor;
+      ctx.beginPath();
+      ctx.arc(padX + Math.round(14 * scale), titleY - Math.round(10 * scale), Math.round(12 * scale), 0, Math.PI * 2);
+      ctx.fill();
+
+      // ข้อความหัวข้อหลัก
+      ctx.fillStyle = '#0f172a';
+      ctx.font = `900 ${Math.round(26 * scale)}px 'Prompt', 'Sarabun', sans-serif`;
+      const mainTitleText = currentFilterWasteCode === 'ALL'
+        ? `กราฟวิเคราะห์แยกของเสีย 11 รายการ (All Waste)`
+        : `กราฟวิเคราะห์ของเสีย: ${itemName} (${itemCode})`;
+      ctx.fillText(mainTitleText, padX + Math.round(35 * scale), titleY);
+
+      // Badge เครื่องจักร + เดือน (ด้านขวาของหัวข้อหลัก)
+      const machineBadgeText = `เครื่อง ${machine}`;
+      const monthBadgeText = `เดือน ${monthNameThai}`;
+
+      ctx.font = `bold ${Math.round(13 * scale)}px 'Prompt', sans-serif`;
+      const mBadgeW = ctx.measureText(machineBadgeText).width + Math.round(24 * scale);
+      const moBadgeW = ctx.measureText(monthBadgeText).width + Math.round(24 * scale);
+
+      let badgeX = exportWidth - padX - mBadgeW;
+      // Machine Badge
+      ctx.fillStyle = '#eff6ff';
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = Math.max(1.5, Math.round(1.5 * scale));
+      if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(badgeX, titleY - Math.round(25 * scale), mBadgeW, Math.round(32 * scale), Math.round(8 * scale));
+        ctx.fill();
+        ctx.stroke();
+      } else {
+        ctx.fillRect(badgeX, titleY - Math.round(25 * scale), mBadgeW, Math.round(32 * scale));
+      }
+      ctx.fillStyle = '#1d4ed8';
+      ctx.fillText(machineBadgeText, badgeX + Math.round(12 * scale), titleY - Math.round(4 * scale));
+
+      // Month Badge
+      badgeX -= (moBadgeW + Math.round(10 * scale));
+      ctx.fillStyle = '#f8fafc';
+      ctx.strokeStyle = '#cbd5e1';
+      if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(badgeX, titleY - Math.round(25 * scale), moBadgeW, Math.round(32 * scale), Math.round(8 * scale));
+        ctx.fill();
+        ctx.stroke();
+      } else {
+        ctx.fillRect(badgeX, titleY - Math.round(25 * scale), moBadgeW, Math.round(32 * scale));
+      }
+      ctx.fillStyle = '#334155';
+      ctx.fillText(monthBadgeText, badgeX + Math.round(12 * scale), titleY - Math.round(4 * scale));
+
+      // คำบรรยายรอง (Subtitle)
+      const subTitleY = titleY + Math.round(28 * scale);
+      ctx.fillStyle = '#64748b';
+      ctx.font = `500 ${Math.round(13 * scale)}px 'Prompt', 'Sarabun', sans-serif`;
+      ctx.fillText(`ระบบติดตาม % Waste ชั่งจริงรายวัน  •  ข้อมูล: ${metricLabel}  •  บันทึกข้อมูลเมื่อ: ${dateStr}`, padX, subTitleY);
+
+      // 4. แถบ KPI Ribbon สรุปผลด้านบนกราฟ
+      const ribbonY = subTitleY + Math.round(22 * scale);
+      const ribbonH = Math.round(52 * scale);
+      const ribbonW = chartWidth;
+
+      // พื้นหลัง Ribbon
+      ctx.fillStyle = '#f8fafc';
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = Math.max(1, Math.round(1.5 * scale));
+      if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(padX, ribbonY, ribbonW, ribbonH, Math.round(10 * scale));
+        ctx.fill();
+        ctx.stroke();
+      } else {
+        ctx.fillRect(padX, ribbonY, ribbonW, ribbonH);
+      }
+
+      // วาดเนื้อหาข้างใน Ribbon
+      const rTextY = ribbonY + Math.round(32 * scale);
+      let rX = padX + Math.round(20 * scale);
+
+      // ป้าย Target
+      const targetBadgeText = `Target: ${targetText}`;
+      ctx.font = `bold ${Math.round(13 * scale)}px 'Prompt', sans-serif`;
+      const tBadgeW = ctx.measureText(targetBadgeText).width + Math.round(20 * scale);
+
+      ctx.fillStyle = '#fef3c7';
+      ctx.strokeStyle = '#fde68a';
+      if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(rX, ribbonY + Math.round(11 * scale), tBadgeW, Math.round(30 * scale), Math.round(6 * scale));
+        ctx.fill();
+        ctx.stroke();
+      }
+      ctx.fillStyle = '#92400e';
+      ctx.fillText(targetBadgeText, rX + Math.round(10 * scale), rTextY - Math.round(3 * scale));
+
+      rX += tBadgeW + Math.round(25 * scale);
+
+      // ยอดรวมสะสม
+      ctx.fillStyle = '#475569';
+      ctx.font = `500 ${Math.round(13 * scale)}px 'Prompt', sans-serif`;
+      ctx.fillText(`ยอดรวมสะสม: `, rX, rTextY);
+      const lblW1 = ctx.measureText(`ยอดรวมสะสม: `).width;
+      ctx.fillStyle = '#0f172a';
+      ctx.font = `900 ${Math.round(14 * scale)}px 'Prompt', sans-serif`;
+      ctx.fillText(totalKgText, rX + lblW1, rTextY);
+      rX += lblW1 + ctx.measureText(totalKgText).width + Math.round(25 * scale);
+
+      // อัตราส่วนเฉลี่ย
+      ctx.fillStyle = '#475569';
+      ctx.font = `500 ${Math.round(13 * scale)}px 'Prompt', sans-serif`;
+      ctx.fillText(`อัตราส่วนเฉลี่ย: `, rX, rTextY);
+      const lblW2 = ctx.measureText(`อัตราส่วนเฉลี่ย: `).width;
+      ctx.fillStyle = '#0f172a';
+      ctx.font = `900 ${Math.round(14 * scale)}px 'Prompt', sans-serif`;
+      ctx.fillText(avgPctText, rX + lblW2, rTextY);
+      rX += lblW2 + ctx.measureText(avgPctText).width + Math.round(25 * scale);
+
+      // ป้ายสถานะ ได้เป้า / เกินเป้า (ชิดขวาของ Ribbon)
+      ctx.font = `bold ${Math.round(13 * scale)}px 'Prompt', sans-serif`;
+      const sBadgeW = ctx.measureText(statusText).width + Math.round(24 * scale);
+      const sBadgeX = padX + ribbonW - sBadgeW - Math.round(15 * scale);
+
+      ctx.fillStyle = isPass ? '#ecfdf5' : '#fff1f2';
+      ctx.strokeStyle = isPass ? '#a7f3d0' : '#fecdd3';
+      if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(sBadgeX, ribbonY + Math.round(10 * scale), sBadgeW, Math.round(32 * scale), Math.round(8 * scale));
+        ctx.fill();
+        ctx.stroke();
+      }
+      ctx.fillStyle = isPass ? '#065f46' : '#9f1239';
+      ctx.fillText(statusText, sBadgeX + Math.round(12 * scale), rTextY - Math.round(2 * scale));
+
+      // 5. วาดกราฟลงบนแคนวาส
+      const chartDrawY = ribbonY + ribbonH + Math.round(20 * scale);
+      ctx.drawImage(chartEl, padX, chartDrawY, chartWidth, chartHeight);
+
+      // 6. ท้ายภาพ (Footer / Watermark)
+      const footerY = chartDrawY + chartHeight + Math.round(32 * scale);
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = `500 ${Math.round(12 * scale)}px 'Prompt', sans-serif`;
+      ctx.fillText(`ระบบติดตาม Production Waste Dashboard • แผนกผลิต PD • ภาพคมชัดระดับ Ultra HD`, padX, footerY);
+
+      const rightNote = `Exported: ${dateStr}`;
+      const rNoteW = ctx.measureText(rightNote).width;
+      ctx.fillText(rightNote, exportWidth - padX - rNoteW, footerY);
+
+      // 7. ดาวน์โหลดรูปภาพ
       const codeName = currentFilterWasteCode === 'ALL' ? 'All_11_Items' : currentFilterWasteCode.toUpperCase();
       const metricName = currentFilterChartMetric === 'pct' ? 'Pct' : 'Kg';
-      
       const link = document.createElement('a');
       link.download = `Waste_Breakdown_${machine}_Month${currentFilterMonth}_${codeName}_${metricName}.png`;
-      link.href = chartEl.toDataURL('image/png', 1.0);
+      link.href = exportCanvas.toDataURL('image/png', 1.0);
+      link.click();
+    }
+
+    // ========================================================
+    // ฟังก์ชันดาวน์โหลดภาพกราฟ Daily Waste พร้อมหัวข้อและข้อมูลสรุปแบบคมชัดสูง
+    // ========================================================
+    function downloadDailyChartImage() {
+      const chartEl = document.getElementById('dailyWasteChart');
+      if (!chartEl || !dailyWasteChartInstance) {
+        alert('ไม่พบกราฟ Waste รายวัน');
+        return;
+      }
+
+      const machine = (document.getElementById('selectedMachine')?.value || 'BHS').toUpperCase();
+      const monthVal = document.getElementById('selectedMonth')?.value || '10';
+      const monthNames = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+      const mIdx = Math.max(0, Math.min(11, (parseInt(monthVal) || 10) - 1));
+      const monthNameThai = monthNames[mIdx];
+
+      const passDays = document.getElementById('header-days-pass')?.textContent || '-';
+      const overDays = document.getElementById('header-days-over')?.textContent || '-';
+      const idleDays = document.getElementById('header-days-idle')?.textContent || '-';
+      const actualWaste = document.getElementById('kpi-actual-waste')?.textContent || '-';
+
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+      const chartWidth = chartEl.width;
+      const chartHeight = chartEl.height;
+      const scale = Math.max(1, chartWidth / 1400);
+
+      const padX = Math.round(50 * scale);
+      const padTop = Math.round(40 * scale);
+      const headerH = Math.round(180 * scale);
+      const footerH = Math.round(50 * scale);
+
+      const exportWidth = chartWidth + (padX * 2);
+      const exportHeight = chartHeight + headerH + padTop + footerH;
+
+      const exportCanvas = document.createElement('canvas');
+      exportCanvas.width = exportWidth;
+      exportCanvas.height = exportHeight;
+      const ctx = exportCanvas.getContext('2d');
+
+      // 1. พื้นหลัง
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, exportWidth, exportHeight);
+
+      // 2. แถบสีด้านบน
+      const topGrad = ctx.createLinearGradient(0, 0, exportWidth, 0);
+      topGrad.addColorStop(0, '#059669');
+      topGrad.addColorStop(0.5, '#0284c7');
+      topGrad.addColorStop(1, '#4f46e5');
+      ctx.fillStyle = topGrad;
+      ctx.fillRect(0, 0, exportWidth, Math.round(10 * scale));
+
+      // 3. หัวข้อหลัก
+      const titleY = padTop + Math.round(35 * scale);
+      ctx.fillStyle = '#0f172a';
+      ctx.font = `900 ${Math.round(26 * scale)}px 'Prompt', 'Sarabun', sans-serif`;
+      ctx.fillText(`กราฟ Waste PRODUCTION รายวันเครื่อง ${machine} (เดือน ${monthNameThai} 2026)`, padX, titleY);
+
+      // Subtitle
+      const subTitleY = titleY + Math.round(28 * scale);
+      ctx.fillStyle = '#64748b';
+      ctx.font = `500 ${Math.round(13 * scale)}px 'Prompt', sans-serif`;
+      ctx.fillText(`เปรียบเทียบ % Waste ชั่งจริงสะสมรายวัน เทียบกับ Target ${TARGETS.allWaste.toFixed(2)}%  •  บันทึกข้อมูลเมื่อ: ${dateStr}`, padX, subTitleY);
+
+      // 4. แถบ KPI Ribbon
+      const ribbonY = subTitleY + Math.round(22 * scale);
+      const ribbonH = Math.round(52 * scale);
+      const ribbonW = chartWidth;
+
+      ctx.fillStyle = '#f8fafc';
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = Math.max(1, Math.round(1.5 * scale));
+      if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(padX, ribbonY, ribbonW, ribbonH, Math.round(10 * scale));
+        ctx.fill();
+        ctx.stroke();
+      } else {
+        ctx.fillRect(padX, ribbonY, ribbonW, ribbonH);
+      }
+
+      const rTextY = ribbonY + Math.round(32 * scale);
+      let rX = padX + Math.round(20 * scale);
+
+      // Target Badge
+      const tText = `Target: ${TARGETS.allWaste.toFixed(2)}%`;
+      ctx.font = `bold ${Math.round(13 * scale)}px 'Prompt', sans-serif`;
+      const tW = ctx.measureText(tText).width + Math.round(20 * scale);
+      ctx.fillStyle = '#fef3c7';
+      ctx.strokeStyle = '#fde68a';
+      if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(rX, ribbonY + Math.round(11 * scale), tW, Math.round(30 * scale), Math.round(6 * scale));
+        ctx.fill();
+        ctx.stroke();
+      }
+      ctx.fillStyle = '#92400e';
+      ctx.fillText(tText, rX + Math.round(10 * scale), rTextY - Math.round(3 * scale));
+      rX += tW + Math.round(25 * scale);
+
+      // Actual สะสม
+      ctx.fillStyle = '#475569';
+      ctx.font = `500 ${Math.round(13 * scale)}px 'Prompt', sans-serif`;
+      ctx.fillText(`สะสม MTD: `, rX, rTextY);
+      const actW = ctx.measureText(`สะสม MTD: `).width;
+      ctx.fillStyle = '#0f172a';
+      ctx.font = `900 ${Math.round(14 * scale)}px 'Prompt', sans-serif`;
+      ctx.fillText(actualWaste, rX + actW, rTextY);
+      rX += actW + ctx.measureText(actualWaste).width + Math.round(30 * scale);
+
+      // สรุปวัน
+      ctx.fillStyle = '#047857';
+      ctx.font = `bold ${Math.round(13 * scale)}px 'Prompt', sans-serif`;
+      ctx.fillText(`✔ ผ่านเป้า: ${passDays} วัน`, rX, rTextY);
+      rX += ctx.measureText(`✔ ผ่านเป้า: ${passDays} วัน`).width + Math.round(20 * scale);
+
+      ctx.fillStyle = '#b91c1c';
+      ctx.fillText(`✖ ไม่ผ่าน: ${overDays} วัน`, rX, rTextY);
+      rX += ctx.measureText(`✖ ไม่ผ่าน: ${overDays} วัน`).width + Math.round(20 * scale);
+
+      ctx.fillStyle = '#0284c7';
+      ctx.fillText(`⏸ ไม่เดิน: ${idleDays} วัน`, rX, rTextY);
+
+      // 5. วาดกราฟ
+      const chartDrawY = ribbonY + ribbonH + Math.round(20 * scale);
+      ctx.drawImage(chartEl, padX, chartDrawY, chartWidth, chartHeight);
+
+      // 6. ท้ายภาพ
+      const footerY = chartDrawY + chartHeight + Math.round(32 * scale);
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = `500 ${Math.round(12 * scale)}px 'Prompt', sans-serif`;
+      ctx.fillText(`ระบบติดตาม Production Waste Dashboard • แผนกผลิต PD • ภาพคมชัดระดับ Ultra HD`, padX, footerY);
+
+      const link = document.createElement('a');
+      link.download = `Waste_Daily_${machine}_Month${monthVal}.png`;
+      link.href = exportCanvas.toDataURL('image/png', 1.0);
       link.click();
     }
 
