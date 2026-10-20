@@ -145,6 +145,9 @@ if ($raw2 && preg_match('/setResponse\((.*)\);/s', $raw2, $m2)) {
                 } elseif ($cCode === 'BL21') {
                     $dailyBreakdown[$currentDay]['control'] += $cKg;
                     $dailyBreakdown[$currentDay]['totalKg'] += $cKg;
+                } elseif ($cCode === 'BL20') {
+                    $dailyBreakdown[$currentDay]['om'] += $cKg;
+                    $dailyBreakdown[$currentDay]['totalKg'] += $cKg;
                 } elseif ($cCode === 'BL15') {
                     $dailyBreakdown[$currentDay]['order'] += $cKg;
                     $dailyBreakdown[$currentDay]['totalKg'] += $cKg;
@@ -239,6 +242,8 @@ if (file_exists($importedFile)) {
                                 $dailyBreakdown[$day]['web'] = $kg;
                             } elseif ($cd === 'BL21' || stripos($nm, 'control') !== false) {
                                 $dailyBreakdown[$day]['control'] = $kg;
+                            } elseif ($cd === 'BL20' || stripos($nm, 'om') !== false || stripos($nm, 'ชานไม้') !== false) {
+                                $dailyBreakdown[$day]['om'] = $kg;
                             } elseif ($cd === 'BL15' || stripos($nm, 'order') !== false || stripos($nm, 'รอยต่อ') !== false) {
                                 $dailyBreakdown[$day]['order'] = $kg;
                             } elseif ($cd === 'BL12' || stripos($nm, 'core') !== false || stripos($nm, 'แกน') !== false) {
@@ -415,29 +420,25 @@ if ($raw1 && isset($j1['table']['rows'])) {
             if ($yr < 100) $yr += 2000;
             $isoDate = sprintf('%04d-%02d-%02d', $yr, $mo, $d);
             
-            $c = 0; $o = 0; $w = 0;
+            $c = 0; $o = 0;
             if ($machine === 'BHS') {
                 $c = floatval($r['c'][7]['v'] ?? 0);
                 $o = floatval($r['c'][8]['v'] ?? 0);
-                $w = floatval($r['c'][11]['v'] ?? 0);  // Waste BL ทั้งหมด BHS
             } elseif ($machine === 'YUELI') {
                 $c = floatval($r['c'][13]['v'] ?? 0);
                 $o = floatval($r['c'][14]['v'] ?? 0);
-                $w = floatval($r['c'][17]['v'] ?? 0);  // Waste BL ทั้งหมด YUELI
             } elseif ($machine === 'ISOWA') {
                 $c = floatval($r['c'][1]['v'] ?? 0);
                 $o = floatval($r['c'][2]['v'] ?? 0);
-                $w = floatval($r['c'][5]['v'] ?? 0);   // Waste BL ทั้งหมด ISOWA
             } elseif ($machine === 'TOTAL') {
                 $c = floatval($r['c'][7]['v'] ?? 0) + floatval($r['c'][13]['v'] ?? 0) + floatval($r['c'][1]['v'] ?? 0);
                 $o = floatval($r['c'][8]['v'] ?? 0) + floatval($r['c'][14]['v'] ?? 0) + floatval($r['c'][2]['v'] ?? 0);
-                $w = floatval($r['c'][11]['v'] ?? 0) + floatval($r['c'][17]['v'] ?? 0) + floatval($r['c'][5]['v'] ?? 0);
             }
             
             $allDaysData[$isoDate] = [
                 'consum' => $c,
                 'output' => $o,
-                'waste11' => $w,  // ของเสียทั้งหมด (ALL BL) จาก Sheet 1
+                'waste11' => 0,
                 'day' => $d,
                 'month' => $mo,
                 'year' => $yr
@@ -446,8 +447,36 @@ if ($raw1 && isset($j1['table']['rows'])) {
     }
 }
 
-// 4.2 (ข้ามขั้นตอนนี้แล้ว — ใช้ Waste ทั้งหมดจาก Sheet 1 โดยตรงแล้วในขั้นตอน 4.1)
-// ของเสีย ALL BL ถูก set ไว้แล้วใน $allDaysData[$isoDate]['waste11'] จาก col 11/17/5
+// 4.2 ดึงของเสีย 11 รายการทั้งปีจาก Sheet 2 (Waste ) — ไม่เอารวม (BL32 Trim, BL33 ฯลฯ ไม่นับ)
+if ($raw2 && isset($j2['table']['rows'])) {
+    $rows2All = $j2['table']['rows'];
+    $allowedCodes11 = ['BL18', 'BL17', 'BL16', 'BL21', 'BL20', 'BL15', 'BL12', 'BL19', 'BL22', 'BL24', 'BL25'];
+    
+    for ($mo = 1; $mo <= 12; $mo++) {
+        $mBaseCol = ($mo - 1) * 9;
+        $mKgCol = $mBaseCol + ($mOffset[$machine] ?? 3);
+        $currIso = null;
+        
+        for ($r = 0; $r < count($rows2All); $r++) {
+            $cCode = trim($rows2All[$r]['c'][$mBaseCol]['v'] ?? '');
+            $cKg = floatval($rows2All[$r]['c'][$mKgCol]['v'] ?? 0);
+            
+            if (preg_match('/^(\d{1,2})\/' . $mo . '\/\d{2,4}$/', $cCode, $dm) ||
+                preg_match('/^(\d{1,2})\/' . sprintf('%02d', $mo) . '\/\d{2,4}$/', $cCode, $dm)) {
+                $d = intval($dm[1]);
+                $currIso = sprintf('2026-%02d-%02d', $mo, $d);
+                continue;
+            }
+            
+            if ($currIso && in_array($cCode, $allowedCodes11)) {
+                if (!isset($allDaysData[$currIso])) {
+                    $allDaysData[$currIso] = ['consum' => 0, 'output' => 0, 'waste11' => 0, 'day' => $d, 'month' => $mo, 'year' => 2026];
+                }
+                $allDaysData[$currIso]['waste11'] += $cKg;
+            }
+        }
+    }
+}
 
 // 4.3 รวมประวัติจาก imported_data.json เข้าไปในภาพรวมทั้งปีด้วย
 if (isset($importedJson) && is_array($importedJson)) {
@@ -484,6 +513,7 @@ if (isset($importedJson) && is_array($importedJson)) {
         }
     }
     if (isset($importedJson['waste']) && is_array($importedJson['waste'])) {
+        $allowedCodes11 = ['BL18', 'BL17', 'BL16', 'BL21', 'BL20', 'BL15', 'BL12', 'BL19', 'BL22', 'BL24', 'BL25'];
         foreach ($importedJson['waste'] as $dateKey => $mList) {
             if (preg_match('/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/', $dateKey, $dm)) {
                 $d = intval($dm[1]);
@@ -491,23 +521,22 @@ if (isset($importedJson) && is_array($importedJson)) {
                 $yr = intval($dm[3]);
                 if ($yr < 100) $yr += 2000;
                 $isoDate = sprintf('%04d-%02d-%02d', $yr, $mo, $d);
-                // ใช้ totalKg (ของเสียทั้งหมด) แทนการกรองเฉพาะ 11 รายการ
-                $wItems = $mList[$machine] ?? ($mList['ALL'] ?? null);
-                $totalWasteKgDay = 0;
-                if ($wItems) {
-                    $totalWasteKgDay = floatval($wItems['totalKg'] ?? 0);
-                    // ถ้าไม่มี totalKg ให้รวมจาก items ทั้งหมด
-                    if ($totalWasteKgDay == 0 && isset($wItems['items']) && is_array($wItems['items'])) {
-                        foreach ($wItems['items'] as $it) {
-                            $totalWasteKgDay += floatval($it['kg'] ?? 0);
+                $wMachine = $mList[$machine] ?? ($mList['ALL'] ?? null);
+                $wItems = $wMachine['items'] ?? null;
+                $waste11Day = 0;
+                if ($wItems && is_array($wItems)) {
+                    foreach ($wItems as $it) {
+                        $cd = strtoupper(trim($it['code'] ?? ''));
+                        if (in_array($cd, $allowedCodes11)) {
+                            $waste11Day += floatval($it['kg'] ?? 0);
                         }
                     }
                 }
-                if ($totalWasteKgDay > 0) {
+                if ($waste11Day > 0) {
                     if (!isset($allDaysData[$isoDate])) {
                         $allDaysData[$isoDate] = ['consum' => 0, 'output' => 0, 'waste11' => 0, 'day' => $d, 'month' => $mo, 'year' => $yr];
                     }
-                    $allDaysData[$isoDate]['waste11'] = $totalWasteKgDay;
+                    $allDaysData[$isoDate]['waste11'] = $waste11Day;
                 }
             }
         }
