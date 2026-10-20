@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ตั้งค่าเป้าหมายของเสีย 11 รายการ (Target Management) | Production Dashboard</title>
+  
+  <!-- Tailwind CSS & FontAwesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts: Prompt & Chakra Petch & Sarabun -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700;900&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js สำหรับแสดงกราฟจำลองเป้าหมายแบบสดๆ -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+
+  <style>
+    body {
+      font-family: 'Prompt', 'Sarabun', sans-serif;
+    }
+    .font-num {
+      font-family: 'Chakra Petch', monospace;
+    }
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-30 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row justify-between items-center gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-400 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg">
+          <i class="fa-solid fa-bullseye"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-black text-white flex items-center gap-2">
+            จัดการเป้าหมายของเสีย <span class="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold">11 รายการ (Target Settings)</span>
+          </h1>
+          <p class="text-xs text-slate-400">แก้ไขเปอร์เซ็นต์เป้าหมาย (% Target) สำหรับการประเมินผลใน Dashboard และกราฟวิเคราะห์</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 flex-wrap">
+        <a href="upload.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 transition">
+          <i class="fa-solid fa-cloud-arrow-up text-emerald-400"></i> โยนไฟล์ Excel
+        </a>
+        <a href="index.html" class="inline-flex items-center gap-2 px-4 py-1.5 text-xs font-black text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition shadow-md shadow-blue-900/30">
+          <i class="fa-solid fa-chart-line"></i> กลับสู่ Dashboard
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 flex-1 w-full">
+
+    <!-- แถบแจ้งเตือน / สถานะการโหลด -->
+    <div id="statusNotification" class="hidden bg-emerald-50 border-2 border-emerald-400 p-4 rounded-2xl shadow-sm text-emerald-950 flex items-center justify-between transition-all">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-lg shrink-0">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <div>
+          <h4 class="font-bold text-sm" id="statusMessage">บันทึกเป้าหมาย Target สำเร็จ</h4>
+          <p class="text-xs text-emerald-800 mt-0.5">ข้อมูลนี้จะถูกนำไปใช้วัดผลในตารางและกราฟ Dashboard ทันที</p>
+        </div>
+      </div>
+      <button onclick="dismissNotification()" class="text-emerald-700 hover:text-emerald-900 text-sm p-1">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- KPI Summary Overview -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      <!-- Card 1: ALL Waste Master Target -->
+      <div class="bg-gradient-to-br from-amber-950 via-slate-900 to-amber-950 p-5 rounded-2xl border-2 border-amber-500 text-white shadow-md flex flex-col justify-between">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-xs font-black text-amber-300 uppercase tracking-wider">เป้าหมายรวม ALL Waste</p>
+            <div class="flex items-baseline gap-1 mt-1">
+              <input type="number" id="input-allWaste" step="0.01" min="0" max="100" oninput="onTargetChange()" class="w-28 text-3xl sm:text-4xl font-black bg-transparent border-b-2 border-amber-400 text-amber-300 focus:outline-none focus:border-amber-200 font-num" value="5.00">
+              <span class="text-2xl font-black text-amber-400">%</span>
+            </div>
+          </div>
+          <div class="w-11 h-11 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-400/30 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-crosshairs"></i>
+          </div>
+        </div>
+        <p class="text-[11px] text-amber-200/80 mt-2">เป้าหมายภาพรวมใช้ในตารางและเส้นประบนกราฟ</p>
+      </div>
+
+      <!-- Card 2: Sum of 11 Items -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">ผลรวม Target 11 รายการ</p>
+            <div class="flex items-baseline gap-1 mt-1">
+              <h3 class="text-3xl sm:text-4xl font-black text-slate-900 font-num" id="sum-11-targets">5.00</h3>
+              <span class="text-2xl font-black text-slate-600">%</span>
+            </div>
+          </div>
+          <div class="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-calculator"></i>
+          </div>
+        </div>
+        <div class="mt-2 flex items-center justify-between text-xs">
+          <span class="text-slate-500">ผลรวมย่อยของแต่ละจุด</span>
+          <button type="button" onclick="syncSumToAllWaste()" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded transition">
+            <i class="fa-solid fa-arrows-rotate mr-1"></i> ซิงค์ใส่เป้าหมายรวม
+          </button>
+        </div>
+      </div>
+
+      <!-- Card 3: Difference Comparison -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">เปรียบเทียบ (Diff Target)</p>
+            <div class="flex items-baseline gap-1 mt-1">
+              <h3 class="text-3xl sm:text-4xl font-black font-num" id="diff-targets">0.00</h3>
+              <span class="text-2xl font-black text-slate-600">%</span>
+            </div>
+          </div>
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center text-xl" id="diff-icon-box">
+            <i class="fa-solid fa-scale-balanced"></i>
+          </div>
+        </div>
+        <div class="mt-2 text-xs">
+          <span id="diff-status-badge" class="px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800">
+            สมดุลพอดี (100%)
+          </span>
+        </div>
+      </div>
+
+      <!-- Card 4: Quick Actions -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div>
+          <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">บันทึกและจัดการ</p>
+          <p class="text-xs text-slate-500 mt-1">อัปเดตค่าเป้าหมายล่าสุด: <strong id="last-updated-text" class="text-slate-800 font-bold">-</strong></p>
+        </div>
+        <div class="flex items-center gap-2 mt-3">
+          <button type="button" onclick="saveTargets()" id="btn-save" class="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-sm transition flex items-center justify-center gap-1.5 cursor-pointer">
+            <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล
+          </button>
+          <button type="button" onclick="resetDefaults()" title="รีเซ็ตเป็นค่าเดิม" class="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold border border-slate-300 transition cursor-pointer">
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Main Grid: 11 Items Target Editor -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-4 mb-5 border-b border-slate-100">
+        <div>
+          <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-sm shadow-xs border border-amber-100">
+              <i class="fa-solid fa-sliders"></i>
+            </span>
+            <span>กำหนดค่าเป้าหมายของเสีย 11 รายการ (% Target)</span>
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">สามารถพิมพ์ตัวเลขโดยตรง หรือกดปุ่ม +/- เพื่อปรับค่าทีละ 0.05% หรือ 0.10%</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="saveTargets()" class="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-black rounded-xl shadow-sm transition flex items-center gap-1.5 cursor-pointer">
+            <i class="fa-solid fa-check"></i> บันทึกเป้าหมายทั้งหมด
+          </button>
+        </div>
+      </div>
+
+      <!-- Container cards for 11 items -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="targetCardsContainer">
+        <!-- Injected via JavaScript -->
+      </div>
+    </section>
+
+    <!-- Visual Chart Preview: กราฟเปรียบเทียบ Target สดๆ -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6">
+      <div class="flex justify-between items-center pb-3 mb-4 border-b border-slate-100">
+        <div>
+          <h3 class="text-base font-black text-slate-900 flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm shadow-xs border border-indigo-100">
+              <i class="fa-solid fa-chart-simple"></i>
+            </span>
+            <span>ตัวอย่างกราฟสัดส่วนเป้าหมายทั้ง 11 รายการ (Live Target Distribution)</span>
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">ภาพรวมการกระจายตัวของ Target แต่ละหมวดหมู่แบบเรียลไทม์</p>
+        </div>
+        <span class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-lg">11 รายการ</span>
+      </div>
+
+      <div class="relative h-[320px] w-full">
+        <canvas id="targetPreviewChart"></canvas>
+      </div>
+    </section>
+
+    <!-- Floating Action Bottom Bar (เมื่อเลื่อนหน้าจอ) -->
+    <div class="sticky bottom-4 z-20 bg-slate-900/90 backdrop-blur-md text-white p-3.5 rounded-2xl shadow-xl border border-slate-700 flex flex-wrap justify-between items-center gap-3">
+      <div class="flex items-center gap-3">
+        <span class="text-xs font-semibold text-slate-300">ผลรวม 11 จุด:</span>
+        <strong id="bottom-sum-badge" class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-400/30 text-sm font-black font-num">5.00%</strong>
+        <span class="text-xs text-slate-400 hidden sm:inline">|</span>
+        <span class="text-xs font-semibold text-slate-300 hidden sm:inline">เป้าหมายรวม:</span>
+        <strong id="bottom-allwaste-badge" class="px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-300 border border-blue-400/30 text-sm font-black font-num hidden sm:inline">5.00%</strong>
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="resetDefaults()" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold border border-slate-700 transition cursor-pointer">
+          <i class="fa-solid fa-rotate-left mr-1"></i> ค่าเริ่มต้น
+        </button>
+        <button type="button" onclick="saveTargets()" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center gap-1.5 cursor-pointer">
+          <i class="fa-solid fa-floppy-disk"></i> บันทึก Target
+        </button>
+        <a href="index.html" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black shadow-md transition flex items-center gap-1.5">
+          <i class="fa-solid fa-eye"></i> ดู Dashboard
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Script Logic -->
+  <script>
+    // นิยามข้อมูล 11 รายการต้นฉบับ
+    const DEFAULT_TARGETS = {
+      allWaste: 5.00,
+      items: {
+        ncp: 2.00,
+        def: 1.10,
+        web: 0.15,
+        control: 1.01,
+        om: 0.05,
+        order: 0.20,
+        core: 0.15,
+        spec: 0.15,
+        conveyor: 0.03,
+        qc: 0.07,
+        reject: 0.09
+      }
+    };
+
+    const WASTE_DEFINITIONS = [
+      { key: 'ncp', label: '.NCP', code: 'BL18', defaultTarget: 2.00, color: '#f43f5e', icon: 'fa-box' },
+      { key: 'def', label: '.DEF', code: 'BL17', defaultTarget: 1.10, color: '#f97316', icon: 'fa-triangle-exclamation' },
+      { key: 'web', label: '.WEB', code: 'BL16', defaultTarget: 0.15, color: '#eab308', icon: 'fa-spider' },
+      { key: 'control', label: 'ของเหลือ Control', code: 'BL21', defaultTarget: 1.01, color: '#10b981', icon: 'fa-sliders' },
+      { key: 'om', label: 'ของเหลือ O.M.', code: 'BL20', defaultTarget: 0.05, color: '#06b6d4', icon: 'fa-gear' },
+      { key: 'order', label: '.รอยต่อออเดอร์', code: 'BL15', defaultTarget: 0.20, color: '#3b82f6', icon: 'fa-link' },
+      { key: 'core', label: '.เศษติดแกนผลิต', code: 'BL12', defaultTarget: 0.15, color: '#6366f1', icon: 'fa-circle-notch' },
+      { key: 'spec', label: '.สันนูนตรงสเปค', code: 'BL19', defaultTarget: 0.15, color: '#8b5cf6', icon: 'fa-ruler' },
+      { key: 'conveyor', label: '.Conveyor', code: 'BL22', defaultTarget: 0.03, color: '#ec4899', icon: 'fa-road' },
+      { key: 'qc', label: '.QC Test', code: 'BL24', defaultTarget: 0.07, color: '#14b8a6', icon: 'fa-vial-circle-check' },
+      { key: 'reject', label: '.Reject', code: 'BL25', defaultTarget: 0.09, color: '#ef4444', icon: 'fa-ban' }
+    ];
+
+    let currentTargets = JSON.parse(JSON.stringify(DEFAULT_TARGETS));
+    let previewChartInstance = null;
+
+    // เริ่มต้นทำงานเมื่อโหลดหน้า
+    document.addEventListener('DOMContentLoaded', () => {
+      renderTargetCards();
+      loadSavedTargets();
+    });
+
+    // เรนเดอร์การ์ดทั้ง 11 ใบ
+    function renderTargetCards() {
+      const container = document.getElementById('targetCardsContainer');
+      if (!container) return;
+
+      container.innerHTML = WASTE_DEFINITIONS.map((item, idx) => {
+        const val = currentTargets.items[item.key] !== undefined ? currentTargets.items[item.key] : item.defaultTarget;
+        return `
+          <div class="bg-slate-50 hover:bg-white rounded-2xl border-2 border-slate-200 hover:border-indigo-400 p-4 transition shadow-xs flex flex-col justify-between group">
+            <div>
+              <!-- Card Header -->
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full shrink-0" style="background-color: ${item.color}"></span>
+                  <span class="text-xs font-black text-slate-800 group-hover:text-indigo-600 transition truncate">${item.label}</span>
+                </div>
+                <span class="text-[10px] font-black text-slate-600 bg-white border border-slate-300 px-2 py-0.5 rounded-md shrink-0">${item.code}</span>
+              </div>
+
+              <!-- Input Area -->
+              <div class="bg-white rounded-xl border border-slate-200 p-2.5 flex items-center justify-between shadow-2xs mt-2 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-transparent">
+                <span class="text-xs font-bold text-slate-400">Target:</span>
+                <div class="flex items-center gap-1">
+                  <input type="number" 
+                         id="target-input-${item.key}" 
+                         step="0.01" 
+                         min="0" 
+                         max="50" 
+                         value="${Number(val).toFixed(2)}" 
+                         oninput="onItemInputChange('${item.key}')" 
+                         class="w-20 text-right text-lg font-black text-slate-900 bg-transparent focus:outline-none font-num" />
+                  <span class="text-xs font-bold text-slate-600">%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stepper Adjustment Buttons -->
+            <div class="mt-3 pt-3 border-t border-slate-200/80 flex items-center justify-between gap-1">
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="adjustTarget('${item.key}', -0.10)" class="px-2 py-1 bg-white hover:bg-slate-200 text-slate-700 text-[11px] font-bold rounded-lg border border-slate-300 transition cursor-pointer" title="ลดลง 0.10%">-0.10</button>
+                <button type="button" onclick="adjustTarget('${item.key}', -0.05)" class="px-2 py-1 bg-white hover:bg-slate-200 text-slate-700 text-[11px] font-bold rounded-lg border border-slate-300 transition cursor-pointer" title="ลดลง 0.05%">-0.05</button>
+              </div>
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="adjustTarget('${item.key}', 0.05)" class="px-2 py-1 bg-white hover:bg-slate-200 text-slate-700 text-[11px] font-bold rounded-lg border border-slate-300 transition cursor-pointer" title="เพิ่มขึ้น 0.05%">+0.05</button>
+                <button type="button" onclick="adjustTarget('${item.key}', 0.10)" class="px-2 py-1 bg-white hover:bg-slate-200 text-slate-700 text-[11px] font-bold rounded-lg border border-slate-300 transition cursor-pointer" title="เพิ่มขึ้น 0.10%">+0.10</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // โหลดข้อมูลจาก targets_api.php หรือ LocalStorage
+    function loadSavedTargets() {
+      fetch('targets_api.php')
+        .then(res => res.json())
+        .then(res => {
+          if (res && res.success && res.data) {
+            applyLoadedTargets(res.data);
+          } else {
+            loadFromLocalStorage();
+          }
+        })
+        .catch(err => {
+          console.warn('Cannot reach targets_api.php, falling back to LocalStorage:', err);
+          loadFromLocalStorage();
+        });
+    }
+
+    function loadFromLocalStorage() {
+      try {
+        const local = localStorage.getItem('waste_targets');
+        if (local) {
+          const parsed = JSON.parse(local);
+          applyLoadedTargets(parsed);
+          return;
+        }
+      } catch(e) {}
+      applyLoadedTargets(DEFAULT_TARGETS);
+    }
+
+    function applyLoadedTargets(data) {
+      if (!data) return;
+      if (data.allWaste !== undefined) {
+        currentTargets.allWaste = parseFloat(data.allWaste) || 5.00;
+        const inputAll = document.getElementById('input-allWaste');
+        if (inputAll) inputAll.value = currentTargets.allWaste.toFixed(2);
+      }
+      if (data.items) {
+        WASTE_DEFINITIONS.forEach(def => {
+          if (data.items[def.key] !== undefined) {
+            const val = parseFloat(data.items[def.key]) || 0;
+            currentTargets.items[def.key] = val;
+            const inputEl = document.getElementById(`target-input-${def.key}`);
+            if (inputEl) inputEl.value = val.toFixed(2);
+          }
+        });
+      }
+      if (data.updated_at) {
+        const updatedEl = document.getElementById('last-updated-text');
+        if (updatedEl) updatedEl.textContent = data.updated_at;
+      }
+      updateCalculations();
+      renderPreviewChart();
+    }
+
+    // ปรับค่าด้วยปุ่ม +/-
+    function adjustTarget(key, delta) {
+      const inputEl = document.getElementById(`target-input-${key}`);
+      if (!inputEl) return;
+      let val = parseFloat(inputEl.value) || 0;
+      val = Math.max(0, parseFloat((val + delta).toFixed(2)));
+      inputEl.value = val.toFixed(2);
+      currentTargets.items[key] = val;
+      updateCalculations();
+      renderPreviewChart();
+    }
+
+    // เมื่อผู้ใช้พิมพ์ตัวเลขในกล่องของแต่ละไอเท็ม
+    function onItemInputChange(key) {
+      const inputEl = document.getElementById(`target-input-${key}`);
+      if (!inputEl) return;
+      let val = parseFloat(inputEl.value);
+      if (isNaN(val) || val < 0) val = 0;
+      currentTargets.items[key] = val;
+      updateCalculations();
+      renderPreviewChart();
+    }
+
+    // เมื่อผู้ใช้เปลี่ยนค่า ALL Waste รวม
+    function onTargetChange() {
+      const inputAll = document.getElementById('input-allWaste');
+      if (!inputAll) return;
+      let val = parseFloat(inputAll.value);
+      if (isNaN(val) || val < 0) val = 0;
+      currentTargets.allWaste = val;
+      updateCalculations();
+      renderPreviewChart();
+    }
+
+    // ซิงค์ผลรวม 11 รายการไปใส่เป้าหมายรวม
+    function syncSumToAllWaste() {
+      let sum = 0;
+      WASTE_DEFINITIONS.forEach(def => {
+        sum += (currentTargets.items[def.key] || 0);
+      });
+      sum = parseFloat(sum.toFixed(2));
+      currentTargets.allWaste = sum;
+      const inputAll = document.getElementById('input-allWaste');
+      if (inputAll) inputAll.value = sum.toFixed(2);
+      updateCalculations();
+      renderPreviewChart();
+    }
+
+    // คำนวณสรุปผลรวมและส่วนต่าง
+    function updateCalculations() {
+      let sum = 0;
+      WASTE_DEFINITIONS.forEach(def => {
+        sum += (currentTargets.items[def.key] || 0);
+      });
+      sum = parseFloat(sum.toFixed(2));
+
+      const allWaste = parseFloat(currentTargets.allWaste) || 5.00;
+      const diff = parseFloat((allWaste - sum).toFixed(2));
+
+      // แสดงตัวเลข
+      const sumEl = document.getElementById('sum-11-targets');
+      if (sumEl) sumEl.textContent = sum.toFixed(2);
+
+      const diffEl = document.getElementById('diff-targets');
+      if (diffEl) {
+        diffEl.textContent = (diff > 0 ? `+${diff.toFixed(2)}` : diff.toFixed(2));
+        diffEl.className = Math.abs(diff) < 0.01 
+          ? 'text-3xl sm:text-4xl font-black font-num text-emerald-600' 
+          : 'text-3xl sm:text-4xl font-black font-num text-amber-600';
+      }
+
+      const diffBox = document.getElementById('diff-icon-box');
+      const badge = document.getElementById('diff-status-badge');
+      if (badge) {
+        if (Math.abs(diff) < 0.01) {
+          badge.className = 'px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800';
+          badge.textContent = 'สมดุลตรงเป๊ะ (ผลรวม 11 จุด = เป้าหมายรวม)';
+          if (diffBox) diffBox.className = 'w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center text-xl';
+        } else if (diff > 0) {
+          badge.className = 'px-2 py-0.5 rounded-full font-bold bg-blue-100 text-blue-800';
+          badge.textContent = `เป้าหมายรวมเหลือว่างอีก ${diff.toFixed(2)}%`;
+          if (diffBox) diffBox.className = 'w-11 h-11 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center text-xl';
+        } else {
+          badge.className = 'px-2 py-0.5 rounded-full font-bold bg-rose-100 text-rose-800';
+          badge.textContent = `ผลรวม 11 จุดเกินเป้าหมายรวมอยู่ ${Math.abs(diff).toFixed(2)}%`;
+          if (diffBox) diffBox.className = 'w-11 h-11 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center text-xl';
+        }
+      }
+
+      // แถบ Bottom Bar
+      const bSum = document.getElementById('bottom-sum-badge');
+      if (bSum) bSum.textContent = `${sum.toFixed(2)}%`;
+      const bAll = document.getElementById('bottom-allwaste-badge');
+      if (bAll) bAll.textContent = `${allWaste.toFixed(2)}%`;
+    }
+
+    // บันทึกเป้าหมาย
+    function saveTargets() {
+      const btn = document.getElementById('btn-save');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึก...';
+      }
+
+      const payload = {
+        action: 'save',
+        allWaste: currentTargets.allWaste,
+        items: currentTargets.items
+      };
+
+      // บันทึกลง LocalStorage ทันทีเป็นสำรอง
+      try {
+        localStorage.setItem('waste_targets', JSON.stringify({
+          ...payload,
+          updated_at: new Date().toLocaleString('th-TH')
+        }));
+      } catch(e) {}
+
+      // ส่งไปบันทึกลงไฟล์ targets.json ผ่าน targets_api.php
+      fetch('targets_api.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล';
+        }
+        showNotification(res.message || 'บันทึกเป้าหมาย Target เรียบร้อยแล้ว!');
+        if (res.data && res.data.updated_at) {
+          const updatedEl = document.getElementById('last-updated-text');
+          if (updatedEl) updatedEl.textContent = res.data.updated_at;
+        }
+      })
+      .catch(err => {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล';
+        }
+        console.warn('API error, saved to LocalStorage only:', err);
+        showNotification('บันทึกเป้าหมาย Target ในเบราว์เซอร์เรียบร้อยแล้ว!');
+      });
+    }
+
+    // รีเซ็ตเป็นค่าเริ่มต้น
+    function resetDefaults() {
+      if (!confirm('คุณต้องการรีเซ็ตค่าเป้าหมายทั้ง 11 รายการกลับเป็นค่าเริ่มต้นใช่หรือไม่?')) {
+        return;
+      }
+
+      fetch('targets_api.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reset' })
+      })
+      .then(res => res.json())
+      .then(res => {
+        applyLoadedTargets(DEFAULT_TARGETS);
+        try {
+          localStorage.removeItem('waste_targets');
+        } catch(e) {}
+        showNotification('รีเซ็ตเป็นค่าเริ่มต้นเรียบร้อยแล้ว');
+      })
+      .catch(err => {
+        applyLoadedTargets(DEFAULT_TARGETS);
+        try {
+          localStorage.removeItem('waste_targets');
+        } catch(e) {}
+        showNotification('รีเซ็ตเป็นค่าเริ่มต้นเรียบร้อยแล้ว');
+      });
+    }
+
+    // แสดงการแจ้งเตือน
+    function showNotification(msg) {
+      const notif = document.getElementById('statusNotification');
+      const msgEl = document.getElementById('statusMessage');
+      if (notif && msgEl) {
+        msgEl.textContent = msg;
+        notif.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setTimeout(() => {
+          notif.classList.add('hidden');
+        }, 5000);
+      }
+    }
+
+    function dismissNotification() {
+      const notif = document.getElementById('statusNotification');
+      if (notif) notif.classList.add('hidden');
+    }
+
+    // เรนเดอร์กราฟจำลองเป้าหมายแบบเรียลไทม์
+    function renderPreviewChart() {
+      const chartEl = document.getElementById('targetPreviewChart');
+      if (!chartEl || typeof Chart === 'undefined') return;
+
+      const labels = WASTE_DEFINITIONS.map(d => `${d.label} (${d.code})`);
+      const dataValues = WASTE_DEFINITIONS.map(d => currentTargets.items[d.key] || 0);
+      const colors = WASTE_DEFINITIONS.map(d => d.color);
+
+      if (previewChartInstance) {
+        try { previewChartInstance.destroy(); } catch(e) {}
+        previewChartInstance = null;
+      }
+
+      const plugins = (typeof ChartDataLabels !== 'undefined') ? [ChartDataLabels] : [];
+      const ctx = chartEl.getContext('2d');
+      previewChartInstance = new Chart(ctx, {
+        type: 'bar',
+        plugins: plugins,
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'เป้าหมาย (% Target)',
+            data: dataValues,
+            backgroundColor: colors,
+            borderRadius: 6,
+            barPercentage: 0.85,
+            categoryPercentage: 0.92,
+            maxBarThickness: 48
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: {
+            padding: { top: 30, left: 10, right: 10, bottom: 5 }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(ctx) {
+                  return ` Target: ${ctx.raw.toFixed(2)}%`;
+                }
+              }
+            },
+            datalabels: {
+              anchor: 'end',
+              align: 'top',
+              offset: 4,
+              formatter: function(val) {
+                return val > 0 ? val.toFixed(2) + '%' : '0%';
+              },
+              font: {
+                family: "'Prompt', sans-serif",
+                weight: 'bold',
+                size: 11
+              },
+              color: '#1e293b'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(v) { return v.toFixed(2) + '%'; },
+                font: { family: "'Prompt', sans-serif", size: 11 }
+              },
+              grid: { color: '#f1f5f9' }
+            },
+            x: {
+              ticks: {
+                font: { family: "'Prompt', sans-serif", size: 10, weight: '600' },
+                color: '#334155',
+                maxRotation: 35,
+                minRotation: 35
+              },
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>

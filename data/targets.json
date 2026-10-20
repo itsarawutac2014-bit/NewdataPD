@@ -1,0 +1,17 @@
+{
+    "allWaste": 5,
+    "items": {
+        "ncp": 2,
+        "def": 1.1,
+        "web": 0.15,
+        "control": 1.01,
+        "om": 0.05,
+        "order": 0.2,
+        "core": 0.15,
+        "spec": 0.15,
+        "conveyor": 0.03,
+        "qc": 0.07,
+        "reject": 0.09
+    },
+    "updated_at": "2026-10-20 06:15:46"
+}

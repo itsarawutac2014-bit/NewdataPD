@@ -170,6 +170,10 @@
           <a href="upload.html" class="inline-flex items-center px-3 py-1.5 text-xs font-bold text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition shadow-sm">
             <i class="fa-solid fa-cloud-arrow-up mr-1.5 text-emerald-400"></i> โยนไฟล์ Excel
           </a>
+          <!-- ปุ่มจัดการเป้าหมาย Target 11 รายการ -->
+          <a href="targets.html" class="inline-flex items-center px-3 py-1.5 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 border border-amber-500 rounded-lg transition shadow-sm">
+            <i class="fa-solid fa-bullseye mr-1.5 text-amber-200"></i> ตั้งค่า Target (11 รายการ)
+          </a>
           <button onclick="toggleConfigModal()" class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition shadow-sm">
             <i class="fa-solid fa-gear mr-1.5 text-slate-500"></i> ตั้งค่า
           </button>
@@ -217,7 +221,7 @@
         </div>
         <div class="mt-3 flex items-center gap-2 text-xs">
           <span id="kpi-waste-status" class="px-2.5 py-0.5 rounded-full font-black bg-emerald-400 text-emerald-950">ได้เป้า (Pass)</span>
-          <span class="text-emerald-200 font-semibold">เป้าหมาย <strong class="text-white font-bold">5.00%</strong></span>
+          <span class="text-emerald-200 font-semibold">เป้าหมาย <strong class="text-white font-bold" id="kpi-target-label">5.00%</strong></span>
         </div>
       </div>
 
@@ -411,18 +415,18 @@
             <!-- Target Row (แถวสีเหลือง) -->
             <tr class="bg-amber-200 text-slate-900 font-bold border-b border-amber-300">
               <th class="p-2 border-r border-amber-300 text-left">Target</th>
-              <th class="p-2 border-r border-amber-300">2.00%</th>
-              <th class="p-2 border-r border-amber-300">1.10%</th>
-              <th class="p-2 border-r border-amber-300">0.15%</th>
-              <th class="p-2 border-r border-amber-300">1.01%</th>
-              <th class="p-2 border-r border-amber-300">0.05%</th>
-              <th class="p-2 border-r border-amber-300">0.20%</th>
-              <th class="p-2 border-r border-amber-300">0.15%</th>
-              <th class="p-2 border-r border-amber-300">0.15%</th>
-              <th class="p-2 border-r border-amber-300">0.03%</th>
-              <th class="p-2 border-r border-amber-300">0.07%</th>
-              <th class="p-2 border-r border-amber-300">0.09%</th>
-              <th class="p-2 border-r border-amber-300 bg-amber-300 font-black text-amber-950">5.00%</th>
+              <th id="th-target-ncp" class="p-2 border-r border-amber-300">2.00%</th>
+              <th id="th-target-def" class="p-2 border-r border-amber-300">1.10%</th>
+              <th id="th-target-web" class="p-2 border-r border-amber-300">0.15%</th>
+              <th id="th-target-control" class="p-2 border-r border-amber-300">1.01%</th>
+              <th id="th-target-om" class="p-2 border-r border-amber-300">0.05%</th>
+              <th id="th-target-order" class="p-2 border-r border-amber-300">0.20%</th>
+              <th id="th-target-core" class="p-2 border-r border-amber-300">0.15%</th>
+              <th id="th-target-spec" class="p-2 border-r border-amber-300">0.15%</th>
+              <th id="th-target-conveyor" class="p-2 border-r border-amber-300">0.03%</th>
+              <th id="th-target-qc" class="p-2 border-r border-amber-300">0.07%</th>
+              <th id="th-target-reject" class="p-2 border-r border-amber-300">0.09%</th>
+              <th id="th-target-allWaste" class="p-2 border-r border-amber-300 bg-amber-300 font-black text-amber-950">5.00%</th>
               <th class="p-2 border-r border-amber-300 bg-white"></th>
               <th class="p-2 border-r border-amber-300 bg-white"></th>
               <th class="p-2 border-r border-amber-300 bg-amber-400 font-bold"></th>
@@ -504,7 +508,7 @@
           </div>
           <div class="flex items-center gap-1.5">
             <span class="w-6 h-1 bg-rose-600 inline-block rounded"></span>
-            <span class="text-rose-600 font-extrabold">Target 5.00%</span>
+            <span class="text-rose-600 font-extrabold" id="chart-daily-target-legend">Target 5.00%</span>
           </div>
         </div>
 
@@ -513,7 +517,7 @@
           <h2 class="text-xl sm:text-2xl font-black tracking-wide">
             <span class="text-blue-700">Waste รายวัน</span> 
             <span class="text-rose-600 font-black ml-1.5" id="chart-machine-name">BHS</span> 
-            <span class="text-emerald-600 font-black ml-1.5">Target 5.00%</span>
+            <span class="text-emerald-600 font-black ml-1.5" id="chart-daily-target-title">Target 5.00%</span>
           </h2>
         </div>
 
@@ -574,7 +578,7 @@
                     <span class="waste-item-name text-indigo-700 font-black">ทั้งหมด 11 รายการ (All Waste)</span>
                   </div>
                   <div class="flex items-center gap-1.5">
-                    <span class="text-[10px] font-black text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">Target: 5.00%</span>
+                    <span id="dropdown-target-badge-ALL" class="text-[10px] font-black text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">Target: 5.00%</span>
                     <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check"></i>
                   </div>
                 </button>
@@ -586,7 +590,7 @@
                     <span class="waste-item-name text-slate-800 group-hover:text-indigo-600 font-bold">.NCP (BL18)</span>
                   </div>
                   <div class="flex items-center gap-1.5">
-                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 2.00%</span>
+                    <span id="dropdown-target-badge-ncp" class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 2.00%</span>
                     <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check hidden"></i>
                   </div>
                 </button>
@@ -596,7 +600,7 @@
                     <span class="waste-item-name text-slate-800 group-hover:text-indigo-600 font-bold">.DEF (BL17)</span>
                   </div>
                   <div class="flex items-center gap-1.5">
-                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 1.10%</span>
+                    <span id="dropdown-target-badge-def" class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 1.10%</span>
                     <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check hidden"></i>
                   </div>
                 </button>
@@ -606,7 +610,7 @@
                     <span class="waste-item-name text-slate-800 group-hover:text-indigo-600 font-bold">.WEB (BL16)</span>
                   </div>
                   <div class="flex items-center gap-1.5">
-                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.15%</span>
+                    <span id="dropdown-target-badge-web" class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.15%</span>
                     <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check hidden"></i>
                   </div>
                 </button>
@@ -616,7 +620,7 @@
                     <span class="waste-item-name text-slate-800 group-hover:text-indigo-600 font-bold">ของเหลือ Control (BL21)</span>
                   </div>
                   <div class="flex items-center gap-1.5">
-                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 1.01%</span>
+                    <span id="dropdown-target-badge-control" class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 1.01%</span>
                     <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check hidden"></i>
                   </div>
                 </button>
@@ -626,7 +630,7 @@
                     <span class="waste-item-name text-slate-800 group-hover:text-indigo-600 font-bold">ของเหลือ O.M. (BL20)</span>
                   </div>
                   <div class="flex items-center gap-1.5">
-                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.05%</span>
+                    <span id="dropdown-target-badge-om" class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.05%</span>
                     <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check hidden"></i>
                   </div>
                 </button>
@@ -636,7 +640,7 @@
                     <span class="waste-item-name text-slate-800 group-hover:text-indigo-600 font-bold">.รอยต่อออเดอร์ (BL15)</span>
                   </div>
                   <div class="flex items-center gap-1.5">
-                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.20%</span>
+                    <span id="dropdown-target-badge-order" class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.20%</span>
                     <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check hidden"></i>
                   </div>
                 </button>
@@ -646,7 +650,7 @@
                     <span class="waste-item-name text-slate-800 group-hover:text-indigo-600 font-bold">.เศษติดแกนผลิต (BL12)</span>
                   </div>
                   <div class="flex items-center gap-1.5">
-                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.15%</span>
+                    <span id="dropdown-target-badge-core" class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.15%</span>
                     <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check hidden"></i>
                   </div>
                 </button>
@@ -656,7 +660,7 @@
                     <span class="waste-item-name text-slate-800 group-hover:text-indigo-600 font-bold">.สันนูนตรงสเปค (BL19)</span>
                   </div>
                   <div class="flex items-center gap-1.5">
-                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.15%</span>
+                    <span id="dropdown-target-badge-spec" class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.15%</span>
                     <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check hidden"></i>
                   </div>
                 </button>
@@ -666,7 +670,7 @@
                     <span class="waste-item-name text-slate-800 group-hover:text-indigo-600 font-bold">.Conveyor (BL22)</span>
                   </div>
                   <div class="flex items-center gap-1.5">
-                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.03%</span>
+                    <span id="dropdown-target-badge-conveyor" class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.03%</span>
                     <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check hidden"></i>
                   </div>
                 </button>
@@ -676,7 +680,7 @@
                     <span class="waste-item-name text-slate-800 group-hover:text-indigo-600 font-bold">.QC Test (BL24)</span>
                   </div>
                   <div class="flex items-center gap-1.5">
-                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.07%</span>
+                    <span id="dropdown-target-badge-qc" class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.07%</span>
                     <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check hidden"></i>
                   </div>
                 </button>
@@ -686,7 +690,7 @@
                     <span class="waste-item-name text-slate-800 group-hover:text-indigo-600 font-bold">.Reject (BL25)</span>
                   </div>
                   <div class="flex items-center gap-1.5">
-                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.09%</span>
+                    <span id="dropdown-target-badge-reject" class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.09%</span>
                     <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check hidden"></i>
                   </div>
                 </button>
@@ -1154,8 +1158,95 @@
       fetchGoogleSheetData(savedUrl, machine, month);
     }
 
+    // ========================================================
+    // จัดการโหลดเป้าหมาย Target 11 รายการ (จาก API & LocalStorage)
+    // ========================================================
+    function loadCustomTargets() {
+      // 1. อ่านจาก LocalStorage ก่อนเพื่อความรวดเร็ว
+      try {
+        const local = localStorage.getItem('waste_targets');
+        if (local) {
+          applyCustomTargets(JSON.parse(local), false);
+        }
+      } catch (e) {}
+
+      // 2. ดึงจาก targets_api.php เพื่อให้ข้อมูลอัปเดตตรงกับส่วนกลาง
+      fetch('targets_api.php')
+        .then(res => res.json())
+        .then(res => {
+          if (res && res.success && res.data) {
+            applyCustomTargets(res.data, true);
+            try {
+              localStorage.setItem('waste_targets', JSON.stringify(res.data));
+            } catch (e) {}
+          }
+        })
+        .catch(err => {
+          console.warn('Cannot load targets from API, using default/cached targets:', err);
+        });
+    }
+
+    function applyCustomTargets(data, shouldRerender = true) {
+      if (!data) return;
+      let hasChanges = false;
+      if (data.allWaste !== undefined && !isNaN(data.allWaste)) {
+        TARGETS.allWaste = parseFloat(data.allWaste);
+        hasChanges = true;
+      }
+      if (data.items && typeof data.items === 'object') {
+        Object.keys(data.items).forEach(k => {
+          const val = parseFloat(data.items[k]);
+          if (!isNaN(val)) {
+            TARGETS[k] = val;
+            const col = WASTE_COLUMNS.find(c => c.key === k);
+            if (col) col.target = val;
+            hasChanges = true;
+          }
+        });
+      }
+
+      if (hasChanges) {
+        updateTargetDOMElements();
+        if (shouldRerender && currentData && currentData.length > 0) {
+          renderDashboard(currentData, currentSummary, currentWeightData, currentWeightSummary);
+        }
+      }
+    }
+
+    function updateTargetDOMElements() {
+      // 1. KPI Card & Chart Title Target
+      safeSetText('kpi-target-label', TARGETS.allWaste.toFixed(2) + '%');
+      safeSetText('chart-daily-target-title', 'Target ' + TARGETS.allWaste.toFixed(2) + '%');
+      safeSetText('chart-daily-target-legend', 'Target ' + TARGETS.allWaste.toFixed(2) + '%');
+
+      // 2. Table Header Target Row
+      safeSetText('th-target-allWaste', TARGETS.allWaste.toFixed(2) + '%');
+      WASTE_COLUMNS.forEach(col => {
+        safeSetText(`th-target-${col.key}`, col.target.toFixed(2) + '%');
+      });
+
+      // 3. Dropdown Menu Badges
+      safeSetText('dropdown-target-badge-ALL', `Target: ${TARGETS.allWaste.toFixed(2)}%`);
+      WASTE_COLUMNS.forEach(col => {
+        safeSetText(`dropdown-target-badge-${col.key}`, `Target: ${col.target.toFixed(2)}%`);
+      });
+
+      // 4. Filter info bar ribbon
+      if (currentFilterWasteCode === 'ALL') {
+        safeSetText('filter-info-target-badge', `Target: ${TARGETS.allWaste.toFixed(2)}%`);
+      } else {
+        const colDef = WASTE_COLUMNS.find(c => c.key === currentFilterWasteCode);
+        if (colDef) {
+          safeSetText('filter-info-target-badge', `Target: ${colDef.target.toFixed(2)}%`);
+        }
+      }
+    }
+
     // เมื่อโหลดหน้าเว็บ - แสดงข้อมูลทันทีและดึงข้อมูลสดจาก Google Sheet (หน้า Waste) อัตโนมัติ
     window.addEventListener('DOMContentLoaded', () => {
+      // 0. โหลดค่าเป้าหมาย Target 11 รายการที่ผู้ใช้กำหนดไว้
+      loadCustomTargets();
+
       // 1. เรนเดอร์ข้อมูลตั้งต้นทันที หน้าเว็บจะไม่ว่างเปล่า
       renderDashboard(initialRawData, null, initialWeightData, initialWeightSummary);
 
