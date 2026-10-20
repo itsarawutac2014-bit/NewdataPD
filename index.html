@@ -539,7 +539,7 @@
     <!-- กราฟวิเคราะห์แยกของเสีย 11 รายการ (Filtered Breakdown Chart) -->
     <!-- ======================================================== -->
     <section id="filter-waste-chart-card" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 mt-6 w-full">
-      <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4 pb-4 border-b border-slate-100">
+      <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-3 pb-3 border-b border-slate-100">
         <div>
           <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
             <span class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm shadow-xs border border-indigo-100">
@@ -550,7 +550,150 @@
           <p class="text-xs text-slate-500 mt-0.5">เลือกกรองดูของเสียแยกตาม 11 รายการ หรือเปรียบเทียบทุกรายการ พร้อมเลือกกรองแยกเดือนได้อิสระ</p>
         </div>
 
-        <div class="flex items-center gap-3 flex-wrap">
+        <div class="flex items-center gap-2.5 flex-wrap">
+          <!-- Waste Item Dropdown Selector (กดแล้วมีแท็บเลื่อนลงมาด้านล่างเพื่อเลือก) -->
+          <div class="relative inline-block text-left" id="wasteDropdownContainer">
+            <button type="button" onclick="toggleWasteDropdown(event)" id="wasteDropdownBtn" class="inline-flex items-center justify-between gap-2.5 px-3.5 py-1.5 bg-white border-2 border-indigo-500 hover:border-indigo-600 rounded-xl text-xs font-black text-indigo-950 shadow-xs transition cursor-pointer min-w-[220px]">
+              <div class="flex items-center gap-2 truncate">
+                <span id="wasteDropdownDot" class="w-2.5 h-2.5 rounded-full bg-indigo-600 shrink-0"></span>
+                <span id="wasteDropdownLabel" class="truncate font-black">ทั้งหมด 11 รายการ</span>
+              </div>
+              <i class="fa-solid fa-chevron-down text-indigo-500 text-xs transition-transform duration-200" id="wasteDropdownChevron"></i>
+            </button>
+
+            <!-- Dropdown Menu แท็บที่เลื่อนลงมาด้านล่าง -->
+            <div id="wasteDropdownMenu" class="hidden absolute left-0 mt-1.5 w-72 sm:w-80 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 py-1.5 max-h-[380px] overflow-y-auto ring-1 ring-black/5 divide-y divide-slate-100">
+              <div class="px-3.5 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50 flex items-center justify-between">
+                <span>เลือกประเภทของเสีย 11 รายการ</span>
+                <span class="text-[10px] text-slate-400 font-normal">คลิกเพื่อเลือก</span>
+              </div>
+              <div class="py-1">
+                <button type="button" onclick="selectWasteDropdownItem('ALL')" data-waste-code="ALL" class="waste-menu-item w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-indigo-50 flex items-center justify-between transition group cursor-pointer bg-indigo-50/80">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
+                    <span class="waste-item-name text-indigo-700 font-black">ทั้งหมด 11 รายการ (All Waste)</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-black text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">Target: 5.00%</span>
+                    <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check"></i>
+                  </div>
+                </button>
+              </div>
+              <div class="py-1">
+                <button type="button" onclick="selectWasteDropdownItem('ncp')" data-waste-code="ncp" class="waste-menu-item w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                    <span class="waste-item-name text-slate-800 group-hover:text-indigo-600 font-bold">.NCP (BL18)</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 2.00%</span>
+                    <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check hidden"></i>
+                  </div>
+                </button>
+                <button type="button" onclick="selectWasteDropdownItem('def')" data-waste-code="def" class="waste-menu-item w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span>
+                    <span class="waste-item-name text-slate-800 group-hover:text-indigo-600 font-bold">.DEF (BL17)</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 1.10%</span>
+                    <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check hidden"></i>
+                  </div>
+                </button>
+                <button type="button" onclick="selectWasteDropdownItem('web')" data-waste-code="web" class="waste-menu-item w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                    <span class="waste-item-name text-slate-800 group-hover:text-indigo-600 font-bold">.WEB (BL16)</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.15%</span>
+                    <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check hidden"></i>
+                  </div>
+                </button>
+                <button type="button" onclick="selectWasteDropdownItem('control')" data-waste-code="control" class="waste-menu-item w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    <span class="waste-item-name text-slate-800 group-hover:text-indigo-600 font-bold">ของเหลือ Control (BL21)</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 1.01%</span>
+                    <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check hidden"></i>
+                  </div>
+                </button>
+                <button type="button" onclick="selectWasteDropdownItem('om')" data-waste-code="om" class="waste-menu-item w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-cyan-500"></span>
+                    <span class="waste-item-name text-slate-800 group-hover:text-indigo-600 font-bold">ของเหลือ O.M. (BL20)</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.05%</span>
+                    <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check hidden"></i>
+                  </div>
+                </button>
+                <button type="button" onclick="selectWasteDropdownItem('order')" data-waste-code="order" class="waste-menu-item w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                    <span class="waste-item-name text-slate-800 group-hover:text-indigo-600 font-bold">.รอยต่อออเดอร์ (BL15)</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.20%</span>
+                    <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check hidden"></i>
+                  </div>
+                </button>
+                <button type="button" onclick="selectWasteDropdownItem('core')" data-waste-code="core" class="waste-menu-item w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                    <span class="waste-item-name text-slate-800 group-hover:text-indigo-600 font-bold">.เศษติดแกนผลิต (BL12)</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.15%</span>
+                    <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check hidden"></i>
+                  </div>
+                </button>
+                <button type="button" onclick="selectWasteDropdownItem('spec')" data-waste-code="spec" class="waste-menu-item w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-violet-500"></span>
+                    <span class="waste-item-name text-slate-800 group-hover:text-indigo-600 font-bold">.สันนูนตรงสเปค (BL19)</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.15%</span>
+                    <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check hidden"></i>
+                  </div>
+                </button>
+                <button type="button" onclick="selectWasteDropdownItem('conveyor')" data-waste-code="conveyor" class="waste-menu-item w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-pink-500"></span>
+                    <span class="waste-item-name text-slate-800 group-hover:text-indigo-600 font-bold">.Conveyor (BL22)</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.03%</span>
+                    <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check hidden"></i>
+                  </div>
+                </button>
+                <button type="button" onclick="selectWasteDropdownItem('qc')" data-waste-code="qc" class="waste-menu-item w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-teal-500"></span>
+                    <span class="waste-item-name text-slate-800 group-hover:text-indigo-600 font-bold">.QC Test (BL24)</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.07%</span>
+                    <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check hidden"></i>
+                  </div>
+                </button>
+                <button type="button" onclick="selectWasteDropdownItem('reject')" data-waste-code="reject" class="waste-menu-item w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-red-600"></span>
+                    <span class="waste-item-name text-slate-800 group-hover:text-indigo-600 font-bold">.Reject (BL25)</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">Target: 0.09%</span>
+                    <i class="fa-solid fa-check text-indigo-600 text-xs waste-item-check hidden"></i>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <!-- Month Selector -->
           <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 shadow-2xs">
             <label for="filterChartMonthSelect" class="text-xs font-bold text-slate-600 flex items-center gap-1">
@@ -574,10 +717,10 @@
 
           <!-- Metric Toggle (% vs kg) -->
           <div class="inline-flex rounded-xl border border-slate-200 bg-slate-100 p-1 text-xs font-bold shadow-2xs">
-            <button type="button" id="btn-metric-pct" onclick="setFilterChartMetric('pct')" class="px-3 py-1 rounded-lg bg-white text-indigo-700 shadow-xs transition">
+            <button type="button" id="btn-metric-pct" onclick="setFilterChartMetric('pct')" class="px-3 py-1 rounded-lg bg-white text-indigo-700 shadow-xs transition cursor-pointer">
               <i class="fa-solid fa-percent mr-1"></i> % Waste
             </button>
-            <button type="button" id="btn-metric-kg" onclick="setFilterChartMetric('kg')" class="px-3 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition">
+            <button type="button" id="btn-metric-kg" onclick="setFilterChartMetric('kg')" class="px-3 py-1 rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer">
               <i class="fa-solid fa-weight-hanging mr-1"></i> น้ำหนัก (kg)
             </button>
           </div>
@@ -589,48 +732,8 @@
         </div>
       </div>
 
-      <!-- Pill Filter Bar (11 รายการ + รวมทั้งหมด) -->
-      <div class="flex items-center gap-2 overflow-x-auto pb-2.5 pt-1 border-b border-slate-100 no-scrollbar">
-        <button type="button" onclick="setFilterWasteCode('ALL')" id="filter-btn-ALL" class="filter-pill active">
-          <i class="fa-solid fa-layer-group mr-1.5 text-indigo-300"></i>ทั้งหมด 11 รายการ
-        </button>
-        <button type="button" onclick="setFilterWasteCode('ncp')" id="filter-btn-ncp" class="filter-pill">
-          <span class="w-2 h-2 rounded-full bg-rose-500 mr-1.5"></span>.NCP (BL18)
-        </button>
-        <button type="button" onclick="setFilterWasteCode('def')" id="filter-btn-def" class="filter-pill">
-          <span class="w-2 h-2 rounded-full bg-orange-500 mr-1.5"></span>.DEF (BL17)
-        </button>
-        <button type="button" onclick="setFilterWasteCode('web')" id="filter-btn-web" class="filter-pill">
-          <span class="w-2 h-2 rounded-full bg-amber-500 mr-1.5"></span>.WEB (BL16)
-        </button>
-        <button type="button" onclick="setFilterWasteCode('control')" id="filter-btn-control" class="filter-pill">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span>ของเหลือ Control (BL21)
-        </button>
-        <button type="button" onclick="setFilterWasteCode('om')" id="filter-btn-om" class="filter-pill">
-          <span class="w-2 h-2 rounded-full bg-cyan-500 mr-1.5"></span>ของเหลือ O.M. (BL20)
-        </button>
-        <button type="button" onclick="setFilterWasteCode('order')" id="filter-btn-order" class="filter-pill">
-          <span class="w-2 h-2 rounded-full bg-blue-500 mr-1.5"></span>.รอยต่อออเดอร์ (BL15)
-        </button>
-        <button type="button" onclick="setFilterWasteCode('core')" id="filter-btn-core" class="filter-pill">
-          <span class="w-2 h-2 rounded-full bg-indigo-500 mr-1.5"></span>.เศษติดแกนผลิต (BL12)
-        </button>
-        <button type="button" onclick="setFilterWasteCode('spec')" id="filter-btn-spec" class="filter-pill">
-          <span class="w-2 h-2 rounded-full bg-violet-500 mr-1.5"></span>.สันนูนตรงสเปค (BL19)
-        </button>
-        <button type="button" onclick="setFilterWasteCode('conveyor')" id="filter-btn-conveyor" class="filter-pill">
-          <span class="w-2 h-2 rounded-full bg-pink-500 mr-1.5"></span>.Conveyor (BL22)
-        </button>
-        <button type="button" onclick="setFilterWasteCode('qc')" id="filter-btn-qc" class="filter-pill">
-          <span class="w-2 h-2 rounded-full bg-teal-500 mr-1.5"></span>.QC Test (BL24)
-        </button>
-        <button type="button" onclick="setFilterWasteCode('reject')" id="filter-btn-reject" class="filter-pill">
-          <span class="w-2 h-2 rounded-full bg-red-600 mr-1.5"></span>.Reject (BL25)
-        </button>
-      </div>
-
       <!-- Selected Item KPI Ribbon -->
-      <div id="filter-item-info-bar" class="mt-3 py-2 px-3.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div id="filter-item-info-bar" class="py-2 px-3.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
         <div class="flex items-center gap-3">
           <span class="font-bold text-slate-700">กำลังแสดง:</span>
           <span id="filter-info-title" class="font-black text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-lg">ทั้งหมด 11 รายการ</span>
@@ -2087,15 +2190,75 @@
       }
     }
 
-    function setFilterWasteCode(code) {
+    function toggleWasteDropdown(e) {
+      if (e) e.stopPropagation();
+      const menu = document.getElementById('wasteDropdownMenu');
+      const chevron = document.getElementById('wasteDropdownChevron');
+      if (!menu) return;
+      const isHidden = menu.classList.contains('hidden');
+      if (isHidden) {
+        menu.classList.remove('hidden');
+        if (chevron) chevron.style.transform = 'rotate(180deg)';
+      } else {
+        menu.classList.add('hidden');
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+      }
+    }
+
+    function selectWasteDropdownItem(code) {
       currentFilterWasteCode = code;
-      document.querySelectorAll('.filter-pill').forEach(btn => {
-        btn.classList.remove('active');
+      const menu = document.getElementById('wasteDropdownMenu');
+      const chevron = document.getElementById('wasteDropdownChevron');
+      if (menu) menu.classList.add('hidden');
+      if (chevron) chevron.style.transform = 'rotate(0deg)';
+
+      // อัปเดต Label & Dot บนปุ่ม
+      const labelEl = document.getElementById('wasteDropdownLabel');
+      const dotEl = document.getElementById('wasteDropdownDot');
+      if (code === 'ALL') {
+        if (labelEl) labelEl.textContent = 'ทั้งหมด 11 รายการ';
+        if (dotEl) {
+          dotEl.className = 'w-2.5 h-2.5 rounded-full bg-indigo-600 shrink-0';
+          dotEl.style.backgroundColor = '';
+        }
+      } else {
+        const colDef = WASTE_COLUMNS.find(c => c.key === code);
+        if (colDef) {
+          if (labelEl) labelEl.textContent = `${colDef.label} (${colDef.code})`;
+          if (dotEl) {
+            dotEl.className = 'w-2.5 h-2.5 rounded-full shrink-0';
+            dotEl.style.backgroundColor = colDef.color;
+          }
+        }
+      }
+
+      // อัปเดตสถานะเลือกใน Dropdown Menu
+      document.querySelectorAll('.waste-menu-item').forEach(btn => {
+        const itemCode = btn.getAttribute('data-waste-code');
+        const checkEl = btn.querySelector('.waste-item-check');
+        const nameEl = btn.querySelector('.waste-item-name');
+        if (itemCode === code) {
+          btn.classList.add('bg-indigo-50/80');
+          if (nameEl) {
+            nameEl.classList.add('text-indigo-700', 'font-black');
+            nameEl.classList.remove('text-slate-800');
+          }
+          if (checkEl) checkEl.classList.remove('hidden');
+        } else {
+          btn.classList.remove('bg-indigo-50/80');
+          if (nameEl) {
+            nameEl.classList.remove('text-indigo-700', 'font-black');
+            nameEl.classList.add('text-slate-800');
+          }
+          if (checkEl) checkEl.classList.add('hidden');
+        }
       });
-      const activeBtn = document.getElementById(`filter-btn-${code}`);
-      if (activeBtn) activeBtn.classList.add('active');
 
       renderFilterWasteChart();
+    }
+
+    function setFilterWasteCode(code) {
+      selectWasteDropdownItem(code);
     }
 
     function setFilterChartMetric(metric) {
@@ -2416,6 +2579,17 @@
       link.href = chartEl.toDataURL('image/png', 1.0);
       link.click();
     }
+
+    // ปิด Dropdown เมนูกรองของเสียเมื่อคลิกที่อื่นบนหน้าจอ
+    window.addEventListener('click', function(e) {
+      const container = document.getElementById('wasteDropdownContainer');
+      const menu = document.getElementById('wasteDropdownMenu');
+      const chevron = document.getElementById('wasteDropdownChevron');
+      if (container && menu && !container.contains(e.target)) {
+        menu.classList.add('hidden');
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+      }
+    });
 
     // ========================================================
     // เรนเดอร์กราฟแนวโน้มรายปี (Yearly Trend 12 เดือน)
