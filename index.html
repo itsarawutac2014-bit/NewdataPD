@@ -66,6 +66,77 @@
       color: #14532d !important;
       font-weight: 700 !important;
     }
+    /* ======================================================== */
+    /* ธีมสีพื้นหลังตารางแนวอ่อนๆ (Soft Pastel Table Themes) */
+    /* ======================================================== */
+    .table-theme-white {
+      --table-bg-main: #ffffff;
+      --table-bg-alt: #fcfcfd;
+      --table-bg-hover: #f1f5f9;
+      --table-border-subtle: #94a3b8;
+      --table-card-bg: #ffffff;
+    }
+    .table-theme-cream {
+      --table-bg-main: #fefdfa;
+      --table-bg-alt: #f7f4ec;
+      --table-bg-hover: #ede7da;
+      --table-border-subtle: #d6cbbe;
+      --table-card-bg: #fffdf9;
+    }
+    .table-theme-blue {
+      --table-bg-main: #f4f9ff;
+      --table-bg-alt: #eaf3fe;
+      --table-bg-hover: #dbeaff;
+      --table-border-subtle: #b9d8fc;
+      --table-card-bg: #f8fbff;
+    }
+    .table-theme-mint {
+      --table-bg-main: #f2fbf6;
+      --table-bg-alt: #e6f7ee;
+      --table-bg-hover: #d4f1e0;
+      --table-border-subtle: #a7e8c0;
+      --table-card-bg: #f6fdf9;
+    }
+    .table-theme-peach {
+      --table-bg-main: #fff9f5;
+      --table-bg-alt: #fff1e8;
+      --table-bg-hover: #ffe3d1;
+      --table-border-subtle: #fed0aa;
+      --table-card-bg: #fffdfa;
+    }
+    .table-theme-lavender {
+      --table-bg-main: #faf8ff;
+      --table-bg-alt: #f2eeff;
+      --table-bg-hover: #e5deff;
+      --table-border-subtle: #c9bcfc;
+      --table-card-bg: #fcfaff;
+    }
+    .table-theme-slate {
+      --table-bg-main: #f8fafc;
+      --table-bg-alt: #f1f5f9;
+      --table-bg-hover: #e2e8f0;
+      --table-border-subtle: #cbd5e1;
+      --table-card-bg: #fcfcfd;
+    }
+
+    #waste-table-card.table-theme-active, #weight-table-card.table-theme-active {
+      background-color: var(--table-card-bg, #ffffff);
+      transition: background-color 0.2s ease;
+    }
+    table.waste-table, table.weight-table {
+      background-color: var(--table-bg-main, #ffffff) !important;
+      transition: background-color 0.2s ease;
+    }
+    table.waste-table tbody tr, table.weight-table tbody tr {
+      background-color: var(--table-bg-main, #ffffff) !important;
+      transition: background-color 0.15s ease;
+    }
+    table.waste-table tbody tr:nth-child(even), table.weight-table tbody tr:nth-child(even) {
+      background-color: var(--table-bg-alt, #ffffff) !important;
+    }
+    table.waste-table tbody tr:hover, table.weight-table tbody tr:hover {
+      background-color: var(--table-bg-hover, #f1f5f9) !important;
+    }
     .filter-pill {
       display: inline-flex;
       align-items: center;
@@ -296,7 +367,7 @@
     <div id="report-printable-area" class="space-y-6 bg-slate-100 p-2 sm:p-3 rounded-2xl">
 
     <!-- Table Section (ตารางตามภาพต้นฉบับเป๊ะๆ) -->
-    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <section id="waste-table-card" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition-colors">
       <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-slate-50/70">
         <div class="flex items-center gap-3 flex-wrap">
           <div class="flex items-center gap-2">
@@ -321,6 +392,75 @@
         </div>
 
         <div class="flex items-center gap-2.5 flex-wrap">
+          <!-- ปุ่มเปลี่ยนสีพื้นหลังตาราง (แนวสีอ่อนๆ) -->
+          <div class="relative inline-block text-left" id="tableThemeDropdownContainer">
+            <button type="button" onclick="toggleTableThemeDropdown(event)" id="tableThemeBtn" class="inline-flex items-center gap-2 px-3 py-2 bg-white hover:bg-slate-50 border border-slate-300 hover:border-slate-400 rounded-lg text-xs font-bold text-slate-700 shadow-2xs transition cursor-pointer">
+              <span id="currentThemeDot" class="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs bg-white shrink-0"></span>
+              <span id="currentThemeLabel">สีตาราง: ขาว</span>
+              <i class="fa-solid fa-palette text-amber-500 text-xs"></i>
+              <i class="fa-solid fa-chevron-down text-slate-400 text-[10px] transition-transform duration-200" id="tableThemeChevron"></i>
+            </button>
+
+            <!-- Dropdown Menu แท็บเลื่อนลงมา -->
+            <div id="tableThemeMenu" class="hidden absolute right-0 mt-1.5 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 py-1.5 ring-1 ring-black/5 divide-y divide-slate-100">
+              <div class="px-3.5 py-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50 flex items-center justify-between">
+                <span>เลือกสีพื้นหลังตาราง (แนวอ่อนๆ)</span>
+                <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
+              </div>
+              <div class="py-1" id="tableThemeOptionsList">
+                <button type="button" onclick="setTableTheme('white')" data-theme="white" class="table-theme-option w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer bg-slate-100">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-4 h-4 rounded-full border border-slate-300 shadow-2xs bg-white"></span>
+                    <span class="text-slate-800 group-hover:text-slate-900">ขาวสะอาด (Classic White)</span>
+                  </div>
+                  <i class="fa-solid fa-check text-indigo-600 text-xs theme-check"></i>
+                </button>
+                <button type="button" onclick="setTableTheme('cream')" data-theme="cream" class="table-theme-option w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-4 h-4 rounded-full border border-amber-300 shadow-2xs" style="background-color: #fef3c7;"></span>
+                    <span class="text-slate-800 group-hover:text-amber-900">ครีมละมุน (Soft Cream)</span>
+                  </div>
+                  <i class="fa-solid fa-check text-amber-600 text-xs theme-check hidden"></i>
+                </button>
+                <button type="button" onclick="setTableTheme('blue')" data-theme="blue" class="table-theme-option w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-4 h-4 rounded-full border border-sky-300 shadow-2xs" style="background-color: #bae6fd;"></span>
+                    <span class="text-slate-800 group-hover:text-sky-900">ฟ้าพาสเทล (Soft Sky)</span>
+                  </div>
+                  <i class="fa-solid fa-check text-sky-600 text-xs theme-check hidden"></i>
+                </button>
+                <button type="button" onclick="setTableTheme('mint')" data-theme="mint" class="table-theme-option w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-4 h-4 rounded-full border border-emerald-300 shadow-2xs" style="background-color: #bbf7d0;"></span>
+                    <span class="text-slate-800 group-hover:text-emerald-900">เขียวมินต์ (Soft Mint)</span>
+                  </div>
+                  <i class="fa-solid fa-check text-emerald-600 text-xs theme-check hidden"></i>
+                </button>
+                <button type="button" onclick="setTableTheme('peach')" data-theme="peach" class="table-theme-option w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-4 h-4 rounded-full border border-orange-300 shadow-2xs" style="background-color: #fed7aa;"></span>
+                    <span class="text-slate-800 group-hover:text-orange-900">พีชละมุน (Soft Peach)</span>
+                  </div>
+                  <i class="fa-solid fa-check text-orange-600 text-xs theme-check hidden"></i>
+                </button>
+                <button type="button" onclick="setTableTheme('lavender')" data-theme="lavender" class="table-theme-option w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-4 h-4 rounded-full border border-purple-300 shadow-2xs" style="background-color: #ddd6fe;"></span>
+                    <span class="text-slate-800 group-hover:text-purple-900">ลาเวนเดอร์ (Soft Lavender)</span>
+                  </div>
+                  <i class="fa-solid fa-check text-purple-600 text-xs theme-check hidden"></i>
+                </button>
+                <button type="button" onclick="setTableTheme('slate')" data-theme="slate" class="table-theme-option w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-4 h-4 rounded-full border border-slate-300 shadow-2xs" style="background-color: #e2e8f0;"></span>
+                    <span class="text-slate-800 group-hover:text-slate-900">เทาหมอกคลีน (Soft Slate)</span>
+                  </div>
+                  <i class="fa-solid fa-check text-slate-600 text-xs theme-check hidden"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <input type="text" id="tableFilterInput" oninput="filterTableRows()" placeholder="ค้นหาวันที่, สถานะ..." class="text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-48 bg-white shadow-xs">
           <button onclick="saveHighResReport()" class="inline-flex items-center px-3.5 py-2 text-xs font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition shadow-sm border border-emerald-500 cursor-pointer">
             <i class="fa-solid fa-camera mr-1.5"></i> บันทึกรูปภาพ (4K UHD)
@@ -792,7 +932,7 @@
     </section>
 
     <!-- New Section: ตารางแยกน้ำหนัก 11 รายการ (Waste ชั่งจริง) ตามรูปภาพ -->
-    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mt-6">
+    <section id="weight-table-card" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mt-6 transition-colors">
       <!-- Top banner of weight table -->
       <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex flex-wrap justify-between items-center gap-3">
         <div class="flex items-center gap-3">
@@ -821,7 +961,7 @@
 
       <!-- Table Content -->
       <div class="overflow-x-auto">
-        <table class="w-full text-center text-xs border-collapse">
+        <table class="weight-table w-full text-center text-xs border-collapse">
           <thead>
             <!-- Header Row with light green background and red vertical separators matching image -->
             <tr class="bg-[#bbf7d0] text-slate-900 font-bold border-b border-rose-400">
@@ -1249,6 +1389,9 @@
     window.addEventListener('DOMContentLoaded', () => {
       // 0. โหลดค่าเป้าหมาย Target 11 รายการที่ผู้ใช้กำหนดไว้
       loadCustomTargets();
+
+      // 0.1 โหลดธีมสีพื้นหลังตารางที่ผู้ใช้เลือกไว้
+      initTableTheme();
 
       // 1. เรนเดอร์ข้อมูลตั้งต้นทันที หน้าเว็บจะไม่ว่างเปล่า
       renderDashboard(initialRawData, null, initialWeightData, initialWeightSummary);
@@ -3032,8 +3175,9 @@
       link.click();
     }
 
-    // ปิด Dropdown เมนูกรองของเสียเมื่อคลิกที่อื่นบนหน้าจอ
+    // ปิด Dropdown เมนูต่างๆ เมื่อคลิกที่อื่นบนหน้าจอ
     window.addEventListener('click', function(e) {
+      // 1. Dropdown เมนูกรองของเสีย
       const container = document.getElementById('wasteDropdownContainer');
       const menu = document.getElementById('wasteDropdownMenu');
       const chevron = document.getElementById('wasteDropdownChevron');
@@ -3041,7 +3185,158 @@
         menu.classList.add('hidden');
         if (chevron) chevron.style.transform = 'rotate(0deg)';
       }
+
+      // 2. Dropdown เมนูเปลี่ยนสีพื้นหลังตาราง
+      const themeContainer = document.getElementById('tableThemeDropdownContainer');
+      const themeMenu = document.getElementById('tableThemeMenu');
+      const themeChevron = document.getElementById('tableThemeChevron');
+      if (themeContainer && themeMenu && !themeContainer.contains(e.target)) {
+        themeMenu.classList.add('hidden');
+        if (themeChevron) themeChevron.style.transform = 'rotate(0deg)';
+      }
     });
+
+    // ========================================================
+    // จัดการเปลี่ยนสีพื้นหลังตาราง (Soft Pastel Table Themes)
+    // ========================================================
+    const TABLE_THEMES = {
+      white: {
+        key: 'white',
+        name: 'สีตาราง: ขาว',
+        fullName: 'ขาวสะอาด (Classic White)',
+        dot: '#ffffff',
+        border: '#cbd5e1',
+        cssClass: 'table-theme-white'
+      },
+      cream: {
+        key: 'cream',
+        name: 'สีตาราง: ครีม',
+        fullName: 'ครีมละมุน (Soft Cream)',
+        dot: '#fef3c7',
+        border: '#fde68a',
+        cssClass: 'table-theme-cream'
+      },
+      blue: {
+        key: 'blue',
+        name: 'สีตาราง: ฟ้า',
+        fullName: 'ฟ้าพาสเทล (Soft Sky)',
+        dot: '#bae6fd',
+        border: '#7dd3fc',
+        cssClass: 'table-theme-blue'
+      },
+      mint: {
+        key: 'mint',
+        name: 'สีตาราง: เขียวมินต์',
+        fullName: 'เขียวมินต์ (Soft Mint)',
+        dot: '#bbf7d0',
+        border: '#86efac',
+        cssClass: 'table-theme-mint'
+      },
+      peach: {
+        key: 'peach',
+        name: 'สีตาราง: พีช',
+        fullName: 'พีชละมุน (Soft Peach)',
+        dot: '#fed7aa',
+        border: '#fdba74',
+        cssClass: 'table-theme-peach'
+      },
+      lavender: {
+        key: 'lavender',
+        name: 'สีตาราง: ลาเวนเดอร์',
+        fullName: 'ลาเวนเดอร์ (Soft Lavender)',
+        dot: '#ddd6fe',
+        border: '#c4b5fd',
+        cssClass: 'table-theme-lavender'
+      },
+      slate: {
+        key: 'slate',
+        name: 'สีตาราง: เทาหมอก',
+        fullName: 'เทาหมอกคลีน (Soft Slate)',
+        dot: '#e2e8f0',
+        border: '#cbd5e1',
+        cssClass: 'table-theme-slate'
+      }
+    };
+
+    let currentTableTheme = 'white';
+
+    function toggleTableThemeDropdown(e) {
+      if (e) e.stopPropagation();
+      const menu = document.getElementById('tableThemeMenu');
+      const chevron = document.getElementById('tableThemeChevron');
+      if (!menu) return;
+      const isHidden = menu.classList.contains('hidden');
+      if (isHidden) {
+        menu.classList.remove('hidden');
+        if (chevron) chevron.style.transform = 'rotate(180deg)';
+      } else {
+        menu.classList.add('hidden');
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+      }
+    }
+
+    function setTableTheme(themeKey) {
+      const theme = TABLE_THEMES[themeKey] || TABLE_THEMES.white;
+      currentTableTheme = theme.key;
+
+      // ปิดเมนู dropdown
+      const menu = document.getElementById('tableThemeMenu');
+      const chevron = document.getElementById('tableThemeChevron');
+      if (menu) menu.classList.add('hidden');
+      if (chevron) chevron.style.transform = 'rotate(0deg)';
+
+      // อัปเดตปุ่มแสดงธีมปัจจุบัน
+      const dotEl = document.getElementById('currentThemeDot');
+      const labelEl = document.getElementById('currentThemeLabel');
+      if (dotEl) {
+        dotEl.style.backgroundColor = theme.dot;
+        dotEl.style.borderColor = theme.border;
+      }
+      if (labelEl) {
+        labelEl.textContent = theme.name;
+      }
+
+      // เปลี่ยน CSS class บนการ์ดตารางและตาราง
+      const cardEl = document.getElementById('waste-table-card');
+      const weightCardEl = document.getElementById('weight-table-card');
+      const allThemeClasses = Object.values(TABLE_THEMES).map(t => t.cssClass);
+      
+      const applyToEl = (el) => {
+        if (!el) return;
+        el.classList.remove(...allThemeClasses);
+        el.classList.add(theme.cssClass, 'table-theme-active');
+      };
+
+      applyToEl(cardEl);
+      applyToEl(weightCardEl);
+      document.querySelectorAll('table.waste-table, table.weight-table').forEach(applyToEl);
+
+      // อัปเดตไอคอน Checkmark ใน Dropdown Menu
+      document.querySelectorAll('.table-theme-option').forEach(btn => {
+        const key = btn.getAttribute('data-theme');
+        const checkEl = btn.querySelector('.theme-check');
+        if (key === themeKey) {
+          btn.classList.add('bg-slate-100');
+          if (checkEl) checkEl.classList.remove('hidden');
+        } else {
+          btn.classList.remove('bg-slate-100');
+          if (checkEl) checkEl.classList.add('hidden');
+        }
+      });
+
+      // บันทึกลง localStorage
+      try {
+        localStorage.setItem('waste_table_theme', themeKey);
+      } catch (e) {}
+    }
+
+    function initTableTheme() {
+      let savedTheme = 'white';
+      try {
+        savedTheme = localStorage.getItem('waste_table_theme') || 'white';
+      } catch (e) {}
+      setTableTheme(savedTheme);
+    }
 
     // ========================================================
     // เรนเดอร์กราฟแนวโน้มรายปี (Yearly Trend 12 เดือน)
