@@ -67,56 +67,56 @@
       font-weight: 700 !important;
     }
     /* ======================================================== */
-    /* ธีมสีพื้นหลังตารางแนวอ่อนๆ (Soft Pastel Table Themes) */
+    /* ธีมสีพื้นหลังตาราง (สีโทนชัดขึ้น เข้มขึ้นกำลังดี) */
     /* ======================================================== */
     .table-theme-white {
       --table-bg-main: #ffffff;
-      --table-bg-alt: #fcfcfd;
-      --table-bg-hover: #f1f5f9;
-      --table-border-subtle: #94a3b8;
-      --table-card-bg: #ffffff;
-    }
-    .table-theme-cream {
-      --table-bg-main: #fefdfa;
-      --table-bg-alt: #f7f4ec;
-      --table-bg-hover: #ede7da;
-      --table-border-subtle: #d6cbbe;
-      --table-card-bg: #fffdf9;
-    }
-    .table-theme-blue {
-      --table-bg-main: #f4f9ff;
-      --table-bg-alt: #eaf3fe;
-      --table-bg-hover: #dbeaff;
-      --table-border-subtle: #b9d8fc;
-      --table-card-bg: #f8fbff;
-    }
-    .table-theme-mint {
-      --table-bg-main: #f2fbf6;
-      --table-bg-alt: #e6f7ee;
-      --table-bg-hover: #d4f1e0;
-      --table-border-subtle: #a7e8c0;
-      --table-card-bg: #f6fdf9;
-    }
-    .table-theme-peach {
-      --table-bg-main: #fff9f5;
-      --table-bg-alt: #fff1e8;
-      --table-bg-hover: #ffe3d1;
-      --table-border-subtle: #fed0aa;
-      --table-card-bg: #fffdfa;
-    }
-    .table-theme-lavender {
-      --table-bg-main: #faf8ff;
-      --table-bg-alt: #f2eeff;
-      --table-bg-hover: #e5deff;
-      --table-border-subtle: #c9bcfc;
-      --table-card-bg: #fcfaff;
-    }
-    .table-theme-slate {
-      --table-bg-main: #f8fafc;
       --table-bg-alt: #f1f5f9;
       --table-bg-hover: #e2e8f0;
       --table-border-subtle: #cbd5e1;
-      --table-card-bg: #fcfcfd;
+      --table-card-bg: #ffffff;
+    }
+    .table-theme-cream {
+      --table-bg-main: #fef3c7;
+      --table-bg-alt: #fde68a;
+      --table-bg-hover: #fcd34d;
+      --table-border-subtle: #f59e0b;
+      --table-card-bg: #fffbeb;
+    }
+    .table-theme-blue {
+      --table-bg-main: #e0f2fe;
+      --table-bg-alt: #bae6fd;
+      --table-bg-hover: #7dd3fc;
+      --table-border-subtle: #0284c7;
+      --table-card-bg: #f0f9ff;
+    }
+    .table-theme-mint {
+      --table-bg-main: #dcfce7;
+      --table-bg-alt: #bbf7d0;
+      --table-bg-hover: #86efac;
+      --table-border-subtle: #16a34a;
+      --table-card-bg: #f0fdf4;
+    }
+    .table-theme-peach {
+      --table-bg-main: #ffedd5;
+      --table-bg-alt: #fed7aa;
+      --table-bg-hover: #fdba74;
+      --table-border-subtle: #ea580c;
+      --table-card-bg: #fff7ed;
+    }
+    .table-theme-lavender {
+      --table-bg-main: #ede9fe;
+      --table-bg-alt: #ddd6fe;
+      --table-bg-hover: #c4b5fd;
+      --table-border-subtle: #7c3aed;
+      --table-card-bg: #f5f3ff;
+    }
+    .table-theme-slate {
+      --table-bg-main: #e2e8f0;
+      --table-bg-alt: #cbd5e1;
+      --table-bg-hover: #94a3b8;
+      --table-border-subtle: #64748b;
+      --table-card-bg: #f8fafc;
     }
 
     #waste-table-card.table-theme-active, #weight-table-card.table-theme-active {
@@ -417,42 +417,42 @@
                 </button>
                 <button type="button" onclick="setTableTheme('cream')" data-theme="cream" class="table-theme-option w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
                   <div class="flex items-center gap-2.5">
-                    <span class="w-4 h-4 rounded-full border border-amber-300 shadow-2xs" style="background-color: #fef3c7;"></span>
+                    <span class="w-4 h-4 rounded-full border border-amber-400 shadow-2xs" style="background-color: #fde68a;"></span>
                     <span class="text-slate-800 group-hover:text-amber-900">ครีมละมุน (Soft Cream)</span>
                   </div>
                   <i class="fa-solid fa-check text-amber-600 text-xs theme-check hidden"></i>
                 </button>
                 <button type="button" onclick="setTableTheme('blue')" data-theme="blue" class="table-theme-option w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
                   <div class="flex items-center gap-2.5">
-                    <span class="w-4 h-4 rounded-full border border-sky-300 shadow-2xs" style="background-color: #bae6fd;"></span>
+                    <span class="w-4 h-4 rounded-full border border-sky-400 shadow-2xs" style="background-color: #7dd3fc;"></span>
                     <span class="text-slate-800 group-hover:text-sky-900">ฟ้าพาสเทล (Soft Sky)</span>
                   </div>
                   <i class="fa-solid fa-check text-sky-600 text-xs theme-check hidden"></i>
                 </button>
                 <button type="button" onclick="setTableTheme('mint')" data-theme="mint" class="table-theme-option w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
                   <div class="flex items-center gap-2.5">
-                    <span class="w-4 h-4 rounded-full border border-emerald-300 shadow-2xs" style="background-color: #bbf7d0;"></span>
+                    <span class="w-4 h-4 rounded-full border border-emerald-400 shadow-2xs" style="background-color: #86efac;"></span>
                     <span class="text-slate-800 group-hover:text-emerald-900">เขียวมินต์ (Soft Mint)</span>
                   </div>
                   <i class="fa-solid fa-check text-emerald-600 text-xs theme-check hidden"></i>
                 </button>
                 <button type="button" onclick="setTableTheme('peach')" data-theme="peach" class="table-theme-option w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
                   <div class="flex items-center gap-2.5">
-                    <span class="w-4 h-4 rounded-full border border-orange-300 shadow-2xs" style="background-color: #fed7aa;"></span>
+                    <span class="w-4 h-4 rounded-full border border-orange-400 shadow-2xs" style="background-color: #fdba74;"></span>
                     <span class="text-slate-800 group-hover:text-orange-900">พีชละมุน (Soft Peach)</span>
                   </div>
                   <i class="fa-solid fa-check text-orange-600 text-xs theme-check hidden"></i>
                 </button>
                 <button type="button" onclick="setTableTheme('lavender')" data-theme="lavender" class="table-theme-option w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
                   <div class="flex items-center gap-2.5">
-                    <span class="w-4 h-4 rounded-full border border-purple-300 shadow-2xs" style="background-color: #ddd6fe;"></span>
+                    <span class="w-4 h-4 rounded-full border border-purple-400 shadow-2xs" style="background-color: #c4b5fd;"></span>
                     <span class="text-slate-800 group-hover:text-purple-900">ลาเวนเดอร์ (Soft Lavender)</span>
                   </div>
                   <i class="fa-solid fa-check text-purple-600 text-xs theme-check hidden"></i>
                 </button>
                 <button type="button" onclick="setTableTheme('slate')" data-theme="slate" class="table-theme-option w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
                   <div class="flex items-center gap-2.5">
-                    <span class="w-4 h-4 rounded-full border border-slate-300 shadow-2xs" style="background-color: #e2e8f0;"></span>
+                    <span class="w-4 h-4 rounded-full border border-slate-400 shadow-2xs" style="background-color: #cbd5e1;"></span>
                     <span class="text-slate-800 group-hover:text-slate-900">เทาหมอกคลีน (Soft Slate)</span>
                   </div>
                   <i class="fa-solid fa-check text-slate-600 text-xs theme-check hidden"></i>
@@ -3212,48 +3212,48 @@
         key: 'cream',
         name: 'สีตาราง: ครีม',
         fullName: 'ครีมละมุน (Soft Cream)',
-        dot: '#fef3c7',
-        border: '#fde68a',
+        dot: '#fde68a',
+        border: '#f59e0b',
         cssClass: 'table-theme-cream'
       },
       blue: {
         key: 'blue',
         name: 'สีตาราง: ฟ้า',
         fullName: 'ฟ้าพาสเทล (Soft Sky)',
-        dot: '#bae6fd',
-        border: '#7dd3fc',
+        dot: '#7dd3fc',
+        border: '#0284c7',
         cssClass: 'table-theme-blue'
       },
       mint: {
         key: 'mint',
         name: 'สีตาราง: เขียวมินต์',
         fullName: 'เขียวมินต์ (Soft Mint)',
-        dot: '#bbf7d0',
-        border: '#86efac',
+        dot: '#86efac',
+        border: '#16a34a',
         cssClass: 'table-theme-mint'
       },
       peach: {
         key: 'peach',
         name: 'สีตาราง: พีช',
         fullName: 'พีชละมุน (Soft Peach)',
-        dot: '#fed7aa',
-        border: '#fdba74',
+        dot: '#fdba74',
+        border: '#ea580c',
         cssClass: 'table-theme-peach'
       },
       lavender: {
         key: 'lavender',
         name: 'สีตาราง: ลาเวนเดอร์',
         fullName: 'ลาเวนเดอร์ (Soft Lavender)',
-        dot: '#ddd6fe',
-        border: '#c4b5fd',
+        dot: '#c4b5fd',
+        border: '#7c3aed',
         cssClass: 'table-theme-lavender'
       },
       slate: {
         key: 'slate',
         name: 'สีตาราง: เทาหมอก',
         fullName: 'เทาหมอกคลีน (Soft Slate)',
-        dot: '#e2e8f0',
-        border: '#cbd5e1',
+        dot: '#cbd5e1',
+        border: '#64748b',
         cssClass: 'table-theme-slate'
       }
     };
