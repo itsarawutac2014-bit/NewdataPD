@@ -225,9 +225,41 @@
     </header>
 
     <!-- ========================================== -->
-    <!-- Executive KPI Summary Cards (5 Cards) -->
+    <!-- Printable Area for 4K Export (รวม 5 KPI Cards, 3 กราฟ, และตาราง) -->
     <!-- ========================================== -->
-    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div id="output-printable-area" class="space-y-6">
+
+      <!-- Executive Header Banner ในภาพส่งออก -->
+      <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-500 text-white flex items-center justify-center text-xl shadow-md shrink-0">
+            <i class="fa-solid fa-chart-line"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h2 class="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+                รายงานติดตามผลผลิต Target vs ยอดเดินจริง • เครื่อง <span id="report-banner-machine" class="text-indigo-600">BHS</span>
+              </h2>
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-indigo-100 text-indigo-800 border border-indigo-200">
+                PD Production Report
+              </span>
+            </div>
+            <p class="text-xs text-slate-500 font-medium mt-0.5">
+              ประจำเดือน <span id="report-banner-month" class="font-bold text-slate-800">ตุลาคม 2026</span> • สรุปยอดผลิตรายวัน รายเดือน และแนวโน้ม 12 เดือน
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2" data-html2canvas-ignore="true">
+          <button onclick="saveHighResReport()" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
+            <i class="fa-solid fa-camera"></i> บันทึกภาพทั้งหน้า (รวม 5 การ์ด)
+          </button>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- Executive KPI Summary Cards (5 Cards) -->
+      <!-- ========================================== -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
       
       <!-- Card 1: Target Output สะสม (MTD) -->
       <div class="bg-gradient-to-br from-[#451a03] via-[#78350f] to-[#9a3412] p-5 rounded-2xl border-2 border-amber-400 shadow-md text-white relative overflow-hidden flex flex-col justify-between min-h-[145px]">
@@ -332,17 +364,12 @@
 
     </section>
 
-    <!-- ========================================== -->
-    <!-- Printable Area for 4K Export -->
-    <!-- ========================================== -->
-    <div id="output-printable-area" class="space-y-6">
-
       <!-- ========================================== -->
       <!-- Chart 1: Daily Output vs Target Bar Chart -->
       <!-- ========================================== -->
       <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 overflow-hidden">
         
-        <!-- Header ของกราฟ -->
+        <!-- Header ของกราฟรายวัน -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
           <div>
             <div class="flex items-center gap-2">
@@ -363,7 +390,7 @@
               <span class="inline-block w-3 h-3 rounded-sm bg-rose-500 ml-2"></span> ต่ำกว่าเป้า
               <span class="inline-block w-4 h-0.5 bg-amber-500 border-t border-dashed border-amber-500 ml-2"></span> Target
             </div>
-            <button onclick="exportOutputChartAsImage()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
+            <button onclick="exportOutputChartAsImage()" data-html2canvas-ignore="true" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
               <i class="fa-solid fa-camera"></i> บันทึกกราฟ
             </button>
           </div>
@@ -376,7 +403,46 @@
       </section>
 
       <!-- ========================================== -->
-      <!-- Chart 2: Cumulative Output Trend Line Chart -->
+      <!-- Chart 2: Monthly Output Trend (12 Months) -->
+      <!-- ========================================== -->
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 overflow-hidden">
+        
+        <!-- Header ของกราฟแนวโน้มรายเดือน 12 เดือน -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-indigo-600"></span>
+              <h2 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+                กราฟแนวโน้มผลผลิตรายเดือน 12 เดือน (Monthly Output Trend) ประจำปี <span id="monthly-chart-year-label" class="text-indigo-600">2026</span> (<span id="monthly-chart-machine-label" class="text-indigo-600">BHS</span>)
+              </h2>
+            </div>
+            <p class="text-xs text-slate-500 font-medium mt-1">
+              เปรียบเทียบยอดผลิตจริงรายเดือน (Actual Output) กับเป้าหมายรายเดือน (Monthly Target) ตั้งแต่มกราคม - ธันวาคม • คลิกที่แท่งเดือนเพื่อเปลี่ยนไปดูเดือนนั้น
+            </p>
+          </div>
+
+          <!-- เครื่องมือของกราฟ -->
+          <div class="flex items-center gap-2 flex-wrap">
+            <div class="flex items-center gap-2 text-xs font-bold text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
+              <span class="inline-block w-3 h-3 rounded-sm bg-emerald-500"></span> ได้เป้า
+              <span class="inline-block w-3 h-3 rounded-sm bg-rose-500 ml-2"></span> ต่ำกว่าเป้า
+              <span class="inline-block w-4 h-0.5 bg-amber-500 border-t border-dashed border-amber-500 ml-2"></span> Target รายเดือน
+              <span class="inline-block w-2.5 h-2.5 rounded-full bg-indigo-600 ml-2"></span> เดือนปัจจุบัน
+            </div>
+            <button onclick="exportMonthlyChartAsImage()" data-html2canvas-ignore="true" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
+              <i class="fa-solid fa-camera"></i> บันทึกกราฟรายเดือน
+            </button>
+          </div>
+        </div>
+
+        <!-- Canvas กราฟแนวโน้มรายเดือน 12 เดือน -->
+        <div class="mt-4 relative" style="height: 400px;">
+          <canvas id="monthlyTrendChart"></canvas>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- Chart 3: Cumulative Output Trend Line Chart -->
       <!-- ========================================== -->
       <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 overflow-hidden">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
@@ -390,6 +456,11 @@
             <p class="text-xs text-slate-500 font-medium mt-1">
               เปรียบเทียบการสะสมยอดผลิตจริงรายวัน สะสมทะลุเป้าหมายตลอดทั้งเดือน
             </p>
+          </div>
+          <div class="flex items-center gap-2" data-html2canvas-ignore="true">
+            <button onclick="exportCumulativeChartAsImage()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
+              <i class="fa-solid fa-camera"></i> บันทึกกราฟสะสม
+            </button>
           </div>
         </div>
         <div class="mt-4 relative" style="height: 360px;">
@@ -415,7 +486,7 @@
             </span>
           </div>
 
-          <div class="flex items-center gap-2.5 flex-wrap">
+          <div class="flex items-center gap-2.5 flex-wrap" data-html2canvas-ignore="true">
             
             <!-- ปุ่มเปลี่ยนสีพื้นหลังตาราง -->
             <div class="relative inline-block text-left" id="tableThemeDropdownContainer">
@@ -696,8 +767,10 @@
     let currentYear = 2026;
     let currentMonth = 10;
     let currentRawData = [];
+    let currentYearlyTrend = [];
     let currentApiSummary = null;
     let dailyOutputChartInstance = null;
+    let monthlyTrendChartInstance = null;
     let cumulativeOutputChartInstance = null;
 
     // ธีมสีพาสเทลสำหรับตาราง
@@ -1081,12 +1154,21 @@
           });
           // ถ้า API ส่ง summary รวม ให้เก็บ summary ไว้ใช้เสริม KPI
           if (json.summary) currentApiSummary = json.summary;
+
+          // เก็บข้อมูล 12 เดือนสำหรับกราฟแนวโน้มรายเดือน
+          if (Array.isArray(json.yearlyTrend) && json.yearlyTrend.length > 0) {
+            currentYearlyTrend = json.yearlyTrend;
+          } else {
+            currentYearlyTrend = generateFallbackYearlyTrend();
+          }
         } else {
           currentRawData = generateFallbackOutputData();
+          currentYearlyTrend = generateFallbackYearlyTrend();
         }
       } catch (e) {
         console.warn('API error, using fallback output data', e);
         currentRawData = generateFallbackOutputData();
+        currentYearlyTrend = generateFallbackYearlyTrend();
       } finally {
         if (refreshIcon) refreshIcon.classList.remove('fa-spin');
         renderDashboard();
@@ -1111,6 +1193,26 @@
         });
       }
       return data;
+    }
+
+    // ข้อมูลสำรอง 12 เดือนกรณี API ออฟไลน์
+    function generateFallbackYearlyTrend() {
+      const labelsTh = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+      const baseTarget = OUTPUT_TARGETS.machines[currentMachine]?.monthlyTarget || 2200000;
+      return labelsTh.map((label, idx) => {
+        const m = idx + 1;
+        const hasData = m <= currentMonth;
+        const out = hasData ? Math.round(baseTarget * (0.95 + Math.sin(m) * 0.15)) : 0;
+        return {
+          month: m,
+          label: label,
+          output: out,
+          consumption: Math.round(out * 1.05),
+          wasteKg: Math.round(out * 0.045),
+          wastePct: 4.5,
+          daysCount: 22
+        };
+      });
     }
 
     // ==========================================
@@ -1181,6 +1283,13 @@
       const displayAchievedPct = totalTarget > 0 ? ((displayActual / totalTarget) * 100) : 100;
       const displayAvgDaily = runningDays > 0 ? Math.round(displayActual / runningDays) : 0;
 
+      // อัปเดตส่วนหัวของรายงาน (Report Banner)
+      safeSetText('report-banner-machine', currentMachine);
+      const THAI_MONTH_ONLY = ['', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+      safeSetText('report-banner-month', `${THAI_MONTH_ONLY[currentMonth] || ''} ${currentYear}`);
+      safeSetText('monthly-chart-year-label', currentYear);
+      safeSetText('monthly-chart-machine-label', currentMachine);
+
       // 1. อัปเดตตัวเลข KPI ด้านบน
       const monthTargetInfo = getActiveMonthlyTarget(currentMachine);
       const targetMonthly = monthTargetInfo.target;
@@ -1239,13 +1348,16 @@
         }
       }
 
-      // 2. เรนเดอร์กราฟแท่งหลักเปรียบเทียบ Output vs Target
+      // 2. เรนเดอร์กราฟแท่งหลักเปรียบเทียบ Output vs Target รายวัน
       renderDailyOutputChart(processedData, targetDaily, displayActual, totalTarget);
 
-      // 3. เรนเดอร์กราฟเส้นสะสมแนวโน้ม MTD
+      // 3. เรนเดอร์กราฟแนวโน้มผลผลิตรายเดือน 12 เดือน (Monthly Output Trend)
+      renderMonthlyTrendChart();
+
+      // 4. เรนเดอร์กราฟเส้นสะสมแนวโน้ม MTD
       renderCumulativeChart(processedData);
 
-      // 4. เรนเดอร์ตารางเปรียบเทียบข้อมูลรายวัน
+      // 5. เรนเดอร์ตารางเปรียบเทียบข้อมูลรายวัน
       renderOutputTable(processedData, totalTarget, displayActual, displayDiff, displayAchievedPct, displayConsum, avgWastePct);
     }
 
@@ -1406,6 +1518,227 @@
                 color: '#0f172a',
                 maxRotation: 45,
                 minRotation: 45
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // ==========================================
+    // กราฟแนวโน้มผลผลิตรายเดือน 12 เดือน (Monthly Output Trend)
+    // ==========================================
+    function renderMonthlyTrendChart() {
+      const chartEl = document.getElementById('monthlyTrendChart');
+      if (!chartEl || typeof Chart === 'undefined') return;
+
+      const labelsTh = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+      
+      const actualValues = [];
+      const targetValues = [];
+      const barColors = [];
+      const borderColors = [];
+
+      for (let m = 1; m <= 12; m++) {
+        const mStr = String(m).padStart(2, '0');
+        const monthKey = `${currentYear}-${mStr}`;
+        
+        let moTarget = 0;
+        if (OUTPUT_TARGETS.monthlyTargets && OUTPUT_TARGETS.monthlyTargets[monthKey] && typeof OUTPUT_TARGETS.monthlyTargets[monthKey][currentMachine] === 'number') {
+          moTarget = OUTPUT_TARGETS.monthlyTargets[monthKey][currentMachine];
+        } else {
+          moTarget = OUTPUT_TARGETS.machines?.[currentMachine]?.monthlyTarget || 2200000;
+        }
+        targetValues.push(moTarget);
+
+        const yearItem = (currentYearlyTrend || []).find(y => Number(y.month) === m);
+        let actualVal = 0;
+        if (m === currentMonth && currentApiSummary && currentApiSummary.output > 0) {
+          actualVal = currentApiSummary.output;
+        } else if (yearItem && typeof yearItem.output === 'number') {
+          actualVal = Math.max(0, yearItem.output);
+        }
+        actualValues.push(actualVal);
+
+        const isSelectedMonth = (m === currentMonth);
+        if (actualVal === 0 && m > currentMonth) {
+          // เดือนในอนาคตที่ยังไม่ถึง
+          barColors.push('rgba(203, 213, 225, 0.45)');
+          borderColors.push('#cbd5e1');
+        } else if (actualVal >= moTarget) {
+          // ได้ตามเป้าหมาย (เขียว)
+          barColors.push(isSelectedMonth ? '#059669' : '#10b981');
+          borderColors.push(isSelectedMonth ? '#047857' : '#059669');
+        } else {
+          // ต่ำกว่าเป้าหมาย (ส้ม/แดง)
+          barColors.push(isSelectedMonth ? '#dc2626' : '#f43f5e');
+          borderColors.push(isSelectedMonth ? '#b91c1c' : '#e11d48');
+        }
+      }
+
+      if (monthlyTrendChartInstance) {
+        try { monthlyTrendChartInstance.destroy(); } catch(e) {}
+      }
+
+      const chartPlugins = (typeof ChartDataLabels !== 'undefined') ? [ChartDataLabels] : [];
+      const ctx = chartEl.getContext('2d');
+
+      const maxVal = Math.max(...actualValues, ...targetValues, 1000000);
+      const suggestedYMax = Math.ceil((maxVal * 1.25) / 500000) * 500000;
+
+      monthlyTrendChartInstance = new Chart(ctx, {
+        type: 'bar',
+        plugins: chartPlugins,
+        data: {
+          labels: labelsTh,
+          datasets: [
+            {
+              type: 'bar',
+              label: 'ยอดผลิตจริง Actual Output (กก.)',
+              data: actualValues,
+              backgroundColor: barColors,
+              borderColor: borderColors,
+              borderWidth: 2,
+              borderRadius: 8,
+              borderSkipped: false,
+              maxBarThickness: 45,
+              order: 2
+            },
+            {
+              type: 'line',
+              label: 'Target Output รายเดือน (กก.)',
+              data: targetValues,
+              borderColor: '#f59e0b',
+              backgroundColor: 'transparent',
+              borderWidth: 3,
+              borderDash: [6, 4],
+              pointBackgroundColor: '#f59e0b',
+              pointBorderColor: '#ffffff',
+              pointBorderWidth: 2,
+              pointRadius: 5,
+              pointHoverRadius: 7,
+              order: 1,
+              datalabels: {
+                display: false
+              }
+            }
+          ]
+        },
+        options: {
+          devicePixelRatio: Math.max(window.devicePixelRatio || 1, 3),
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: {
+            padding: { top: 48, left: 10, right: 38, bottom: 12 }
+          },
+          onClick: (evt, activeEls) => {
+            if (activeEls && activeEls.length > 0) {
+              const clickedIdx = activeEls[0].index;
+              const targetMonth = clickedIdx + 1;
+              if (targetMonth !== currentMonth) {
+                const sel = document.getElementById('selectedMonth');
+                if (sel) {
+                  sel.value = String(targetMonth);
+                  onMonthChange();
+                }
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                font: { family: "'Prompt', sans-serif", size: 11, weight: 'bold' },
+                boxWidth: 14,
+                padding: 15
+              }
+            },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleFont: { family: "'Prompt', sans-serif", size: 12, weight: 'bold' },
+              bodyFont: { family: "'Prompt', sans-serif", size: 11 },
+              padding: 10,
+              callbacks: {
+                title: function(items) {
+                  const idx = items[0].dataIndex;
+                  return `เดือน ${labelsTh[idx]} (ปี ${currentYear})`;
+                },
+                label: function(ctx) {
+                  const idx = ctx.dataIndex;
+                  const val = actualValues[idx];
+                  const tg = targetValues[idx];
+                  const diff = val - tg;
+                  const pct = tg > 0 ? ((val / tg) * 100).toFixed(1) : '100.0';
+                  if (val === 0 && (idx + 1) > currentMonth) {
+                    return ` Target: ${tg.toLocaleString()} กก. (ยังไม่มียอดผลิต)`;
+                  }
+                  return [
+                    ` ผลิตจริง: ${val.toLocaleString()} กก. (${(val / 1000).toFixed(1)} ตัน)`,
+                    ` Target: ${tg.toLocaleString()} กก.`,
+                    ` ส่วนต่าง: ${diff >= 0 ? '+' : ''}${diff.toLocaleString()} กก.`,
+                    ` บรรลุเป้า: ${pct}% (${val >= tg ? 'ได้เป้า ✅' : 'ต่ำกว่าเป้า ❌'})`
+                  ];
+                }
+              }
+            },
+            datalabels: {
+              clip: false,
+              display: function(ctx) {
+                const idx = ctx.dataIndex;
+                return ctx.dataset.type === 'bar' && actualValues[idx] > 0;
+              },
+              anchor: 'end',
+              align: 'top',
+              offset: 4,
+              formatter: function(val, ctx) {
+                const idx = ctx.dataIndex;
+                const tg = targetValues[idx];
+                const pct = tg > 0 ? ((val / tg) * 100).toFixed(0) : 100;
+                const valStr = val >= 1000000 ? `${(val / 1000000).toFixed(2)}M` : `${Math.round(val / 1000)}k`;
+                return `${valStr}\n(${pct}%)`;
+              },
+              backgroundColor: '#ffffff',
+              borderColor: function(ctx) {
+                const idx = ctx.dataIndex;
+                const val = actualValues[idx];
+                const tg = targetValues[idx];
+                return val >= tg ? '#86efac' : '#fca5a5';
+              },
+              borderWidth: 1.5,
+              borderRadius: 6,
+              padding: { top: 2, bottom: 2, left: 5, right: 5 },
+              color: function(ctx) {
+                const idx = ctx.dataIndex;
+                const val = actualValues[idx];
+                const tg = targetValues[idx];
+                return val >= tg ? '#15803d' : '#b91c1c';
+              },
+              font: {
+                family: "'Prompt', sans-serif",
+                size: 9.5,
+                weight: '800'
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              suggestedMax: suggestedYMax,
+              ticks: {
+                callback: v => `${(v / 1000000).toFixed(1)}M กก.`,
+                font: { family: "'Prompt', sans-serif", size: 10.5, weight: '600' },
+                color: '#475569'
+              },
+              grid: { color: '#f1f5f9' }
+            },
+            x: {
+              grid: { display: false },
+              ticks: {
+                font: { family: "'Prompt', sans-serif", size: 11, weight: 'bold' },
+                color: function(ctx) {
+                  return (ctx.index + 1 === currentMonth) ? '#4f46e5' : '#0f172a';
+                }
               }
             }
           }
@@ -1680,7 +2013,27 @@
       if (!chartEl) return;
 
       const link = document.createElement('a');
-      link.download = `Output_Chart_${currentMachine}_Month${currentMonth}.png`;
+      link.download = `Output_Daily_Chart_${currentMachine}_${currentYear}_Month${currentMonth}.png`;
+      link.href = chartEl.toDataURL('image/png', 1.0);
+      link.click();
+    }
+
+    function exportMonthlyChartAsImage() {
+      const chartEl = document.getElementById('monthlyTrendChart');
+      if (!chartEl) return;
+
+      const link = document.createElement('a');
+      link.download = `Output_Monthly_12Months_${currentMachine}_${currentYear}.png`;
+      link.href = chartEl.toDataURL('image/png', 1.0);
+      link.click();
+    }
+
+    function exportCumulativeChartAsImage() {
+      const chartEl = document.getElementById('cumulativeOutputChart');
+      if (!chartEl) return;
+
+      const link = document.createElement('a');
+      link.download = `Output_Cumulative_Chart_${currentMachine}_${currentYear}_Month${currentMonth}.png`;
       link.href = chartEl.toDataURL('image/png', 1.0);
       link.click();
     }
@@ -1689,21 +2042,42 @@
       const area = document.getElementById('output-printable-area');
       if (!area || typeof html2canvas === 'undefined') return;
 
-      if (document.fonts) {
-        await document.fonts.ready;
+      const btn = event?.currentTarget || document.activeElement;
+      const originalText = (btn && btn.tagName === 'BUTTON') ? btn.innerHTML : '';
+      if (btn && btn.tagName === 'BUTTON') {
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> กำลังบันทึกภาพ...';
+        btn.disabled = true;
       }
 
-      const canvas = await html2canvas(area, {
-        scale: 2.5,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#f8fafc'
-      });
+      try {
+        if (document.fonts) {
+          await document.fonts.ready;
+        }
 
-      const link = document.createElement('a');
-      link.download = `Output_Report_${currentMachine}_Month${currentMonth}.png`;
-      link.href = canvas.toDataURL('image/png', 1.0);
-      link.click();
+        const canvas = await html2canvas(area, {
+          scale: 2.2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#f8fafc',
+          logging: false,
+          ignoreElements: (el) => {
+            return el.getAttribute('data-html2canvas-ignore') === 'true';
+          }
+        });
+
+        const link = document.createElement('a');
+        link.download = `Output_Full_Report_${currentMachine}_${currentYear}_Month${currentMonth}.png`;
+        link.href = canvas.toDataURL('image/png', 0.95);
+        link.click();
+      } catch (err) {
+        console.error('Save report image error:', err);
+        alert('เกิดข้อผิดพลาดในการบันทึกรูปภาพ กรุณาลองใหม่อีกครั้ง');
+      } finally {
+        if (btn && btn.tagName === 'BUTTON') {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      }
     }
 
     function exportOutputTableToExcel() {
