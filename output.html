@@ -544,20 +544,20 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- Target Settings Modal Dialog -->
+  <!-- Target Settings Modal Dialog (ตาราง 12 เดือน) -->
   <!-- ========================================== -->
   <div id="targetSettingsModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-    <div class="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all">
+    <div class="bg-white rounded-3xl max-w-4xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all flex flex-col max-h-[92vh]">
       
       <!-- Modal Header -->
-      <div class="px-6 py-4.5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex justify-between items-center border-b border-slate-700">
+      <div class="px-6 py-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex justify-between items-center border-b border-slate-700 shrink-0">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-400/40 flex items-center justify-center text-lg">
-            <i class="fa-solid fa-sliders"></i>
+            <i class="fa-solid fa-table-list"></i>
           </div>
           <div>
-            <h3 class="text-lg font-black text-white">ตั้งค่า Target Output แยกเครื่อง (รายวัน & รายเดือน)</h3>
-            <p class="text-xs text-slate-400">กำหนดเป้าหมายยอดผลิต (kg) แยกแต่ละเครื่อง และระบุเป้าหมายเฉพาะเดือนล่วงหน้าข้ามปีได้</p>
+            <h3 class="text-lg font-black text-white">ตั้งค่าเป้าหมาย Target Output รายเดือน (12 เดือน)</h3>
+            <p class="text-xs text-slate-400">กรอกเป้าหมายยอดผลิต (kg) เรียง 12 เดือนสำหรับปีและเครื่องจักรที่เลือก ข้ามปีล่วงหน้าได้</p>
           </div>
         </div>
         <button onclick="closeTargetSettingsModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer">
@@ -565,188 +565,108 @@
         </button>
       </div>
 
-      <!-- Modal Body -->
-      <div class="p-6 space-y-5 max-h-[78vh] overflow-y-auto">
+      <!-- Modal Filter Toolbar: เลือกเครื่องจักร และ ปี -->
+      <div class="px-6 py-3.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 shrink-0">
         
-        <!-- แถบเลือกเดือน/ปีที่ต้องการตั้งค่า Target Output -->
-        <div class="p-4 bg-gradient-to-r from-indigo-50 via-sky-50 to-blue-50 border border-indigo-200 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-2xs">
-          <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
-              <i class="fa-solid fa-calendar-check"></i>
-            </div>
-            <div>
-              <div class="text-xs font-black text-indigo-950">เลือกเดือนและปี ที่ต้องการตั้งเป้าหมาย (ข้ามปีล่วงหน้าได้)</div>
-              <div class="text-[11px] text-indigo-700 font-medium">ระบบจะบันทึกเป้าหมายแยกลายเดือนให้อัตโนมัติ</div>
-            </div>
-          </div>
-          
-          <div class="flex items-center gap-2 w-full sm:w-auto">
-            <!-- ปี -->
-            <select id="modal-target-year" onchange="onModalMonthOrYearChange()" class="px-2.5 py-1.5 text-xs font-black text-slate-900 bg-white border border-indigo-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs cursor-pointer">
-              <option value="2025">2025</option>
-              <option value="2026" selected>2026</option>
-              <option value="2027">2027</option>
-              <option value="2028">2028</option>
-              <option value="2029">2029</option>
-              <option value="2030">2030</option>
-            </select>
-            <!-- เดือน -->
-            <select id="modal-target-month" onchange="onModalMonthOrYearChange()" class="px-2.5 py-1.5 text-xs font-black text-slate-900 bg-white border border-indigo-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs cursor-pointer">
-              <option value="1">มกราคม (01)</option>
-              <option value="2">กุมภาพันธ์ (02)</option>
-              <option value="3">มีนาคม (03)</option>
-              <option value="4">เมษายน (04)</option>
-              <option value="5">พฤษภาคม (05)</option>
-              <option value="6">มิถุนายน (06)</option>
-              <option value="7">กรกฎาคม (07)</option>
-              <option value="8">สิงหาคม (08)</option>
-              <option value="9">กันยายน (09)</option>
-              <option value="10" selected>ตุลาคม (10)</option>
-              <option value="11">พฤศจิกายน (11)</option>
-              <option value="12">ธันวาคม (12)</option>
+        <div class="flex items-center gap-3 flex-wrap">
+          <!-- เลือกเครื่องจักรใน Modal -->
+          <div class="flex items-center bg-white border border-slate-300 rounded-xl px-3 py-1.5 shadow-2xs">
+            <i class="fa-solid fa-industry text-amber-500 mr-2 text-xs"></i>
+            <span class="text-xs text-slate-500 font-bold mr-1.5 whitespace-nowrap">เครื่องจักร:</span>
+            <select id="modal-target-machine" onchange="onModalFilterChange()" class="text-xs font-black text-slate-900 bg-white border-none focus:outline-none cursor-pointer">
+              <option value="BHS">เครื่อง BHS</option>
+              <option value="ISOWA">เครื่อง ISOWA</option>
+              <option value="YUELI">เครื่อง YUELI</option>
+              <option value="TOTAL" class="font-black text-amber-600">รวมทุกเครื่อง (TOTAL)</option>
             </select>
           </div>
-        </div>
 
-        <!-- 4 กล่องตั้งค่าแยก 4 เครื่องจักร (รายวัน + รายเดือน) -->
-        <div class="space-y-3.5">
-          
-          <!-- BHS Target -->
-          <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-            <div class="flex items-center gap-3">
-              <span class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-black text-sm shrink-0">
-                BHS
-              </span>
-              <div>
-                <div class="text-sm font-black text-slate-800">เครื่องจักร BHS</div>
-                <div class="text-[11px] text-slate-500 font-medium">ตั้งเป้าหมายรายวัน และยอดรายเดือน</div>
-              </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full md:w-auto">
-              <div class="flex items-center gap-1.5 bg-white p-1.5 border border-slate-200 rounded-xl">
-                <span class="text-[11px] font-bold text-slate-500 w-16">เป้ารายวัน:</span>
-                <input type="number" id="input-target-bhs" oninput="autoSumDailyInputs()" step="1000" min="0" value="100000" class="w-28 px-2 py-1 text-right font-black text-slate-900 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs shadow-2xs">
-                <span class="text-[11px] font-bold text-slate-400">กก.</span>
-              </div>
-              <div class="flex items-center gap-1.5 bg-white p-1.5 border border-slate-200 rounded-xl">
-                <span class="text-[11px] font-bold text-amber-700 w-16">เป้าเดือนนี้:</span>
-                <input type="number" id="input-target-bhs-month" oninput="autoSumMonthlyInputs()" step="10000" min="0" value="2200000" class="w-28 px-2 py-1 text-right font-black text-amber-800 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-xs shadow-2xs bg-amber-50/30">
-                <span class="text-[11px] font-bold text-slate-400">กก.</span>
-              </div>
-            </div>
+          <!-- เลือกปีใน Modal -->
+          <div class="flex items-center bg-white border border-slate-300 rounded-xl px-3 py-1.5 shadow-2xs">
+            <i class="fa-solid fa-calendar-alt text-indigo-500 mr-2 text-xs"></i>
+            <span class="text-xs text-slate-500 font-bold mr-1.5 whitespace-nowrap">ปี (Year):</span>
+            <select id="modal-target-year" onchange="onModalFilterChange()" class="text-xs font-black text-slate-900 bg-white border-none focus:outline-none cursor-pointer">
+              <option value="2025">2025 (2568)</option>
+              <option value="2026" selected>2026 (2569)</option>
+              <option value="2027">2027 (2570)</option>
+              <option value="2028">2028 (2571)</option>
+              <option value="2029">2029 (2572)</option>
+              <option value="2030">2030 (2573)</option>
+            </select>
           </div>
 
-          <!-- ISOWA Target -->
-          <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-            <div class="flex items-center gap-3">
-              <span class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-black text-sm shrink-0">
-                ISW
-              </span>
-              <div>
-                <div class="text-sm font-black text-slate-800">เครื่องจักร ISOWA</div>
-                <div class="text-[11px] text-slate-500 font-medium">ตั้งเป้าหมายรายวัน และยอดรายเดือน</div>
-              </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full md:w-auto">
-              <div class="flex items-center gap-1.5 bg-white p-1.5 border border-slate-200 rounded-xl">
-                <span class="text-[11px] font-bold text-slate-500 w-16">เป้ารายวัน:</span>
-                <input type="number" id="input-target-isowa" oninput="autoSumDailyInputs()" step="1000" min="0" value="60000" class="w-28 px-2 py-1 text-right font-black text-slate-900 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs shadow-2xs">
-                <span class="text-[11px] font-bold text-slate-400">กก.</span>
-              </div>
-              <div class="flex items-center gap-1.5 bg-white p-1.5 border border-slate-200 rounded-xl">
-                <span class="text-[11px] font-bold text-amber-700 w-16">เป้าเดือนนี้:</span>
-                <input type="number" id="input-target-isowa-month" oninput="autoSumMonthlyInputs()" step="10000" min="0" value="1300000" class="w-28 px-2 py-1 text-right font-black text-amber-800 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-xs shadow-2xs bg-amber-50/30">
-                <span class="text-[11px] font-bold text-slate-400">กก.</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- YUELI Target -->
-          <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-            <div class="flex items-center gap-3">
-              <span class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-black text-sm shrink-0">
-                YLI
-              </span>
-              <div>
-                <div class="text-sm font-black text-slate-800">เครื่องจักร YUELI</div>
-                <div class="text-[11px] text-slate-500 font-medium">ตั้งเป้าหมายรายวัน และยอดรายเดือน</div>
-              </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full md:w-auto">
-              <div class="flex items-center gap-1.5 bg-white p-1.5 border border-slate-200 rounded-xl">
-                <span class="text-[11px] font-bold text-slate-500 w-16">เป้ารายวัน:</span>
-                <input type="number" id="input-target-yueli" oninput="autoSumDailyInputs()" step="1000" min="0" value="50000" class="w-28 px-2 py-1 text-right font-black text-slate-900 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs shadow-2xs">
-                <span class="text-[11px] font-bold text-slate-400">กก.</span>
-              </div>
-              <div class="flex items-center gap-1.5 bg-white p-1.5 border border-slate-200 rounded-xl">
-                <span class="text-[11px] font-bold text-amber-700 w-16">เป้าเดือนนี้:</span>
-                <input type="number" id="input-target-yueli-month" oninput="autoSumMonthlyInputs()" step="10000" min="0" value="1100000" class="w-28 px-2 py-1 text-right font-black text-amber-800 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-xs shadow-2xs bg-amber-50/30">
-                <span class="text-[11px] font-bold text-slate-400">กก.</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- TOTAL Target -->
-          <div class="p-3.5 bg-amber-50/80 border-2 border-amber-400 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-            <div class="flex items-center gap-3">
-              <span class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black text-sm shadow-xs shrink-0">
-                ALL
-              </span>
-              <div>
-                <div class="text-sm font-black text-amber-950">รวมทุกเครื่อง (TOTAL)</div>
-                <div class="text-[11px] text-amber-800/80 font-medium">รวมทั้งโรงงาน (อัปเดตอัตโนมัติหรือกรอกเองได้)</div>
-              </div>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full md:w-auto">
-              <div class="flex items-center gap-1.5 bg-white p-1.5 border border-amber-300 rounded-xl">
-                <span class="text-[11px] font-bold text-amber-800 w-16">เป้ารายวัน:</span>
-                <input type="number" id="input-target-total" step="1000" min="0" value="210000" class="w-28 px-2 py-1 text-right font-black text-amber-950 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-xs shadow-2xs bg-amber-50/20">
-                <span class="text-[11px] font-bold text-amber-900">กก.</span>
-              </div>
-              <div class="flex items-center gap-1.5 bg-white p-1.5 border border-amber-300 rounded-xl">
-                <span class="text-[11px] font-bold text-amber-900 w-16">เป้าเดือนนี้:</span>
-                <input type="number" id="input-target-total-month" step="10000" min="0" value="4600000" class="w-28 px-2 py-1 text-right font-black text-amber-950 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-xs shadow-2xs bg-amber-50/40">
-                <span class="text-[11px] font-bold text-amber-900">กก.</span>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- รายการเดือนที่มีการตั้งค่าไว้แล้ว -->
-        <div class="pt-2">
-          <div class="text-xs font-black text-slate-700 mb-1.5 flex items-center justify-between">
-            <span>ประวัติ / เดือนที่มีการตั้งเป้าหมายไว้แล้ว:</span>
-            <span class="text-[11px] text-slate-400 font-normal">คลิกเพื่อโหลดมาแก้ไข</span>
-          </div>
-          <div id="target-configured-months-list" class="flex items-center gap-1.5 flex-wrap">
-            <!-- Badges ของเดือนที่เคยตั้งเป้าหมายไว้ -->
+          <!-- ตั้งค่าเป้ารายวันเริ่มต้น (กก./วัน) -->
+          <div class="flex items-center bg-amber-50/80 border border-amber-300 rounded-xl px-3 py-1.5 shadow-2xs">
+            <i class="fa-solid fa-crosshairs text-amber-600 mr-2 text-xs"></i>
+            <span class="text-xs text-amber-900 font-bold mr-1.5 whitespace-nowrap">เป้ารายวัน:</span>
+            <input type="number" id="modal-target-daily" step="1000" min="0" class="w-24 text-right font-black text-slate-900 bg-white border border-amber-400 rounded-lg px-2 py-0.5 text-xs focus:ring-1 focus:ring-amber-500">
+            <span class="text-[11px] text-amber-800 font-bold ml-1">กก./วัน</span>
           </div>
         </div>
 
-        <!-- ปุ่มช่วยคำนวณและพรีเซ็ต -->
-        <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 flex-wrap">
-          <div class="flex items-center gap-2 flex-wrap">
-            <button type="button" onclick="autoCalculateTotalTarget()" class="px-2.5 py-1 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition cursor-pointer">
-              <i class="fa-solid fa-calculator mr-1"></i> รวม 3 เครื่องเป็น TOTAL
-            </button>
-            <button type="button" onclick="resetOutputTargetsToDefault()" class="px-2.5 py-1 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition cursor-pointer">
-              <i class="fa-solid fa-rotate-left mr-1"></i> คืนค่าเริ่มต้น
-            </button>
+        <div class="flex items-center gap-2">
+          <!-- ปุ่มกระจายค่าไปทุกเดือน -->
+          <button type="button" onclick="applyFirstMonthToAll()" class="px-2.5 py-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition cursor-pointer shadow-2xs flex items-center gap-1.5">
+            <i class="fa-solid fa-copy"></i> นำเดือน ม.ค. ใช้ทุกเดือน
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Modal Body (ตาราง 12 เดือน) -->
+      <div class="p-6 overflow-y-auto flex-1 space-y-4">
+        
+        <div class="rounded-2xl border border-slate-200 overflow-hidden shadow-2xs bg-white">
+          <table class="w-full text-xs text-left border-collapse">
+            <thead>
+              <tr class="bg-indigo-900 text-white font-bold">
+                <th class="p-3 w-16 text-center">เดือน</th>
+                <th class="p-3 min-w-[130px]">ชื่อเดือน</th>
+                <th class="p-3 min-w-[200px] bg-indigo-800">เป้าหมาย Target Output รายเดือน (กก.)</th>
+                <th class="p-3 min-w-[130px] text-right">แปลงเป็นตัน (Ton)</th>
+                <th class="p-3 text-center w-28">สถานะ</th>
+              </tr>
+            </thead>
+            <tbody id="modal12MonthsTableBody" class="divide-y divide-slate-200 font-medium bg-white">
+              <!-- 12 แถวจะถูกเรนเดอร์โดย JavaScript -->
+            </tbody>
+            <tfoot>
+              <tr class="bg-slate-900 text-white font-black text-xs border-t-2 border-indigo-500">
+                <td colspan="2" class="p-3 text-right">รวมเป้าหมายทั้งปี (<span id="modal-table-year-label">2026</span>):</td>
+                <td class="p-3 text-amber-300 text-sm font-black" id="modal-year-target-total">0 กก.</td>
+                <td class="p-3 text-right text-emerald-400 text-sm font-black" id="modal-year-target-ton">0 ตัน</td>
+                <td class="p-3 text-center text-slate-400 font-normal">12 เดือน</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- ข้อมูลแจ้งสถานะ & Quick Hint -->
+        <div class="flex items-center justify-between text-[11px] text-slate-500 font-medium px-1 flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-circle-info text-indigo-500"></i>
+            <span>สามารถเปลี่ยนปีเพื่อตั้งเป้าหมายล่วงหน้าได้ เมื่อกดบันทึก ข้อมูลจะอัปเดตลงระบบและแสดงบน Dashboard ทันที</span>
           </div>
-          <span class="text-[11px] text-slate-400 font-medium" id="target-last-updated-text">อัปเดตล่าสุด: กำลังโหลด...</span>
+          <span id="target-last-updated-text" class="text-slate-400">อัปเดต: กำลังโหลด...</span>
         </div>
 
       </div>
 
       <!-- Modal Footer -->
-      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
-        <button type="button" onclick="closeTargetSettingsModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition cursor-pointer">
-          ยกเลิก
-        </button>
-        <button type="button" onclick="saveTargetSettings()" id="btn-save-targets" class="px-5 py-2 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer">
-          <i class="fa-solid fa-check"></i> บันทึกเป้าหมาย Target
-        </button>
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center gap-3 shrink-0">
+        <div>
+          <button type="button" onclick="resetOutputTargetsToDefault()" class="px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition cursor-pointer flex items-center gap-1.5 border border-rose-200">
+            <i class="fa-solid fa-rotate-left"></i> คืนค่าเริ่มต้น
+          </button>
+        </div>
+        <div class="flex items-center gap-3">
+          <button type="button" onclick="closeTargetSettingsModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition cursor-pointer">
+            ยกเลิก
+          </button>
+          <button type="button" onclick="saveTargetSettings()" id="btn-save-targets" class="px-6 py-2.5 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer">
+            <i class="fa-solid fa-check"></i> บันทึกเป้าหมาย Target Output
+          </button>
+        </div>
       </div>
 
     </div>
@@ -881,30 +801,78 @@
       return { target: defaultVal, isSpecific: false, monthKey: monthKey };
     }
 
+    const THAI_MONTH_NAMES = [
+      '', 'มกราคม (01)', 'กุมภาพันธ์ (02)', 'มีนาคม (03)', 'เมษายน (04)',
+      'พฤษภาคม (05)', 'มิถุนายน (06)', 'กรกฎาคม (07)', 'สิงหาคม (08)',
+      'กันยายน (09)', 'ตุลาคม (10)', 'พฤศจิกายน (11)', 'ธันวาคม (12)'
+    ];
+
     function updateModalInputs() {
-      // ดึงปี-เดือนที่เลือกอยู่ใน modal
+      const modalMach = document.getElementById('modal-target-machine')?.value || currentMachine;
       const modalYear = document.getElementById('modal-target-year')?.value || currentYear;
-      const modalMonth = document.getElementById('modal-target-month')?.value || currentMonth;
-      const monthStr = String(modalMonth).padStart(2, '0');
-      const targetKey = `${modalYear}-${monthStr}`;
+      
+      const yearLabel = document.getElementById('modal-table-year-label');
+      if (yearLabel) yearLabel.textContent = modalYear;
 
-      const m = OUTPUT_TARGETS.machines || {};
-      const spec = OUTPUT_TARGETS.monthlyTargets?.[targetKey] || null;
+      // อัปเดตช่องเป้ารายวันของเครื่องจักรที่เลือก
+      const dailyInput = document.getElementById('modal-target-daily');
+      if (dailyInput) {
+        dailyInput.value = OUTPUT_TARGETS.machines?.[modalMach]?.dailyTarget || 100000;
+      }
 
-      // รายวัน: แสดงค่ามาตรฐาน
-      if (m.BHS) document.getElementById('input-target-bhs').value = m.BHS.dailyTarget;
-      if (m.ISOWA) document.getElementById('input-target-isowa').value = m.ISOWA.dailyTarget;
-      if (m.YUELI) document.getElementById('input-target-yueli').value = m.YUELI.dailyTarget;
-      if (m.TOTAL) document.getElementById('input-target-total').value = m.TOTAL.dailyTarget;
+      // เรนเดอร์ตาราง 12 เดือน
+      const tbody = document.getElementById('modal12MonthsTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
 
-      // รายเดือน: ถ้ามีเป้าหมายเฉพาะเดือน ให้ดึงมาแสดง ถ้าไม่มีให้ใช้ค่ามาตรฐาน
-      document.getElementById('input-target-bhs-month').value = (spec && spec.BHS) ? spec.BHS : (m.BHS?.monthlyTarget || 2200000);
-      document.getElementById('input-target-isowa-month').value = (spec && spec.ISOWA) ? spec.ISOWA : (m.ISOWA?.monthlyTarget || 1300000);
-      document.getElementById('input-target-yueli-month').value = (spec && spec.YUELI) ? spec.YUELI : (m.YUELI?.monthlyTarget || 1100000);
-      document.getElementById('input-target-total-month').value = (spec && spec.TOTAL) ? spec.TOTAL : (m.TOTAL?.monthlyTarget || 4600000);
+      let yearTotalKg = 0;
+      const defaultMoTarget = OUTPUT_TARGETS.machines?.[modalMach]?.monthlyTarget || 2200000;
 
-      // เรนเดอร์ป้าย Badge เดือนที่มีการตั้งเป้าหมายไว้แล้ว
-      renderConfiguredMonthsBadges();
+      for (let m = 1; m <= 12; m++) {
+        const mStr = String(m).padStart(2, '0');
+        const monthKey = `${modalYear}-${mStr}`;
+        const hasSpec = (OUTPUT_TARGETS.monthlyTargets && OUTPUT_TARGETS.monthlyTargets[monthKey] && typeof OUTPUT_TARGETS.monthlyTargets[monthKey][modalMach] === 'number');
+        const currentTargetKg = hasSpec ? OUTPUT_TARGETS.monthlyTargets[monthKey][modalMach] : defaultMoTarget;
+        
+        yearTotalKg += currentTargetKg;
+        const tonVal = (currentTargetKg / 1000).toFixed(1);
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+        tr.innerHTML = `
+          <td class="p-3 text-center font-black text-slate-500">${m}</td>
+          <td class="p-3 font-bold text-slate-800">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full ${hasSpec ? 'bg-amber-500' : 'bg-slate-300'}"></span>
+              <span>${THAI_MONTH_NAMES[m]}</span>
+            </div>
+          </td>
+          <td class="p-2.5">
+            <div class="flex items-center gap-2">
+              <input type="number" 
+                     id="modal-month-input-${m}" 
+                     data-month="${m}" 
+                     oninput="onModalMonthTableInput(this)" 
+                     step="10000" 
+                     min="0" 
+                     value="${currentTargetKg}" 
+                     class="w-full max-w-[220px] px-3 py-1.5 text-right font-black text-slate-900 bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs shadow-2xs">
+              <span class="text-slate-400 font-bold text-[11px]">กก.</span>
+            </div>
+          </td>
+          <td class="p-3 text-right font-bold text-slate-700" id="modal-month-ton-${m}">
+            ${parseFloat(tonVal).toLocaleString()} ตัน
+          </td>
+          <td class="p-3 text-center">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${hasSpec ? 'bg-amber-100 text-amber-800 border border-amber-300' : 'bg-slate-100 text-slate-600'}">
+              ${hasSpec ? 'กำหนดเฉพาะ' : 'มาตรฐาน'}
+            </span>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      updateModalYearTotals();
 
       const lastUp = document.getElementById('target-last-updated-text');
       if (lastUp) {
@@ -912,59 +880,49 @@
       }
     }
 
-    function onModalMonthOrYearChange() {
+    function onModalFilterChange() {
       updateModalInputs();
     }
 
-    function renderConfiguredMonthsBadges() {
-      const container = document.getElementById('target-configured-months-list');
-      if (!container) return;
-      container.innerHTML = '';
+    function onModalMonthTableInput(inputEl) {
+      const m = inputEl.getAttribute('data-month');
+      const val = parseFloat(inputEl.value) || 0;
+      const tonEl = document.getElementById(`modal-month-ton-${m}`);
+      if (tonEl) {
+        tonEl.textContent = `${(val / 1000).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} ตัน`;
+      }
+      updateModalYearTotals();
+    }
 
-      const monthlyTargets = OUTPUT_TARGETS.monthlyTargets || {};
-      const keys = Object.keys(monthlyTargets).sort();
+    function updateModalYearTotals() {
+      let totalKg = 0;
+      for (let m = 1; m <= 12; m++) {
+        const input = document.getElementById(`modal-month-input-${m}`);
+        if (input) {
+          totalKg += parseFloat(input.value) || 0;
+        }
+      }
+      safeSetText('modal-year-target-total', `${totalKg.toLocaleString()} กก.`);
+      safeSetText('modal-year-target-ton', `${(totalKg / 1000).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} ตัน`);
+    }
 
-      if (keys.length === 0) {
-        container.innerHTML = '<span class="text-[11px] text-slate-400 italic">ยังไม่มีการระบุเป้าหมายเฉพาะเดือน (ใช้ค่ามาตรฐานรายเดือน)</span>';
+    function applyFirstMonthToAll() {
+      const firstVal = parseFloat(document.getElementById('modal-month-input-1')?.value) || 0;
+      if (firstVal <= 0) {
+        alert('กรุณากรอกตัวเลขเป้าหมายของเดือนมกราคมก่อน');
         return;
       }
-
-      keys.forEach(k => {
-        const [y, m] = k.split('-');
-        const moInt = parseInt(m);
-        const thaiMonths = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-        const label = `${thaiMonths[moInt] || m} ${y}`;
-        
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'px-2.5 py-1 text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs';
-        btn.innerHTML = `<i class="fa-solid fa-calendar-day text-[10px] text-indigo-500"></i> ${label}`;
-        btn.onclick = () => {
-          document.getElementById('modal-target-year').value = y;
-          document.getElementById('modal-target-month').value = String(moInt);
-          updateModalInputs();
-        };
-        container.appendChild(btn);
-      });
-    }
-
-    function autoSumDailyInputs() {
-      const bhs = parseFloat(document.getElementById('input-target-bhs').value) || 0;
-      const isowa = parseFloat(document.getElementById('input-target-isowa').value) || 0;
-      const yueli = parseFloat(document.getElementById('input-target-yueli').value) || 0;
-      document.getElementById('input-target-total').value = bhs + isowa + yueli;
-    }
-
-    function autoSumMonthlyInputs() {
-      const bhsMo = parseFloat(document.getElementById('input-target-bhs-month').value) || 0;
-      const isowaMo = parseFloat(document.getElementById('input-target-isowa-month').value) || 0;
-      const yueliMo = parseFloat(document.getElementById('input-target-yueli-month').value) || 0;
-      document.getElementById('input-target-total-month').value = bhsMo + isowaMo + yueliMo;
-    }
-
-    function autoCalculateTotalTarget() {
-      autoSumDailyInputs();
-      autoSumMonthlyInputs();
+      for (let m = 2; m <= 12; m++) {
+        const input = document.getElementById(`modal-month-input-${m}`);
+        if (input) {
+          input.value = firstVal;
+          const tonEl = document.getElementById(`modal-month-ton-${m}`);
+          if (tonEl) {
+            tonEl.textContent = `${(firstVal / 1000).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} ตัน`;
+          }
+        }
+      }
+      updateModalYearTotals();
     }
 
     async function resetOutputTargetsToDefault() {
@@ -985,11 +943,11 @@
     }
 
     function openTargetSettingsModal() {
-      // Sync เดือนและปีใน Modal ให้ตรงกับตัวกรองปัจจุบันหน้าจอ
+      // Sync ค่าเครื่องจักรและปีใน Modal ให้ตรงกับ Dashboard ปัจจุบัน
+      const selMach = document.getElementById('modal-target-machine');
+      if (selMach) selMach.value = currentMachine;
       const selY = document.getElementById('modal-target-year');
       if (selY) selY.value = String(currentYear);
-      const selM = document.getElementById('modal-target-month');
-      if (selM) selM.value = String(currentMonth);
 
       updateModalInputs();
       document.getElementById('targetSettingsModal').classList.remove('hidden');
@@ -1003,43 +961,58 @@
       const btn = document.getElementById('btn-save-targets');
       if (btn) btn.disabled = true;
 
+      const modalMach = document.getElementById('modal-target-machine')?.value || currentMachine;
       const modalYear = document.getElementById('modal-target-year')?.value || currentYear;
-      const modalMonth = document.getElementById('modal-target-month')?.value || currentMonth;
-      const monthStr = String(modalMonth).padStart(2, '0');
-      const targetMonthKey = `${modalYear}-${monthStr}`;
+      const dailyVal = parseFloat(document.getElementById('modal-target-daily')?.value) || 100000;
 
-      const bhsDaily = parseFloat(document.getElementById('input-target-bhs').value) || 100000;
-      const isowaDaily = parseFloat(document.getElementById('input-target-isowa').value) || 60000;
-      const yueliDaily = parseFloat(document.getElementById('input-target-yueli').value) || 50000;
-      const totalDaily = parseFloat(document.getElementById('input-target-total').value) || 210000;
+      // รวมข้อมูล 12 เดือนที่กรอก
+      const monthly12 = {};
+      for (let m = 1; m <= 12; m++) {
+        const mStr = String(m).padStart(2, '0');
+        const key = `${modalYear}-${mStr}`;
+        const inputVal = parseFloat(document.getElementById(`modal-month-input-${m}`)?.value) || 0;
+        monthly12[key] = inputVal;
+      }
 
-      const bhsMo = parseFloat(document.getElementById('input-target-bhs-month').value) || 2200000;
-      const isowaMo = parseFloat(document.getElementById('input-target-isowa-month').value) || 1300000;
-      const yueliMo = parseFloat(document.getElementById('input-target-yueli-month').value) || 1100000;
-      const totalMo = parseFloat(document.getElementById('input-target-total-month').value) || 4600000;
+      // เตรียม payload ส่งบันทึก
+      if (!OUTPUT_TARGETS.monthlyTargets) OUTPUT_TARGETS.monthlyTargets = {};
+      if (!OUTPUT_TARGETS.machines) OUTPUT_TARGETS.machines = {};
+      if (!OUTPUT_TARGETS.machines[modalMach]) OUTPUT_TARGETS.machines[modalMach] = {};
 
-      const newSettings = {
-        action: 'save',
-        machines: {
-          BHS: { dailyTarget: bhsDaily, monthlyTarget: bhsMo },
-          ISOWA: { dailyTarget: isowaDaily, monthlyTarget: isowaMo },
-          YUELI: { dailyTarget: yueliDaily, monthlyTarget: yueliMo },
-          TOTAL: { dailyTarget: totalDaily, monthlyTarget: totalMo }
-        },
-        targetMonthKey: targetMonthKey,
-        monthTargets: {
-          BHS: bhsMo,
-          ISOWA: isowaMo,
-          YUELI: yueliMo,
-          TOTAL: totalMo
+      OUTPUT_TARGETS.machines[modalMach].dailyTarget = dailyVal;
+      // ให้ monthlyTarget เริ่มต้นอิงจากเดือนที่ 1 หรือเฉลี่ย
+      OUTPUT_TARGETS.machines[modalMach].monthlyTarget = monthly12[`${modalYear}-01`] || OUTPUT_TARGETS.machines[modalMach].monthlyTarget;
+
+      for (let m = 1; m <= 12; m++) {
+        const mStr = String(m).padStart(2, '0');
+        const key = `${modalYear}-${mStr}`;
+        if (!OUTPUT_TARGETS.monthlyTargets[key]) OUTPUT_TARGETS.monthlyTargets[key] = {};
+        OUTPUT_TARGETS.monthlyTargets[key][modalMach] = monthly12[key];
+      }
+
+      // ถ้าเป็นเครื่องจักร BHS / ISOWA / YUELI คำนวณ TOTAL ของแต่ละเดือนให้ด้วย
+      if (modalMach !== 'TOTAL') {
+        for (let m = 1; m <= 12; m++) {
+          const mStr = String(m).padStart(2, '0');
+          const key = `${modalYear}-${mStr}`;
+          const bhsVal = OUTPUT_TARGETS.monthlyTargets[key]?.BHS || OUTPUT_TARGETS.machines?.BHS?.monthlyTarget || 2200000;
+          const iswVal = OUTPUT_TARGETS.monthlyTargets[key]?.ISOWA || OUTPUT_TARGETS.machines?.ISOWA?.monthlyTarget || 1300000;
+          const yueVal = OUTPUT_TARGETS.monthlyTargets[key]?.YUELI || OUTPUT_TARGETS.machines?.YUELI?.monthlyTarget || 1100000;
+          OUTPUT_TARGETS.monthlyTargets[key].TOTAL = bhsVal + iswVal + yueVal;
         }
+      }
+
+      const postPayload = {
+        action: 'save',
+        machines: OUTPUT_TARGETS.machines,
+        monthlyTargets: OUTPUT_TARGETS.monthlyTargets
       };
 
       try {
         const res = await fetch('output_targets_api.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newSettings)
+          body: JSON.stringify(postPayload)
         });
         const json = await res.json();
         if (json && json.success) {
@@ -1047,20 +1020,17 @@
           localStorage.setItem('output_targets_settings', JSON.stringify(OUTPUT_TARGETS));
           closeTargetSettingsModal();
           renderDashboard();
-          alert(`บันทึกเป้าหมาย Target Output ประจำเดือน ${targetMonthKey} สำเร็จเรียบร้อยแล้ว!`);
+          alert(`บันทึกเป้าหมาย Target Output 12 เดือน ประจำปี ${modalYear} (${modalMach}) สำเร็จเรียบร้อยแล้ว!`);
         } else {
           alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
         }
       } catch(e) {
         // Fallback localStorage
-        OUTPUT_TARGETS.machines = newSettings.machines;
-        if (!OUTPUT_TARGETS.monthlyTargets) OUTPUT_TARGETS.monthlyTargets = {};
-        OUTPUT_TARGETS.monthlyTargets[targetMonthKey] = newSettings.monthTargets;
         OUTPUT_TARGETS.updated_at = new Date().toLocaleString();
         localStorage.setItem('output_targets_settings', JSON.stringify(OUTPUT_TARGETS));
         closeTargetSettingsModal();
         renderDashboard();
-        alert(`บันทึกเป้าหมายประจำเดือน ${targetMonthKey} ลงหน่วยความจำเบราว์เซอร์สำเร็จ!`);
+        alert(`บันทึกเป้าหมาย 12 เดือน ประจำปี ${modalYear} ลงหน่วยความจำเบราว์เซอร์สำเร็จ!`);
       } finally {
         if (btn) btn.disabled = false;
       }
