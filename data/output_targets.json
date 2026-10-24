@@ -1,0 +1,29 @@
+{
+    "machines": {
+        "BHS": {
+            "name": "เครื่อง BHS",
+            "dailyTarget": 100000,
+            "monthlyTarget": 2200000,
+            "unit": "kg"
+        },
+        "ISOWA": {
+            "name": "เครื่อง ISOWA",
+            "dailyTarget": 60000,
+            "monthlyTarget": 1300000,
+            "unit": "kg"
+        },
+        "YUELI": {
+            "name": "เครื่อง YUELI",
+            "dailyTarget": 50000,
+            "monthlyTarget": 1100000,
+            "unit": "kg"
+        },
+        "TOTAL": {
+            "name": "รวมทุกเครื่อง (TOTAL)",
+            "dailyTarget": 210000,
+            "monthlyTarget": 4600000,
+            "unit": "kg"
+        }
+    },
+    "updated_at": "2026-10-24 05:08:36"
+}

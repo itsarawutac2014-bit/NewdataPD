@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Output Dashboard - เปรียบเทียบ Target Output รายวัน vs เดินจริง | แผนกผลิต PD</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts: Prompt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js & Plugins -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  
+  <!-- html2canvas for 4K Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  
+  <!-- SheetJS for Excel Export -->
+  <script src="xlsx.full.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Prompt', sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+    
+    /* ซ่อน Scrollbar ที่ไม่จำเป็น */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* ธีมสีพื้นหลังตาราง 7 เฉดพาสเทล */
+    .table-theme-white {
+      --table-bg-main: #ffffff;
+      --table-bg-alt: #f1f5f9;
+      --table-bg-hover: #e2e8f0;
+      --table-border-subtle: #cbd5e1;
+      --table-card-bg: #ffffff;
+    }
+    .table-theme-cream {
+      --table-bg-main: #fef3c7;
+      --table-bg-alt: #fde68a;
+      --table-bg-hover: #fcd34d;
+      --table-border-subtle: #f59e0b;
+      --table-card-bg: #fffbeb;
+    }
+    .table-theme-blue {
+      --table-bg-main: #e0f2fe;
+      --table-bg-alt: #bae6fd;
+      --table-bg-hover: #7dd3fc;
+      --table-border-subtle: #0284c7;
+      --table-card-bg: #f0f9ff;
+    }
+    .table-theme-mint {
+      --table-bg-main: #dcfce7;
+      --table-bg-alt: #bbf7d0;
+      --table-bg-hover: #86efac;
+      --table-border-subtle: #16a34a;
+      --table-card-bg: #f0fdf4;
+    }
+    .table-theme-peach {
+      --table-bg-main: #ffedd5;
+      --table-bg-alt: #fed7aa;
+      --table-bg-hover: #fdba74;
+      --table-border-subtle: #ea580c;
+      --table-card-bg: #fff7ed;
+    }
+    .table-theme-lavender {
+      --table-bg-main: #ede9fe;
+      --table-bg-alt: #ddd6fe;
+      --table-bg-hover: #c4b5fd;
+      --table-border-subtle: #7c3aed;
+      --table-card-bg: #f5f3ff;
+    }
+    .table-theme-slate {
+      --table-bg-main: #e2e8f0;
+      --table-bg-alt: #cbd5e1;
+      --table-bg-hover: #94a3b8;
+      --table-border-subtle: #64748b;
+      --table-card-bg: #f8fafc;
+    }
+
+    #output-table-card.table-theme-active {
+      background-color: var(--table-card-bg, #ffffff);
+      transition: background-color 0.2s ease;
+    }
+    table.output-table {
+      background-color: var(--table-bg-main, #ffffff) !important;
+      transition: background-color 0.2s ease;
+    }
+    table.output-table tbody tr {
+      background-color: var(--table-bg-main, #ffffff) !important;
+      transition: background-color 0.15s ease;
+    }
+    table.output-table tbody tr:nth-child(even) {
+      background-color: var(--table-bg-alt, #ffffff) !important;
+    }
+    table.output-table tbody tr:hover {
+      background-color: var(--table-bg-hover, #f1f5f9) !important;
+    }
+
+    /* ไฮไลต์เซลล์ได้เป้า / ไม่ถึงเป้า */
+    .cell-output-pass {
+      background-color: #dcfce7 !important;
+      color: #14532d !important;
+      font-weight: 800 !important;
+    }
+    .cell-output-under {
+      background-color: #fee2e2 !important;
+      color: #991b1b !important;
+      font-weight: 800 !important;
+    }
+    .cell-output-idle {
+      background-color: #f1f5f9 !important;
+      color: #64748b !important;
+      font-weight: 600 !important;
+    }
+  </style>
+</head>
+<body class="p-2 sm:p-4 lg:p-6 min-h-screen flex flex-col justify-between">
+
+  <div class="max-w-[1720px] mx-auto w-full space-y-6">
+
+    <!-- ========================================== -->
+    <!-- Header Navigation & Controls Bar -->
+    <!-- ========================================== -->
+    <header class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+      
+      <!-- Title & Branding -->
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-500 text-white flex items-center justify-center text-2xl shadow-md shrink-0">
+          <i class="fa-solid fa-truck-ramp-box"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Output PRODUCTION Dashboard</h1>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-100 text-indigo-800 border border-indigo-200">
+              Target vs เดินจริง
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 font-medium mt-0.5">
+            ระบบเปรียบเทียบเป้าหมายการผลิตรายวัน กับ ยอดผลิตจริง (kg) แยกรายเครื่องจักร • แผนกผลิต PD
+          </p>
+        </div>
+      </div>
+
+      <!-- Controls & Quick Navigation -->
+      <div class="flex items-center gap-2.5 flex-wrap w-full lg:w-auto justify-start lg:justify-end">
+        
+        <!-- เลือกเครื่องจักร -->
+        <div class="flex items-center bg-slate-900 border-2 border-slate-700 rounded-xl px-3 py-1.5 shadow-sm text-white">
+          <i class="fa-solid fa-industry text-amber-400 mr-2 text-xs"></i>
+          <span class="text-xs text-slate-300 font-bold mr-1.5 whitespace-nowrap">เครื่อง:</span>
+          <select id="selectedMachine" onchange="onMachineChange()" class="text-xs font-black text-white bg-slate-900 border-none focus:outline-none cursor-pointer">
+            <option value="BHS" selected class="bg-slate-900 text-white font-bold">BHS</option>
+            <option value="ISOWA" class="bg-slate-900 text-white font-bold">ISOWA</option>
+            <option value="YUELI" class="bg-slate-900 text-white font-bold">YUELI</option>
+            <option value="TOTAL" class="bg-slate-900 text-white font-bold">รวมทุกเครื่อง (TOTAL)</option>
+          </select>
+        </div>
+
+        <!-- เลือกเดือน -->
+        <div class="flex items-center bg-slate-900 border-2 border-slate-700 rounded-xl px-3 py-1.5 shadow-sm text-white">
+          <i class="fa-solid fa-calendar-days text-sky-400 mr-2 text-xs"></i>
+          <span class="text-xs text-slate-300 font-bold mr-1.5 whitespace-nowrap">เดือน:</span>
+          <select id="selectedMonth" onchange="onMonthChange()" class="text-xs font-black text-white bg-slate-900 border-none focus:outline-none cursor-pointer">
+            <option value="1" class="bg-slate-900 text-white font-bold">มกราคม (1)</option>
+            <option value="2" class="bg-slate-900 text-white font-bold">กุมภาพันธ์ (2)</option>
+            <option value="3" class="bg-slate-900 text-white font-bold">มีนาคม (3)</option>
+            <option value="4" class="bg-slate-900 text-white font-bold">เมษายน (4)</option>
+            <option value="5" class="bg-slate-900 text-white font-bold">พฤษภาคม (5)</option>
+            <option value="6" class="bg-slate-900 text-white font-bold">มิถุนายน (6)</option>
+            <option value="7" class="bg-slate-900 text-white font-bold">กรกฎาคม (7)</option>
+            <option value="8" class="bg-slate-900 text-white font-bold">สิงหาคม (8)</option>
+            <option value="9" class="bg-slate-900 text-white font-bold">กันยายน (9)</option>
+            <option value="10" selected class="bg-slate-900 text-white font-bold">ตุลาคม (10)</option>
+            <option value="11" class="bg-slate-900 text-white font-bold">พฤศจิกายน (11)</option>
+            <option value="12" class="bg-slate-900 text-white font-bold">ธันวาคม (12)</option>
+          </select>
+        </div>
+
+        <!-- ปุ่มตั้งค่า Target Output -->
+        <button onclick="openTargetSettingsModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl text-xs font-black shadow-sm transition cursor-pointer">
+          <i class="fa-solid fa-sliders"></i> ตั้งค่า Target Output
+        </button>
+
+        <!-- ลิงก์กลับหน้า Waste Dashboard -->
+        <a href="index.html" class="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-50 border border-slate-300 hover:border-slate-400 text-slate-700 rounded-xl text-xs font-bold shadow-2xs transition">
+          <i class="fa-solid fa-chart-pie text-emerald-600"></i> ไปหน้า Waste
+        </a>
+
+        <!-- ปุ่มรีเฟรช -->
+        <button onclick="loadOutputData()" class="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition cursor-pointer">
+          <i class="fa-solid fa-arrows-rotate" id="refresh-icon"></i> รีเฟรช
+        </button>
+
+      </div>
+    </header>
+
+    <!-- ========================================== -->
+    <!-- Executive KPI Summary Cards (5 Cards) -->
+    <!-- ========================================== -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      
+      <!-- Card 1: Target Output สะสม (MTD) -->
+      <div class="bg-gradient-to-br from-[#451a03] via-[#78350f] to-[#9a3412] p-5 rounded-2xl border-2 border-amber-400 shadow-md text-white relative overflow-hidden flex flex-col justify-between min-h-[145px]">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-xs font-black text-amber-200 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-bullseye text-amber-300"></i> Target Output รวม
+            </p>
+            <h3 class="text-3xl sm:text-4xl font-black text-white mt-1 tracking-tight drop-shadow-sm" id="kpi-target-total">2,200,000</h3>
+          </div>
+          <div class="w-12 h-12 bg-amber-500/20 text-amber-200 border border-amber-300/40 rounded-xl flex items-center justify-center text-xl shrink-0">
+            <i class="fa-solid fa-crosshairs"></i>
+          </div>
+        </div>
+        <div class="mt-3 flex items-center justify-between text-xs text-amber-100 font-semibold border-t border-amber-800/80 pt-2">
+          <span>เป้าหมายรายวัน:</span>
+          <strong class="text-amber-200 font-black text-sm bg-amber-950/60 px-2 py-0.5 rounded" id="kpi-target-daily">100,000 กก.</strong>
+        </div>
+      </div>
+
+      <!-- Card 2: Actual Output ผลิตจริงสะสม (MTD) -->
+      <div class="bg-gradient-to-br from-[#1e1b4b] via-[#312e81] to-[#3730a3] p-5 rounded-2xl border-2 border-indigo-400 shadow-md text-white relative overflow-hidden flex flex-col justify-between min-h-[145px]">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-xs font-black text-indigo-200 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-truck-ramp-box text-indigo-300"></i> Output เดินจริงสะสม
+            </p>
+            <h3 class="text-3xl sm:text-4xl font-black text-white mt-1 tracking-tight drop-shadow-sm" id="kpi-actual-total">2,231,397</h3>
+          </div>
+          <div class="w-12 h-12 bg-indigo-500/20 text-indigo-200 border border-indigo-300/40 rounded-xl flex items-center justify-center text-xl shrink-0">
+            <i class="fa-solid fa-dolly"></i>
+          </div>
+        </div>
+        <div class="mt-3 flex items-center justify-between text-xs text-indigo-200 font-semibold border-t border-indigo-800/80 pt-2">
+          <span>เฉลี่ย/วัน (เดินจริง):</span>
+          <strong class="text-cyan-200 font-black text-sm bg-indigo-950/60 px-2 py-0.5 rounded" id="kpi-actual-daily-avg">101,427 กก.</strong>
+        </div>
+      </div>
+
+      <!-- Card 3: % บรรลุเป้าหมาย (% Achieved) -->
+      <div id="card-achieved" class="bg-gradient-to-br from-emerald-950 via-emerald-900 to-teal-950 p-5 rounded-2xl border-2 border-emerald-400 shadow-md text-white relative overflow-hidden flex flex-col justify-between min-h-[145px]">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-xs font-black text-emerald-200 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-chart-line text-emerald-300"></i> % บรรลุเป้าหมาย
+            </p>
+            <h3 class="text-3xl sm:text-4xl font-black text-white mt-1 tracking-tight drop-shadow-sm" id="kpi-achieved-pct">101.4%</h3>
+          </div>
+          <div class="w-12 h-12 bg-emerald-500/20 text-emerald-200 border border-emerald-300/40 rounded-xl flex items-center justify-center text-xl shrink-0">
+            <i class="fa-solid fa-award"></i>
+          </div>
+        </div>
+        <div class="mt-3 flex items-center justify-between text-xs font-semibold border-t border-emerald-800/80 pt-2">
+          <span class="text-emerald-200">สถานะ:</span>
+          <span id="kpi-achieved-badge" class="px-2.5 py-0.5 rounded-full font-black text-xs bg-emerald-400 text-emerald-950 shadow-2xs">
+            บรรลุเป้าหมาย ✅
+          </span>
+        </div>
+      </div>
+
+      <!-- Card 4: ส่วนต่าง Diff ผลิตได้ vs เป้า -->
+      <div class="bg-gradient-to-br from-slate-950 via-blue-950 to-indigo-950 p-5 rounded-2xl border-2 border-blue-400 shadow-md text-white relative overflow-hidden flex flex-col justify-between min-h-[145px]">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-xs font-black text-blue-200 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-scale-balanced text-cyan-300"></i> ส่วนต่าง vs เป้าหมาย
+            </p>
+            <h3 class="text-3xl sm:text-4xl font-black text-white mt-1 tracking-tight drop-shadow-sm" id="kpi-diff-total">+31,397</h3>
+          </div>
+          <div class="w-12 h-12 bg-blue-500/20 text-blue-300 border border-blue-400/40 rounded-xl flex items-center justify-center text-xl shrink-0">
+            <i class="fa-solid fa-weight-scale"></i>
+          </div>
+        </div>
+        <div class="mt-3 flex items-center justify-between text-xs text-blue-200 font-semibold border-t border-blue-800/80 pt-2">
+          <span>หน่วย: กิโลกรัม</span>
+          <span id="kpi-diff-badge" class="px-2 py-0.5 rounded font-black text-xs bg-blue-900 text-cyan-300 border border-blue-400/40">
+            เกินเป้า +1.4%
+          </span>
+        </div>
+      </div>
+
+      <!-- Card 5: จำนวนวันเดินเครื่องสรุปผล -->
+      <div class="bg-gradient-to-br from-[#1e293b] via-[#0f172a] to-[#020617] p-5 rounded-2xl border-2 border-slate-600 shadow-md text-white relative overflow-hidden flex flex-col justify-between min-h-[145px]">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-xs font-black text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-calendar-check text-amber-400"></i> วันที่เดินเครื่อง
+            </p>
+            <h3 class="text-3xl sm:text-4xl font-black text-white mt-1 tracking-tight drop-shadow-sm">
+              <span id="kpi-days-run">22</span> <span class="text-sm font-normal text-slate-400" id="kpi-days-total-text">/ 31 วัน</span>
+            </h3>
+          </div>
+          <div class="w-12 h-12 bg-slate-800 text-amber-400 border border-slate-600 rounded-xl flex items-center justify-center text-xl shrink-0">
+            <i class="fa-solid fa-business-time"></i>
+          </div>
+        </div>
+        <div class="mt-3 flex items-center gap-1.5 text-xs font-bold border-t border-slate-700/80 pt-2 flex-wrap">
+          <span class="text-emerald-300 bg-emerald-950/80 border border-emerald-400/40 px-2 py-0.5 rounded-full" id="kpi-days-pass">ได้เป้า: 15 วัน</span>
+          <span class="text-rose-300 bg-rose-950/80 border border-rose-400/40 px-2 py-0.5 rounded-full" id="kpi-days-under">ต่ำกว่าเป้า: 7 วัน</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================== -->
+    <!-- Printable Area for 4K Export -->
+    <!-- ========================================== -->
+    <div id="output-printable-area" class="space-y-6">
+
+      <!-- ========================================== -->
+      <!-- Chart 1: Daily Output vs Target Bar Chart -->
+      <!-- ========================================== -->
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 overflow-hidden">
+        
+        <!-- Header ของกราฟ -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-indigo-600"></span>
+              <h2 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+                กราฟเปรียบเทียบ Output รายวัน vs Target (<span id="chart-machine-label" class="text-indigo-600">BHS</span>)
+              </h2>
+            </div>
+            <p class="text-xs text-slate-500 font-medium mt-1">
+              แท่งเขียว = ได้ตามเป้าหมาย (≥ Target) • แท่งแดง/ส้ม = ต่ำกว่าเป้าหมาย • เส้นประสีทอง = Target รายวัน
+            </p>
+          </div>
+
+          <!-- เครื่องมือของกราฟ -->
+          <div class="flex items-center gap-2 flex-wrap">
+            <div class="flex items-center gap-2 text-xs font-bold text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
+              <span class="inline-block w-3 h-3 rounded-sm bg-emerald-500"></span> เดินจริงได้เป้า
+              <span class="inline-block w-3 h-3 rounded-sm bg-rose-500 ml-2"></span> ต่ำกว่าเป้า
+              <span class="inline-block w-4 h-0.5 bg-amber-500 border-t border-dashed border-amber-500 ml-2"></span> Target
+            </div>
+            <button onclick="exportOutputChartAsImage()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
+              <i class="fa-solid fa-camera"></i> บันทึกกราฟ
+            </button>
+          </div>
+        </div>
+
+        <!-- Canvas ตัวกราฟแท่งหลัก -->
+        <div class="mt-4 relative" style="height: 440px;">
+          <canvas id="dailyOutputChart"></canvas>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- Chart 2: Cumulative Output Trend Line Chart -->
+      <!-- ========================================== -->
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 overflow-hidden">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-blue-600"></span>
+              <h2 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+                แนวโน้มผลผลิตสะสม MTD (Cumulative Output vs Target)
+              </h2>
+            </div>
+            <p class="text-xs text-slate-500 font-medium mt-1">
+              เปรียบเทียบการสะสมยอดผลิตจริงรายวัน สะสมทะลุเป้าหมายตลอดทั้งเดือน
+            </p>
+          </div>
+        </div>
+        <div class="mt-4 relative" style="height: 360px;">
+          <canvas id="cumulativeOutputChart"></canvas>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- Table: Daily Output Comparison Table -->
+      <!-- ========================================== -->
+      <section id="output-table-card" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition-colors">
+        
+        <!-- Table Toolbar -->
+        <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-slate-50/70">
+          
+          <div class="flex items-center gap-3 flex-wrap">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-table-list text-indigo-600 text-base"></i>
+              <h3 class="text-base font-black text-slate-900">ตารางเปรียบเทียบยอดผลิต Output รายวัน (kg)</h3>
+            </div>
+            <span id="table-summary-tag" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">
+              31 วัน
+            </span>
+          </div>
+
+          <div class="flex items-center gap-2.5 flex-wrap">
+            
+            <!-- ปุ่มเปลี่ยนสีพื้นหลังตาราง -->
+            <div class="relative inline-block text-left" id="tableThemeDropdownContainer">
+              <button type="button" onclick="toggleTableThemeDropdown(event)" id="tableThemeBtn" class="inline-flex items-center gap-2 px-3 py-2 bg-white hover:bg-slate-50 border border-slate-300 hover:border-slate-400 rounded-lg text-xs font-bold text-slate-700 shadow-2xs transition cursor-pointer">
+                <span id="currentThemeDot" class="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs bg-white shrink-0"></span>
+                <span id="currentThemeLabel">สีตาราง: ขาว</span>
+                <i class="fa-solid fa-palette text-amber-500 text-xs"></i>
+                <i class="fa-solid fa-chevron-down text-slate-400 text-[10px] transition-transform duration-200" id="tableThemeChevron"></i>
+              </button>
+
+              <!-- Dropdown Menu พาสเทล -->
+              <div id="tableThemeMenu" class="hidden absolute right-0 mt-1.5 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 py-1.5 ring-1 ring-black/5 divide-y divide-slate-100">
+                <div class="px-3.5 py-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50 flex items-center justify-between">
+                  <span>เลือกสีพื้นหลังตาราง (แนวพาสเทล)</span>
+                  <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
+                </div>
+                <div class="py-1" id="tableThemeOptionsList">
+                  <button type="button" onclick="setTableTheme('white')" data-theme="white" class="table-theme-option w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer bg-slate-100">
+                    <div class="flex items-center gap-2.5">
+                      <span class="w-4 h-4 rounded-full border border-slate-300 shadow-2xs bg-white"></span>
+                      <span class="text-slate-800 group-hover:text-slate-900">ขาวสะอาด (Classic White)</span>
+                    </div>
+                    <i class="fa-solid fa-check text-indigo-600 text-xs theme-check"></i>
+                  </button>
+                  <button type="button" onclick="setTableTheme('cream')" data-theme="cream" class="table-theme-option w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
+                    <div class="flex items-center gap-2.5">
+                      <span class="w-4 h-4 rounded-full border border-amber-400 shadow-2xs" style="background-color: #fde68a;"></span>
+                      <span class="text-slate-800 group-hover:text-amber-900">ครีมละมุน (Soft Cream)</span>
+                    </div>
+                    <i class="fa-solid fa-check text-amber-600 text-xs theme-check hidden"></i>
+                  </button>
+                  <button type="button" onclick="setTableTheme('blue')" data-theme="blue" class="table-theme-option w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
+                    <div class="flex items-center gap-2.5">
+                      <span class="w-4 h-4 rounded-full border border-sky-400 shadow-2xs" style="background-color: #7dd3fc;"></span>
+                      <span class="text-slate-800 group-hover:text-sky-900">ฟ้าพาสเทล (Soft Sky)</span>
+                    </div>
+                    <i class="fa-solid fa-check text-sky-600 text-xs theme-check hidden"></i>
+                  </button>
+                  <button type="button" onclick="setTableTheme('mint')" data-theme="mint" class="table-theme-option w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
+                    <div class="flex items-center gap-2.5">
+                      <span class="w-4 h-4 rounded-full border border-emerald-400 shadow-2xs" style="background-color: #86efac;"></span>
+                      <span class="text-slate-800 group-hover:text-emerald-900">เขียวมินต์ (Soft Mint)</span>
+                    </div>
+                    <i class="fa-solid fa-check text-emerald-600 text-xs theme-check hidden"></i>
+                  </button>
+                  <button type="button" onclick="setTableTheme('peach')" data-theme="peach" class="table-theme-option w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
+                    <div class="flex items-center gap-2.5">
+                      <span class="w-4 h-4 rounded-full border border-orange-400 shadow-2xs" style="background-color: #fdba74;"></span>
+                      <span class="text-slate-800 group-hover:text-orange-900">พีชละมุน (Soft Peach)</span>
+                    </div>
+                    <i class="fa-solid fa-check text-orange-600 text-xs theme-check hidden"></i>
+                  </button>
+                  <button type="button" onclick="setTableTheme('lavender')" data-theme="lavender" class="table-theme-option w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
+                    <div class="flex items-center gap-2.5">
+                      <span class="w-4 h-4 rounded-full border border-purple-400 shadow-2xs" style="background-color: #c4b5fd;"></span>
+                      <span class="text-slate-800 group-hover:text-purple-900">ลาเวนเดอร์ (Soft Lavender)</span>
+                    </div>
+                    <i class="fa-solid fa-check text-purple-600 text-xs theme-check hidden"></i>
+                  </button>
+                  <button type="button" onclick="setTableTheme('slate')" data-theme="slate" class="table-theme-option w-full text-left px-3.5 py-2 text-xs font-bold hover:bg-slate-50 flex items-center justify-between transition group cursor-pointer">
+                    <div class="flex items-center gap-2.5">
+                      <span class="w-4 h-4 rounded-full border border-slate-400 shadow-2xs" style="background-color: #cbd5e1;"></span>
+                      <span class="text-slate-800 group-hover:text-slate-900">เทาหมอกคลีน (Soft Slate)</span>
+                    </div>
+                    <i class="fa-solid fa-check text-slate-600 text-xs theme-check hidden"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- ค้นหาวันที่ -->
+            <input type="text" id="tableFilterInput" oninput="filterOutputTable()" placeholder="ค้นหาวันที่, สถานะ..." class="text-xs px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-44 bg-white shadow-2xs">
+            
+            <!-- ปุ่มส่งออก Excel -->
+            <button onclick="exportOutputTableToExcel()" class="inline-flex items-center px-3 py-2 text-xs font-bold text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition shadow-2xs cursor-pointer">
+              <i class="fa-solid fa-file-excel mr-1.5"></i> Excel
+            </button>
+
+            <!-- ปุ่มบันทึกรูปภาพ 4K -->
+            <button onclick="saveHighResReport()" class="inline-flex items-center px-3.5 py-2 text-xs font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition shadow-2xs cursor-pointer">
+              <i class="fa-solid fa-camera mr-1.5"></i> บันทึกรูปภาพ (4K)
+            </button>
+          </div>
+        </div>
+
+        <!-- Table Content -->
+        <div class="overflow-x-auto">
+          <table class="output-table w-full text-center text-xs border-collapse">
+            <thead>
+              <tr class="bg-indigo-900 text-white font-bold border-b border-indigo-950">
+                <th class="p-3 text-left min-w-[120px]">วันที่ (Date)</th>
+                <th class="p-3 min-w-[130px] bg-amber-500/20 text-amber-300">Target Output (กก.)</th>
+                <th class="p-3 min-w-[140px] bg-indigo-800">ผลิตจริง Actual Output (กก.)</th>
+                <th class="p-3 min-w-[130px]">ผลต่าง Diff (กก.)</th>
+                <th class="p-3 min-w-[110px]">% บรรลุเป้า</th>
+                <th class="p-3 min-w-[110px]">สถานะ</th>
+                <th class="p-3 min-w-[130px] text-slate-300">Consumption (กก.)</th>
+                <th class="p-3 min-w-[100px] text-slate-300">% Waste จริง</th>
+              </tr>
+            </thead>
+            <tbody id="outputTableBody" class="divide-y divide-slate-200 font-medium">
+              <!-- แถวข้อมูลเรนเดอร์ผ่าน JS -->
+            </tbody>
+            <tfoot>
+              <!-- แถวสรุปผลรวมท้ายตาราง -->
+              <tr class="bg-slate-900 text-white font-black text-xs border-t-2 border-indigo-500">
+                <td class="p-3 text-left tracking-wide">ผลรวมสะสม (Total MTD)</td>
+                <td class="p-3 text-amber-300 text-sm font-black" id="foot-target-sum">2,200,000</td>
+                <td class="p-3 text-cyan-300 text-sm font-black" id="foot-actual-sum">2,231,397</td>
+                <td class="p-3 text-sm font-black" id="foot-diff-sum">+31,397</td>
+                <td class="p-3 text-sm font-black text-emerald-400" id="foot-achieved-sum">101.4%</td>
+                <td class="p-3 text-center" id="foot-status-sum">
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-500 text-white">ได้เป้า ✅</span>
+                </td>
+                <td class="p-3 text-slate-300 font-bold" id="foot-consum-sum">2,495,498</td>
+                <td class="p-3 text-emerald-400 font-bold" id="foot-waste-avg">4.50%</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+      </section>
+
+    </div>
+
+  </div>
+
+  <!-- ========================================== -->
+  <!-- Target Settings Modal Dialog -->
+  <!-- ========================================== -->
+  <div id="targetSettingsModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4.5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex justify-between items-center border-b border-slate-700">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-400/40 flex items-center justify-center text-lg">
+            <i class="fa-solid fa-sliders"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-black text-white">ตั้งค่า Target Output รายวัน</h3>
+            <p class="text-xs text-slate-400">กำหนดเป้าหมายยอดผลิต (kg/วัน) แยกแต่ละเครื่องจักร</p>
+          </div>
+        </div>
+        <button onclick="closeTargetSettingsModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+        
+        <!-- ข้อมูลแจ้งเตือน -->
+        <div class="p-3.5 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2.5 text-xs text-amber-900 font-medium">
+          <i class="fa-solid fa-circle-info text-amber-600 mt-0.5 text-sm"></i>
+          <div>
+            ค่าเป้าหมายรายวันนี้จะถูกนำไปคำนวณเปรียบเทียบกับยอดผลิตจริงในตารางและกราฟทุกจุด โดยบันทึกลงฐานข้อมูลทันที
+          </div>
+        </div>
+
+        <!-- 4 กล่องตั้งค่าแยก 4 เครื่องจักร -->
+        <div class="space-y-4">
+          
+          <!-- BHS Target -->
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div class="flex items-center gap-3">
+              <span class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-black text-sm">
+                BHS
+              </span>
+              <div>
+                <div class="text-sm font-black text-slate-800">เครื่องจักร BHS</div>
+                <div class="text-xs text-slate-500 font-medium">เป้าหมายมาตรฐาน: 100,000 กก./วัน</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <input type="number" id="input-target-bhs" step="1000" min="0" value="100000" class="w-36 px-3 py-2 text-right font-black text-slate-900 bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm shadow-2xs">
+              <span class="text-xs font-bold text-slate-500 whitespace-nowrap">กก./วัน</span>
+            </div>
+          </div>
+
+          <!-- ISOWA Target -->
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div class="flex items-center gap-3">
+              <span class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-black text-sm">
+                ISW
+              </span>
+              <div>
+                <div class="text-sm font-black text-slate-800">เครื่องจักร ISOWA</div>
+                <div class="text-xs text-slate-500 font-medium">เป้าหมายมาตรฐาน: 60,000 กก./วัน</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <input type="number" id="input-target-isowa" step="1000" min="0" value="60000" class="w-36 px-3 py-2 text-right font-black text-slate-900 bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm shadow-2xs">
+              <span class="text-xs font-bold text-slate-500 whitespace-nowrap">กก./วัน</span>
+            </div>
+          </div>
+
+          <!-- YUELI Target -->
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div class="flex items-center gap-3">
+              <span class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-black text-sm">
+                YLI
+              </span>
+              <div>
+                <div class="text-sm font-black text-slate-800">เครื่องจักร YUELI</div>
+                <div class="text-xs text-slate-500 font-medium">เป้าหมายมาตรฐาน: 50,000 กก./วัน</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <input type="number" id="input-target-yueli" step="1000" min="0" value="50000" class="w-36 px-3 py-2 text-right font-black text-slate-900 bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm shadow-2xs">
+              <span class="text-xs font-bold text-slate-500 whitespace-nowrap">กก./วัน</span>
+            </div>
+          </div>
+
+          <!-- TOTAL Target -->
+          <div class="p-4 bg-amber-50/70 border border-amber-300 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div class="flex items-center gap-3">
+              <span class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black text-sm shadow-xs">
+                ALL
+              </span>
+              <div>
+                <div class="text-sm font-black text-amber-950">รวมทุกเครื่อง (TOTAL)</div>
+                <div class="text-xs text-amber-800/80 font-medium">ผลรวมทั้งโรงงาน (กก./วัน)</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <input type="number" id="input-target-total" step="1000" min="0" value="210000" class="w-36 px-3 py-2 text-right font-black text-amber-950 bg-white border border-amber-400 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm shadow-2xs">
+              <span class="text-xs font-bold text-amber-800 whitespace-nowrap">กก./วัน</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ปุ่มช่วยคำนวณและพรีเซ็ต -->
+        <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 flex-wrap">
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="autoCalculateTotalTarget()" class="px-2.5 py-1 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition cursor-pointer">
+              <i class="fa-solid fa-calculator mr-1"></i> รวม 3 เครื่องเป็น TOTAL
+            </button>
+            <button type="button" onclick="resetOutputTargetsToDefault()" class="px-2.5 py-1 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition cursor-pointer">
+              <i class="fa-solid fa-rotate-left mr-1"></i> คืนค่าเริ่มต้น
+            </button>
+          </div>
+          <span class="text-[11px] text-slate-400 font-medium" id="target-last-updated-text">อัปเดตล่าสุด: กำลังโหลด...</span>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
+        <button type="button" onclick="closeTargetSettingsModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition cursor-pointer">
+          ยกเลิก
+        </button>
+        <button type="button" onclick="saveTargetSettings()" id="btn-save-targets" class="px-5 py-2 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer">
+          <i class="fa-solid fa-check"></i> บันทึกเป้าหมาย Target
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-8 text-center text-xs text-slate-400 font-medium pb-4">
+    Production Waste & Output Monitoring System • แผนกผลิต PD • พัฒนาเพื่อการวิเคราะห์ข้อมูลความแม่นยำสูง
+  </footer>
+
+  <!-- ========================================== -->
+  <!-- JavaScript Logic -->
+  <!-- ========================================== -->
+  <script>
+    // ข้อมูลเริ่มต้นสำหรับเป้าหมาย Target Output
+    let OUTPUT_TARGETS = {
+      machines: {
+        BHS: { dailyTarget: 100000, monthlyTarget: 2200000, unit: 'kg' },
+        ISOWA: { dailyTarget: 60000, monthlyTarget: 1300000, unit: 'kg' },
+        YUELI: { dailyTarget: 50000, monthlyTarget: 1100000, unit: 'kg' },
+        TOTAL: { dailyTarget: 210000, monthlyTarget: 4600000, unit: 'kg' }
+      },
+      updated_at: ''
+    };
+
+    let currentMachine = 'BHS';
+    let currentMonth = 10;
+    let currentRawData = [];
+    let currentApiSummary = null;
+    let dailyOutputChartInstance = null;
+    let cumulativeOutputChartInstance = null;
+
+    // ธีมสีพาสเทลสำหรับตาราง
+    const TABLE_THEMES = {
+      white: { key: 'white', name: 'สีตาราง: ขาว', dot: '#ffffff', border: '#cbd5e1', cssClass: 'table-theme-white' },
+      cream: { key: 'cream', name: 'สีตาราง: ครีม', dot: '#fde68a', border: '#f59e0b', cssClass: 'table-theme-cream' },
+      blue: { key: 'blue', name: 'สีตาราง: ฟ้า', dot: '#7dd3fc', border: '#0284c7', cssClass: 'table-theme-blue' },
+      mint: { key: 'mint', name: 'สีตาราง: เขียวมินต์', dot: '#86efac', border: '#16a34a', cssClass: 'table-theme-mint' },
+      peach: { key: 'peach', name: 'สีตาราง: พีช', dot: '#fdba74', border: '#ea580c', cssClass: 'table-theme-peach' },
+      lavender: { key: 'lavender', name: 'สีตาราง: ลาเวนเดอร์', dot: '#c4b5fd', border: '#7c3aed', cssClass: 'table-theme-lavender' },
+      slate: { key: 'slate', name: 'สีตาราง: เทาหมอก', dot: '#cbd5e1', border: '#64748b', cssClass: 'table-theme-slate' }
+    };
+    let currentTableTheme = 'white';
+
+    // ฟังก์ชันความปลอดภัยสำหรับการอัปเดตข้อความ
+    function safeSetText(id, text) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    }
+
+    // เมื่อโหลด DOM สมบูรณ์
+    window.addEventListener('DOMContentLoaded', async () => {
+      initTableTheme();
+      
+      // อ่านพารามิเตอร์ URL ถ้ามี
+      const urlParams = new URLSearchParams(window.location.search);
+      const mParam = urlParams.get('machine');
+      const moParam = urlParams.get('month');
+      if (mParam) {
+        currentMachine = mParam.toUpperCase();
+        const sel = document.getElementById('selectedMachine');
+        if (sel) sel.value = currentMachine;
+      }
+      if (moParam) {
+        currentMonth = parseInt(moParam) || 10;
+        const sel = document.getElementById('selectedMonth');
+        if (sel) sel.value = String(currentMonth);
+      }
+      safeSetText('chart-machine-label', currentMachine);
+
+      // 1. เรนเดอร์ข้อมูลตั้งต้นทันที หน้าเว็บจะไม่ว่างเปล่าแม้เน็ตช้า
+      currentRawData = generateFallbackOutputData();
+      renderDashboard();
+
+      // 2. โหลดค่า Target และดึงข้อมูลจริงจาก API มาอัปเดตอัตโนมัติ
+      await loadOutputTargets();
+      await loadOutputData();
+    });
+
+    // ปิดเมนู dropdown เมื่อคลิกข้างนอก
+    window.addEventListener('click', function(e) {
+      const themeContainer = document.getElementById('tableThemeDropdownContainer');
+      const themeMenu = document.getElementById('tableThemeMenu');
+      const themeChevron = document.getElementById('tableThemeChevron');
+      if (themeContainer && themeMenu && !themeContainer.contains(e.target)) {
+        themeMenu.classList.add('hidden');
+        if (themeChevron) themeChevron.style.transform = 'rotate(0deg)';
+      }
+    });
+
+    // ==========================================
+    // โหลด / บันทึก ค่าเป้าหมาย Target Output
+    // ==========================================
+    async function loadOutputTargets() {
+      try {
+        const res = await fetch('output_targets_api.php');
+        const json = await res.json();
+        if (json && json.success && json.data && json.data.machines) {
+          OUTPUT_TARGETS = json.data;
+        }
+      } catch (e) {
+        // Fallback localStorage
+        try {
+          const saved = localStorage.getItem('output_targets_settings');
+          if (saved) OUTPUT_TARGETS = JSON.parse(saved);
+        } catch(err) {}
+      }
+      updateModalInputs();
+    }
+
+    function updateModalInputs() {
+      const m = OUTPUT_TARGETS.machines || {};
+      if (m.BHS) document.getElementById('input-target-bhs').value = m.BHS.dailyTarget;
+      if (m.ISOWA) document.getElementById('input-target-isowa').value = m.ISOWA.dailyTarget;
+      if (m.YUELI) document.getElementById('input-target-yueli').value = m.YUELI.dailyTarget;
+      if (m.TOTAL) document.getElementById('input-target-total').value = m.TOTAL.dailyTarget;
+      
+      const lastUp = document.getElementById('target-last-updated-text');
+      if (lastUp) {
+        lastUp.textContent = OUTPUT_TARGETS.updated_at ? `อัปเดต: ${OUTPUT_TARGETS.updated_at}` : 'ค่ามาตรฐานระบบ';
+      }
+    }
+
+    function openTargetSettingsModal() {
+      updateModalInputs();
+      document.getElementById('targetSettingsModal').classList.remove('hidden');
+    }
+
+    function closeTargetSettingsModal() {
+      document.getElementById('targetSettingsModal').classList.add('hidden');
+    }
+
+    function autoCalculateTotalTarget() {
+      const bhs = parseFloat(document.getElementById('input-target-bhs').value) || 0;
+      const isowa = parseFloat(document.getElementById('input-target-isowa').value) || 0;
+      const yueli = parseFloat(document.getElementById('input-target-yueli').value) || 0;
+      document.getElementById('input-target-total').value = bhs + isowa + yueli;
+    }
+
+    async function resetOutputTargetsToDefault() {
+      if (!confirm('ต้องการรีเซ็ตค่าเป้าหมายเป็นค่าเริ่มต้นหรือไม่?')) return;
+      try {
+        const res = await fetch('output_targets_api.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'reset' })
+        });
+        const json = await res.json();
+        if (json && json.success) {
+          OUTPUT_TARGETS = json.data;
+          updateModalInputs();
+          renderDashboard();
+        }
+      } catch(e) {}
+    }
+
+    async function saveTargetSettings() {
+      const btn = document.getElementById('btn-save-targets');
+      if (btn) btn.disabled = true;
+
+      const newSettings = {
+        action: 'save',
+        machines: {
+          BHS: { dailyTarget: parseFloat(document.getElementById('input-target-bhs').value) || 100000 },
+          ISOWA: { dailyTarget: parseFloat(document.getElementById('input-target-isowa').value) || 60000 },
+          YUELI: { dailyTarget: parseFloat(document.getElementById('input-target-yueli').value) || 50000 },
+          TOTAL: { dailyTarget: parseFloat(document.getElementById('input-target-total').value) || 210000 }
+        }
+      };
+
+      try {
+        const res = await fetch('output_targets_api.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newSettings)
+        });
+        const json = await res.json();
+        if (json && json.success) {
+          OUTPUT_TARGETS = json.data;
+          localStorage.setItem('output_targets_settings', JSON.stringify(OUTPUT_TARGETS));
+          closeTargetSettingsModal();
+          renderDashboard();
+          alert('บันทึกเป้าหมาย Target Output สำเร็จเรียบร้อยแล้ว!');
+        } else {
+          alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+        }
+      } catch(e) {
+        // Fallback localStorage
+        OUTPUT_TARGETS.machines = newSettings.machines;
+        OUTPUT_TARGETS.updated_at = new Date().toLocaleString();
+        localStorage.setItem('output_targets_settings', JSON.stringify(OUTPUT_TARGETS));
+        closeTargetSettingsModal();
+        renderDashboard();
+        alert('บันทึกลงหน่วยความจำเบราว์เซอร์สำเร็จ!');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    // ==========================================
+    // ตัวจัดการเลือกเครื่องจักร / เดือน
+    // ==========================================
+    function onMachineChange() {
+      currentMachine = document.getElementById('selectedMachine').value;
+      safeSetText('chart-machine-label', currentMachine);
+      currentApiSummary = null; // reset summary เมื่อเปลี่ยนเครื่อง
+      loadOutputData();
+    }
+
+    function onMonthChange() {
+      currentMonth = parseInt(document.getElementById('selectedMonth').value) || 10;
+      currentApiSummary = null; // reset summary เมื่อเปลี่ยนเดือน
+      loadOutputData();
+    }
+
+    // ==========================================
+    // ดึงข้อมูล Output รายวันจาก api.php
+    // ==========================================
+    async function loadOutputData() {
+      const refreshIcon = document.getElementById('refresh-icon');
+      if (refreshIcon) refreshIcon.classList.add('fa-spin');
+
+      try {
+        const url = `api.php?machine=${currentMachine}&month=${currentMonth}`;
+        const res = await fetch(url);
+        const json = await res.json();
+        
+        if (json && json.success && Array.isArray(json.data)) {
+          // กรองเฉพาะ row รายวันที่มี field 'date' และ output ไม่ติดลบอย่างมีนัยสำคัญ
+          currentRawData = json.data.filter(row => {
+            // ต้องมี field date และเป็น daily row (ไม่ใช่ summary/weekly)
+            if (!row.date) return false;
+            // output ติดลบมากๆ (เช่น -723) ถือเป็น idle จริงๆ แต่ยังเก็บไว้ แค่ทำให้ค่าเป็น 0
+            if (Number(row.output) < 0) row.output = 0;
+            return true;
+          });
+          // ถ้า API ส่ง summary รวม ให้เก็บ summary ไว้ใช้เสริม KPI
+          if (json.summary) currentApiSummary = json.summary;
+        } else {
+          currentRawData = generateFallbackOutputData();
+        }
+      } catch (e) {
+        console.warn('API error, using fallback output data', e);
+        currentRawData = generateFallbackOutputData();
+      } finally {
+        if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+        renderDashboard();
+      }
+    }
+
+    // ข้อมูลสำรองกรณี API ออฟไลน์
+    function generateFallbackOutputData() {
+      const days = 31;
+      const targetDaily = (OUTPUT_TARGETS.machines[currentMachine]?.dailyTarget) || 100000;
+      const data = [];
+      for (let i = 1; i <= days; i++) {
+        const isRun = i <= 22; // 22 วันเดินเครื่อง
+        const base = isRun ? (targetDaily * (0.85 + Math.sin(i) * 0.25)) : 0;
+        const out = Math.round(base);
+        const consum = isRun ? Math.round(out * 1.05) : 0;
+        data.push({
+          date: `${i}/${currentMonth}/2026`,
+          output: out,
+          consumption: consum,
+          allWaste: isRun ? (4.2 + (i % 3) * 0.5) : 0
+        });
+      }
+      return data;
+    }
+
+    // ==========================================
+    // ฟังก์ชันเรนเดอร์ภาพรวมทั้งหมด
+    // ==========================================
+    function renderDashboard() {
+      const targetDaily = (OUTPUT_TARGETS.machines[currentMachine]?.dailyTarget) || 100000;
+      
+      let totalActual = 0;
+      let totalTarget = 0;
+      let totalConsum = 0;
+      let passDays = 0;
+      let underDays = 0;
+      let idleDays = 0;
+      let totalWasteSum = 0;
+      let wasteCount = 0;
+
+      const processedData = currentRawData.map((row, idx) => {
+        const out = Math.max(0, Math.round(Number(row.output) || 0)); // ค่าลบให้เป็น 0
+        const consum = Math.round(Number(row.consumption) || 0);
+        const wastePct = parseFloat(row.allWaste) || 0;
+        const isIdle = (out === 0 && consum === 0);
+        
+        const dayTarget = isIdle ? 0 : targetDaily;
+        const diff = out - dayTarget;
+        const achievedPct = dayTarget > 0 ? ((out / dayTarget) * 100) : (out > 0 ? 100 : 0);
+
+        if (isIdle) {
+          idleDays++;
+        } else {
+          totalActual += out;
+          totalTarget += dayTarget;
+          totalConsum += consum;
+          if (out >= dayTarget) {
+            passDays++;
+          } else {
+            underDays++;
+          }
+          if (wastePct > 0) {
+            totalWasteSum += wastePct;
+            wasteCount++;
+          }
+        }
+
+        return {
+          day: idx + 1,
+          date: row.date || `${idx + 1}/${currentMonth}/2026`,
+          target: dayTarget,
+          actual: out,
+          diff: diff,
+          achievedPct: achievedPct,
+          consumption: consum,
+          wastePct: wastePct,
+          isIdle: isIdle
+        };
+      });
+
+      const totalDiff = totalActual - totalTarget;
+      const overallAchievedPct = totalTarget > 0 ? ((totalActual / totalTarget) * 100) : 100;
+      const runningDays = passDays + underDays;
+      const avgDailyActual = runningDays > 0 ? Math.round(totalActual / runningDays) : 0;
+      const avgWastePct = wasteCount > 0 ? (totalWasteSum / wasteCount) : (currentApiSummary?.allWaste || 4.50);
+
+      // ถ้า API ส่ง summary รวม ให้ใช้ค่าแม่นยำจาก summary แทนการรวม daily (กรณีค่าลบ ฯลฯ)
+      const displayActual = (currentApiSummary && currentApiSummary.output > 0) ? currentApiSummary.output : totalActual;
+      const displayConsum = (currentApiSummary && currentApiSummary.consumption > 0) ? currentApiSummary.consumption : totalConsum;
+      const displayDiff = displayActual - totalTarget;
+      const displayAchievedPct = totalTarget > 0 ? ((displayActual / totalTarget) * 100) : 100;
+      const displayAvgDaily = runningDays > 0 ? Math.round(displayActual / runningDays) : 0;
+
+      // 1. อัปเดตตัวเลข KPI ด้านบน
+      safeSetText('kpi-target-total', totalTarget.toLocaleString());
+      safeSetText('kpi-target-daily', `${targetDaily.toLocaleString()} กก.`);
+      safeSetText('kpi-actual-total', displayActual.toLocaleString());
+      safeSetText('kpi-actual-daily-avg', `${displayAvgDaily.toLocaleString()} กก.`);
+      safeSetText('kpi-achieved-pct', `${displayAchievedPct.toFixed(1)}%`);
+      safeSetText('kpi-days-run', runningDays);
+      safeSetText('kpi-days-total-text', `/ ${processedData.length} วัน`);
+      safeSetText('kpi-days-pass', `ได้เป้า: ${passDays} วัน`);
+      safeSetText('kpi-days-under', `ต่ำกว่าเป้า: ${underDays} วัน`);
+
+      // Diff Badge & Label
+      const diffSign = displayDiff >= 0 ? '+' : '';
+      safeSetText('kpi-diff-total', `${diffSign}${displayDiff.toLocaleString()}`);
+      const diffBadge = document.getElementById('kpi-diff-badge');
+      if (diffBadge) {
+        diffBadge.textContent = `${diffSign}${((displayDiff / (totalTarget || 1)) * 100).toFixed(1)}%`;
+        if (totalDiff >= 0) {
+          diffBadge.className = 'px-2 py-0.5 rounded font-black text-xs bg-emerald-900 text-emerald-300 border border-emerald-400/40';
+        } else {
+          diffBadge.className = 'px-2 py-0.5 rounded font-black text-xs bg-rose-900 text-rose-300 border border-rose-400/40';
+        }
+      }
+
+      // Achieved Badge & Card Color
+      const achievedBadge = document.getElementById('kpi-achieved-badge');
+      const cardAchieved = document.getElementById('card-achieved');
+      const displayPct = displayAchievedPct || overallAchievedPct;
+      if (displayPct >= 100) {
+        if (achievedBadge) {
+          achievedBadge.textContent = 'บรรลุเป้าหมาย ✅';
+          achievedBadge.className = 'px-2.5 py-0.5 rounded-full font-black text-xs bg-emerald-400 text-emerald-950 shadow-2xs';
+        }
+        if (cardAchieved) {
+          cardAchieved.className = 'bg-gradient-to-br from-emerald-950 via-emerald-900 to-teal-950 p-5 rounded-2xl border-2 border-emerald-400 shadow-md text-white relative overflow-hidden flex flex-col justify-between min-h-[145px]';
+        }
+      } else {
+        if (achievedBadge) {
+          achievedBadge.textContent = 'ต่ำกว่าเป้าหมาย ❌';
+          achievedBadge.className = 'px-2.5 py-0.5 rounded-full font-black text-xs bg-rose-400 text-rose-950 shadow-2xs';
+        }
+        if (cardAchieved) {
+          cardAchieved.className = 'bg-gradient-to-br from-rose-950 via-rose-900 to-red-950 p-5 rounded-2xl border-2 border-rose-400 shadow-md text-white relative overflow-hidden flex flex-col justify-between min-h-[145px]';
+        }
+      }
+
+      // 2. เรนเดอร์กราฟแท่งหลักเปรียบเทียบ Output vs Target
+      renderDailyOutputChart(processedData, targetDaily, displayActual, totalTarget);
+
+      // 3. เรนเดอร์กราฟเส้นสะสมแนวโน้ม MTD
+      renderCumulativeChart(processedData);
+
+      // 4. เรนเดอร์ตารางเปรียบเทียบข้อมูลรายวัน
+      renderOutputTable(processedData, totalTarget, displayActual, displayDiff, displayAchievedPct, displayConsum, avgWastePct);
+    }
+
+    // ==========================================
+    // กราฟแท่งหลักเปรียบเทียบ Output รายวัน vs Target
+    // ==========================================
+    function renderDailyOutputChart(data, targetDaily, totalActual, totalTarget) {
+      const chartEl = document.getElementById('dailyOutputChart');
+      if (!chartEl || typeof Chart === 'undefined') return;
+
+      const labels = data.map(d => d.date);
+      const actualValues = data.map(d => d.actual);
+      const targetValues = data.map(d => d.isIdle ? 0 : d.target);
+
+      // สีของแต่ละแท่ง
+      const barColors = data.map(d => {
+        if (d.isIdle) return 'rgba(0,0,0,0)';
+        return d.actual >= d.target ? '#10b981' : '#ef4444';
+      });
+
+      const borderColors = data.map(d => {
+        if (d.isIdle) return 'rgba(0,0,0,0)';
+        return d.actual >= d.target ? '#047857' : '#b91c1c';
+      });
+
+      // คำนวณขอบเขตสเกลแกน Y ให้แท่งกราฟอ้วน สูง ชัดเจน
+      const maxActual = Math.max(...actualValues, targetDaily);
+      const suggestedYMax = Math.ceil((maxActual * 1.25) / 10000) * 10000;
+
+      if (dailyOutputChartInstance) {
+        try { dailyOutputChartInstance.destroy(); } catch(e) {}
+      }
+
+      const chartPlugins = (typeof ChartDataLabels !== 'undefined') ? [ChartDataLabels] : [];
+      const ctx = chartEl.getContext('2d');
+      dailyOutputChartInstance = new Chart(ctx, {
+        type: 'bar',
+        plugins: chartPlugins,
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              type: 'bar',
+              label: 'ยอดผลิตจริง Actual Output (kg)',
+              data: actualValues,
+              backgroundColor: barColors,
+              borderColor: borderColors,
+              borderWidth: 2,
+              borderRadius: 6,
+              barPercentage: 0.85,
+              categoryPercentage: 0.90,
+              maxBarThickness: 50,
+              order: 2
+            },
+            {
+              type: 'line',
+              label: `Target Output (${targetDaily.toLocaleString()} กก./วัน)`,
+              data: targetValues,
+              borderColor: '#f59e0b',
+              backgroundColor: 'transparent',
+              borderWidth: 3,
+              borderDash: [6, 4],
+              pointBackgroundColor: '#f59e0b',
+              pointBorderColor: '#ffffff',
+              pointBorderWidth: 2,
+              pointRadius: 4,
+              pointHoverRadius: 6,
+              order: 1,
+              datalabels: {
+                display: false
+              }
+            }
+          ]
+        },
+        options: {
+          devicePixelRatio: Math.max(window.devicePixelRatio || 1, 3),
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: {
+            padding: { top: 48, left: 10, right: 38, bottom: 12 }
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                font: { family: "'Prompt', sans-serif", size: 11, weight: 'bold' },
+                boxWidth: 14,
+                padding: 15
+              }
+            },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleFont: { family: "'Prompt', sans-serif", size: 12, weight: 'bold' },
+              bodyFont: { family: "'Prompt', sans-serif", size: 11 },
+              padding: 10,
+              callbacks: {
+                label: function(ctx) {
+                  const val = ctx.raw || 0;
+                  const tg = targetDaily;
+                  const pct = tg > 0 ? ((val / tg) * 100).toFixed(1) : '100.0';
+                  return [
+                    ` ผลิตจริง: ${val.toLocaleString()} กก.`,
+                    ` Target: ${tg.toLocaleString()} กก.`,
+                    ` บรรลุเป้า: ${pct}% (${val >= tg ? 'ได้เป้า ✅' : 'ต่ำกว่าเป้า ❌'})`
+                  ];
+                }
+              }
+            },
+            datalabels: {
+              clip: false,
+              display: function(ctx) {
+                const val = ctx.dataset.data[ctx.dataIndex];
+                return val > 0;
+              },
+              anchor: 'end',
+              align: 'top',
+              offset: 4,
+              formatter: function(val, ctx) {
+                const tg = targetDaily;
+                const pct = tg > 0 ? ((val / tg) * 100).toFixed(0) : 100;
+                return `${Math.round(val / 1000)}k\n(${pct}%)`;
+              },
+              backgroundColor: '#ffffff',
+              borderColor: function(ctx) {
+                const val = ctx.dataset.data[ctx.dataIndex];
+                return val >= targetDaily ? '#86efac' : '#fca5a5';
+              },
+              borderWidth: 1.5,
+              borderRadius: 6,
+              padding: { top: 2, bottom: 2, left: 5, right: 5 },
+              color: function(ctx) {
+                const val = ctx.dataset.data[ctx.dataIndex];
+                return val >= targetDaily ? '#15803d' : '#b91c1c';
+              },
+              font: {
+                family: "'Prompt', sans-serif",
+                size: 9.5,
+                weight: '800'
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              suggestedMax: suggestedYMax,
+              ticks: {
+                callback: v => `${Math.round(v / 1000)}k กก.`,
+                font: { family: "'Prompt', sans-serif", size: 10.5, weight: '600' },
+                color: '#475569'
+              },
+              grid: { color: '#f1f5f9' }
+            },
+            x: {
+              grid: { display: false },
+              ticks: {
+                font: { family: "'Prompt', sans-serif", size: 10.5, weight: 'bold' },
+                color: '#0f172a',
+                maxRotation: 45,
+                minRotation: 45
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // ==========================================
+    // กราฟเส้นสะสม MTD (Cumulative Trend)
+    // ==========================================
+    function renderCumulativeChart(data) {
+      const chartEl = document.getElementById('cumulativeOutputChart');
+      if (!chartEl || typeof Chart === 'undefined') return;
+
+      const labels = data.map(d => d.date);
+      
+      let runningActual = 0;
+      let runningTarget = 0;
+      const cumActual = [];
+      const cumTarget = [];
+
+      data.forEach(d => {
+        if (!d.isIdle) {
+          runningActual += d.actual;
+          runningTarget += d.target;
+        }
+        cumActual.push(runningActual);
+        cumTarget.push(runningTarget);
+      });
+
+      if (cumulativeOutputChartInstance) {
+        try { cumulativeOutputChartInstance.destroy(); } catch(e) {}
+      }
+
+      const chartPlugins = (typeof ChartDataLabels !== 'undefined') ? [ChartDataLabels] : [];
+      const ctx = chartEl.getContext('2d');
+      cumulativeOutputChartInstance = new Chart(ctx, {
+        type: 'line',
+        plugins: chartPlugins,
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'สะสมจริง (Actual MTD)',
+              data: cumActual,
+              borderColor: '#4f46e5',
+              backgroundColor: 'rgba(79, 70, 229, 0.12)',
+              fill: true,
+              borderWidth: 3,
+              tension: 0.3,
+              pointBackgroundColor: '#4f46e5',
+              pointRadius: 3
+            },
+            {
+              label: 'สะสมเป้าหมาย (Target MTD)',
+              data: cumTarget,
+              borderColor: '#f59e0b',
+              backgroundColor: 'transparent',
+              borderWidth: 2.5,
+              borderDash: [5, 4],
+              tension: 0.2,
+              pointBackgroundColor: '#f59e0b',
+              pointRadius: 2.5
+            }
+          ]
+        },
+        options: {
+          devicePixelRatio: Math.max(window.devicePixelRatio || 1, 3),
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: {
+            padding: { top: 32, left: 10, right: 35, bottom: 10 }
+          },
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                font: { family: "'Prompt', sans-serif", size: 11, weight: 'bold' },
+                boxWidth: 14
+              }
+            },
+            datalabels: {
+              display: false // ซ่อน datalabels บนกราฟเส้นสะสมเพื่อความโปร่งตา
+            },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleFont: { family: "'Prompt', sans-serif", size: 12, weight: 'bold' },
+              bodyFont: { family: "'Prompt', sans-serif", size: 11 },
+              padding: 10,
+              callbacks: {
+                label: function(ctx) {
+                  return ` ${ctx.dataset.label}: ${ctx.raw.toLocaleString()} กก.`;
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: v => `${Math.round(v / 1000)}k กก.`,
+                font: { family: "'Prompt', sans-serif", size: 10.5, weight: '600' },
+                color: '#475569'
+              },
+              grid: { color: '#f1f5f9' }
+            },
+            x: {
+              grid: { display: false },
+              ticks: {
+                font: { family: "'Prompt', sans-serif", size: 10, weight: '600' },
+                color: '#64748b',
+                maxRotation: 45,
+                minRotation: 45
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // ==========================================
+    // ตารางเปรียบเทียบข้อมูลรายวัน
+    // ==========================================
+    function renderOutputTable(data, totalTarget, totalActual, totalDiff, overallAchievedPct, totalConsum, avgWastePct) {
+      const tbody = document.getElementById('outputTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      data.forEach(d => {
+        const tr = document.createElement('tr');
+        
+        let statusBadge = '';
+        let rowClass = '';
+        let diffColor = 'text-slate-700';
+
+        if (d.isIdle) {
+          statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-slate-200 text-slate-700">ไม่เดินเครื่อง</span>';
+        } else if (d.actual >= d.target) {
+          statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">ได้เป้า ✅</span>';
+          rowClass = 'cell-output-pass';
+          diffColor = 'text-emerald-700 font-bold';
+        } else {
+          statusBadge = '<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300">ต่ำกว่าเป้า ❌</span>';
+          rowClass = 'cell-output-under';
+          diffColor = 'text-rose-700 font-bold';
+        }
+
+        const diffStr = d.isIdle ? '-' : `${d.diff >= 0 ? '+' : ''}${d.diff.toLocaleString()}`;
+        const pctStr = d.isIdle ? '-' : `${d.achievedPct.toFixed(1)}%`;
+        const wasteStr = d.wastePct > 0 ? `${d.wastePct.toFixed(2)}%` : '-';
+
+        tr.innerHTML = `
+          <td class="p-2.5 text-left font-bold text-slate-800 whitespace-nowrap">${d.date}</td>
+          <td class="p-2.5 font-bold text-amber-900 bg-amber-50/50">${d.isIdle ? '-' : d.target.toLocaleString()}</td>
+          <td class="p-2.5 font-black text-slate-900 text-sm ${rowClass}">${d.actual.toLocaleString()}</td>
+          <td class="p-2.5 ${diffColor}">${diffStr}</td>
+          <td class="p-2.5 font-bold text-slate-800">${pctStr}</td>
+          <td class="p-2.5 whitespace-nowrap">${statusBadge}</td>
+          <td class="p-2.5 text-slate-700 font-semibold">${d.consumption > 0 ? d.consumption.toLocaleString() : '-'}</td>
+          <td class="p-2.5 text-slate-700 font-semibold">${wasteStr}</td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+
+      // แถวผลรวมท้ายตาราง
+      safeSetText('foot-target-sum', totalTarget.toLocaleString());
+      safeSetText('foot-actual-sum', totalActual.toLocaleString());
+      const diffSign = totalDiff >= 0 ? '+' : '';
+      safeSetText('foot-diff-sum', `${diffSign}${totalDiff.toLocaleString()}`);
+      safeSetText('foot-achieved-sum', `${overallAchievedPct.toFixed(1)}%`);
+      safeSetText('foot-consum-sum', totalConsum.toLocaleString());
+      safeSetText('foot-waste-avg', `${avgWastePct.toFixed(2)}%`);
+      
+      const footStatus = document.getElementById('foot-status-sum');
+      if (footStatus) {
+        if (overallAchievedPct >= 100) {
+          footStatus.innerHTML = '<span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-500 text-white">ได้เป้า ✅</span>';
+        } else {
+          footStatus.innerHTML = '<span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-500 text-white">ต่ำกว่าเป้า ❌</span>';
+        }
+      }
+    }
+
+    // กรองแถวในตาราง
+    function filterOutputTable() {
+      const q = (document.getElementById('tableFilterInput')?.value || '').toLowerCase().trim();
+      const rows = document.querySelectorAll('#outputTableBody tr');
+      rows.forEach(r => {
+        const text = r.textContent.toLowerCase();
+        r.style.display = text.includes(q) ? '' : 'none';
+      });
+    }
+
+    // ==========================================
+    // ธีมสีพื้นหลังตารางพาสเทล
+    // ==========================================
+    function toggleTableThemeDropdown(e) {
+      if (e) e.stopPropagation();
+      const menu = document.getElementById('tableThemeMenu');
+      const chevron = document.getElementById('tableThemeChevron');
+      if (!menu) return;
+      const isHidden = menu.classList.contains('hidden');
+      if (isHidden) {
+        menu.classList.remove('hidden');
+        if (chevron) chevron.style.transform = 'rotate(180deg)';
+      } else {
+        menu.classList.add('hidden');
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+      }
+    }
+
+    function setTableTheme(themeKey) {
+      const theme = TABLE_THEMES[themeKey] || TABLE_THEMES.white;
+      currentTableTheme = theme.key;
+
+      const menu = document.getElementById('tableThemeMenu');
+      const chevron = document.getElementById('tableThemeChevron');
+      if (menu) menu.classList.add('hidden');
+      if (chevron) chevron.style.transform = 'rotate(0deg)';
+
+      const dotEl = document.getElementById('currentThemeDot');
+      const labelEl = document.getElementById('currentThemeLabel');
+      if (dotEl) {
+        dotEl.style.backgroundColor = theme.dot;
+        dotEl.style.borderColor = theme.border;
+      }
+      if (labelEl) labelEl.textContent = theme.name;
+
+      const cardEl = document.getElementById('output-table-card');
+      const allThemeClasses = Object.values(TABLE_THEMES).map(t => t.cssClass);
+
+      const applyToEl = (el) => {
+        if (!el) return;
+        el.classList.remove(...allThemeClasses);
+        el.classList.add(theme.cssClass, 'table-theme-active');
+      };
+
+      applyToEl(cardEl);
+      document.querySelectorAll('table.output-table').forEach(applyToEl);
+
+      document.querySelectorAll('.table-theme-option').forEach(btn => {
+        const key = btn.getAttribute('data-theme');
+        const checkEl = btn.querySelector('.theme-check');
+        if (key === themeKey) {
+          btn.classList.add('bg-slate-100');
+          if (checkEl) checkEl.classList.remove('hidden');
+        } else {
+          btn.classList.remove('bg-slate-100');
+          if (checkEl) checkEl.classList.add('hidden');
+        }
+      });
+
+      try {
+        localStorage.setItem('output_table_theme', themeKey);
+      } catch (e) {}
+    }
+
+    function initTableTheme() {
+      let savedTheme = 'white';
+      try {
+        savedTheme = localStorage.getItem('output_table_theme') || 'white';
+      } catch (e) {}
+      setTableTheme(savedTheme);
+    }
+
+    // ==========================================
+    // ส่งออกรูปภาพและ Excel
+    // ==========================================
+    function exportOutputChartAsImage() {
+      const chartEl = document.getElementById('dailyOutputChart');
+      if (!chartEl) return;
+
+      const link = document.createElement('a');
+      link.download = `Output_Chart_${currentMachine}_Month${currentMonth}.png`;
+      link.href = chartEl.toDataURL('image/png', 1.0);
+      link.click();
+    }
+
+    async function saveHighResReport() {
+      const area = document.getElementById('output-printable-area');
+      if (!area || typeof html2canvas === 'undefined') return;
+
+      if (document.fonts) {
+        await document.fonts.ready;
+      }
+
+      const canvas = await html2canvas(area, {
+        scale: 2.5,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#f8fafc'
+      });
+
+      const link = document.createElement('a');
+      link.download = `Output_Report_${currentMachine}_Month${currentMonth}.png`;
+      link.href = canvas.toDataURL('image/png', 1.0);
+      link.click();
+    }
+
+    function exportOutputTableToExcel() {
+      if (typeof XLSX === 'undefined') {
+        alert('ไลบรารี XLSX ไม่พร้อมใช้งาน');
+        return;
+      }
+      const table = document.querySelector('table.output-table');
+      if (!table) return;
+
+      const wb = XLSX.utils.table_to_book(table, { sheet: `Output_${currentMachine}` });
+      XLSX.writeFile(wb, `Output_Production_${currentMachine}_Month${currentMonth}.xlsx`);
+    }
+  </script>
+
+</body>
+</html>
