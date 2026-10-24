@@ -13,34 +13,37 @@ if ($method === 'OPTIONS') {
 
 $dataFile = __DIR__ . '/data/output_targets.json';
 
-// ค่าเป้าหมายเริ่มต้น (กก./วัน) สำหรับแต่ละเครื่องจักร
-$defaultTargets = [
-    'machines' => [
-        'BHS' => [
-            'name' => 'เครื่อง BHS',
-            'dailyTarget' => 100000,
-            'monthlyTarget' => 2200000,
-            'unit' => 'kg'
-        ],
-        'ISOWA' => [
-            'name' => 'เครื่อง ISOWA',
-            'dailyTarget' => 60000,
-            'monthlyTarget' => 1300000,
-            'unit' => 'kg'
-        ],
-        'YUELI' => [
-            'name' => 'เครื่อง YUELI',
-            'dailyTarget' => 50000,
-            'monthlyTarget' => 1100000,
-            'unit' => 'kg'
-        ],
-        'TOTAL' => [
-            'name' => 'รวมทุกเครื่อง (TOTAL)',
-            'dailyTarget' => 210000,
-            'monthlyTarget' => 4600000,
-            'unit' => 'kg'
-        ]
+// ค่าเป้าหมายเริ่มต้น (กก./วัน และ กก./เดือน) สำหรับแต่ละเครื่องจักร
+$defaultMachines = [
+    'BHS' => [
+        'name' => 'เครื่อง BHS',
+        'dailyTarget' => 100000,
+        'monthlyTarget' => 2200000,
+        'unit' => 'kg'
     ],
+    'ISOWA' => [
+        'name' => 'เครื่อง ISOWA',
+        'dailyTarget' => 60000,
+        'monthlyTarget' => 1300000,
+        'unit' => 'kg'
+    ],
+    'YUELI' => [
+        'name' => 'เครื่อง YUELI',
+        'dailyTarget' => 50000,
+        'monthlyTarget' => 1100000,
+        'unit' => 'kg'
+    ],
+    'TOTAL' => [
+        'name' => 'รวมทุกเครื่อง (TOTAL)',
+        'dailyTarget' => 210000,
+        'monthlyTarget' => 4600000,
+        'unit' => 'kg'
+    ]
+];
+
+$defaultTargets = [
+    'machines' => $defaultMachines,
+    'monthlyTargets' => [], // key: "YYYY-MM" => [ 'BHS' => ..., 'ISOWA' => ..., 'YUELI' => ..., 'TOTAL' => ... ]
     'updated_at' => date('Y-m-d H:i:s')
 ];
 
@@ -55,6 +58,9 @@ if ($method === 'GET') {
         $content = @file_get_contents($dataFile);
         $json = @json_decode($content, true);
         if (is_array($json) && isset($json['machines'])) {
+            if (!isset($json['monthlyTargets']) || !is_array($json['monthlyTargets'])) {
+                $json['monthlyTargets'] = [];
+            }
             echo json_encode([
                 'success' => true,
                 'data' => $json,
@@ -92,29 +98,72 @@ if ($method === 'POST') {
         exit;
     }
 
-    // Save
-    $newTargets = $defaultTargets;
+    // Load existing
+    $currentData = $defaultTargets;
+    if (file_exists($dataFile)) {
+        $loaded = @json_decode(@file_get_contents($dataFile), true);
+        if (is_array($loaded)) {
+            $currentData = array_merge($currentData, $loaded);
+        }
+    }
+
+    // 1. Update machines default daily & monthly targets if passed
     if (isset($payload['machines']) && is_array($payload['machines'])) {
         foreach (['BHS', 'ISOWA', 'YUELI', 'TOTAL'] as $mKey) {
             if (isset($payload['machines'][$mKey])) {
                 $mInput = $payload['machines'][$mKey];
                 $daily = isset($mInput['dailyTarget']) ? max(0, round((float)$mInput['dailyTarget'])) : $defaultTargets['machines'][$mKey]['dailyTarget'];
-                $monthly = isset($mInput['monthlyTarget']) ? max(0, round((float)$mInput['monthlyTarget'])) : ($daily * 22);
-                $newTargets['machines'][$mKey]['dailyTarget'] = $daily;
-                $newTargets['machines'][$mKey]['monthlyTarget'] = $monthly;
+                $monthly = isset($mInput['monthlyTarget']) ? max(0, round((float)$mInput['monthlyTarget'])) : $defaultTargets['machines'][$mKey]['monthlyTarget'];
+                $currentData['machines'][$mKey]['dailyTarget'] = $daily;
+                $currentData['machines'][$mKey]['monthlyTarget'] = $monthly;
             }
         }
     }
 
-    $newTargets['updated_at'] = date('Y-m-d H:i:s');
+    // 2. Save Specific Month Target (e.g. key = "2026-10" or "2027-01")
+    if ($action === 'save_month' || isset($payload['targetMonthKey'])) {
+        $monthKey = trim($payload['targetMonthKey'] ?? '');
+        if (!empty($monthKey) && isset($payload['monthTargets']) && is_array($payload['monthTargets'])) {
+            if (!isset($currentData['monthlyTargets']) || !is_array($currentData['monthlyTargets'])) {
+                $currentData['monthlyTargets'] = [];
+            }
+            $cleanTargets = [];
+            foreach (['BHS', 'ISOWA', 'YUELI', 'TOTAL'] as $mKey) {
+                if (isset($payload['monthTargets'][$mKey])) {
+                    $cleanTargets[$mKey] = max(0, round((float)$payload['monthTargets'][$mKey]));
+                }
+            }
+            $currentData['monthlyTargets'][$monthKey] = $cleanTargets;
+        }
+    }
 
-    $written = @file_put_contents($dataFile, json_encode($newTargets, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+    // 3. Batch update multiple month targets if passed
+    if (isset($payload['monthlyTargets']) && is_array($payload['monthlyTargets'])) {
+        if (!isset($currentData['monthlyTargets']) || !is_array($currentData['monthlyTargets'])) {
+            $currentData['monthlyTargets'] = [];
+        }
+        foreach ($payload['monthlyTargets'] as $mKey => $vals) {
+            if (is_array($vals)) {
+                $clean = [];
+                foreach (['BHS', 'ISOWA', 'YUELI', 'TOTAL'] as $mach) {
+                    if (isset($vals[$mach])) {
+                        $clean[$mach] = max(0, round((float)$vals[$mach]));
+                    }
+                }
+                $currentData['monthlyTargets'][$mKey] = $clean;
+            }
+        }
+    }
+
+    $currentData['updated_at'] = date('Y-m-d H:i:s');
+
+    $written = @file_put_contents($dataFile, json_encode($currentData, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 
     if ($written !== false) {
         echo json_encode([
             'success' => true,
             'message' => 'บันทึกเป้าหมาย Target Output สำเร็จเรียบร้อยแล้ว',
-            'data' => $newTargets
+            'data' => $currentData
         ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     } else {
         http_response_code(500);

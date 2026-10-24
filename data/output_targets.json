@@ -2,28 +2,36 @@
     "machines": {
         "BHS": {
             "name": "เครื่อง BHS",
-            "dailyTarget": 100000,
-            "monthlyTarget": 2200000,
+            "dailyTarget": 124978,
+            "monthlyTarget": 3326000,
             "unit": "kg"
         },
         "ISOWA": {
             "name": "เครื่อง ISOWA",
-            "dailyTarget": 60000,
-            "monthlyTarget": 1300000,
+            "dailyTarget": 35925,
+            "monthlyTarget": 941000,
             "unit": "kg"
         },
         "YUELI": {
             "name": "เครื่อง YUELI",
-            "dailyTarget": 50000,
-            "monthlyTarget": 1100000,
+            "dailyTarget": 124978,
+            "monthlyTarget": 3326000,
             "unit": "kg"
         },
         "TOTAL": {
             "name": "รวมทุกเครื่อง (TOTAL)",
-            "dailyTarget": 210000,
-            "monthlyTarget": 4600000,
+            "dailyTarget": 289880,
+            "monthlyTarget": 7592000,
             "unit": "kg"
         }
     },
-    "updated_at": "2026-10-24 05:08:36"
+    "monthlyTargets": {
+        "2027-01": {
+            "BHS": 2500000,
+            "ISOWA": 1500000,
+            "YUELI": 1200000,
+            "TOTAL": 5200000
+        }
+    },
+    "updated_at": "2026-10-24 05:51:14"
 }
