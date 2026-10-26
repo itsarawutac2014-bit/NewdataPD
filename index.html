@@ -372,25 +372,31 @@
 
     <!-- Table Section (ตารางตามภาพต้นฉบับเป๊ะๆ) -->
     <section id="waste-table-card" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition-colors">
-      <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-slate-50/70">
-        <div class="flex items-center gap-3 flex-wrap">
-          <div class="flex items-center gap-2">
-            <h3 class="text-base sm:text-lg font-black text-slate-900 tracking-tight whitespace-nowrap">
-              Waste PRODUCTION รายวันเครื่อง <span id="table-machine-name">BHS</span> (<span id="table-month-name">เดือน ตุลาคม</span>)
+      <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-gradient-to-r from-slate-100 via-indigo-50/40 to-slate-100">
+        <div class="flex items-center gap-3.5 flex-wrap">
+          <!-- กล่องหัวข้อเด่นชัด เพิ่มขนาดข้อความ และเติมพื้นหลังสีเข้มหรูหรา -->
+          <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 text-white shadow-md border-2 border-indigo-500/50">
+            <div class="w-8 h-8 rounded-lg bg-indigo-500/25 border border-indigo-400/40 flex items-center justify-center text-amber-300 text-base shrink-0 shadow-inner">
+              <i class="fa-solid fa-industry"></i>
+            </div>
+            <h3 class="text-lg sm:text-xl lg:text-2xl font-black tracking-tight text-white whitespace-nowrap drop-shadow-sm flex items-center gap-2 flex-wrap">
+              <span>Waste PRODUCTION รายวันเครื่อง</span>
+              <span id="table-machine-name" class="text-amber-300 px-3 py-0.5 rounded-lg bg-amber-400/20 border border-amber-400/50 font-black tracking-wide text-xl sm:text-2xl drop-shadow">BHS</span>
+              <span class="text-indigo-200 text-sm sm:text-lg font-bold">(<span id="table-month-name">เดือน ตุลาคม</span>)</span>
             </h3>
-            <span id="table-total-days-badge" class="px-2.5 py-1 text-xs font-bold bg-blue-100 text-blue-800 rounded-full border border-blue-200">31 วัน</span>
+            <span id="table-total-days-badge" class="ml-1 px-3 py-1 text-xs font-extrabold bg-blue-500/30 text-cyan-200 rounded-full border border-cyan-400/50 shadow-xs shrink-0">31 วัน</span>
           </div>
 
           <!-- ตัวเลขสรุป: ผ่านเป้ากี่วัน ไม่ผ่านกี่วัน ไม่เดินกี่วัน (ตามที่ผู้ใช้ขอ) -->
           <div class="flex items-center gap-2 flex-wrap">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-xs">
-              <i class="fa-solid fa-circle-check text-emerald-600"></i> ผ่านเป้า: <strong class="text-emerald-950 text-sm" id="header-days-pass">8</strong> วัน
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-emerald-100/90 text-emerald-900 border border-emerald-300 shadow-xs">
+              <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i> ผ่านเป้า: <strong class="text-emerald-950 text-sm font-black" id="header-days-pass">8</strong> วัน
             </span>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg bg-rose-100 text-rose-800 border border-rose-300 shadow-xs">
-              <i class="fa-solid fa-circle-xmark text-rose-600"></i> ไม่ผ่าน: <strong class="text-rose-950 text-sm" id="header-days-over">6</strong> วัน
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-rose-100/90 text-rose-900 border border-rose-300 shadow-xs">
+              <i class="fa-solid fa-circle-xmark text-rose-600 text-sm"></i> ไม่ผ่าน: <strong class="text-rose-950 text-sm font-black" id="header-days-over">6</strong> วัน
             </span>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg bg-sky-100 text-sky-800 border border-sky-300 shadow-xs">
-              <i class="fa-solid fa-pause text-sky-600"></i> ไม่เดิน: <strong class="text-sky-950 text-sm" id="header-days-idle">17</strong> วัน
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-sky-100/90 text-sky-900 border border-sky-300 shadow-xs">
+              <i class="fa-solid fa-pause text-sky-600 text-sm"></i> ไม่เดิน: <strong class="text-sky-950 text-sm font-black" id="header-days-idle">17</strong> วัน
             </span>
           </div>
         </div>
@@ -472,84 +478,132 @@
         </div>
       </div>
 
-      <!-- Executive Summary Cards Ribbon ด้านบนตาราง สวยงามชัดเจน -->
-      <div class="p-3.5 sm:p-4.5 bg-gradient-to-r from-slate-100 via-emerald-50/30 to-slate-100 border-b border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <!-- Executive Summary Cards Ribbon ด้านบนตาราง (4 ช่องใหม่ตามสั่ง) -->
+      <div class="p-3.5 sm:p-4.5 bg-gradient-to-r from-slate-100 via-indigo-50/30 to-slate-100 border-b border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4.5">
         
-        <!-- ช่องที่ 1: ALL Waste สะสม (สีเข้ม ช่องใหญ่ ตัวหนังสือหนา เด่นชัด) -->
-        <div class="bg-gradient-to-br from-[#064e3b] via-[#065f46] to-[#022c22] p-4 sm:p-5 rounded-2xl border-2 border-emerald-400/80 shadow-md text-white relative overflow-hidden flex flex-col justify-between min-h-[135px]">
+        <!-- ช่องที่ 1: Consumption vs Target (ปริมาณที่ยังขาดเท่าไร จาก Target) -->
+        <div id="card-con-box" class="bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#172554] p-4 sm:p-5 rounded-2xl border-2 border-blue-400/80 shadow-md text-white relative overflow-hidden flex flex-col justify-between min-h-[145px]">
           <div class="flex items-center justify-between gap-1">
-            <span class="text-xs sm:text-sm font-black text-emerald-200 uppercase tracking-wider flex items-center gap-1.5">
-              <i class="fa-solid fa-chart-pie text-emerald-400"></i> ALL Waste สะสม (MTD)
+            <span class="text-xs sm:text-sm font-black text-blue-200 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-boxes-stacked text-blue-400"></i> 1. CONSUMPTION ขาดจากเป้า
             </span>
-            <span id="top-summary-waste-badge" class="px-2.5 py-0.5 text-xs font-black bg-emerald-400 text-emerald-950 rounded-full shadow-xs">
+            <span id="top-card-con-badge" class="px-2.5 py-0.5 text-xs font-black bg-blue-400 text-blue-950 rounded-full shadow-xs">
+              ยังขาดอีก
+            </span>
+          </div>
+          <div class="my-2">
+            <div class="text-[11px] font-semibold text-blue-300/90 uppercase tracking-wide">ปริมาณที่ยังขาดอีก:</div>
+            <div class="flex items-baseline gap-1.5 flex-wrap">
+              <span class="text-2xl sm:text-3xl lg:text-4xl font-black text-cyan-300 tracking-tight drop-shadow-sm" id="top-card-con-remaining">995,068</span>
+              <span class="text-xs sm:text-sm font-extrabold text-blue-200">กก. (kg)</span>
+            </div>
+          </div>
+          <div class="pt-2 border-t border-blue-800/80 flex flex-col gap-1 text-xs text-blue-200 font-semibold">
+            <div class="flex items-center justify-between">
+              <span>Target Con: <strong class="text-white font-bold" id="top-card-con-target">3,501,053</strong> กก.</span>
+              <span class="text-cyan-300 font-bold bg-blue-950/70 px-2 py-0.5 rounded border border-blue-500/30" id="top-card-con-achieved-badge">บรรลุ 71.6%</span>
+            </div>
+            <div class="flex items-center justify-between text-[11px] text-blue-300/80">
+              <span>ใช้จริง (Actual):</span>
+              <strong class="text-white font-semibold" id="top-card-con-actual">2,505,985 กก.</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- ช่องที่ 2: Output vs Target (ปริมาณที่ยังขาดเท่าไร จาก Target) -->
+        <div id="card-out-box" class="bg-gradient-to-br from-[#1e1b4b] via-[#312e81] to-[#3730a3] p-4 sm:p-5 rounded-2xl border-2 border-indigo-400/80 shadow-md text-white relative overflow-hidden flex flex-col justify-between min-h-[145px]">
+          <div class="flex items-center justify-between gap-1">
+            <span class="text-xs sm:text-sm font-black text-indigo-200 uppercase tracking-wider flex items-center gap-1.5">
+              <i class="fa-solid fa-truck-ramp-box text-indigo-300"></i> 2. OUTPUT ขาดจากเป้า
+            </span>
+            <span id="top-card-out-badge" class="px-2.5 py-0.5 text-xs font-black bg-indigo-400 text-indigo-950 rounded-full shadow-xs">
+              ยังขาดอีก
+            </span>
+          </div>
+          <div class="my-2">
+            <div class="text-[11px] font-semibold text-indigo-300/90 uppercase tracking-wide">ปริมาณที่ยังขาดอีก:</div>
+            <div class="flex items-baseline gap-1.5 flex-wrap">
+              <span class="text-2xl sm:text-3xl lg:text-4xl font-black text-amber-300 tracking-tight drop-shadow-sm" id="top-card-out-remaining">1,104,070</span>
+              <span class="text-xs sm:text-sm font-extrabold text-indigo-200">กก. (kg)</span>
+            </div>
+          </div>
+          <div class="pt-2 border-t border-indigo-800/80 flex flex-col gap-1 text-xs text-indigo-200 font-semibold">
+            <div class="flex items-center justify-between">
+              <span>Target Out: <strong class="text-white font-bold" id="top-card-out-target">3,326,000</strong> กก.</span>
+              <span class="text-amber-300 font-bold bg-indigo-950/70 px-2 py-0.5 rounded border border-indigo-500/30" id="top-card-out-achieved-badge">บรรลุ 66.8%</span>
+            </div>
+            <div class="flex items-center justify-between text-[11px] text-indigo-300/80">
+              <span>ผลิตจริง (Actual):</span>
+              <strong class="text-white font-semibold" id="top-card-out-actual">2,221,930 กก.</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- ช่องที่ 3: ของเสีย PD vs Target (ปริมาณของเสีย เทียบ Target 5.00% เสียได้เท่าไร / เกินเท่าไร / ต้องลดเท่าไร) -->
+        <div id="card-waste-box" class="bg-gradient-to-br from-[#064e3b] via-[#065f46] to-[#022c22] p-4 sm:p-5 rounded-2xl border-2 border-emerald-400/80 shadow-md text-white relative overflow-hidden flex flex-col justify-between min-h-[145px] transition-all">
+          <div class="flex items-center justify-between gap-1">
+            <span class="text-xs sm:text-sm font-black text-emerald-200 uppercase tracking-wider flex items-center gap-1.5" id="card-waste-title">
+              <i class="fa-solid fa-chart-pie text-emerald-400" id="card-waste-icon"></i> 3. ของเสีย PD vs Target
+            </span>
+            <span id="top-card-waste-badge" class="px-2.5 py-0.5 text-xs font-black bg-emerald-400 text-emerald-950 rounded-full shadow-xs">
               ได้เป้า ✅
             </span>
           </div>
           <div class="my-2">
-            <span class="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight drop-shadow-sm" id="top-summary-waste">4.61%</span>
+            <div class="flex items-baseline gap-2 flex-wrap">
+              <span class="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight drop-shadow-sm" id="top-card-waste-pct">4.61%</span>
+              <span class="text-xs sm:text-sm font-bold text-emerald-200" id="top-card-waste-kg">(115,526 กก.)</span>
+            </div>
+            <div class="text-[11px] font-semibold text-emerald-300/80">เป้าหมายไม่เกิน 5.00% (<span id="top-card-waste-target-kg">125,299 กก.</span>)</div>
           </div>
-          <div class="pt-2 border-t border-emerald-800/80 flex items-center justify-between text-xs text-emerald-200 font-semibold">
-            <span>Target: <strong class="text-white font-bold">5.00%</strong></span>
-            <span id="top-summary-waste-diff" class="font-bold text-emerald-300 bg-emerald-950/60 px-2 py-0.5 rounded">ประหยัด +0.39%</span>
-          </div>
-        </div>
-
-        <!-- ช่องที่ 2: Total Consumtion (สีเข้ม ช่องใหญ่ ตัวหนังสือหนา เด่นชัด) -->
-        <div class="bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#172554] p-4 sm:p-5 rounded-2xl border-2 border-blue-400/80 shadow-md text-white relative overflow-hidden flex flex-col justify-between min-h-[135px]">
-          <div class="flex items-center justify-between gap-1">
-            <span class="text-xs sm:text-sm font-black text-blue-200 uppercase tracking-wider flex items-center gap-1.5">
-              <i class="fa-solid fa-boxes-stacked text-blue-400"></i> Total Consumtion
-            </span>
-            <span class="px-2 py-0.5 text-[11px] font-bold bg-blue-900/80 text-blue-200 border border-blue-400/40 rounded-full">
-              กก. (kg)
-            </span>
-          </div>
-          <div class="my-2">
-            <span class="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight drop-shadow-sm" id="top-summary-consumption">1,587,701</span>
-          </div>
-          <div class="pt-2 border-t border-blue-800/80 flex items-center justify-between text-xs text-blue-200 font-semibold">
-            <span>เฉลี่ยต่อวัน:</span>
-            <strong class="text-cyan-300 font-black text-sm bg-blue-950/60 px-2 py-0.5 rounded" id="top-summary-avg-consumption">88,206</strong>
+          <div class="pt-2 border-t border-emerald-800/80 flex flex-col gap-1 text-xs font-semibold">
+            <div id="top-card-waste-action-box" class="font-bold text-emerald-200 bg-emerald-950/70 border border-emerald-400/40 px-2 py-1 rounded-lg text-center">
+              <span id="top-card-waste-diff-label">ประหยัด -0.39%</span>
+              <span class="mx-1">•</span>
+              <strong id="top-card-waste-quota-label" class="text-emerald-300 font-black">ยังเสียได้อีก 6,192 กก.</strong>
+            </div>
           </div>
         </div>
 
-        <!-- ช่องที่ 3: Total Out Put (สีเข้ม ช่องใหญ่ ตัวหนังสือหนา เด่นชัด เข้าชุด) -->
-        <div class="bg-gradient-to-br from-[#1e1b4b] via-[#312e81] to-[#3730a3] p-4 sm:p-5 rounded-2xl border-2 border-indigo-400/80 shadow-md text-white relative overflow-hidden flex flex-col justify-between min-h-[135px]">
-          <div class="flex items-center justify-between gap-1">
-            <span class="text-xs sm:text-sm font-black text-indigo-200 uppercase tracking-wider flex items-center gap-1.5">
-              <i class="fa-solid fa-truck-ramp-box text-indigo-300"></i> Total Out Put
-            </span>
-            <span class="px-2 py-0.5 text-[11px] font-bold bg-indigo-900/80 text-indigo-200 border border-indigo-400/40 rounded-full">
-              กก. (kg)
-            </span>
-          </div>
-          <div class="my-2">
-            <span class="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight drop-shadow-sm" id="top-summary-output">1,415,766</span>
-          </div>
-          <div class="pt-2 border-t border-indigo-800/80 flex items-center justify-between text-xs text-indigo-200 font-semibold">
-            <span>เฉลี่ยต่อวัน:</span>
-            <strong class="text-cyan-200 font-black text-sm bg-indigo-950/60 px-2 py-0.5 rounded" id="top-summary-avg-output">78,654</strong>
-          </div>
-        </div>
-
-        <!-- ช่องที่ 4: การเดินเครื่องผลิต (สีโทนส้มอบอุ่น สวยหรู เข้าชุด) -->
-        <div class="bg-gradient-to-br from-[#451a03] via-[#78350f] to-[#9a3412] p-4 sm:p-5 rounded-2xl border-2 border-amber-400/80 shadow-md text-white relative overflow-hidden flex flex-col justify-between min-h-[135px]">
+        <!-- ช่องที่ 4: Top 1 จาก 11 รายการที่เยอะที่สุด -->
+        <div id="card-top1-box" class="bg-gradient-to-br from-[#451a03] via-[#78350f] to-[#9a3412] p-4 sm:p-5 rounded-2xl border-2 border-amber-400/80 shadow-md text-white relative overflow-hidden flex flex-col justify-between min-h-[145px]">
           <div class="flex items-center justify-between gap-1">
             <span class="text-xs sm:text-sm font-black text-amber-200 uppercase tracking-wider flex items-center gap-1.5">
-              <i class="fa-solid fa-calendar-check text-amber-300"></i> การเดินเครื่องผลิต
+              <i class="fa-solid fa-triangle-exclamation text-amber-300"></i> 4. TOP 1 สูงสุด (11 รายการ)
             </span>
-            <span class="px-2 py-0.5 text-[11px] font-bold bg-amber-900/80 text-amber-200 border border-amber-400/40 rounded-full">
-              วันผลิต
+            <span id="top-card-top1-badge" class="px-2.5 py-0.5 text-xs font-black bg-amber-400 text-amber-950 rounded-full shadow-xs">
+              อันดับ 1
             </span>
           </div>
-          <div class="my-2 flex items-baseline gap-2">
-            <span class="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight drop-shadow-sm" id="top-summary-running-days">14</span>
-            <span class="text-sm font-semibold text-amber-200/80">/ 31 วัน</span>
+          <div class="my-2">
+            <div class="flex items-baseline gap-2 flex-wrap">
+              <span class="text-2xl sm:text-3xl lg:text-4xl font-black text-amber-300 tracking-tight drop-shadow-sm" id="top-card-top1-name">.NCP</span>
+              <span class="text-lg sm:text-xl font-black text-white" id="top-card-top1-pct">1.86%</span>
+              <span class="text-xs sm:text-sm font-bold text-amber-200" id="top-card-top1-kg">(46,562 กก.)</span>
+            </div>
+            <div class="text-[11px] font-semibold text-amber-200/90 flex items-center gap-1.5">
+              <span>Target: <strong class="text-white" id="top-card-top1-target">2.00%</strong></span>
+              <span id="top-card-top1-status" class="px-1.5 py-0.2 rounded text-[10px] font-black bg-emerald-400 text-emerald-950">ได้เป้า (-0.14%)</span>
+            </div>
           </div>
-          <div class="pt-2 border-t border-amber-800/80 flex items-center justify-between text-xs font-bold gap-1 flex-wrap">
-            <span class="text-emerald-300 bg-emerald-950/70 border border-emerald-400/50 px-2 py-0.5 rounded-full" id="top-summary-pass-days">ได้เป้า 8 วัน</span>
-            <span class="text-rose-300 bg-rose-950/70 border border-rose-400/50 px-2 py-0.5 rounded-full" id="top-summary-over-days">เกินเป้า 6 วัน</span>
+          <div class="pt-2 border-t border-amber-800/80 flex items-center justify-between text-xs text-amber-200 font-semibold">
+            <span>สัดส่วนในของเสียรวม:</span>
+            <strong class="text-cyan-200 font-black text-sm bg-amber-950/70 border border-amber-400/30 px-2 py-0.5 rounded" id="top-card-top1-share">35.5%</strong>
           </div>
+        </div>
+
+        <!-- Hidden elements to preserve backward compatibility for legacy IDs -->
+        <div class="hidden" aria-hidden="true">
+          <span id="top-summary-waste"></span>
+          <span id="top-summary-waste-badge"></span>
+          <span id="top-summary-waste-diff"></span>
+          <span id="top-summary-consumption"></span>
+          <span id="top-summary-avg-consumption"></span>
+          <span id="top-summary-output"></span>
+          <span id="top-summary-avg-output"></span>
+          <span id="top-summary-running-days"></span>
+          <span id="top-summary-pass-days"></span>
+          <span id="top-summary-over-days"></span>
         </div>
       </div>
 
@@ -1526,6 +1580,62 @@
     let currentFilterMonth = 10;
     let monthlyBreakdownCache = {};
 
+    // ========================================================
+    // ระบบเป้าหมาย Output & Consumption (เชื่อมโยง output_targets_api.php)
+    // ========================================================
+    let OUTPUT_TARGETS = {
+      machines: {
+        BHS: { name: 'เครื่อง BHS', dailyTarget: 124978, monthlyTarget: 3326000, unit: 'kg' },
+        ISOWA: { name: 'เครื่อง ISOWA', dailyTarget: 35925, monthlyTarget: 941000, unit: 'kg' },
+        YUELI: { name: 'เครื่อง YUELI', dailyTarget: 124978, monthlyTarget: 3326000, unit: 'kg' },
+        TOTAL: { name: 'รวมทุกเครื่อง (TOTAL)', dailyTarget: 289880, monthlyTarget: 7592000, unit: 'kg' }
+      },
+      monthlyTargets: {},
+      updated_at: ''
+    };
+
+    function loadOutputTargetsGlobal() {
+      try {
+        const saved = localStorage.getItem('output_targets_settings');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && parsed.machines) OUTPUT_TARGETS = parsed;
+        }
+      } catch (e) {}
+
+      fetch('output_targets_api.php')
+        .then(res => res.json())
+        .then(res => {
+          if (res && res.success && res.data && res.data.machines) {
+            OUTPUT_TARGETS = res.data;
+            try {
+              localStorage.setItem('output_targets_settings', JSON.stringify(res.data));
+            } catch (e) {}
+            if (currentData && currentData.length > 0) {
+              renderKPIs(currentData, currentSummary);
+            }
+          }
+        })
+        .catch(err => {
+          console.warn('Cannot load output targets from API, using default/cached targets:', err);
+        });
+    }
+
+    function getMachineOutputTarget(machine = 'BHS', year = 2026, month = 10) {
+      const mStr = String(month).padStart(2, '0');
+      const key = `${year}-${mStr}`;
+      if (OUTPUT_TARGETS.monthlyTargets && OUTPUT_TARGETS.monthlyTargets[key] && typeof OUTPUT_TARGETS.monthlyTargets[key][machine] === 'number') {
+        return OUTPUT_TARGETS.monthlyTargets[key][machine];
+      }
+      return OUTPUT_TARGETS.machines?.[machine]?.monthlyTarget || 3326000;
+    }
+
+    function getMachineConsumptionTarget(machine = 'BHS', year = 2026, month = 10) {
+      const outTarget = getMachineOutputTarget(machine, year, month);
+      const wasteRate = (TARGETS.allWaste || 5.00) / 100;
+      return Math.round(outTarget / (1 - wasteRate));
+    }
+
     // แปลง Google Sheet URL ให้เป็น CSV URL แบบอัตโนมัติ
     function convertToCsvUrl(rawUrl) {
       if (!rawUrl) return '';
@@ -1673,6 +1783,7 @@
     window.addEventListener('DOMContentLoaded', () => {
       // 0. โหลดค่าเป้าหมาย Target 11 รายการที่ผู้ใช้กำหนดไว้
       loadCustomTargets();
+      loadOutputTargetsGlobal();
 
       // 0.1 โหลดธีมสีพื้นหลังตารางที่ผู้ใช้เลือกไว้
       initTableTheme();
@@ -2346,6 +2457,193 @@
       safeSetText('foot-all-waste', formattedWaste);
       safeSetText('foot-consumption', formattedConsum);
       safeSetText('foot-output', formattedOutput);
+
+      // ========================================================
+      // คำนวณ 4 การ์ดใหม่สำหรับ Executive Summary Ribbon (ตามที่ผู้ใช้สั่ง)
+      // ========================================================
+      const currentMachine = (document.getElementById('selectedMachine')?.value || 'BHS').toUpperCase();
+      const currentMonthVal = parseInt(document.getElementById('selectedMonth')?.value || 10);
+      const currentYearVal = 2026;
+
+      const targetOutput = getMachineOutputTarget(currentMachine, currentYearVal, currentMonthVal);
+      const targetConsumption = getMachineConsumptionTarget(currentMachine, currentYearVal, currentMonthVal);
+
+      // 1. Consumption vs Target (ปริมาณที่ยังขาดเท่าไร จาก Target)
+      const conRemaining = targetConsumption - totalConsumption;
+      const conAchievedPct = targetConsumption > 0 ? ((totalConsumption / targetConsumption) * 100).toFixed(1) : '0.0';
+      const conLackingPct = targetConsumption > 0 ? (((targetConsumption - totalConsumption) / targetConsumption) * 100).toFixed(1) : '0.0';
+
+      safeSetText('top-card-con-target', targetConsumption.toLocaleString());
+      safeSetText('top-card-con-actual', `${totalConsumption.toLocaleString()} กก.`);
+      safeSetText('top-card-con-achieved-badge', `บรรลุ ${conAchievedPct}%`);
+
+      const topCardConRemaining = document.getElementById('top-card-con-remaining');
+      const topCardConBadge = document.getElementById('top-card-con-badge');
+      if (conRemaining > 0) {
+        safeSetText('top-card-con-remaining', conRemaining.toLocaleString());
+        if (topCardConBadge) {
+          topCardConBadge.className = 'px-2.5 py-0.5 text-xs font-black bg-blue-400 text-blue-950 rounded-full shadow-xs';
+          topCardConBadge.textContent = `ยังขาดอีก ${conLackingPct}%`;
+        }
+      } else {
+        safeSetText('top-card-con-remaining', `+${Math.abs(conRemaining).toLocaleString()}`);
+        if (topCardConBadge) {
+          topCardConBadge.className = 'px-2.5 py-0.5 text-xs font-black bg-emerald-400 text-emerald-950 rounded-full shadow-xs';
+          topCardConBadge.textContent = 'ครบเป้าแล้ว ✅';
+        }
+      }
+
+      // 2. Output vs Target (ปริมาณที่ยังขาดเท่าไร จาก Target)
+      const outRemaining = targetOutput - totalOutput;
+      const outAchievedPct = targetOutput > 0 ? ((totalOutput / targetOutput) * 100).toFixed(1) : '0.0';
+      const outLackingPct = targetOutput > 0 ? (((targetOutput - totalOutput) / targetOutput) * 100).toFixed(1) : '0.0';
+
+      safeSetText('top-card-out-target', targetOutput.toLocaleString());
+      safeSetText('top-card-out-actual', `${totalOutput.toLocaleString()} กก.`);
+      safeSetText('top-card-out-achieved-badge', `บรรลุ ${outAchievedPct}%`);
+
+      const topCardOutRemaining = document.getElementById('top-card-out-remaining');
+      const topCardOutBadge = document.getElementById('top-card-out-badge');
+      if (outRemaining > 0) {
+        safeSetText('top-card-out-remaining', outRemaining.toLocaleString());
+        if (topCardOutBadge) {
+          topCardOutBadge.className = 'px-2.5 py-0.5 text-xs font-black bg-indigo-400 text-indigo-950 rounded-full shadow-xs';
+          topCardOutBadge.textContent = `ยังขาดอีก ${outLackingPct}%`;
+        }
+      } else {
+        safeSetText('top-card-out-remaining', `+${Math.abs(outRemaining).toLocaleString()}`);
+        if (topCardOutBadge) {
+          topCardOutBadge.className = 'px-2.5 py-0.5 text-xs font-black bg-emerald-400 text-emerald-950 rounded-full shadow-xs';
+          topCardOutBadge.textContent = 'ครบเป้าแล้ว ✅';
+        }
+      }
+
+      // 3. ของเสีย PD vs Target 5.00% (ปริมาณของเสีย เทียบ Target: ยังเสียได้เท่าไร / เกินเท่าไร / ต้องลดเท่าไร)
+      const targetWastePct = TARGETS.allWaste || 5.00;
+      let actualWasteKg = 0;
+      if (currentWeightSummary && (currentWeightSummary.totalAll || currentWeightSummary.total)) {
+        actualWasteKg = currentWeightSummary.totalAll || currentWeightSummary.total;
+      } else {
+        actualWasteKg = Math.round(totalConsumption * (actualWasteMTD / 100));
+      }
+
+      const targetAllowedWasteKg = Math.round(totalConsumption * (targetWastePct / 100));
+      const wasteDiffPct = actualWasteMTD - targetWastePct;
+      const wasteDiffKg = actualWasteKg - targetAllowedWasteKg;
+
+      safeSetText('top-card-waste-pct', actualWasteMTD.toFixed(2) + '%');
+      safeSetText('top-card-waste-kg', `(${actualWasteKg.toLocaleString()} กก.)`);
+      safeSetText('top-card-waste-target-kg', `${targetAllowedWasteKg.toLocaleString()} กก.`);
+
+      const cardWasteBox = document.getElementById('card-waste-box');
+      const cardWasteBadge = document.getElementById('top-card-waste-badge');
+      const cardWasteActionBox = document.getElementById('top-card-waste-action-box');
+      const cardWasteDiffLabel = document.getElementById('top-card-waste-diff-label');
+      const cardWasteQuotaLabel = document.getElementById('top-card-waste-quota-label');
+
+      if (actualWasteMTD <= targetWastePct) {
+        if (cardWasteBox) {
+          cardWasteBox.className = 'bg-gradient-to-br from-[#064e3b] via-[#065f46] to-[#022c22] p-4 sm:p-5 rounded-2xl border-2 border-emerald-400/80 shadow-md text-white relative overflow-hidden flex flex-col justify-between min-h-[145px] transition-all';
+        }
+        if (cardWasteBadge) {
+          cardWasteBadge.className = 'px-2.5 py-0.5 text-xs font-black bg-emerald-400 text-emerald-950 rounded-full shadow-xs';
+          cardWasteBadge.textContent = 'ได้เป้า ✅';
+        }
+        if (cardWasteActionBox) {
+          cardWasteActionBox.className = 'font-bold text-emerald-200 bg-emerald-950/70 border border-emerald-400/40 px-2 py-1 rounded-lg text-center';
+        }
+        if (cardWasteDiffLabel) {
+          cardWasteDiffLabel.textContent = `ประหยัด ${Math.abs(wasteDiffPct).toFixed(2)}%`;
+        }
+        if (cardWasteQuotaLabel) {
+          const remainingQuotaKg = Math.max(0, -wasteDiffKg);
+          cardWasteQuotaLabel.className = 'text-emerald-300 font-black';
+          cardWasteQuotaLabel.textContent = `ยังเสียได้อีก ${remainingQuotaKg.toLocaleString()} กก.`;
+        }
+      } else {
+        if (cardWasteBox) {
+          cardWasteBox.className = 'bg-gradient-to-br from-[#4c0519] via-[#881337] to-[#450a0a] p-4 sm:p-5 rounded-2xl border-2 border-rose-500 shadow-md text-white relative overflow-hidden flex flex-col justify-between min-h-[145px] transition-all';
+        }
+        if (cardWasteBadge) {
+          cardWasteBadge.className = 'px-2.5 py-0.5 text-xs font-black bg-rose-500 text-white rounded-full shadow-xs';
+          cardWasteBadge.textContent = 'เกินเป้า ❌';
+        }
+        if (cardWasteActionBox) {
+          cardWasteActionBox.className = 'font-bold text-rose-200 bg-rose-950/80 border border-rose-500/50 px-2 py-1 rounded-lg text-center';
+        }
+        if (cardWasteDiffLabel) {
+          cardWasteDiffLabel.textContent = `เกินเป้า +${wasteDiffPct.toFixed(2)}%`;
+        }
+        if (cardWasteQuotaLabel) {
+          const needReduceKg = Math.max(0, wasteDiffKg);
+          cardWasteQuotaLabel.className = 'text-rose-300 font-black';
+          cardWasteQuotaLabel.textContent = `ต้องลดอีก ${needReduceKg.toLocaleString()} กก.`;
+        }
+      }
+
+      // 4. TOP 1 จาก 11 รายการที่เยอะที่สุด
+      let topItem = null;
+      let maxVal = -1;
+
+      WASTE_COLUMNS.forEach(col => {
+        let val = 0;
+        if (summary && summary[col.key] !== undefined && typeof summary[col.key] === 'number') {
+          val = summary[col.key];
+        } else {
+          let sumWeight = 0;
+          data.forEach(d => {
+            sumWeight += (d[col.key] || 0);
+          });
+          val = totalConsumption > 0 ? (sumWeight / totalConsumption) * 100 : 0;
+        }
+        if (val > maxVal) {
+          maxVal = val;
+          topItem = {
+            key: col.key,
+            label: col.label,
+            target: col.target,
+            pct: val
+          };
+        }
+      });
+
+      if (topItem) {
+        let topKg = 0;
+        if (currentWeightSummary && currentWeightSummary[topItem.key]) {
+          topKg = currentWeightSummary[topItem.key];
+        } else {
+          topKg = Math.round(totalConsumption * (topItem.pct / 100));
+        }
+
+        safeSetText('top-card-top1-name', topItem.label);
+        safeSetText('top-card-top1-pct', topItem.pct.toFixed(2) + '%');
+        safeSetText('top-card-top1-kg', `(${topKg.toLocaleString()} กก.)`);
+        safeSetText('top-card-top1-target', `${topItem.target.toFixed(2)}%`);
+
+        const top1Status = document.getElementById('top-card-top1-status');
+        if (top1Status) {
+          const diff = topItem.pct - topItem.target;
+          if (topItem.pct <= topItem.target) {
+            top1Status.className = 'px-1.5 py-0.5 rounded text-[10px] font-black bg-emerald-400 text-emerald-950';
+            top1Status.textContent = `ได้เป้า (${diff.toFixed(2)}%)`;
+          } else {
+            top1Status.className = 'px-1.5 py-0.5 rounded text-[10px] font-black bg-rose-500 text-white';
+            top1Status.textContent = `เกินเป้า (+${diff.toFixed(2)}%)`;
+          }
+        }
+
+        let sharePct = 0;
+        if (actualWasteKg > 0 && topKg > 0) {
+          sharePct = (topKg / actualWasteKg) * 100;
+        } else if (actualWasteMTD > 0 && topItem.pct > 0) {
+          sharePct = (topItem.pct / actualWasteMTD) * 100;
+        }
+        safeSetText('top-card-top1-share', `${sharePct.toFixed(1)}%`);
+
+        // อัปเดต Card 5 ด้านบนด้วยให้ตรงกัน
+        safeSetText('kpi-top-waste-name', topItem.label);
+        safeSetHTML('kpi-top-waste-detail', `สะสม: <strong>${topItem.pct.toFixed(2)}%</strong> (${topKg.toLocaleString()} กก.) เป้าหมาย ${topItem.target.toFixed(2)}%`);
+      }
     }
 
     // เรนเดอร์กราฟแท่งหลัก Waste รายวัน BHS Target 5.00%
