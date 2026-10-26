@@ -39,18 +39,27 @@
       border: 1px solid #94a3b8 !important;
     }
     .badge-target-pass {
+      display: inline-block !important;
+      line-height: 1.35 !important;
+      vertical-align: middle !important;
       background-color: #dcfce7 !important;
       color: #14532d !important;
       border: 1px solid #4ade80 !important;
       text-align: center !important;
     }
     .badge-target-over {
+      display: inline-block !important;
+      line-height: 1.35 !important;
+      vertical-align: middle !important;
       background-color: #fee2e2 !important;
       color: #991b1b !important;
       border: 1px solid #f87171 !important;
       text-align: center !important;
     }
     .badge-target-idle {
+      display: inline-block !important;
+      line-height: 1.35 !important;
+      vertical-align: middle !important;
       background-color: #e0f2fe !important;
       color: #0369a1 !important;
       border: 1px solid #38bdf8 !important;
@@ -379,9 +388,9 @@
             <div class="w-8 h-8 rounded-lg bg-indigo-500/25 border border-indigo-400/40 flex items-center justify-center text-amber-300 text-base shrink-0 shadow-inner">
               <i class="fa-solid fa-industry"></i>
             </div>
-            <h3 class="text-lg sm:text-xl lg:text-2xl font-black tracking-tight text-white whitespace-nowrap drop-shadow-sm flex items-center gap-2 flex-wrap">
+            <h3 class="text-lg sm:text-xl lg:text-2xl font-black tracking-tight text-white whitespace-nowrap flex items-center gap-2 flex-wrap">
               <span>Waste PRODUCTION รายวันเครื่อง</span>
-              <span id="table-machine-name" class="text-amber-300 px-3 py-0.5 rounded-lg bg-amber-400/20 border border-amber-400/50 font-black tracking-wide text-xl sm:text-2xl drop-shadow">BHS</span>
+              <span id="table-machine-name" class="text-amber-300 px-3 py-0.5 rounded-lg bg-amber-400/20 border border-amber-400/50 font-black tracking-wide text-xl sm:text-2xl">BHS</span>
               <span class="text-indigo-200 text-sm sm:text-lg font-bold">(<span id="table-month-name">เดือน ตุลาคม</span>)</span>
             </h3>
             <span id="table-total-days-badge" class="ml-1 px-3 py-1 text-xs font-extrabold bg-blue-500/30 text-cyan-200 rounded-full border border-cyan-400/50 shadow-xs shrink-0">31 วัน</span>
@@ -494,7 +503,7 @@
           <div class="my-1.5">
             <div class="text-[10px] font-semibold text-blue-300/90 uppercase tracking-wide">ปริมาณที่ยังขาดอีก:</div>
             <div class="flex items-baseline gap-1 flex-wrap">
-              <span class="text-xl sm:text-2xl lg:text-3xl font-black text-cyan-300 tracking-tight drop-shadow-sm" id="top-card-con-remaining">995,068</span>
+              <span class="text-xl sm:text-2xl lg:text-3xl font-black text-cyan-300 tracking-tight" id="top-card-con-remaining">995,068</span>
               <span class="text-xs font-extrabold text-blue-200">กก. (kg)</span>
             </div>
           </div>
@@ -523,7 +532,7 @@
           <div class="my-1.5">
             <div class="text-[10px] font-semibold text-indigo-300/90 uppercase tracking-wide">ปริมาณที่ยังขาดอีก:</div>
             <div class="flex items-baseline gap-1 flex-wrap">
-              <span class="text-xl sm:text-2xl lg:text-3xl font-black text-amber-300 tracking-tight drop-shadow-sm" id="top-card-out-remaining">1,104,070</span>
+              <span class="text-xl sm:text-2xl lg:text-3xl font-black text-amber-300 tracking-tight" id="top-card-out-remaining">1,104,070</span>
               <span class="text-xs font-extrabold text-indigo-200">กก. (kg)</span>
             </div>
           </div>
@@ -551,7 +560,7 @@
           </div>
           <div class="my-1.5">
             <div class="flex items-baseline gap-1.5 flex-wrap">
-              <span class="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight drop-shadow-sm" id="top-card-waste-pct">4.61%</span>
+              <span class="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight" id="top-card-waste-pct">4.61%</span>
               <span class="text-xs font-bold text-emerald-200" id="top-card-waste-kg">(115,526 กก.)</span>
             </div>
             <div class="text-[10px] font-semibold text-emerald-300/80">เป้าไม่เกิน 5.00% (<span id="top-card-waste-target-kg">125,299 กก.</span>)</div>
@@ -578,7 +587,7 @@
           <div class="my-1.5">
             <div class="text-[10px] font-semibold text-amber-200/90 uppercase tracking-wide">จำนวนวันเดินเครื่อง:</div>
             <div class="flex items-baseline gap-1 flex-wrap">
-              <span class="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight drop-shadow-sm" id="top-card-running-days">24</span>
+              <span class="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight" id="top-card-running-days">24</span>
               <span class="text-xs font-semibold text-amber-200/80">/ <span id="top-card-total-days">31</span> วัน</span>
             </div>
           </div>
@@ -600,13 +609,13 @@
           </div>
           <div class="my-1.5">
             <div class="flex items-baseline gap-1.5 flex-wrap">
-              <span class="text-xl sm:text-2xl lg:text-3xl font-black text-amber-300 tracking-tight drop-shadow-sm" id="top-card-top1-name">.NCP</span>
+              <span class="text-xl sm:text-2xl lg:text-3xl font-black text-amber-300 tracking-tight" id="top-card-top1-name">.NCP</span>
               <span class="text-base sm:text-lg font-black text-white" id="top-card-top1-pct">1.86%</span>
               <span class="text-[11px] font-bold text-purple-200" id="top-card-top1-kg">(46,562 กก.)</span>
             </div>
-            <div class="text-[10px] font-semibold text-purple-200/90 flex items-center gap-1">
+            <div class="text-[11px] font-semibold text-purple-200/90 flex items-center gap-2 mt-1">
               <span>Target: <strong class="text-white" id="top-card-top1-target">2.00%</strong></span>
-              <span id="top-card-top1-status" class="px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-400 text-emerald-950">ได้เป้า (-0.14%)</span>
+              <span id="top-card-top1-status" class="inline-block px-1.5 py-0.5 rounded text-[10px] font-black bg-emerald-400 text-emerald-950 leading-tight">ได้เป้า (-0.14%)</span>
             </div>
           </div>
           <div class="pt-1.5 border-t border-purple-800/80 flex items-center justify-between text-[11px] text-purple-200 font-semibold">
@@ -2659,10 +2668,10 @@
         if (top1Status) {
           const diff = topItem.pct - topItem.target;
           if (topItem.pct <= topItem.target) {
-            top1Status.className = 'px-1.5 py-0.5 rounded text-[10px] font-black bg-emerald-400 text-emerald-950';
+            top1Status.className = 'inline-block px-1.5 py-0.5 rounded text-[10px] font-black bg-emerald-400 text-emerald-950 leading-tight align-middle';
             top1Status.textContent = `ได้เป้า (${diff.toFixed(2)}%)`;
           } else {
-            top1Status.className = 'px-1.5 py-0.5 rounded text-[10px] font-black bg-rose-500 text-white';
+            top1Status.className = 'inline-block px-1.5 py-0.5 rounded text-[10px] font-black bg-rose-500 text-white leading-tight align-middle';
             top1Status.textContent = `เกินเป้า (+${diff.toFixed(2)}%)`;
           }
         }
@@ -4433,16 +4442,16 @@
         let diffVal = (TARGETS.allWaste - allWaste).toFixed(2);
 
         if (isIdle) {
-          statusBadge = '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[11px] font-bold badge-target-idle min-w-[56px] text-center mx-auto">ไม่เดิน</span>';
+          statusBadge = '<span class="inline-block px-2 py-0.5 rounded text-[11px] font-bold badge-target-idle min-w-[56px] text-center leading-normal align-middle">ไม่เดิน</span>';
           diffVal = '5.00%';
         } else if (isPendingWaste) {
-          statusBadge = '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300 min-w-[56px] text-center mx-auto">รอข้อมูล</span>';
+          statusBadge = '<span class="inline-block px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300 min-w-[56px] text-center leading-normal align-middle">รอข้อมูล</span>';
           diffVal = '-';
         } else if (allWaste <= TARGETS.allWaste) {
-          statusBadge = '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[11px] font-bold badge-target-pass min-w-[56px] text-center mx-auto">ได้เป้า</span>';
+          statusBadge = '<span class="inline-block px-2 py-0.5 rounded text-[11px] font-bold badge-target-pass min-w-[56px] text-center leading-normal align-middle">ได้เป้า</span>';
           diffVal = diffVal + '%';
         } else {
-          statusBadge = '<span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[11px] font-bold badge-target-over min-w-[56px] text-center mx-auto">เกินเป้า</span>';
+          statusBadge = '<span class="inline-block px-2 py-0.5 rounded text-[11px] font-bold badge-target-over min-w-[56px] text-center leading-normal align-middle">เกินเป้า</span>';
           diffVal = diffVal + '%';
         }
 
@@ -4556,7 +4565,7 @@
       renderTable(filtered);
     }
 
-    // ฟังก์ชันบันทึกรูปภาพความคมชัดสูงระดับ 4K Ultra HD คมชัดระดับพิกเซล เต็มทุกคอลัมน์ไม่โดนตัดขอบ
+    // ฟังก์ชันบันทึกรูปภาพความคมชัดสูงระดับ 4K Ultra HD คมชัดระดับพิกเซล เต็มทุกคอลัมน์ กราฟกว้างเต็มแผ่น ตัวหนังสือตรงเป๊ะ
     async function saveHighResReport() {
       const area = document.getElementById('report-printable-area');
       const btn = document.getElementById('btn-save-image');
@@ -4571,63 +4580,81 @@
         btn.classList.add('opacity-75');
       }
       if (icon) icon.className = 'fa-solid fa-circle-notch fa-spin mr-1.5';
-      if (text) text.textContent = 'กำลังเรนเดอร์ภาพความคมชัดสูง...';
+      if (text) text.textContent = 'กำลังเรนเดอร์ภาพ 4K...';
+
+      // 1. จำค่าเดิมของ DOM เพื่อกู้คืนกลับหลังบันทึกภาพเสร็จ
+      const origAreaWidth = area.style.width;
+      const origAreaMinWidth = area.style.minWidth;
+      const origAreaMaxWidth = area.style.maxWidth;
+      const origAreaOverflow = area.style.overflow;
+      const scrollContainer = document.getElementById('waste-table-scroll-container');
+      const origScrollOverflow = scrollContainer ? scrollContainer.style.overflow : '';
+      const origScrollWidth = scrollContainer ? scrollContainer.style.width : '';
+      const origScrollMinWidth = scrollContainer ? scrollContainer.style.minWidth : '';
 
       try {
-        // ให้เวลา DOM และ Font โหลดสมบูรณ์ ป้องกันตัวหนังสือเบี้ยว/เหลื่อม
+        const tableEl = area.querySelector('table.waste-table');
+        const minReqWidth = Math.max(tableEl ? tableEl.scrollWidth : 1720, 1720);
+        const targetWidth = minReqWidth + 30;
+
+        // 2. ปรับ LIVE DOM ให้กว้างเต็มความกว้างตาราง 17 คอลัมน์ทันที
+        area.style.width = targetWidth + 'px';
+        area.style.minWidth = targetWidth + 'px';
+        area.style.maxWidth = 'none';
+        area.style.overflow = 'visible';
+        if (scrollContainer) {
+          scrollContainer.style.overflow = 'visible';
+          scrollContainer.style.width = '100%';
+          scrollContainer.style.minWidth = minReqWidth + 'px';
+        }
+
+        // 3. สั่งให้กราฟ Daily Waste ขยายตัวเองเต็มความกว้างใหม่ทันที (แก้ปัญหากราฟด้านล่างมีช่องว่างสีขาวขวาแหว่ง)
+        if (dailyWasteChartInstance) {
+          dailyWasteChartInstance.resize();
+        }
+
+        // รอให้เบราว์เซอร์ Layout และ Font พร้อมสมบูรณ์
+        await new Promise(r => setTimeout(r, 200));
         if (document.fonts) {
           await document.fonts.ready;
         }
-        await new Promise(r => setTimeout(r, 200));
 
-        // ตรวจสอบความกว้างตารางจริงที่มี 17 คอลัมน์ ให้กว้างอย่างน้อย 1720px เพื่อไม่ให้คอลัมน์ขวาสุดถูกตัด
-        const tableEl = area.querySelector('table.waste-table');
-        const minReqWidth = Math.max(tableEl ? tableEl.scrollWidth : 1720, 1720);
-
-        // จับภาพ DOM ด้วย html2canvas (scale: 2.0 ให้ภาพกว้าง ~3,440px คมชัดระดับ 4K และไม่เกิน Buffer ของ GPU ทำให้ไม่เป็นภาพดำ)
+        // 4. จับภาพด้วย html2canvas (scale: 2.5 ให้ภาพกว้าง ~4,350px คมชัดพิเศษ Super 4K UHD ส่งเข้า LINE คมกริบ)
         const canvas = await html2canvas(area, {
-          scale: 2.0,
+          scale: 2.5,
           useCORS: true,
-          allowTaint: false, // ต้องเป็น false เพื่อป้องกันปัญหาภาพดำ (Black Image Bug) จาก Tainted Canvas
+          allowTaint: false, // ป้องกันปัญหาภาพดำ (Black Screen Bug)
           backgroundColor: '#f8fafc',
           logging: false,
           scrollX: 0,
           scrollY: 0,
-          windowWidth: minReqWidth + 60,
+          width: targetWidth,
+          windowWidth: targetWidth + 50,
           onclone: (clonedDoc) => {
-            const clonedArea = clonedDoc.getElementById('report-printable-area');
-            const clonedScroll = clonedDoc.getElementById('waste-table-scroll-container');
-            const clonedTable = clonedDoc.querySelector('table.waste-table');
-
-            // ขยายกล่องรายงานให้ครอบคลุมความกว้างตารางทั้งหมด
-            if (clonedArea) {
-              clonedArea.style.width = (minReqWidth + 40) + 'px';
-              clonedArea.style.minWidth = (minReqWidth + 40) + 'px';
-              clonedArea.style.maxWidth = 'none';
-              clonedArea.style.overflow = 'visible';
-              clonedArea.style.webkitFontSmoothing = 'antialiased';
-              clonedArea.style.mozOsxFontSmoothing = 'grayscale';
-              clonedArea.style.textRendering = 'optimizeLegibility';
-            }
-
-            // ขยาย scroll container ไม่ให้ซ่อนคอลัมน์ขวา
-            if (clonedScroll) {
-              clonedScroll.style.overflow = 'visible';
-              clonedScroll.style.width = '100%';
-              clonedScroll.style.minWidth = minReqWidth + 'px';
-            }
-
-            if (clonedTable) {
-              clonedTable.style.width = '100%';
-              clonedTable.style.minWidth = minReqWidth + 'px';
-            }
-
             // ซ่อนปุ่มและคอนโทรลที่ไม่จำเป็นต่อรายงาน
             clonedDoc.querySelectorAll('[data-html2canvas-ignore="true"]').forEach(el => {
               el.style.display = 'none';
             });
 
-            // คัดลอกพิกเซลจาก Canvas เดิม (กราฟ Chart.js) ไปยัง Cloned Canvas
+            // ฉีด Style เพื่อล็อกฟอนต์และการจัดตำแหน่งข้อความให้ตรงเป๊ะ ไม่เลื่อนตกขอบ
+            const fixStyle = clonedDoc.createElement('style');
+            fixStyle.innerHTML = `
+              * {
+                font-family: 'Prompt', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+                text-rendering: auto !important;
+              }
+              table.waste-table th, table.waste-table td {
+                vertical-align: middle !important;
+              }
+              .badge-target-pass, .badge-target-over, .badge-target-idle {
+                display: inline-block !important;
+                vertical-align: middle !important;
+                line-height: 1.35 !important;
+              }
+            `;
+            clonedDoc.head.appendChild(fixStyle);
+
+            // คัดลอกพิกเซลจาก Canvas เดิม (ที่ขยายกว้างเต็มพื้นที่แล้ว) ไปยัง Cloned Canvas
             const chartCanvases = area.querySelectorAll('canvas');
             chartCanvases.forEach(origC => {
               if (origC.id) {
@@ -4643,17 +4670,35 @@
           }
         });
 
-        // สร้างลิงก์ดาวน์โหลดรูปภาพ PNG
+        // 5. สร้างลิงก์ดาวน์โหลดรูปภาพ PNG แบบ Lossless คมชัดสูงสุด
         const link = document.createElement('a');
         const now = new Date();
         const dateStr = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}_${now.getHours().toString().padStart(2,'0')}${now.getMinutes().toString().padStart(2,'0')}`;
         const machine = document.getElementById('selectedMachine')?.value || 'BHS';
         link.download = `Waste_${machine}_Report_4K_${dateStr}.png`;
-        link.href = canvas.toDataURL('image/png', 0.95);
+        link.href = canvas.toDataURL('image/png');
         link.click();
 
         if (text) text.textContent = 'บันทึกสำเร็จ!';
         if (icon) icon.className = 'fa-solid fa-circle-check mr-1.5';
+      } catch (err) {
+        console.error('Error generating report image:', err);
+        alert('เกิดข้อผิดพลาดในการบันทึกรูปภาพ กรุณาลองใหม่อีกครั้ง');
+      } finally {
+        // คืนค่า LIVE DOM และขนาดกราฟกลับสู่สภาพหน้าจอปกติของผู้ใช้ทันที
+        area.style.width = origAreaWidth;
+        area.style.minWidth = origAreaMinWidth;
+        area.style.maxWidth = origAreaMaxWidth;
+        area.style.overflow = origAreaOverflow;
+        if (scrollContainer) {
+          scrollContainer.style.overflow = origScrollOverflow;
+          scrollContainer.style.width = origScrollWidth;
+          scrollContainer.style.minWidth = origScrollMinWidth;
+        }
+        if (dailyWasteChartInstance) {
+          dailyWasteChartInstance.resize();
+        }
+
         setTimeout(() => {
           if (btn) {
             btn.disabled = false;
@@ -4662,15 +4707,6 @@
           if (icon) icon.className = 'fa-solid fa-camera mr-1.5';
           if (text) text.textContent = 'บันทึกรูปภาพ (4K UHD)';
         }, 2000);
-      } catch (err) {
-        console.error('Error generating report image:', err);
-        alert('เกิดข้อผิดพลาดในการบันทึกรูปภาพ กรุณาลองใหม่อีกครั้ง');
-        if (btn) {
-          btn.disabled = false;
-          btn.classList.remove('opacity-75');
-        }
-        if (icon) icon.className = 'fa-solid fa-camera mr-1.5';
-        if (text) text.textContent = 'บันทึกรูปภาพ (4K UHD)';
       }
     }
 
