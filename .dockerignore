@@ -1,0 +1,9 @@
+.git
+.github
+*.mp4
+*.png
+*.jpg
+*.xlsx
+scratch/
+test_*.js
+check_*.php
