@@ -365,9 +365,113 @@
     </section>
 
       <!-- ========================================== -->
+      <!-- Overview Table: Summary by Machine (Image 1) -->
+      <!-- ========================================== -->
+      <section id="summary-table-card" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 overflow-hidden">
+        
+        <!-- Header ของตารางเปรียบเทียบผลผลิตแยกเครื่อง -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+              <h2 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+                ตารางเปรียบเทียบผลผลิตแยกเครื่อง (Machine Output Summary)
+              </h2>
+            </div>
+            <p class="text-xs text-slate-500 font-medium mt-1">
+              สรุปภาพรวมประจำเดือน <span id="summary-table-month-label" class="font-bold text-indigo-600">-</span> • เกณฑ์มาตรฐาน Waste รวมเป้าหมาย ≤ 11.00%
+            </p>
+          </div>
+
+          <!-- ปุ่มเครื่องมือตาราง -->
+          <div class="flex items-center gap-2 flex-wrap" data-html2canvas-ignore="true">
+            <span class="text-xs text-slate-500 hidden md:inline-block">คลิกแถวเครื่องจักรเพื่อสลับดูกราฟ</span>
+            <button onclick="exportSummaryTableAsImage(this)" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
+              <i class="fa-solid fa-camera"></i> บันทึกภาพตาราง
+            </button>
+          </div>
+        </div>
+
+        <!-- ตัวตารางตามแบบรูปที่ 1 พร้อมเฉดสี BHS ส้มอ่อน / YUELI น้ำเงินอ่อน / ISOWA เขียวอ่อน -->
+        <div class="mt-4 overflow-x-auto rounded-xl border border-slate-200 shadow-2xs">
+          <table class="w-full text-sm text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-800 text-white text-xs sm:text-sm font-black uppercase tracking-wider divide-x divide-slate-700">
+                <th scope="col" class="py-3.5 px-4 text-center w-[120px]">เครื่อง</th>
+                <th scope="col" class="py-3.5 px-4 text-right min-w-[150px]">CONSUMTION</th>
+                <th scope="col" class="py-3.5 px-4 text-right min-w-[150px]">TARGET OUT-PUT</th>
+                <th scope="col" class="py-3.5 px-4 text-right min-w-[150px]">ACTUAL OUT-PUT</th>
+                <th scope="col" class="py-3.5 px-4 text-right min-w-[140px]">DIFF</th>
+                <th scope="col" class="py-3.5 px-4 text-center min-w-[150px]">WASTE 11%</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+              
+              <!-- แถวที่ 1: BHS (ส้มอ่อน) -->
+              <tr onclick="quickSwitchMachine('BHS')" class="bg-amber-50/90 hover:bg-amber-100/90 text-amber-950 font-medium transition cursor-pointer divide-x divide-amber-200/80">
+                <td class="py-3 px-4 text-center">
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500 text-white font-black text-sm shadow-xs">
+                    <i class="fa-solid fa-industry text-xs"></i> BHS
+                  </span>
+                </td>
+                <td class="py-3 px-4 text-right font-black text-base text-amber-950 tracking-tight" id="sum-bhs-consum">-</td>
+                <td class="py-3 px-4 text-right font-bold text-base text-amber-900 tracking-tight" id="sum-bhs-target">-</td>
+                <td class="py-3 px-4 text-right font-black text-base text-amber-950 tracking-tight" id="sum-bhs-actual">-</td>
+                <td class="py-3 px-4 text-right font-black" id="sum-bhs-diff">-</td>
+                <td class="py-3 px-4 text-center font-bold" id="sum-bhs-waste">-</td>
+              </tr>
+
+              <!-- แถวที่ 2: YUELI (น้ำเงินอ่อน) -->
+              <tr onclick="quickSwitchMachine('YUELI')" class="bg-blue-50/90 hover:bg-blue-100/90 text-blue-950 font-medium transition cursor-pointer divide-x divide-blue-200/80">
+                <td class="py-3 px-4 text-center">
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-600 text-white font-black text-sm shadow-xs">
+                    <i class="fa-solid fa-industry text-xs"></i> YUELI
+                  </span>
+                </td>
+                <td class="py-3 px-4 text-right font-black text-base text-blue-950 tracking-tight" id="sum-yueli-consum">-</td>
+                <td class="py-3 px-4 text-right font-bold text-base text-blue-900 tracking-tight" id="sum-yueli-target">-</td>
+                <td class="py-3 px-4 text-right font-black text-base text-blue-950 tracking-tight" id="sum-yueli-actual">-</td>
+                <td class="py-3 px-4 text-right font-black" id="sum-yueli-diff">-</td>
+                <td class="py-3 px-4 text-center font-bold" id="sum-yueli-waste">-</td>
+              </tr>
+
+              <!-- แถวที่ 3: ISOWA (เขียวอ่อน) -->
+              <tr onclick="quickSwitchMachine('ISOWA')" class="bg-emerald-50/90 hover:bg-emerald-100/90 text-emerald-950 font-medium transition cursor-pointer divide-x divide-emerald-200/80">
+                <td class="py-3 px-4 text-center">
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-600 text-white font-black text-sm shadow-xs">
+                    <i class="fa-solid fa-industry text-xs"></i> ISOWA
+                  </span>
+                </td>
+                <td class="py-3 px-4 text-right font-black text-base text-emerald-950 tracking-tight" id="sum-isowa-consum">-</td>
+                <td class="py-3 px-4 text-right font-bold text-base text-emerald-900 tracking-tight" id="sum-isowa-target">-</td>
+                <td class="py-3 px-4 text-right font-black text-base text-emerald-950 tracking-tight" id="sum-isowa-actual">-</td>
+                <td class="py-3 px-4 text-right font-black" id="sum-isowa-diff">-</td>
+                <td class="py-3 px-4 text-center font-bold" id="sum-isowa-waste">-</td>
+              </tr>
+
+              <!-- แถวที่ 4: TOTAL (รวมทุกเครื่อง) -->
+              <tr class="bg-slate-900 hover:bg-slate-850 text-white font-bold transition divide-x divide-slate-800">
+                <td class="py-3.5 px-4 text-center">
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-400 text-slate-950 font-black text-sm shadow-xs">
+                    <i class="fa-solid fa-calculator text-xs"></i> TOTAL
+                  </span>
+                </td>
+                <td class="py-3.5 px-4 text-right font-black text-base text-slate-100 tracking-tight" id="sum-total-consum">-</td>
+                <td class="py-3.5 px-4 text-right font-black text-base text-amber-300 tracking-tight" id="sum-total-target">-</td>
+                <td class="py-3.5 px-4 text-right font-black text-base text-emerald-300 tracking-tight" id="sum-total-actual">-</td>
+                <td class="py-3.5 px-4 text-right font-black" id="sum-total-diff">-</td>
+                <td class="py-3.5 px-4 text-center font-bold" id="sum-total-waste">-</td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
       <!-- Chart 1: Daily Output vs Target Bar Chart -->
       <!-- ========================================== -->
-      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 overflow-hidden">
+      <section id="chart-card-daily" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 overflow-hidden">
         
         <!-- Header ของกราฟรายวัน -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
@@ -390,7 +494,7 @@
               <span class="inline-block w-3 h-3 rounded-sm bg-rose-500 ml-2"></span> ต่ำกว่าเป้า
               <span class="inline-block w-4 h-0.5 bg-amber-500 border-t border-dashed border-amber-500 ml-2"></span> Target
             </div>
-            <button onclick="exportOutputChartAsImage()" data-html2canvas-ignore="true" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
+            <button onclick="exportOutputChartAsImage(this)" data-html2canvas-ignore="true" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
               <i class="fa-solid fa-camera"></i> บันทึกกราฟ
             </button>
           </div>
@@ -405,7 +509,7 @@
       <!-- ========================================== -->
       <!-- Chart 2: Monthly Output Trend (12 Months) -->
       <!-- ========================================== -->
-      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 overflow-hidden">
+      <section id="chart-card-monthly" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 overflow-hidden">
         
         <!-- Header ของกราฟแนวโน้มรายเดือน 12 เดือน -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
@@ -429,7 +533,7 @@
               <span class="inline-block w-4 h-0.5 bg-amber-500 border-t border-dashed border-amber-500 ml-2"></span> Target รายเดือน
               <span class="inline-block w-2.5 h-2.5 rounded-full bg-indigo-600 ml-2"></span> เดือนปัจจุบัน
             </div>
-            <button onclick="exportMonthlyChartAsImage()" data-html2canvas-ignore="true" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
+            <button onclick="exportMonthlyChartAsImage(this)" data-html2canvas-ignore="true" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
               <i class="fa-solid fa-camera"></i> บันทึกกราฟรายเดือน
             </button>
           </div>
@@ -444,7 +548,7 @@
       <!-- ========================================== -->
       <!-- Chart 3: Cumulative Output Trend Line Chart -->
       <!-- ========================================== -->
-      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 overflow-hidden">
+      <section id="chart-card-cumulative" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 overflow-hidden">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
           <div>
             <div class="flex items-center gap-2">
@@ -458,7 +562,7 @@
             </p>
           </div>
           <div class="flex items-center gap-2" data-html2canvas-ignore="true">
-            <button onclick="exportCumulativeChartAsImage()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
+            <button onclick="exportCumulativeChartAsImage(this)" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
               <i class="fa-solid fa-camera"></i> บันทึกกราฟสะสม
             </button>
           </div>
@@ -1172,6 +1276,7 @@
       } finally {
         if (refreshIcon) refreshIcon.classList.remove('fa-spin');
         renderDashboard();
+        loadOverviewTableData();
       }
     }
 
@@ -2006,36 +2111,247 @@
     }
 
     // ==========================================
-    // ส่งออกรูปภาพและ Excel
+    // ตารางเปรียบเทียบผลผลิตแยกเครื่อง (Image 1)
     // ==========================================
-    function exportOutputChartAsImage() {
-      const chartEl = document.getElementById('dailyOutputChart');
-      if (!chartEl) return;
+    let isOverviewLoading = false;
 
-      const link = document.createElement('a');
-      link.download = `Output_Daily_Chart_${currentMachine}_${currentYear}_Month${currentMonth}.png`;
-      link.href = chartEl.toDataURL('image/png', 1.0);
-      link.click();
+    async function loadOverviewTableData() {
+      if (isOverviewLoading) return;
+      isOverviewLoading = true;
+
+      const THAI_MONTH_ONLY = ['', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+      const monthText = `${THAI_MONTH_ONLY[currentMonth] || ''} ${currentYear}`;
+      safeSetText('summary-table-month-label', monthText);
+
+      const machines = ['BHS', 'YUELI', 'ISOWA'];
+
+      try {
+        const fetchPromises = machines.map(async (m) => {
+          // ถ้า m คือเครื่องปัจจุบัน และมี currentApiSummary อยู่แล้วและมีข้อมูล
+          if (m === currentMachine && currentApiSummary && currentApiSummary.output > 0) {
+            return {
+              machine: m,
+              consum: Number(currentApiSummary.consumption) || 0,
+              actual: Number(currentApiSummary.output) || 0,
+              waste: Number(currentApiSummary.allWaste) || 0
+            };
+          }
+          try {
+            const res = await fetch(`api.php?machine=${m}&month=${currentMonth}`);
+            const json = await res.json();
+            let consum = 0;
+            let actual = 0;
+            let waste = 0;
+            if (json && json.summary) {
+              consum = Number(json.summary.consumption) || 0;
+              actual = Number(json.summary.output) || 0;
+              waste = Number(json.summary.allWaste) || 0;
+            } else if (json && Array.isArray(json.data)) {
+              json.data.forEach(r => {
+                if (!r.date) return;
+                const o = Math.max(0, Number(r.output) || 0);
+                const c = Number(r.consumption) || 0;
+                actual += o;
+                consum += c;
+              });
+              waste = consum > 0 ? ((consum - actual) / consum * 100) : 0;
+            }
+            return { machine: m, consum, actual, waste };
+          } catch(err) {
+            console.warn('Error fetching overview for ' + m, err);
+            return { machine: m, consum: 0, actual: 0, waste: 0 };
+          }
+        });
+
+        const machineDataList = await Promise.all(fetchPromises);
+
+        let totalConsum = 0;
+        let totalTarget = 0;
+        let totalActual = 0;
+
+        machineDataList.forEach(item => {
+          const m = item.machine;
+          const targetInfo = getActiveMonthlyTarget(m);
+          const target = targetInfo.target || 0;
+          const consum = item.consum;
+          const actual = item.actual;
+          const diff = actual - target;
+          const wastePct = consum > 0 ? ((consum - actual) / consum * 100) : item.waste;
+
+          totalConsum += consum;
+          totalTarget += target;
+          totalActual += actual;
+
+          renderOverviewRow(m.toLowerCase(), {
+            consum,
+            target,
+            actual,
+            diff,
+            wastePct
+          });
+        });
+
+        // TOTAL row
+        const totalDiff = totalActual - totalTarget;
+        const totalWastePct = totalConsum > 0 ? ((totalConsum - totalActual) / totalConsum * 100) : 0;
+
+        renderOverviewRow('total', {
+          consum: totalConsum,
+          target: totalTarget,
+          actual: totalActual,
+          diff: totalDiff,
+          wastePct: totalWastePct
+        });
+
+      } catch (e) {
+        console.error('Error loading overview table data:', e);
+      } finally {
+        isOverviewLoading = false;
+      }
     }
 
-    function exportMonthlyChartAsImage() {
-      const chartEl = document.getElementById('monthlyTrendChart');
-      if (!chartEl) return;
+    function renderOverviewRow(prefix, d) {
+      // Consum
+      const consumEl = document.getElementById(`sum-${prefix}-consum`);
+      if (consumEl) consumEl.textContent = d.consum > 0 ? d.consum.toLocaleString() : '-';
 
-      const link = document.createElement('a');
-      link.download = `Output_Monthly_12Months_${currentMachine}_${currentYear}.png`;
-      link.href = chartEl.toDataURL('image/png', 1.0);
-      link.click();
+      // Target
+      const targetEl = document.getElementById(`sum-${prefix}-target`);
+      if (targetEl) targetEl.textContent = d.target > 0 ? d.target.toLocaleString() : '-';
+
+      // Actual
+      const actualEl = document.getElementById(`sum-${prefix}-actual`);
+      if (actualEl) actualEl.textContent = d.actual > 0 ? d.actual.toLocaleString() : '-';
+
+      // Diff
+      const diffEl = document.getElementById(`sum-${prefix}-diff`);
+      if (diffEl) {
+        if (d.target === 0 && d.actual === 0) {
+          diffEl.innerHTML = '<span class="text-slate-400 font-bold">-</span>';
+        } else {
+          const sign = d.diff >= 0 ? '+' : '';
+          const formattedDiff = sign + d.diff.toLocaleString();
+          const isPositive = d.diff >= 0;
+          if (prefix === 'total') {
+            const badgeClass = isPositive ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-rose-500/20 text-rose-300 border border-rose-500/40';
+            diffEl.innerHTML = `<span class="inline-block px-2.5 py-1 rounded-md text-xs sm:text-sm font-black ${badgeClass}">${formattedDiff}</span>`;
+          } else {
+            const badgeClass = isPositive ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300';
+            diffEl.innerHTML = `<span class="inline-block px-2.5 py-1 rounded-md text-xs sm:text-sm font-black ${badgeClass}">${formattedDiff}</span>`;
+          }
+        }
+      }
+
+      // Waste 11%
+      const wasteEl = document.getElementById(`sum-${prefix}-waste`);
+      if (wasteEl) {
+        if (d.consum === 0) {
+          wasteEl.innerHTML = '<span class="text-slate-400 font-bold">-</span>';
+        } else {
+          const rateStr = d.wastePct.toFixed(2) + '%';
+          const pass = d.wastePct <= 11.00;
+          if (prefix === 'total') {
+            const statusBadge = pass 
+              ? '<span class="px-2 py-0.5 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">ได้เป้า ✅</span>'
+              : '<span class="px-2 py-0.5 rounded-full text-xs font-black bg-rose-500/20 text-rose-300 border border-rose-500/40">เกินเป้า ⚠️</span>';
+            wasteEl.innerHTML = `<div class="flex items-center justify-center gap-1.5 font-black text-sm text-white"><span>${rateStr}</span> ${statusBadge}</div>`;
+          } else {
+            const statusBadge = pass 
+              ? '<span class="px-2 py-0.5 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300">ได้เป้า ✅</span>'
+              : '<span class="px-2 py-0.5 rounded-full text-xs font-black bg-rose-100 text-rose-800 border border-rose-300">เกินเป้า ⚠️</span>';
+            wasteEl.innerHTML = `<div class="flex items-center justify-center gap-1.5 font-black text-sm"><span>${rateStr}</span> ${statusBadge}</div>`;
+          }
+        }
+      }
     }
 
-    function exportCumulativeChartAsImage() {
-      const chartEl = document.getElementById('cumulativeOutputChart');
-      if (!chartEl) return;
+    function quickSwitchMachine(machine) {
+      if (!machine) return;
+      const select = document.getElementById('selectedMachine');
+      if (select && select.value !== machine) {
+        select.value = machine;
+        onMachineChange();
+      }
+      const chartCard = document.getElementById('chart-card-daily');
+      if (chartCard) {
+        chartCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
 
-      const link = document.createElement('a');
-      link.download = `Output_Cumulative_Chart_${currentMachine}_${currentYear}_Month${currentMonth}.png`;
-      link.href = chartEl.toDataURL('image/png', 1.0);
-      link.click();
+    // ==========================================
+    // ส่งออกรูปภาพพร้อมส่วนหัว (Header) แยกตามแต่ละการ์ดกราฟ/ตาราง
+    // ==========================================
+    async function exportChartCardWithHeader(cardId, filenamePrefix, triggerBtn) {
+      const card = document.getElementById(cardId);
+      if (!card) {
+        console.warn('Card element not found:', cardId);
+        return;
+      }
+      if (typeof html2canvas === 'undefined') {
+        alert('ไลบรารี html2canvas ไม่พร้อมใช้งาน');
+        return;
+      }
+
+      const btn = triggerBtn || event?.currentTarget;
+      const originalHtml = (btn && btn.tagName === 'BUTTON') ? btn.innerHTML : '';
+      if (btn && btn.tagName === 'BUTTON') {
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> บันทึก...';
+        btn.disabled = true;
+      }
+
+      try {
+        if (document.fonts) {
+          await document.fonts.ready;
+        }
+
+        const canvas = await html2canvas(card, {
+          scale: 2.5,
+          useCORS: true,
+          allowTaint: false,
+          backgroundColor: '#ffffff',
+          logging: false,
+          ignoreElements: (el) => {
+            return el.getAttribute('data-html2canvas-ignore') === 'true';
+          }
+        });
+
+        const link = document.createElement('a');
+        link.download = `${filenamePrefix}_${currentMachine}_${currentYear}_Month${currentMonth}.png`;
+        link.href = canvas.toDataURL('image/png', 1.0);
+        link.click();
+      } catch (err) {
+        console.error('Export card error, falling back to inner canvas:', err);
+        const innerCanvas = card.querySelector('canvas');
+        if (innerCanvas) {
+          const link = document.createElement('a');
+          link.download = `${filenamePrefix}_${currentMachine}_${currentYear}_Month${currentMonth}.png`;
+          link.href = innerCanvas.toDataURL('image/png', 1.0);
+          link.click();
+        } else {
+          alert('เกิดข้อผิดพลาดในการบันทึกรูปภาพ กรุณาลองใหม่อีกครั้ง');
+        }
+      } finally {
+        if (btn && btn.tagName === 'BUTTON') {
+          btn.innerHTML = originalHtml;
+          btn.disabled = false;
+        }
+      }
+    }
+
+    function exportSummaryTableAsImage(btn) {
+      exportChartCardWithHeader('summary-table-card', 'Overview_Machine_Output_Summary', btn || event?.currentTarget);
+    }
+
+    function exportOutputChartAsImage(btn) {
+      exportChartCardWithHeader('chart-card-daily', 'Output_Daily_Chart', btn || event?.currentTarget);
+    }
+
+    function exportMonthlyChartAsImage(btn) {
+      exportChartCardWithHeader('chart-card-monthly', `Output_Monthly_12Months_${currentYear}`, btn || event?.currentTarget);
+    }
+
+    function exportCumulativeChartAsImage(btn) {
+      exportChartCardWithHeader('chart-card-cumulative', 'Output_Cumulative_Chart', btn || event?.currentTarget);
     }
 
     async function saveHighResReport() {
