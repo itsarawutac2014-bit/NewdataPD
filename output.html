@@ -643,38 +643,144 @@
       <!-- ========================================== -->
       <!-- Chart 1: Daily Output vs Target Bar Chart -->
       <!-- ========================================== -->
+            <!-- ========================================== -->
+      <!-- Chart 1: Output vs Target Chart (Bar / Line / Combo) -->
+      <!-- ========================================== -->
       <section id="chart-card-daily" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 overflow-hidden">
         
-        <!-- Header ของกราฟรายวัน -->
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
+        <!-- Header ของกราฟผลผลิต -->
+        <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 pb-4 border-b border-slate-100">
           <div>
             <div class="flex items-center gap-2">
               <span class="w-3 h-3 rounded-full bg-indigo-600"></span>
               <h2 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
-                กราฟเปรียบเทียบ Output รายวัน vs Target (<span id="chart-machine-label" class="text-indigo-600">BHS</span>)
+                กราฟเปรียบเทียบ Output vs Target (<span id="chart-machine-label" class="text-indigo-600">BHS</span>)
               </h2>
             </div>
             <p class="text-xs text-slate-500 font-medium mt-1">
-              แท่งเขียว = ได้ตามเป้าหมาย (≥ Target) • แท่งแดง/ส้ม = ต่ำกว่าเป้าหมาย • เส้นประสีทอง = Target รายวัน
+              แท่งเขียว = ได้ตามเป้าหมาย (≥ Target) • แท่งแดง/ส้ม = ต่ำกว่าเป้าหมาย • เส้นประสีทอง = Target
             </p>
           </div>
 
-          <!-- เครื่องมือของกราฟ -->
-          <div class="flex items-center gap-2 flex-wrap">
-            <div class="flex items-center gap-2 text-xs font-bold text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
-              <span class="inline-block w-3 h-3 rounded-sm bg-emerald-500"></span> เดินจริงได้เป้า
-              <span class="inline-block w-3 h-3 rounded-sm bg-rose-500 ml-2"></span> ต่ำกว่าเป้า
-              <span class="inline-block w-4 h-0.5 bg-amber-500 border-t border-dashed border-amber-500 ml-2"></span> Target
+          <!-- เครื่องมือของกราฟ: ปุ่มสลับแบบแท่ง/เส้น/คู่ และปุ่ม Daily/Weekly/Monthly -->
+          <div class="flex items-center gap-2 flex-wrap" data-html2canvas-ignore="true">
+            <!-- ปุ่มสลับโหมดรูปแบบกราฟ: [ แท่ง Bar ] [ เส้น Line ] [ แท่ง+เส้น Combo ] -->
+            <div class="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-bold border border-slate-200 shadow-2xs">
+              <button type="button" onclick="setOutputChartType('bar')" id="btn-out-type-bar" class="px-3 py-1 rounded-lg bg-indigo-600 text-white font-black shadow-xs transition cursor-pointer">
+                <i class="fa-solid fa-chart-column mr-1"></i> แท่ง
+              </button>
+              <button type="button" onclick="setOutputChartType('line')" id="btn-out-type-line" class="px-3 py-1 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer">
+                <i class="fa-solid fa-chart-line mr-1"></i> เส้น
+              </button>
+              <button type="button" onclick="setOutputChartType('combo')" id="btn-out-type-combo" class="px-3 py-1 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer">
+                <i class="fa-solid fa-layer-group mr-1"></i> แท่ง+เส้น
+              </button>
             </div>
-            <button onclick="exportOutputChartAsImage(this)" data-html2canvas-ignore="true" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
+
+            <!-- ปุ่มสลับช่วงเวลา: [ Daily ] [ Weekly ] [ Monthly ] -->
+            <div class="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-bold border border-slate-200 shadow-2xs">
+              <button type="button" onclick="setOutputGranularity('daily')" id="btn-out-gran-daily" class="px-3.5 py-1 rounded-lg bg-blue-600 text-white font-black shadow-xs transition cursor-pointer">
+                Daily
+              </button>
+              <button type="button" onclick="setOutputGranularity('weekly')" id="btn-out-gran-weekly" class="px-3.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer">
+                Weekly
+              </button>
+              <button type="button" onclick="setOutputGranularity('monthly')" id="btn-out-gran-monthly" class="px-3.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer">
+                Monthly
+              </button>
+            </div>
+
+            <!-- Legend ย่อย -->
+            <div class="flex items-center gap-2 text-xs font-bold text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
+              <span class="inline-block w-3 h-3 rounded-sm bg-emerald-500"></span> ได้เป้า
+              <span class="inline-block w-3 h-3 rounded-sm bg-rose-500 ml-1.5"></span> ต่ำกว่าเป้า
+              <span class="inline-block w-4 h-0.5 bg-amber-500 border-t border-dashed border-amber-500 ml-1.5"></span> Target
+            </div>
+
+            <button onclick="exportOutputChartAsImage(this)" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
               <i class="fa-solid fa-camera"></i> บันทึกกราฟ
             </button>
           </div>
         </div>
 
-        <!-- Canvas ตัวกราฟแท่งหลัก -->
+        <!-- Canvas ตัวกราฟแท่ง/เส้นหลัก -->
         <div class="mt-4 relative" style="height: 440px;">
           <canvas id="dailyOutputChart"></canvas>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- Section: กราฟแนวโน้มเส้นผลผลิต Output (Output Trend Line Chart) -->
+      <!-- ======================================================== -->
+      <section id="chart-card-output-trend" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 mt-6 overflow-hidden">
+        <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 pb-4 border-b border-slate-100">
+          <div class="flex items-center gap-2.5">
+            <span class="w-1.5 h-6 bg-indigo-600 rounded-full inline-block transition-colors" id="output-trend-accent-bar"></span>
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <h3 class="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+                  กราฟแนวโน้มเส้นผลผลิต Output (<span id="output-trend-machine-label" class="text-indigo-600">BHS</span>)
+                </h3>
+                <span id="output-trend-view-badge" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-50 text-indigo-700 border border-indigo-200">
+                  Daily (รายวัน)
+                </span>
+                <span id="output-trend-metric-badge" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  ยอดผลิตจริง (กก.)
+                </span>
+              </div>
+              <p class="text-xs text-slate-500 font-medium mt-0.5">
+                กราฟเส้นแนวโน้มขนาดใหญ่ เส้นหนาคมชัด • ปรับสีเส้นได้ตามชอบ • แสดงตัวเลขและสถานะบรรลุเป้าหมายครบถ้วน
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 flex-wrap" data-html2canvas-ignore="true">
+            <!-- สลับโหมด Metric: ยอดผลิต (กก.) / % บรรลุเป้า -->
+            <div class="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-bold border border-slate-200 shadow-2xs">
+              <button type="button" onclick="setOutputTrendMetric('actual')" id="btn-out-trend-metric-actual" class="px-3 py-1 rounded-lg bg-indigo-600 text-white font-black shadow-xs transition cursor-pointer">
+                ยอดผลิต (กก.)
+              </button>
+              <button type="button" onclick="setOutputTrendMetric('pct')" id="btn-out-trend-metric-pct" class="px-3 py-1 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer">
+                % บรรลุเป้า
+              </button>
+            </div>
+
+            <!-- Segmented Pills: [ Daily ] [ Weekly ] [ Monthly ] -->
+            <div class="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-bold border border-slate-200 shadow-2xs">
+              <button type="button" onclick="setOutputGranularity('daily')" id="btn-out-trend-gran-daily" class="px-3.5 py-1 rounded-lg bg-indigo-600 text-white font-black shadow-xs transition cursor-pointer">
+                Daily
+              </button>
+              <button type="button" onclick="setOutputGranularity('weekly')" id="btn-out-trend-gran-weekly" class="px-3.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer">
+                Weekly
+              </button>
+              <button type="button" onclick="setOutputGranularity('monthly')" id="btn-out-trend-gran-monthly" class="px-3.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer">
+                Monthly
+              </button>
+            </div>
+
+            <!-- จานสีเลือกสีเส้นแนวโน้ม (Color Palette) -->
+            <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1 shadow-2xs">
+              <span class="text-2xs font-bold text-slate-500 mr-0.5">สีเส้น:</span>
+              <button type="button" onclick="setOutputTrendColor('#4f46e5')" class="w-5 h-5 rounded-full bg-indigo-600 hover:scale-110 transition cursor-pointer out-trend-color-dot ring-2 ring-offset-1 ring-slate-800 shadow-xs" data-color="#4f46e5" title="Indigo"></button>
+              <button type="button" onclick="setOutputTrendColor('#2563eb')" class="w-5 h-5 rounded-full bg-blue-600 hover:scale-110 transition cursor-pointer out-trend-color-dot shadow-xs" data-color="#2563eb" title="Blue"></button>
+              <button type="button" onclick="setOutputTrendColor('#059669')" class="w-5 h-5 rounded-full bg-emerald-600 hover:scale-110 transition cursor-pointer out-trend-color-dot shadow-xs" data-color="#059669" title="Emerald"></button>
+              <button type="button" onclick="setOutputTrendColor('#d97706')" class="w-5 h-5 rounded-full bg-amber-600 hover:scale-110 transition cursor-pointer out-trend-color-dot shadow-xs" data-color="#d97706" title="Amber"></button>
+              <button type="button" onclick="setOutputTrendColor('#e11d48')" class="w-5 h-5 rounded-full bg-rose-600 hover:scale-110 transition cursor-pointer out-trend-color-dot shadow-xs" data-color="#e11d48" title="Rose"></button>
+              <button type="button" onclick="setOutputTrendColor('#7c3aed')" class="w-5 h-5 rounded-full bg-violet-600 hover:scale-110 transition cursor-pointer out-trend-color-dot shadow-xs" data-color="#7c3aed" title="Violet"></button>
+              <button type="button" onclick="setOutputTrendColor('#0891b2')" class="w-5 h-5 rounded-full bg-cyan-600 hover:scale-110 transition cursor-pointer out-trend-color-dot shadow-xs" data-color="#0891b2" title="Cyan"></button>
+              <input type="color" id="outputTrendCustomColorInput" value="#4f46e5" onchange="setOutputTrendColor(this.value)" class="w-5 h-5 rounded-full border-none cursor-pointer p-0 bg-transparent" title="เลือกสีอิสระ">
+            </div>
+
+            <!-- ปุ่มบันทึกกราฟเส้น -->
+            <button onclick="exportOutputTrendChartAsImage(this)" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
+              <i class="fa-solid fa-camera"></i> บันทึกกราฟเส้น
+            </button>
+          </div>
+        </div>
+
+        <!-- Canvas ตัวกราฟเส้นแนวโน้ม -->
+        <div class="mt-4 relative" style="height: 420px;">
+          <canvas id="outputTrendLineChart"></canvas>
         </div>
       </section>
 
@@ -1251,6 +1357,7 @@
         if (sel) sel.value = String(currentMonth);
       }
       safeSetText('chart-machine-label', currentMachine);
+      safeSetText('output-trend-machine-label', currentMachine);
 
       // 1. เรนเดอร์ข้อมูลตั้งต้นทันที หน้าเว็บจะไม่ว่างเปล่าแม้เน็ตช้า
       currentRawData = generateFallbackOutputData();
@@ -1550,6 +1657,7 @@
     function onMachineChange() {
       currentMachine = document.getElementById('selectedMachine').value;
       safeSetText('chart-machine-label', currentMachine);
+      safeSetText('output-trend-machine-label', currentMachine);
       currentApiSummary = null; // reset summary เมื่อเปลี่ยนเครื่อง
       loadOutputData();
     }
@@ -1786,6 +1894,7 @@
 
       // 2. เรนเดอร์กราฟแท่งหลักเปรียบเทียบ Output vs Target รายวัน
       renderDailyOutputChart(processedData, targetDaily, displayActual, totalTarget);
+      renderOutputTrendLineChart();
 
       // 3. เรนเดอร์กราฟแนวโน้มผลผลิตรายเดือน 12 เดือน (Monthly Output Trend)
       renderMonthlyTrendChart();
@@ -1800,90 +1909,383 @@
     // ==========================================
     // กราฟแท่งหลักเปรียบเทียบ Output รายวัน vs Target
     // ==========================================
+        let currentOutputGranularity = 'daily'; // 'daily' | 'weekly' | 'monthly'
+    let currentOutputChartType = 'bar'; // 'bar' | 'line' | 'combo'
+    let currentOutputTrendMetric = 'actual'; // 'actual' | 'pct'
+    let currentOutputTrendColor = localStorage.getItem('output_trend_custom_color') || '#4f46e5';
+    let outputTrendLineChartInstance = null;
+
+    // Helper รวมรวมข้อมูลตามช่วงเวลา (วัน / วีค / เดือน)
+    function getOutputAggregatedData(granularity) {
+      const data = window.lastOutputProcessedData || [];
+      const targetDaily = window.lastOutputTargetDaily || 0;
+
+      if (granularity === 'weekly') {
+        const weekRanges = [
+          { name: 'Week 1', label: 'Week 1 (1-7)', start: 1, end: 7 },
+          { name: 'Week 2', label: 'Week 2 (8-14)', start: 8, end: 14 },
+          { name: 'Week 3', label: 'Week 3 (15-21)', start: 15, end: 21 },
+          { name: 'Week 4', label: 'Week 4 (22-28)', start: 22, end: 28 },
+          { name: 'Week 5', label: 'Week 5 (29-31)', start: 29, end: 31 }
+        ];
+
+        const labels = weekRanges.map(w => w.label);
+        const actualValues = [];
+        const targetValues = [];
+        const pctValues = [];
+        const barColors = [];
+        const borderColors = [];
+
+        weekRanges.forEach(w => {
+          let sumAct = 0;
+          let sumTgt = 0;
+          data.forEach((d, idx) => {
+            const dayNum = parseInt((d.date || '').split('/')[0]) || (idx + 1);
+            if (dayNum >= w.start && dayNum <= w.end) {
+              sumAct += Number(d.actual) || 0;
+              if (!d.isIdle) {
+                sumTgt += Number(d.target) || 0;
+              }
+            }
+          });
+          actualValues.push(sumAct);
+          targetValues.push(sumTgt);
+          const pct = sumTgt > 0 ? ((sumAct / sumTgt) * 100) : 0;
+          pctValues.push(Math.round(pct * 10) / 10);
+          barColors.push(sumAct >= sumTgt ? '#10b981' : '#ef4444');
+          borderColors.push(sumAct >= sumTgt ? '#047857' : '#b91c1c');
+        });
+
+        return { labels, actualValues, targetValues, pctValues, barColors, borderColors };
+      } else if (granularity === 'monthly') {
+        const labelsTh = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+        const actualValues = [];
+        const targetValues = [];
+        const pctValues = [];
+        const barColors = [];
+        const borderColors = [];
+
+        for (let m = 1; m <= 12; m++) {
+          const mStr = String(m).padStart(2, '0');
+          const monthKey = `${currentYear}-${mStr}`;
+          
+          let moTarget = 0;
+          if (OUTPUT_TARGETS.monthlyTargets && OUTPUT_TARGETS.monthlyTargets[monthKey] && typeof OUTPUT_TARGETS.monthlyTargets[monthKey][currentMachine] === 'number') {
+            moTarget = OUTPUT_TARGETS.monthlyTargets[monthKey][currentMachine];
+          } else {
+            moTarget = OUTPUT_TARGETS.machines?.[currentMachine]?.monthlyTarget || 2200000;
+          }
+          targetValues.push(moTarget);
+
+          const yearItem = (currentYearlyTrend || []).find(y => Number(y.month) === m);
+          let actualVal = 0;
+          if (m === currentMonth && currentApiSummary && currentApiSummary.output > 0) {
+            actualVal = currentApiSummary.output;
+          } else if (yearItem && typeof yearItem.output === 'number') {
+            actualVal = yearItem.output;
+          }
+          actualValues.push(actualVal);
+
+          const pct = moTarget > 0 ? ((actualVal / moTarget) * 100) : 0;
+          pctValues.push(Math.round(pct * 10) / 10);
+          barColors.push(actualVal >= moTarget ? '#10b981' : (actualVal > 0 ? '#ef4444' : '#cbd5e1'));
+          borderColors.push(actualVal >= moTarget ? '#047857' : (actualVal > 0 ? '#b91c1c' : '#94a3b8'));
+        }
+
+        return { labels: labelsTh, actualValues, targetValues, pctValues, barColors, borderColors };
+      } else {
+        // daily
+        const labels = data.map(d => d.date);
+        const actualValues = data.map(d => d.actual);
+        const targetValues = data.map(d => d.isIdle ? 0 : d.target);
+        const pctValues = data.map(d => {
+          const tg = d.isIdle ? 0 : d.target;
+          return tg > 0 ? Math.round((d.actual / tg) * 1000) / 10 : 0;
+        });
+        const barColors = data.map(d => {
+          if (d.isIdle) return 'rgba(0,0,0,0)';
+          return d.actual >= d.target ? '#10b981' : '#ef4444';
+        });
+        const borderColors = data.map(d => {
+          if (d.isIdle) return 'rgba(0,0,0,0)';
+          return d.actual >= d.target ? '#047857' : '#b91c1c';
+        });
+        return { labels, actualValues, targetValues, pctValues, barColors, borderColors };
+      }
+    }
+
+    // สลับโหมดรูปแบบกราฟ: แท่ง, เส้น, แท่งคู่เส้น
+    function setOutputChartType(type) {
+      currentOutputChartType = type;
+      ['bar', 'line', 'combo'].forEach(t => {
+        const btn = document.getElementById(`btn-out-type-${t}`);
+        if (btn) {
+          if (t === type) {
+            btn.className = 'px-3 py-1 rounded-lg bg-indigo-600 text-white font-black shadow-xs transition cursor-pointer';
+          } else {
+            btn.className = 'px-3 py-1 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer';
+          }
+        }
+      });
+      renderDailyOutputChart();
+    }
+
+    // สลับช่วงเวลา: วัน, วีค, เดือน
+    function setOutputGranularity(gran) {
+      currentOutputGranularity = gran;
+
+      // อัปเดตปุ่มในกราฟหลัก
+      ['daily', 'weekly', 'monthly'].forEach(g => {
+        const btnMain = document.getElementById(`btn-out-gran-${g}`);
+        const btnTrend = document.getElementById(`btn-out-trend-gran-${g}`);
+        const isActive = (g === gran);
+
+        if (btnMain) {
+          btnMain.className = isActive
+            ? 'px-3.5 py-1 rounded-lg bg-blue-600 text-white font-black shadow-xs transition cursor-pointer'
+            : 'px-3.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer';
+        }
+        if (btnTrend) {
+          btnTrend.className = isActive
+            ? 'px-3.5 py-1 rounded-lg bg-indigo-600 text-white font-black shadow-xs transition cursor-pointer'
+            : 'px-3.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer';
+        }
+      });
+
+      // อัปเดต Badge ข้อความ
+      const badge = document.getElementById('output-trend-view-badge');
+      if (badge) {
+        if (gran === 'weekly') badge.textContent = 'Weekly (รายสัปดาห์)';
+        else if (gran === 'monthly') badge.textContent = 'Monthly (รายเดือน)';
+        else badge.textContent = 'Daily (รายวัน)';
+      }
+
+      renderDailyOutputChart();
+      renderOutputTrendLineChart();
+    }
+
+    // สลับโหมด Metric กราฟเส้น: ยอดผลิต (กก.) vs % บรรลุเป้า
+    function setOutputTrendMetric(metric) {
+      currentOutputTrendMetric = metric;
+      const btnActual = document.getElementById('btn-out-trend-metric-actual');
+      const btnPct = document.getElementById('btn-out-trend-metric-pct');
+      if (btnActual && btnPct) {
+        if (metric === 'actual') {
+          btnActual.className = 'px-3 py-1 rounded-lg bg-indigo-600 text-white font-black shadow-xs transition cursor-pointer';
+          btnPct.className = 'px-3 py-1 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer';
+        } else {
+          btnPct.className = 'px-3 py-1 rounded-lg bg-indigo-600 text-white font-black shadow-xs transition cursor-pointer';
+          btnActual.className = 'px-3 py-1 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer';
+        }
+      }
+
+      const badge = document.getElementById('output-trend-metric-badge');
+      if (badge) {
+        if (metric === 'pct') {
+          badge.textContent = '% บรรลุเป้าหมาย';
+          badge.className = 'px-2.5 py-0.5 rounded-full text-xs font-black bg-purple-50 text-purple-700 border border-purple-200';
+        } else {
+          badge.textContent = 'ยอดผลิตจริง (กก.)';
+          badge.className = 'px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200';
+        }
+      }
+
+      renderOutputTrendLineChart();
+    }
+
+    // ปรับเปลี่ยนสีเส้นกราฟแนวโน้ม
+    function setOutputTrendColor(color) {
+      if (!color) return;
+      currentOutputTrendColor = color;
+      try {
+        localStorage.setItem('output_trend_custom_color', color);
+      } catch (e) {}
+
+      document.querySelectorAll('.out-trend-color-dot').forEach(dot => {
+        const dotColor = dot.getAttribute('data-color');
+        if (dotColor && dotColor.toLowerCase() === color.toLowerCase()) {
+          dot.classList.add('ring-2', 'ring-offset-1', 'ring-slate-800');
+        } else {
+          dot.classList.remove('ring-2', 'ring-offset-1', 'ring-slate-800');
+        }
+      });
+
+      const customInput = document.getElementById('outputTrendCustomColorInput');
+      if (customInput) customInput.value = color;
+
+      const accentBar = document.getElementById('output-trend-accent-bar');
+      if (accentBar) accentBar.style.backgroundColor = color;
+
+      renderOutputTrendLineChart();
+    }
+
+    // ==========================================
+    // กราฟหลักเปรียบเทียบ Output vs Target (รองรับทั้งแท่ง เส้น และคู่กัน)
+    // ==========================================
     function renderDailyOutputChart(data, targetDaily, totalActual, totalTarget) {
       const chartEl = document.getElementById('dailyOutputChart');
       if (!chartEl || typeof Chart === 'undefined') return;
 
-      const labels = data.map(d => d.date);
-      const actualValues = data.map(d => d.actual);
-      const targetValues = data.map(d => d.isIdle ? 0 : d.target);
+      if (Array.isArray(data) && data.length > 0) {
+        window.lastOutputProcessedData = data;
+        window.lastOutputTargetDaily = targetDaily || window.lastOutputTargetDaily;
+        window.lastOutputTotalActual = totalActual || window.lastOutputTotalActual;
+        window.lastOutputTotalTarget = totalTarget || window.lastOutputTotalTarget;
+      }
 
-      // สีของแต่ละแท่ง
-      const barColors = data.map(d => {
-        if (d.isIdle) return 'rgba(0,0,0,0)';
-        return d.actual >= d.target ? '#10b981' : '#ef4444';
-      });
+      const agg = getOutputAggregatedData(currentOutputGranularity);
+      const labels = agg.labels;
+      const actualValues = agg.actualValues;
+      const targetValues = agg.targetValues;
+      const barColors = agg.barColors;
+      const borderColors = agg.borderColors;
 
-      const borderColors = data.map(d => {
-        if (d.isIdle) return 'rgba(0,0,0,0)';
-        return d.actual >= d.target ? '#047857' : '#b91c1c';
-      });
-
-      // คำนวณขอบเขตสเกลแกน Y ให้แท่งกราฟอ้วน สูง ชัดเจน
-      const maxActual = Math.max(...actualValues, targetDaily);
+      const maxActual = Math.max(...actualValues, ...targetValues, 1000);
       const suggestedYMax = Math.ceil((maxActual * 1.25) / 10000) * 10000;
 
       if (dailyOutputChartInstance) {
         try { dailyOutputChartInstance.destroy(); } catch(e) {}
       }
 
+      const datasets = [];
+
+      // 1. แท่ง Actual Output (ถ้าโหมดเป็น bar หรือ combo)
+      if (currentOutputChartType === 'bar' || currentOutputChartType === 'combo') {
+        datasets.push({
+          type: 'bar',
+          label: 'ยอดผลิตจริง Actual Output (kg)',
+          data: actualValues,
+          backgroundColor: barColors,
+          borderColor: borderColors,
+          borderWidth: 2,
+          borderRadius: 6,
+          barPercentage: currentOutputChartType === 'combo' ? 0.75 : 0.85,
+          categoryPercentage: 0.90,
+          maxBarThickness: 50,
+          order: 2,
+          datalabels: {
+            clip: false,
+            display: function(ctx) {
+              // ถ้าเป็นโหมด combo ให้ datalabels แสดงบนเส้นแทน หรือถ้า bar แสดงบนแท่ง
+              if (currentOutputChartType === 'combo') return false;
+              const val = ctx.dataset.data[ctx.dataIndex];
+              return val > 0;
+            },
+            anchor: 'end',
+            align: 'top',
+            offset: 4,
+            formatter: function(val, ctx) {
+              const tg = targetValues[ctx.dataIndex] || 0;
+              const pct = tg > 0 ? ((val / tg) * 100).toFixed(0) : 100;
+              return `${Math.round(val / 1000)}k\n(${pct}%)`;
+            },
+            backgroundColor: '#ffffff',
+            borderColor: function(ctx) {
+              const val = ctx.dataset.data[ctx.dataIndex];
+              const tg = targetValues[ctx.dataIndex] || 0;
+              return val >= tg ? '#86efac' : '#fca5a5';
+            },
+            borderWidth: 1.5,
+            borderRadius: 6,
+            padding: { top: 2, bottom: 2, left: 5, right: 5 },
+            color: function(ctx) {
+              const val = ctx.dataset.data[ctx.dataIndex];
+              const tg = targetValues[ctx.dataIndex] || 0;
+              return val >= tg ? '#15803d' : '#b91c1c';
+            },
+            font: { family: "'Prompt', sans-serif", size: 9.5, weight: '800' }
+          }
+        });
+      }
+
+      // 2. เส้น Actual Output (ถ้าโหมดเป็น line หรือ combo)
+      if (currentOutputChartType === 'line' || currentOutputChartType === 'combo') {
+        datasets.push({
+          type: 'line',
+          label: currentOutputChartType === 'combo' ? 'แนวโน้มผลผลิตจริง (Line Trend)' : 'ยอดผลิตจริง Actual Output (kg)',
+          data: actualValues,
+          borderColor: currentOutputChartType === 'combo' ? '#6366f1' : '#2563eb',
+          backgroundColor: currentOutputChartType === 'line' ? 'rgba(37, 99, 235, 0.08)' : 'transparent',
+          fill: currentOutputChartType === 'line',
+          borderWidth: 3.5,
+          tension: 0.3,
+          pointBackgroundColor: function(ctx) {
+            const val = actualValues[ctx.dataIndex];
+            const tg = targetValues[ctx.dataIndex];
+            return val >= tg ? '#10b981' : '#ef4444';
+          },
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2.5,
+          pointRadius: 5.5,
+          pointHoverRadius: 8,
+          order: 1,
+          datalabels: {
+            clip: false,
+            display: function(ctx) {
+              const val = ctx.dataset.data[ctx.dataIndex];
+              return val > 0;
+            },
+            anchor: 'end',
+            align: 'top',
+            offset: 6,
+            formatter: function(val, ctx) {
+              const tg = targetValues[ctx.dataIndex] || 0;
+              const pct = tg > 0 ? ((val / tg) * 100).toFixed(0) : 100;
+              return `${Math.round(val / 1000)}k\n(${pct}%)`;
+            },
+            backgroundColor: '#ffffff',
+            borderColor: function(ctx) {
+              const val = ctx.dataset.data[ctx.dataIndex];
+              const tg = targetValues[ctx.dataIndex] || 0;
+              return val >= tg ? '#86efac' : '#fca5a5';
+            },
+            borderWidth: 1.5,
+            borderRadius: 6,
+            padding: { top: 2, bottom: 2, left: 5, right: 5 },
+            color: function(ctx) {
+              const val = ctx.dataset.data[ctx.dataIndex];
+              const tg = targetValues[ctx.dataIndex] || 0;
+              return val >= tg ? '#15803d' : '#b91c1c';
+            },
+            font: { family: "'Prompt', sans-serif", size: 9.5, weight: '800' }
+          }
+        });
+      }
+
+      // 3. เส้นประเป้าหมาย Target
+      datasets.push({
+        type: 'line',
+        label: 'Target Output',
+        data: targetValues,
+        borderColor: '#f59e0b',
+        backgroundColor: 'transparent',
+        borderWidth: 3,
+        borderDash: [6, 4],
+        pointBackgroundColor: '#f59e0b',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        order: 0,
+        datalabels: { display: false }
+      });
+
       const chartPlugins = (typeof ChartDataLabels !== 'undefined') ? [ChartDataLabels] : [];
       const ctx = chartEl.getContext('2d');
       dailyOutputChartInstance = new Chart(ctx, {
         type: 'bar',
         plugins: chartPlugins,
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              type: 'bar',
-              label: 'ยอดผลิตจริง Actual Output (kg)',
-              data: actualValues,
-              backgroundColor: barColors,
-              borderColor: borderColors,
-              borderWidth: 2,
-              borderRadius: 6,
-              barPercentage: 0.85,
-              categoryPercentage: 0.90,
-              maxBarThickness: 50,
-              order: 2
-            },
-            {
-              type: 'line',
-              label: `Target Output (${targetDaily.toLocaleString()} กก./วัน)`,
-              data: targetValues,
-              borderColor: '#f59e0b',
-              backgroundColor: 'transparent',
-              borderWidth: 3,
-              borderDash: [6, 4],
-              pointBackgroundColor: '#f59e0b',
-              pointBorderColor: '#ffffff',
-              pointBorderWidth: 2,
-              pointRadius: 4,
-              pointHoverRadius: 6,
-              order: 1,
-              datalabels: {
-                display: false
-              }
-            }
-          ]
-        },
+        data: { labels, datasets },
         options: {
           devicePixelRatio: Math.max(window.devicePixelRatio || 1, 3),
           responsive: true,
           maintainAspectRatio: false,
-          layout: {
-            padding: { top: 48, left: 10, right: 38, bottom: 12 }
-          },
+          layout: { padding: { top: 48, left: 10, right: 38, bottom: 12 } },
           plugins: {
             legend: {
               display: true,
               position: 'top',
-              labels: {
-                font: { family: "'Prompt', sans-serif", size: 11, weight: 'bold' },
-                boxWidth: 14,
-                padding: 15
-              }
+              labels: { font: { family: "'Prompt', sans-serif", size: 11, weight: 'bold' }, boxWidth: 14, padding: 15 }
             },
             tooltip: {
               backgroundColor: '#0f172a',
@@ -1892,8 +2294,9 @@
               padding: 10,
               callbacks: {
                 label: function(ctx) {
-                  const val = ctx.raw || 0;
-                  const tg = targetDaily;
+                  const idx = ctx.dataIndex;
+                  const val = actualValues[idx] || 0;
+                  const tg = targetValues[idx] || 0;
                   const pct = tg > 0 ? ((val / tg) * 100).toFixed(1) : '100.0';
                   return [
                     ` ผลิตจริง: ${val.toLocaleString()} กก.`,
@@ -1901,38 +2304,6 @@
                     ` บรรลุเป้า: ${pct}% (${val >= tg ? 'ได้เป้า ✅' : 'ต่ำกว่าเป้า ❌'})`
                   ];
                 }
-              }
-            },
-            datalabels: {
-              clip: false,
-              display: function(ctx) {
-                const val = ctx.dataset.data[ctx.dataIndex];
-                return val > 0;
-              },
-              anchor: 'end',
-              align: 'top',
-              offset: 4,
-              formatter: function(val, ctx) {
-                const tg = targetDaily;
-                const pct = tg > 0 ? ((val / tg) * 100).toFixed(0) : 100;
-                return `${Math.round(val / 1000)}k\n(${pct}%)`;
-              },
-              backgroundColor: '#ffffff',
-              borderColor: function(ctx) {
-                const val = ctx.dataset.data[ctx.dataIndex];
-                return val >= targetDaily ? '#86efac' : '#fca5a5';
-              },
-              borderWidth: 1.5,
-              borderRadius: 6,
-              padding: { top: 2, bottom: 2, left: 5, right: 5 },
-              color: function(ctx) {
-                const val = ctx.dataset.data[ctx.dataIndex];
-                return val >= targetDaily ? '#15803d' : '#b91c1c';
-              },
-              font: {
-                family: "'Prompt', sans-serif",
-                size: 9.5,
-                weight: '800'
               }
             }
           },
@@ -1959,6 +2330,185 @@
           }
         }
       });
+    }
+
+    // ========================================================
+    // กราฟแนวโน้มเส้นผลผลิต Output (Output Trend Line Chart)
+    // ========================================================
+    function renderOutputTrendLineChart() {
+      const chartEl = document.getElementById('outputTrendLineChart');
+      if (!chartEl || typeof Chart === 'undefined') return;
+
+      safeSetText('output-trend-machine-label', currentMachine);
+
+      const agg = getOutputAggregatedData(currentOutputGranularity);
+      const labels = agg.labels;
+      const actualValues = agg.actualValues;
+      const targetValues = agg.targetValues;
+      const pctValues = agg.pctValues;
+
+      const isMetricActual = (currentOutputTrendMetric === 'actual');
+      const trendColor = currentOutputTrendColor || '#4f46e5';
+
+      let displayData = [];
+      let targetLineData = [];
+      let suggestedYMax = 100;
+
+      if (isMetricActual) {
+        displayData = actualValues;
+        targetLineData = targetValues;
+        const maxVal = Math.max(...actualValues, ...targetValues, 1000);
+        suggestedYMax = Math.ceil((maxVal * 1.25) / 10000) * 10000;
+      } else {
+        displayData = pctValues;
+        targetLineData = labels.map(() => 100);
+        const maxVal = Math.max(...pctValues, 120);
+        suggestedYMax = Math.ceil(maxVal / 10) * 10 + 10;
+      }
+
+      if (outputTrendLineChartInstance) {
+        try { outputTrendLineChartInstance.destroy(); } catch(e) {}
+      }
+
+      const datasets = [
+        {
+          type: 'line',
+          label: isMetricActual ? 'แนวโน้มยอดผลิตจริง (กก.)' : 'แนวโน้ม % บรรลุเป้าหมาย',
+          data: displayData,
+          borderColor: trendColor,
+          backgroundColor: 'rgba(79, 70, 229, 0.06)',
+          borderWidth: 3.8,
+          tension: 0.35,
+          fill: true,
+          pointBackgroundColor: function(ctx) {
+            const idx = ctx.dataIndex;
+            const act = actualValues[idx] || 0;
+            const tg = targetValues[idx] || 0;
+            return act >= tg ? '#10b981' : (act > 0 ? '#ef4444' : '#cbd5e1');
+          },
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2.5,
+          pointRadius: 6,
+          pointHoverRadius: 8.5,
+          order: 1,
+          datalabels: {
+            clip: false,
+            display: function(ctx) {
+              const val = ctx.dataset.data[ctx.dataIndex];
+              return val > 0;
+            },
+            anchor: 'end',
+            align: 'top',
+            offset: 8,
+            formatter: function(val, ctx) {
+              const idx = ctx.dataIndex;
+              if (isMetricActual) {
+                const tg = targetValues[idx] || 0;
+                const pct = tg > 0 ? ((val / tg) * 100).toFixed(0) : 100;
+                return `${Math.round(val / 1000)}k\n(${pct}%)`;
+              } else {
+                return `${val.toFixed(1)}%`;
+              }
+            },
+            backgroundColor: '#ffffff',
+            borderColor: function(ctx) {
+              const idx = ctx.dataIndex;
+              const act = actualValues[idx] || 0;
+              const tg = targetValues[idx] || 0;
+              return act >= tg ? '#86efac' : '#fca5a5';
+            },
+            borderWidth: 1.5,
+            borderRadius: 6,
+            padding: { top: 3, bottom: 3, left: 6, right: 6 },
+            color: function(ctx) {
+              const idx = ctx.dataIndex;
+              const act = actualValues[idx] || 0;
+              const tg = targetValues[idx] || 0;
+              return act >= tg ? '#15803d' : '#b91c1c';
+            },
+            font: { family: "'Prompt', sans-serif", size: 10, weight: '800' }
+          }
+        },
+        {
+          type: 'line',
+          label: isMetricActual ? 'Target Output' : 'เป้าหมาย (100%)',
+          data: targetLineData,
+          borderColor: isMetricActual ? '#f59e0b' : '#10b981',
+          borderWidth: 2.5,
+          borderDash: [6, 4],
+          backgroundColor: 'transparent',
+          pointRadius: 0,
+          order: 2,
+          datalabels: { display: false }
+        }
+      ];
+
+      const chartPlugins = (typeof ChartDataLabels !== 'undefined') ? [ChartDataLabels] : [];
+      const ctx = chartEl.getContext('2d');
+      outputTrendLineChartInstance = new Chart(ctx, {
+        type: 'line',
+        plugins: chartPlugins,
+        data: { labels, datasets },
+        options: {
+          devicePixelRatio: Math.max(window.devicePixelRatio || 1, 3),
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: { padding: { top: 48, left: 10, right: 38, bottom: 12 } },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: { font: { family: "'Prompt', sans-serif", size: 11, weight: 'bold' }, boxWidth: 14, padding: 15 }
+            },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleFont: { family: "'Prompt', sans-serif", size: 12, weight: 'bold' },
+              bodyFont: { family: "'Prompt', sans-serif", size: 11 },
+              padding: 10,
+              callbacks: {
+                label: function(ctx) {
+                  const idx = ctx.dataIndex;
+                  const act = actualValues[idx] || 0;
+                  const tg = targetValues[idx] || 0;
+                  const pct = tg > 0 ? ((act / tg) * 100).toFixed(1) : '100.0';
+                  return [
+                    ` ผลิตจริง: ${act.toLocaleString()} กก.`,
+                    ` Target: ${tg.toLocaleString()} กก.`,
+                    ` บรรลุเป้า: ${pct}% (${act >= tg ? 'ได้เป้า ✅' : 'ต่ำกว่าเป้า ❌'})`
+                  ];
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              suggestedMax: suggestedYMax,
+              ticks: {
+                callback: function(v) {
+                  return isMetricActual ? `${Math.round(v / 1000)}k กก.` : `${v}%`;
+                },
+                font: { family: "'Prompt', sans-serif", size: 10.5, weight: '600' },
+                color: '#475569'
+              },
+              grid: { color: '#f1f5f9' }
+            },
+            x: {
+              grid: { display: false },
+              ticks: {
+                font: { family: "'Prompt', sans-serif", size: 10.5, weight: 'bold' },
+                color: '#0f172a',
+                maxRotation: 45,
+                minRotation: 45
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function exportOutputTrendChartAsImage(btn) {
+      exportChartCardWithHeader('chart-card-output-trend', `Output_Trend_Line_${currentMachine}_${currentOutputGranularity}`, btn || event?.currentTarget);
     }
 
     // ==========================================
