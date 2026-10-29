@@ -44,7 +44,7 @@ $colMap = [
     'ISOWA' => ['consum' => 1, 'output' => 2, 'waste' => 5],
     'BHS'   => ['consum' => 7, 'output' => 8, 'waste' => 11],
     'YUELI' => ['consum' => 13, 'output' => 14, 'waste' => 17],
-    'TOTAL' => ['consum' => 23, 'output' => 24, 'waste' => -1]
+    'TOTAL' => ['consum' => 19, 'output' => 20, 'waste' => 23]
 ];
 $mCols = $colMap[$machine] ?? $colMap['BHS'];
 
@@ -64,9 +64,20 @@ if ($raw1 && preg_match('/setResponse\((.*)\);/s', $raw1, $m1)) {
             if (preg_match('/(\d{1,2})\/' . $monthPad . '\//', $dateVal, $dm) ||
                 preg_match('/(\d{1,2})\/' . $month . '\//', $dateVal, $dm)) {
                 $day = intval($dm[1]);
-                $c = floatval($r['c'][$mCols['consum']]['v'] ?? 0);
-                $o = floatval($r['c'][$mCols['output']]['v'] ?? 0);
-                $w = ($mCols['waste'] !== -1) ? floatval($r['c'][$mCols['waste']]['v'] ?? 0) : 0;
+                if ($machine === 'TOTAL') {
+                    $c = floatval($r['c'][19]['v'] ?? 0);
+                    $o = max(0.0, floatval($r['c'][20]['v'] ?? 0));
+                    $w = floatval($r['c'][23]['v'] ?? 0);
+                    // ถ้า col 19, 20 ว่าง ให้ fallback รวม 3 เครื่อง
+                    if ($c <= 0 && $o <= 0) {
+                        $c = floatval($r['c'][7]['v'] ?? 0) + floatval($r['c'][13]['v'] ?? 0) + floatval($r['c'][1]['v'] ?? 0);
+                        $o = max(0.0, floatval($r['c'][8]['v'] ?? 0)) + max(0.0, floatval($r['c'][14]['v'] ?? 0)) + max(0.0, floatval($r['c'][2]['v'] ?? 0));
+                    }
+                } else {
+                    $c = floatval($r['c'][$mCols['consum']]['v'] ?? 0);
+                    $o = max(0.0, floatval($r['c'][$mCols['output']]['v'] ?? 0)); // clamp ค่าลบเป็น 0
+                    $w = ($mCols['waste'] !== -1) ? floatval($r['c'][$mCols['waste']]['v'] ?? 0) : 0;
+                }
                 $dailySummary[$day] = [
                     'consum' => $c,
                     'output' => $o,
@@ -101,11 +112,13 @@ foreach ($trySheets as $sName) {
 
 $dailyBreakdown = [];
 $baseCol = ($month - 1) * 9;
+// offset ภายในกลุ่มเดือน (baseCol = (month-1)*9):
+// โครงสร้าง Sheet2: col+0=Date/Code, col+1=Desc, col+2=BHS(เดือน10+ เท่านั้น), col+3=YUELI, col+4=ISOWA, col+5=Total(เดือน1-9)/Other(เดือน10+), col+6=Grand Total(เดือน10+)
 $mOffset = [
-    'BHS'   => 3,
-    'YUELI' => 4,
-    'ISOWA' => 5,
-    'TOTAL' => 6
+    'BHS'   => 2,   // เดือน 10+: col+2=BHS; เดือน 1-9: ว่าง (BHS ยังไม่เข้าระบบ)
+    'YUELI' => 3,   // ทุกเดือน: col+3=YUELI
+    'ISOWA' => 4,   // ทุกเดือน: col+4=ISOWA
+    'TOTAL' => 6    // เดือน 10+: col+6=Grand Total; fallback: รวม col+2+3+4
 ];
 
 if ($raw2 && preg_match('/setResponse\((.*)\);/s', $raw2, $m2)) {
@@ -113,25 +126,12 @@ if ($raw2 && preg_match('/setResponse\((.*)\);/s', $raw2, $m2)) {
     if (isset($j2['table']['rows'])) {
         $rows2 = $j2['table']['rows'];
         $currentDay = null;
+        $dayHasCol6 = false;
 
         for ($r = 0; $r < count($rows2); $r++) {
             $cCode = trim($rows2[$r]['c'][$baseCol]['v'] ?? '');
-            
-            if ($machine === 'TOTAL') {
-                $cKg6 = floatval($rows2[$r]['c'][$baseCol + 6]['v'] ?? 0);
-                if ($cKg6 > 0) {
-                    $cKg = $cKg6;
-                } else {
-                    $cKg = floatval($rows2[$r]['c'][$baseCol + 3]['v'] ?? 0)
-                         + floatval($rows2[$r]['c'][$baseCol + 4]['v'] ?? 0)
-                         + floatval($rows2[$r]['c'][$baseCol + 5]['v'] ?? 0);
-                }
-            } else {
-                $kgCol = $baseCol + ($mOffset[$machine] ?? 3);
-                $cKg = floatval($rows2[$r]['c'][$kgCol]['v'] ?? 0);
-            }
 
-            // ตรวจจับวันที่ของเดือนนั้นๆ เช่น 1/10/2025 หรือ 1/10/2026
+            // ตรวจจับวันที่ของเดือนนั้นๆ ในกลุ่ม offset ที่กำหนด (ไม่กรองปีเพราะ Sheet 2 มีข้อมูลปนหลายปี)
             if (preg_match('/^(\d{1,2})\/' . $month . '\/\d{2,4}$/', $cCode, $dm) ||
                 preg_match('/^(\d{1,2})\/' . $monthPad . '\/\d{2,4}$/', $cCode, $dm)) {
                 $currentDay = intval($dm[1]);
@@ -140,7 +140,34 @@ if ($raw2 && preg_match('/setResponse\((.*)\);/s', $raw2, $m2)) {
                     'order' => 0, 'core' => 0, 'spec' => 0, 'conveyor' => 0, 'qc' => 0, 'reject' => 0,
                     'totalKg' => 0
                 ];
+                // ค้นหาแถว Total ล่วงหน้าของวันนี้เพื่อดูว่ามีคอลัมน์ที่ 6 (ISOWA + BHS + YUELI = 3 เครื่อง) หรือไม่
+                $dayHasCol6 = false;
+                for ($k = $r + 1; $k < min(count($rows2), $r + 35); $k++) {
+                    $checkCode = trim($rows2[$k]['c'][$baseCol]['v'] ?? '');
+                    if (preg_match('/^\d{1,2}\/' . $month . '\/\d{2,4}$/', $checkCode) ||
+                        preg_match('/^\d{1,2}\/' . $monthPad . '\/\d{2,4}$/', $checkCode)) {
+                        break;
+                    }
+                    if ($checkCode === 'Total') {
+                        $dayHasCol6 = (floatval($rows2[$k]['c'][$baseCol + 6]['v'] ?? 0) > 0);
+                        break;
+                    }
+                }
                 continue;
+            }
+
+            if ($machine === 'BHS') {
+                $cKg = floatval($rows2[$r]['c'][$baseCol + 3]['v'] ?? 0);
+            } elseif ($machine === 'ISOWA') {
+                // ถ้าวันนี้ ISOWA ไม่ได้เดิน (มีแค่ 2 เครื่อง) col+4 จะเป็นของ YUELI ให้ ISOWA เป็น 0
+                $cKg = $dayHasCol6 ? floatval($rows2[$r]['c'][$baseCol + 4]['v'] ?? 0) : 0;
+            } elseif ($machine === 'YUELI') {
+                // ถ้ามี 3 เครื่อง YUELI อยู่ col+5; ถ้ามี 2 เครื่อง YUELI อยู่ col+4
+                $cKg = $dayHasCol6 ? floatval($rows2[$r]['c'][$baseCol + 5]['v'] ?? 0) : floatval($rows2[$r]['c'][$baseCol + 4]['v'] ?? 0);
+            } elseif ($machine === 'TOTAL') {
+                $cKg = $dayHasCol6 ? floatval($rows2[$r]['c'][$baseCol + 6]['v'] ?? 0) : floatval($rows2[$r]['c'][$baseCol + 5]['v'] ?? 0);
+            } else {
+                $cKg = floatval($rows2[$r]['c'][$baseCol + 3]['v'] ?? 0);
             }
 
             // เฉพาะของเสีย 11 รายการ ไม่เอารวม (BL33, BL06, BL14, BL05, BL32 ฯลฯ ไม่นับ)
@@ -467,29 +494,42 @@ if ($raw2 && isset($j2['table']['rows'])) {
     for ($mo = 1; $mo <= 12; $mo++) {
         $mBaseCol = ($mo - 1) * 9;
         $currIso = null;
+        $dayHasCol6Year = false;
         
         for ($r = 0; $r < count($rows2All); $r++) {
             $cCode = trim($rows2All[$r]['c'][$mBaseCol]['v'] ?? '');
-            
-            if ($machine === 'TOTAL') {
-                $cKg6 = floatval($rows2All[$r]['c'][$mBaseCol + 6]['v'] ?? 0);
-                if ($cKg6 > 0) {
-                    $cKg = $cKg6;
-                } else {
-                    $cKg = floatval($rows2All[$r]['c'][$mBaseCol + 3]['v'] ?? 0)
-                         + floatval($rows2All[$r]['c'][$mBaseCol + 4]['v'] ?? 0)
-                         + floatval($rows2All[$r]['c'][$mBaseCol + 5]['v'] ?? 0);
-                }
-            } else {
-                $mKgCol = $mBaseCol + ($mOffset[$machine] ?? 3);
-                $cKg = floatval($rows2All[$r]['c'][$mKgCol]['v'] ?? 0);
-            }
             
             if (preg_match('/^(\d{1,2})\/' . $mo . '\/\d{2,4}$/', $cCode, $dm) ||
                 preg_match('/^(\d{1,2})\/' . sprintf('%02d', $mo) . '\/\d{2,4}$/', $cCode, $dm)) {
                 $d = intval($dm[1]);
                 $currIso = sprintf('2026-%02d-%02d', $mo, $d);
+                
+                // ค้นหาแถว Total ล่วงหน้าของวันนี้
+                $dayHasCol6Year = false;
+                for ($k = $r + 1; $k < min(count($rows2All), $r + 35); $k++) {
+                    $checkCode = trim($rows2All[$k]['c'][$mBaseCol]['v'] ?? '');
+                    if (preg_match('/^\d{1,2}\/' . $mo . '\/\d{2,4}$/', $checkCode) ||
+                        preg_match('/^\d{1,2}\/' . sprintf('%02d', $mo) . '\/\d{2,4}$/', $checkCode)) {
+                        break;
+                    }
+                    if ($checkCode === 'Total') {
+                        $dayHasCol6Year = (floatval($rows2All[$k]['c'][$mBaseCol + 6]['v'] ?? 0) > 0);
+                        break;
+                    }
+                }
                 continue;
+            }
+            
+            if ($machine === 'BHS') {
+                $cKg = floatval($rows2All[$r]['c'][$mBaseCol + 3]['v'] ?? 0);
+            } elseif ($machine === 'ISOWA') {
+                $cKg = $dayHasCol6Year ? floatval($rows2All[$r]['c'][$mBaseCol + 4]['v'] ?? 0) : 0;
+            } elseif ($machine === 'YUELI') {
+                $cKg = $dayHasCol6Year ? floatval($rows2All[$r]['c'][$mBaseCol + 5]['v'] ?? 0) : floatval($rows2All[$r]['c'][$mBaseCol + 4]['v'] ?? 0);
+            } elseif ($machine === 'TOTAL') {
+                $cKg = $dayHasCol6Year ? floatval($rows2All[$r]['c'][$mBaseCol + 6]['v'] ?? 0) : floatval($rows2All[$r]['c'][$mBaseCol + 5]['v'] ?? 0);
+            } else {
+                $cKg = floatval($rows2All[$r]['c'][$mBaseCol + 3]['v'] ?? 0);
             }
             
             if ($currIso && in_array($cCode, $allowedCodes11)) {
