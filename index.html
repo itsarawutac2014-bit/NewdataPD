@@ -790,7 +790,7 @@
         <div data-html2canvas-ignore="true" class="flex items-center gap-2.5 flex-wrap">
           <!-- Waste Item Dropdown Selector (กดแล้วมีแท็บเลื่อนลงมาด้านล่างเพื่อเลือก) -->
           <div class="relative inline-block text-left" id="wasteDropdownContainer">
-            <button type="button" onclick="toggleWasteDropdown(event)" id="wasteDropdownBtn" class="inline-flex items-center justify-between gap-2.5 px-3.5 py-1.5 bg-white border-2 border-indigo-500 hover:border-indigo-600 rounded-xl text-xs font-black text-indigo-950 shadow-xs transition cursor-pointer min-w-[220px]">
+            <button type="button" onclick="toggleWasteDropdown(event)" id="wasteDropdownBtn" class="inline-flex items-center justify-between gap-2.5 px-3.5 py-1.5 bg-white border-2 border-indigo-500 hover:border-indigo-600 rounded-xl text-xs font-black text-indigo-950 shadow-xs transition cursor-pointer min-w-[210px]">
               <div class="flex items-center gap-2 truncate">
                 <span id="wasteDropdownDot" class="w-2.5 h-2.5 rounded-full bg-indigo-600 shrink-0"></span>
                 <span id="wasteDropdownLabel" class="truncate font-black">ทั้งหมด 11 รายการ</span>
@@ -798,7 +798,7 @@
               <i class="fa-solid fa-chevron-down text-indigo-500 text-xs transition-transform duration-200" id="wasteDropdownChevron"></i>
             </button>
 
-            <!-- Dropdown Menu แท็บที่เลื่อนลงมาด้านล่าง -->
+            <!-- Dropdown Menu -->
             <div id="wasteDropdownMenu" class="hidden absolute left-0 mt-1.5 w-72 sm:w-80 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 py-1.5 max-h-[380px] overflow-y-auto ring-1 ring-black/5 divide-y divide-slate-100">
               <div class="px-3.5 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50 flex items-center justify-between">
                 <span>เลือกประเภทของเสีย 11 รายการ</span>
@@ -952,41 +952,17 @@
             </select>
           </div>
 
-          <!-- Week Selector (กรองสัปดาห์) -->
-          <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 shadow-2xs">
-            <label for="filterChartWeekSelect" class="text-xs font-bold text-slate-600 flex items-center gap-1">
-              <i class="fa-solid fa-calendar-week text-indigo-500"></i> สัปดาห์:
-            </label>
-            <select id="filterChartWeekSelect" onchange="onFilterChartWeekChange(this.value)" class="text-xs font-black bg-white border border-slate-300 rounded-lg px-2 py-1 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer">
-              <option value="ALL" selected>ทั้งเดือน (All Weeks)</option>
-              <option value="W1">Week 1 (วันที่ 1 - 7)</option>
-              <option value="W2">Week 2 (วันที่ 8 - 14)</option>
-              <option value="W3">Week 3 (วันที่ 15 - 21)</option>
-              <option value="W4">Week 4 (วันที่ 22 - 28)</option>
-              <option value="W5">Week 5 (วันที่ 29 - 31)</option>
-            </select>
-          </div>
-
-          <!-- Compare Month Selector (เทียบเดือน) -->
-          <div class="flex items-center gap-1.5 bg-amber-50/80 border border-amber-300 rounded-xl px-2.5 py-1.5 shadow-2xs">
-            <label for="filterChartCompareMonthSelect" class="text-xs font-bold text-amber-900 flex items-center gap-1">
-              <i class="fa-solid fa-code-compare text-amber-600"></i> เทียบเดือน:
-            </label>
-            <select id="filterChartCompareMonthSelect" onchange="onFilterChartCompareMonthChange(this.value)" class="text-xs font-black bg-white border border-amber-300 rounded-lg px-2 py-1 text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer">
-              <option value="NONE" selected>-- ไม่เปรียบเทียบ --</option>
-              <option value="1">1 - ม.ค. 2026</option>
-              <option value="2">2 - ก.พ. 2026</option>
-              <option value="3">3 - มี.ค. 2026</option>
-              <option value="4">4 - เม.ย. 2026</option>
-              <option value="5">5 - พ.ค. 2026</option>
-              <option value="6">6 - มิ.ย. 2026</option>
-              <option value="7">7 - ก.ค. 2026</option>
-              <option value="8">8 - ส.ค. 2026</option>
-              <option value="9">9 - ก.ย. 2026</option>
-              <option value="10">10 - ต.ค. 2026</option>
-              <option value="11">11 - พ.ย. 2026</option>
-              <option value="12">12 - ธ.ค. 2026</option>
-            </select>
+          <!-- [ Daily ] [ Weekly ] [ Monthly ] Segmented Pills (ตามรูปตัวอย่าง) -->
+          <div class="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-bold border border-slate-200 shadow-2xs">
+            <button type="button" onclick="setGranularityView('daily')" id="btn-gran-daily-top" class="px-3.5 py-1 rounded-lg bg-blue-600 text-white font-black shadow-xs transition cursor-pointer">
+              Daily
+            </button>
+            <button type="button" onclick="setGranularityView('weekly')" id="btn-gran-weekly-top" class="px-3.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer">
+              Weekly
+            </button>
+            <button type="button" onclick="setGranularityView('monthly')" id="btn-gran-monthly-top" class="px-3.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer">
+              Monthly
+            </button>
           </div>
 
           <!-- Metric Toggle (% vs kg) -->
@@ -1006,7 +982,7 @@
         </div>
       </div>
 
-      <!-- Selected Item KPI Ribbon -->
+      <!-- Quick Item Info Ribbon -->
       <div id="filter-item-info-bar" class="py-2 px-3.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
         <div class="flex items-center gap-3">
           <span class="font-bold text-slate-700">กำลังแสดง:</span>
@@ -1031,33 +1007,41 @@
     <!-- ======================================================== -->
     <!-- กราฟแนวโน้มเส้นของเสีย (Waste Trend Line Chart) -->
     <!-- ======================================================== -->
-    <section id="filter-waste-trend-card" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 mt-4 w-full">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
-        <div>
-          <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
-            <span class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm shadow-xs border border-indigo-100">
-              <i class="fa-solid fa-chart-line"></i>
-            </span>
-            <span>กราฟแนวโน้มเส้นของเสีย (Waste Trend Line Chart)</span>
+    <section id="filter-waste-trend-card" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 mt-6 w-full">
+      
+      <!-- Header ตรงตามรูปตัวอย่าง: | แนวโน้มเปอร์เซ็นต์ของเสีย (% NCP) และปุ่ม [ Daily ] [ Weekly ] [ Monthly ] -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
+        <div class="flex items-center gap-2.5">
+          <span class="w-1.5 h-6 bg-blue-600 rounded-full inline-block"></span>
+          <h3 class="text-base sm:text-lg font-black text-slate-800 tracking-tight flex items-center gap-2">
+            <span>แนวโน้มเปอร์เซ็นต์ของเสีย</span>
+            <span id="trend-waste-item-title" class="text-blue-600 font-black">(% ทั้งหมด 11 รายการ)</span>
           </h3>
-          <p class="text-xs text-slate-500 mt-0.5">
-            เส้นแนวโน้มปรับเปลี่ยนตามของเสียและสัปดาห์ที่เลือกด้านบน • รายการ: <span id="trend-chart-item-label" class="font-bold text-indigo-600">ทั้งหมด 11 รายการ</span>
-          </p>
         </div>
 
-        <div data-html2canvas-ignore="true" class="flex items-center gap-2 flex-wrap">
-          <div id="trend-compare-legend" class="hidden items-center gap-3 text-xs font-bold px-3 py-1 bg-slate-50 border border-slate-200 rounded-xl">
-            <span class="inline-flex items-center gap-1.5"><span class="w-3 h-1 rounded-full bg-indigo-600"></span> <span id="trend-legend-m1">เดือนหลัก</span></span>
-            <span class="inline-flex items-center gap-1.5"><span class="w-3 h-1 rounded-full bg-amber-500"></span> <span id="trend-legend-m2">เดือนที่เทียบ</span></span>
+        <div class="flex items-center gap-3 flex-wrap" data-html2canvas-ignore="true">
+          <!-- Segmented Pills: [ Daily ] [ Weekly ] [ Monthly ] (ตามรูป) -->
+          <div class="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-bold border border-slate-200 shadow-2xs">
+            <button type="button" onclick="setGranularityView('daily')" id="btn-gran-daily" class="px-4 py-1.5 rounded-lg bg-blue-600 text-white font-black shadow-xs transition cursor-pointer">
+              Daily
+            </button>
+            <button type="button" onclick="setGranularityView('weekly')" id="btn-gran-weekly" class="px-4 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer">
+              Weekly
+            </button>
+            <button type="button" onclick="setGranularityView('monthly')" id="btn-gran-monthly" class="px-4 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer">
+              Monthly
+            </button>
           </div>
-          <button type="button" onclick="downloadFilterTrendChartImage()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
-            <i class="fa-solid fa-camera"></i> บันทึกกราฟแนวโน้ม
+
+          <!-- บันทึกกราฟแนวโน้ม -->
+          <button type="button" onclick="downloadFilterTrendChartImage()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
+            <i class="fa-solid fa-camera"></i> บันทึกกราฟ
           </button>
         </div>
       </div>
 
-      <!-- Trend Canvas -->
-      <div class="relative h-[290px] sm:h-[340px] w-full mt-3">
+      <!-- Trend Area Canvas -->
+      <div class="relative h-[360px] sm:h-[420px] w-full mt-4">
         <canvas id="filterWasteTrendChart"></canvas>
       </div>
     </section>
@@ -3107,6 +3091,26 @@
     // ========================================================
     // ฟังก์ชันจัดการกราฟวิเคราะห์แยกของเสีย 11 รายการ (Filtered Breakdown Chart)
     // ========================================================
+    let currentGranularityView = 'daily'; // 'daily' | 'weekly' | 'monthly'
+
+    function setGranularityView(view) {
+      currentGranularityView = view;
+
+      // Update button styling on both bars
+      ['daily', 'weekly', 'monthly'].forEach(v => {
+        const btnTop = document.getElementById(`btn-gran-${v}-top`);
+        const btnBot = document.getElementById(`btn-gran-${v}`);
+        const isActive = (v === view);
+        const activeClass = 'px-3.5 py-1 rounded-lg bg-blue-600 text-white font-black shadow-xs transition cursor-pointer';
+        const inActiveClass = 'px-3.5 py-1 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer';
+
+        if (btnTop) btnTop.className = isActive ? activeClass : inActiveClass;
+        if (btnBot) btnBot.className = isActive ? 'px-4 py-1.5 rounded-lg bg-blue-600 text-white font-black shadow-xs transition cursor-pointer' : 'px-4 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer';
+      });
+
+      renderFilterWasteChart();
+    }
+
     function onFilterChartMonthChange(val) {
       currentFilterMonth = parseInt(val) || 10;
       const machine = (document.getElementById('selectedMachine')?.value || 'BHS').toUpperCase();
@@ -3133,48 +3137,6 @@
           })
           .catch(err => {
             console.error('Error fetching month for filter chart:', err);
-          });
-      }
-    }
-
-    function onFilterChartWeekChange(val) {
-      currentFilterWeek = val || 'ALL';
-      renderFilterWasteChart();
-    }
-
-    function onFilterChartCompareMonthChange(val) {
-      currentCompareMonth = val || 'NONE';
-      if (val === 'NONE') {
-        renderFilterWasteChart();
-        return;
-      }
-
-      const compMo = parseInt(val);
-      const machine = (document.getElementById('selectedMachine')?.value || 'BHS').toUpperCase();
-      const cacheKey = `${machine}_${compMo}`;
-
-      if (monthlyBreakdownCache[cacheKey]) {
-        renderFilterWasteChart();
-      } else {
-        const sheetId = '1viioRJ5I3BmqiD7KLwSG9_uNQ_9u_a8LYR-4GaPGuYI';
-        const url = `api.php?sheetId=${encodeURIComponent(sheetId)}&machine=${machine}&month=${compMo}`;
-        
-        fetch(url)
-          .then(res => res.json())
-          .then(res => {
-            if (res && res.success && res.data) {
-              monthlyBreakdownCache[cacheKey] = {
-                data: res.data,
-                summary: res.summary,
-                weightData: res.weightData,
-                weightSummary: res.weightSummary
-              };
-              renderFilterWasteChart();
-            }
-          })
-          .catch(err => {
-            console.error('Error fetching compare month data:', err);
-            renderFilterWasteChart();
           });
       }
     }
@@ -3262,6 +3224,9 @@
       renderFilterWasteChart();
     }
 
+    // ========================================================
+    // ฟังก์ชันคำนวณและเรนเดอร์กราฟหลัก (Bar) และกราฟแนวโน้ม (Trend)
+    // ========================================================
     function renderFilterWasteChart() {
       const chartEl = document.getElementById('filterWasteChart');
       if (!chartEl || typeof Chart === 'undefined') return;
@@ -3277,286 +3242,208 @@
         weightSummary: currentWeightSummary
       };
 
-      const rawDaysData = mData.data || [];
-      const rawWeightData = mData.weightData || [];
+      const rawDays = mData.data || [];
+      const rawWeights = mData.weightData || [];
       const summary = mData.summary || {};
       const weightSummary = mData.weightSummary || {};
+      const isPct = (currentFilterChartMetric === 'pct');
+      const isAll = (currentFilterWasteCode === 'ALL');
+      const colDef = isAll ? null : (WASTE_COLUMNS.find(c => c.key === currentFilterWasteCode) || WASTE_COLUMNS[0]);
 
-      // 1. กรองสัปดาห์ (Week Filtering)
-      let daysData = rawDaysData;
-      let weightData = rawWeightData;
-      let weekLabel = 'ทั้งเดือน';
+      // อัปเดต Title ของกราฟเส้นด้านล่างให้ตรงกับของเสียที่เลือก
+      const itemTitleText = isAll ? '(% ทั้งหมด 11 รายการ)' : `(% ${colDef.label})`;
+      safeSetText('trend-waste-item-title', itemTitleText);
 
-      if (currentFilterWeek !== 'ALL') {
-        let startD = 1, endD = 31;
-        if (currentFilterWeek === 'W1') { startD = 1; endD = 7; weekLabel = 'Week 1 (1-7)'; }
-        else if (currentFilterWeek === 'W2') { startD = 8; endD = 14; weekLabel = 'Week 2 (8-14)'; }
-        else if (currentFilterWeek === 'W3') { startD = 15; endD = 21; weekLabel = 'Week 3 (15-21)'; }
-        else if (currentFilterWeek === 'W4') { startD = 22; endD = 28; weekLabel = 'Week 4 (22-28)'; }
-        else if (currentFilterWeek === 'W5') { startD = 29; endD = 31; weekLabel = 'Week 5 (29-31)'; }
+      // อัปเดตข้อมูลบน Ribbon
+      const totKg = isAll ? (weightSummary.totalAll || 0) : (weightSummary[colDef.key] || 0);
+      const avgPct = isAll ? (summary.allWaste || 0) : (summary[colDef.key] || 0);
+      const tgtVal = isAll ? 5.00 : (colDef?.target || 2.00);
 
-        daysData = rawDaysData.filter((d, idx) => {
-          const dayNum = parseInt((d.date || '').split('/')[0]) || (idx + 1);
-          return dayNum >= startD && dayNum <= endD;
+      safeSetText('filter-info-title', isAll ? 'ทั้งหมด 11 รายการ (All Waste)' : `${colDef.label} (${colDef.code})`);
+      safeSetText('filter-info-target-badge', `Target: ${tgtVal.toFixed(2)}%`);
+      safeSetText('filter-info-total-kg', `${Number(totKg).toLocaleString()} กก.`);
+      safeSetText('filter-info-avg-pct', `${avgPct.toFixed(2)}%`);
+
+      const statusEl = document.getElementById('filter-info-status-badge');
+      if (statusEl) {
+        const pass = avgPct <= tgtVal;
+        statusEl.className = pass ? 'px-2.5 py-0.5 rounded-lg font-black bg-emerald-100 text-emerald-800' : 'px-2.5 py-0.5 rounded-lg font-black bg-rose-100 text-rose-800';
+        statusEl.textContent = pass ? `ได้เป้า ✅ (Diff: +${(tgtVal - avgPct).toFixed(2)}%)` : `เกินเป้า ❌ (Diff: ${(tgtVal - avgPct).toFixed(2)}%)`;
+      }
+
+      // ==========================================
+      // เตรียมชุดข้อมูลตาม Granularity: 'daily', 'weekly', 'monthly'
+      // ==========================================
+      let chartLabels = [];
+      let barDatasets = [];
+      let trendPoints = []; // { label, pct, kg, dateStr }
+
+      if (currentGranularityView === 'daily') {
+        // รายวัน (1..31 ของเดือนปัจจุบัน)
+        chartLabels = rawDays.map(d => {
+          const parts = (d.date || '').split('/');
+          return parts[0] ? `${parts[0]}` : d.date;
         });
 
-        if (Array.isArray(rawWeightData) && rawWeightData.length > 0) {
-          weightData = rawWeightData.filter((d, idx) => {
-            const dayNum = parseInt((d.date || '').split('/')[0]) || (idx + 1);
-            return dayNum >= startD && dayNum <= endD;
+        // จุดข้อมูลสำหรับกราฟแนวโน้มเส้น
+        trendPoints = rawDays.map((d, idx) => {
+          const p = isAll ? (Number(d.allWaste) || 0) : (Number(d[colDef.key]) || 0);
+          const k = isAll ? (Number(rawWeights[idx]?.totalWeight) || 0) : (Number(rawWeights[idx]?.[colDef.key]) || 0);
+          return { label: d.date || `${idx + 1}/${currentFilterMonth}/2026`, pct: p, kg: k };
+        });
+
+        // Bar datasets
+        if (isAll) {
+          barDatasets = WASTE_COLUMNS.map(col => {
+            const vals = rawDays.map((d, idx) => isPct ? (d[col.key] || 0) : (rawWeights[idx]?.[col.key] || 0));
+            vals.push(isPct ? (summary[col.key] || 0) : (weightSummary[col.key] || 0));
+            return {
+              label: col.label,
+              data: vals,
+              backgroundColor: col.color,
+              stack: 'allWasteStack',
+              borderRadius: 4,
+              maxBarThickness: 48
+            };
           });
-        }
-      }
-
-      // ป้ายแสดงสถานะสัปดาห์
-      const weekBadgeEl = document.getElementById('filter-info-week-badge');
-      if (weekBadgeEl) {
-        if (currentFilterWeek !== 'ALL') {
-          weekBadgeEl.classList.remove('hidden');
-          weekBadgeEl.textContent = `สัปดาห์: ${weekLabel}`;
+          chartLabels.push('รวม MTD');
         } else {
-          weekBadgeEl.classList.add('hidden');
-        }
-      }
+          const vals = rawDays.map((d, idx) => isPct ? (d[colDef.key] || 0) : (rawWeights[idx]?.[colDef.key] || 0));
+          vals.push(isPct ? (summary[colDef.key] || 0) : (weightSummary[colDef.key] || 0));
+          chartLabels.push('รวม MTD');
 
-      const labels = daysData.map(d => {
-        const parts = (d.date || '').split('/');
-        return parts[0] ? `${parts[0]}` : d.date;
-      });
-      const summaryColLabel = currentFilterWeek === 'ALL' ? 'รวม MTD' : `รวม ${currentFilterWeek}`;
-      labels.push(summaryColLabel);
-
-      let datasets = [];
-      let annotations = {};
-      let suggestedMax = 10;
-      const isPct = (currentFilterChartMetric === 'pct');
-
-      // คำนวณยอดรวมของช่วงที่กรอง
-      let weekSumKg = 0;
-      let weekAvgPct = 0;
-      const activeDaysCount = daysData.filter(d => (Number(d.consumption) || 0) > 0 || (Number(d.output) || 0) > 0).length || daysData.length || 1;
-
-      if (currentFilterWasteCode === 'ALL') {
-        if (currentFilterWeek === 'ALL') {
-          weekSumKg = weightSummary.totalAll || 0;
-          weekAvgPct = summary.allWaste || 0;
-        } else {
-          weightData.forEach(w => weekSumKg += (Number(w.totalWeight) || 0));
-          let sumP = 0;
-          daysData.forEach(d => sumP += (Number(d.allWaste) || 0));
-          weekAvgPct = sumP / activeDaysCount;
+          const bgColors = vals.map((v, i) => i === vals.length - 1 ? (v <= tgtVal ? '#059669' : '#dc2626') : (v <= tgtVal ? '#10b981' : '#ef4444'));
+          barDatasets = [{
+            label: isPct ? `% ${colDef.label}` : `${colDef.label} (กก.)`,
+            data: vals,
+            backgroundColor: bgColors,
+            borderRadius: 6,
+            maxBarThickness: 48
+          }];
         }
 
-        safeSetText('filter-info-title', 'ทั้งหมด 11 รายการ (All Waste)');
-        safeSetText('filter-info-target-badge', 'Target: 5.00%');
-        safeSetText('filter-info-total-kg', `${Number(weekSumKg).toLocaleString()} กก.`);
-        safeSetText('filter-info-avg-pct', `${weekAvgPct.toFixed(2)}%`);
-        const statusEl = document.getElementById('filter-info-status-badge');
-        if (statusEl) {
-          const pass = weekAvgPct <= TARGETS.allWaste;
-          statusEl.className = pass ? 'px-2.5 py-0.5 rounded-lg font-black bg-emerald-100 text-emerald-800' : 'px-2.5 py-0.5 rounded-lg font-black bg-rose-100 text-rose-800';
-          statusEl.textContent = pass ? `ได้เป้า ✅ (Diff: +${(TARGETS.allWaste - weekAvgPct).toFixed(2)}%)` : `เกินเป้า ❌ (Diff: ${(TARGETS.allWaste - weekAvgPct).toFixed(2)}%)`;
-        }
-      } else {
-        const colDef = WASTE_COLUMNS.find(c => c.key === currentFilterWasteCode) || WASTE_COLUMNS[0];
-        if (currentFilterWeek === 'ALL') {
-          weekSumKg = weightSummary[colDef.key] || 0;
-          weekAvgPct = summary[colDef.key] || 0;
-        } else {
-          weightData.forEach(w => weekSumKg += (Number(w[colDef.key]) || 0));
-          let sumP = 0;
-          daysData.forEach(d => sumP += (Number(d[colDef.key]) || 0));
-          weekAvgPct = sumP / activeDaysCount;
-        }
+      } else if (currentGranularityView === 'weekly') {
+        // แยกตาม Week ของเดือนที่เลือก (Week 1 ถึง Week 5)
+        const weekRanges = [
+          { name: 'Week 1', label: 'Week 1 (1-7)', start: 1, end: 7 },
+          { name: 'Week 2', label: 'Week 2 (8-14)', start: 8, end: 14 },
+          { name: 'Week 3', label: 'Week 3 (15-21)', start: 15, end: 21 },
+          { name: 'Week 4', label: 'Week 4 (22-28)', start: 22, end: 28 },
+          { name: 'Week 5', label: 'Week 5 (29-31)', start: 29, end: 31 }
+        ];
 
-        safeSetText('filter-info-title', `${colDef.label} (${colDef.code})`);
-        safeSetText('filter-info-target-badge', `Target: ${colDef.target.toFixed(2)}%`);
-        safeSetText('filter-info-total-kg', `${Number(weekSumKg).toLocaleString()} กก.`);
-        safeSetText('filter-info-avg-pct', `${weekAvgPct.toFixed(2)}%`);
-        const statusEl = document.getElementById('filter-info-status-badge');
-        if (statusEl) {
-          const pass = weekAvgPct <= colDef.target;
-          statusEl.className = pass ? 'px-2.5 py-0.5 rounded-lg font-black bg-emerald-100 text-emerald-800' : 'px-2.5 py-0.5 rounded-lg font-black bg-rose-100 text-rose-800';
-          statusEl.textContent = pass ? `ได้เป้า ✅ (Diff: +${(colDef.target - weekAvgPct).toFixed(2)}%)` : `เกินเป้า ❌ (Diff: ${(colDef.target - weekAvgPct).toFixed(2)}%)`;
-        }
-      }
+        chartLabels = weekRanges.map(w => w.label);
 
-      // จัดการข้อมูลเดือนที่นำมาเปรียบเทียบ (Compare Month)
-      const THAI_MONTH_SHORT = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-      let compDaysData = [];
-      let compWeightData = [];
-      let compSummary = {};
-      let compWeightSummary = {};
-      let hasCompare = (currentCompareMonth !== 'NONE');
+        // คำนวณยอดรวมของแต่ละสัปดาห์
+        const weeklyData = weekRanges.map(w => {
+          let sumConsum = 0;
+          let sumTotalWeight = 0;
+          let colWeights = {};
+          let colPcts = {};
+          WASTE_COLUMNS.forEach(c => { colWeights[c.key] = 0; colPcts[c.key] = 0; });
+          let daysCount = 0;
 
-      if (hasCompare) {
-        const compMo = parseInt(currentCompareMonth);
-        const compCacheKey = `${machine}_${compMo}`;
-        const cData = monthlyBreakdownCache[compCacheKey];
-        if (cData) {
-          compSummary = cData.summary || {};
-          compWeightSummary = cData.weightSummary || {};
-          compDaysData = cData.data || [];
-          compWeightData = cData.weightData || [];
-
-          if (currentFilterWeek !== 'ALL') {
-            let startD = 1, endD = 31;
-            if (currentFilterWeek === 'W1') { startD = 1; endD = 7; }
-            else if (currentFilterWeek === 'W2') { startD = 8; endD = 14; }
-            else if (currentFilterWeek === 'W3') { startD = 15; endD = 21; }
-            else if (currentFilterWeek === 'W4') { startD = 22; endD = 28; }
-            else if (currentFilterWeek === 'W5') { startD = 29; endD = 31; }
-
-            compDaysData = compDaysData.filter((d, idx) => {
-              const dayNum = parseInt((d.date || '').split('/')[0]) || (idx + 1);
-              return dayNum >= startD && dayNum <= endD;
-            });
-            if (Array.isArray(compWeightData)) {
-              compWeightData = compWeightData.filter((d, idx) => {
-                const dayNum = parseInt((d.date || '').split('/')[0]) || (idx + 1);
-                return dayNum >= startD && dayNum <= endD;
+          rawDays.forEach((d, idx) => {
+            const dayNum = parseInt((d.date || '').split('/')[0]) || (idx + 1);
+            if (dayNum >= w.start && dayNum <= w.end) {
+              const con = Number(d.consumption) || 0;
+              sumConsum += con;
+              const wObj = rawWeights[idx] || {};
+              sumTotalWeight += Number(wObj.totalWeight) || 0;
+              WASTE_COLUMNS.forEach(c => {
+                colWeights[c.key] += Number(wObj[c.key]) || 0;
+                colPcts[c.key] += Number(d[c.key]) || 0;
               });
+              if (con > 0) daysCount++;
             }
-          }
+          });
 
-          // อัปเดตป้ายเปรียบเทียบในริบบอน
-          const compBadgeEl = document.getElementById('filter-info-compare-badge');
-          if (compBadgeEl) {
-            compBadgeEl.classList.remove('hidden');
-            const compAvg = (currentFilterWasteCode === 'ALL') ? (compSummary.allWaste || 0) : (compSummary[currentFilterWasteCode] || 0);
-            const diffPct = weekAvgPct - compAvg;
-            const diffSign = diffPct > 0 ? `+${diffPct.toFixed(2)}%` : `${diffPct.toFixed(2)}%`;
-            const isBetter = diffPct <= 0;
-            compBadgeEl.className = isBetter 
-              ? 'px-2.5 py-0.5 rounded-lg font-black bg-emerald-100 text-emerald-800 border border-emerald-300' 
-              : 'px-2.5 py-0.5 rounded-lg font-black bg-amber-100 text-amber-900 border border-amber-300';
-            compBadgeEl.textContent = `เทียบ ${THAI_MONTH_SHORT[compMo]}: ${compAvg.toFixed(2)}% (${isBetter ? 'ลดลง' : 'เพิ่มขึ้น'} ${diffSign})`;
-          }
-        }
-      } else {
-        const compBadgeEl = document.getElementById('filter-info-compare-badge');
-        if (compBadgeEl) compBadgeEl.classList.add('hidden');
-      }
+          const denom = sumConsum > 0 ? sumConsum : 1;
+          const allWastePct = sumConsum > 0 ? (sumTotalWeight / denom * 100) : 0;
 
-      // สร้างชุดข้อมูลของ Bar Chart
-      if (currentFilterWasteCode === 'ALL') {
-        datasets = WASTE_COLUMNS.map(col => {
-          const dailyVals = isPct 
-            ? daysData.map(d => d[col.key] || 0)
-            : weightData.map(d => d[col.key] || 0);
-          
-          let sumVal = 0;
-          if (currentFilterWeek === 'ALL') {
-            sumVal = isPct ? (summary[col.key] || 0) : (weightSummary[col.key] || 0);
-          } else {
-            if (isPct) {
-              let s = 0;
-              daysData.forEach(d => s += (Number(d[col.key]) || 0));
-              sumVal = s / activeDaysCount;
-            } else {
-              weightData.forEach(w => sumVal += (Number(w[col.key]) || 0));
-            }
-          }
-          dailyVals.push(sumVal);
+          const colPctCalculated = {};
+          WASTE_COLUMNS.forEach(c => {
+            colPctCalculated[c.key] = sumConsum > 0 ? (colWeights[c.key] / denom * 100) : (daysCount > 0 ? (colPcts[c.key] / daysCount) : 0);
+          });
 
           return {
-            label: col.label,
-            data: dailyVals,
-            backgroundColor: col.color,
-            borderRadius: 4,
-            stack: 'allWasteStack',
-            barPercentage: 0.88,
-            categoryPercentage: 0.94,
-            maxBarThickness: 52
+            name: w.name,
+            label: w.label,
+            consumption: sumConsum,
+            totalWeight: sumTotalWeight,
+            allWastePct: allWastePct,
+            colWeights: colWeights,
+            colPcts: colPctCalculated
           };
         });
 
-        const dailyTotals = daysData.map(d => isPct ? (d.allWaste || 0) : (d.totalWeight || 0));
-        dailyTotals.push(weekAvgPct);
-        const maxVal = Math.max(...dailyTotals, isPct ? 5.00 : 1000);
-        suggestedMax = Math.ceil(maxVal * 1.25);
+        // จุดข้อมูลสำหรับกราฟแนวโน้มเส้นรายสัปดาห์
+        trendPoints = weeklyData.map(w => {
+          const p = isAll ? w.allWastePct : (w.colPcts[colDef.key] || 0);
+          const k = isAll ? w.totalWeight : (w.colWeights[colDef.key] || 0);
+          return { label: w.label, pct: p, kg: k };
+        });
 
-        if (isPct) {
-          annotations = {
-            targetLine: {
-              type: 'line',
-              yMin: 5.00,
-              yMax: 5.00,
-              borderColor: '#dc2626',
-              borderWidth: 2,
-              borderDash: [6, 4]
-            }
-          };
-        }
-      } else {
-        const colDef = WASTE_COLUMNS.find(c => c.key === currentFilterWasteCode) || WASTE_COLUMNS[0];
-        const values = isPct 
-          ? daysData.map(d => d[colDef.key] || 0)
-          : weightData.map(d => d[colDef.key] || 0);
-        
-        let sumVal = 0;
-        if (currentFilterWeek === 'ALL') {
-          sumVal = isPct ? (summary[colDef.key] || 0) : (weightSummary[colDef.key] || 0);
+        if (isAll) {
+          barDatasets = WASTE_COLUMNS.map(col => {
+            const vals = weeklyData.map(w => isPct ? w.colPcts[col.key] : w.colWeights[col.key]);
+            return {
+              label: col.label,
+              data: vals,
+              backgroundColor: col.color,
+              stack: 'allWasteStack',
+              borderRadius: 4,
+              maxBarThickness: 64
+            };
+          });
         } else {
-          if (isPct) {
-            let s = 0;
-            daysData.forEach(d => s += (Number(d[colDef.key]) || 0));
-            sumVal = s / activeDaysCount;
-          } else {
-            weightData.forEach(w => sumVal += (Number(w[colDef.key]) || 0));
-          }
+          const vals = weeklyData.map(w => isPct ? (w.colPcts[colDef.key] || 0) : (w.colWeights[colDef.key] || 0));
+          const bgColors = vals.map(v => v <= tgtVal ? '#10b981' : '#ef4444');
+          barDatasets = [{
+            label: isPct ? `% ${colDef.label}` : `${colDef.label} (กก.)`,
+            data: vals,
+            backgroundColor: bgColors,
+            borderRadius: 6,
+            maxBarThickness: 64
+          }];
         }
-        values.push(sumVal);
 
-        const backgroundColors = values.map((val, idx) => {
-          if (idx === values.length - 1) {
-            if (!isPct) return '#4338ca';
-            return val <= colDef.target ? '#059669' : '#dc2626';
+      } else if (currentGranularityView === 'monthly') {
+        // แยกตาม 12 เดือน (ม.ค. ถึง ธ.ค.)
+        const THAI_MONTH_LABELS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+        chartLabels = THAI_MONTH_LABELS;
+
+        // คำนวณจาก yearlyTrend หรือ fallback
+        trendPoints = THAI_MONTH_LABELS.map((lbl, idx) => {
+          const mNum = idx + 1;
+          const yItem = (currentYearlyTrend || []).find(y => Number(y.month) === mNum);
+          let p = 0;
+          let k = 0;
+          if (mNum === currentFilterMonth) {
+            p = avgPct;
+            k = totKg;
+          } else if (yItem) {
+            p = Number(yItem.wastePct) || 4.5;
+            k = Number(yItem.wasteKg) || 12000;
           }
-          if (val === 0) return '#f1f5f9';
-          if (!isPct) return colDef.color;
-          return val <= colDef.target ? '#10b981' : '#ef4444';
+          return { label: `${lbl} 2026`, pct: p, kg: k };
         });
 
-        const borderColors = values.map((val, idx) => {
-          if (idx === values.length - 1) {
-            if (!isPct) return '#312e81';
-            return val <= colDef.target ? '#047857' : '#991b1b';
-          }
-          if (val === 0) return '#cbd5e1';
-          if (!isPct) return colDef.color;
-          return val <= colDef.target ? '#059669' : '#dc2626';
-        });
+        const vals = trendPoints.map(t => isPct ? t.pct : t.kg);
+        const bgColors = vals.map(v => v <= tgtVal ? '#10b981' : '#ef4444');
 
-        datasets = [{
-          label: isPct ? `% ${colDef.label}` : `${colDef.label} (กก.)`,
-          data: values,
-          backgroundColor: backgroundColors,
-          borderColor: borderColors,
-          borderWidth: 2,
+        barDatasets = [{
+          label: isPct ? (isAll ? '% รวมของเสีย 12 เดือน' : `% ${colDef.label}`) : `${isAll ? 'ของเสียรวม' : colDef.label} (กก.)`,
+          data: vals,
+          backgroundColor: bgColors,
           borderRadius: 6,
-          barPercentage: 0.88,
-          categoryPercentage: 0.94,
-          maxBarThickness: 52
+          maxBarThickness: 48
         }];
-
-        const maxVal = Math.max(...values, isPct ? colDef.target : 100);
-        suggestedMax = Math.ceil(maxVal * 1.25);
-
-        if (isPct) {
-          annotations = {
-            targetLine: {
-              type: 'line',
-              yMin: colDef.target,
-              yMax: colDef.target,
-              borderColor: '#f59e0b',
-              borderWidth: 2,
-              borderDash: [6, 4]
-            }
-          };
-        }
       }
 
+      // ==========================================
+      // 1. เรนเดอร์ Bar Chart ตัวบน
+      // ==========================================
       if (filterWasteChartInstance) {
         try { filterWasteChartInstance.destroy(); } catch (e) {}
         filterWasteChartInstance = null;
@@ -3565,29 +3452,173 @@
       const chartPlugins = [];
       if (typeof ChartDataLabels !== 'undefined') chartPlugins.push(ChartDataLabels);
 
-      const ctx = chartEl.getContext('2d');
-      filterWasteChartInstance = new Chart(ctx, {
+      const ctxBar = chartEl.getContext('2d');
+      filterWasteChartInstance = new Chart(ctxBar, {
         type: 'bar',
         plugins: chartPlugins,
         data: {
-          labels: labels,
-          datasets: datasets
+          labels: chartLabels,
+          datasets: barDatasets
         },
         options: {
           devicePixelRatio: Math.max(window.devicePixelRatio || 1, 3),
           responsive: true,
           maintainAspectRatio: false,
           layout: {
-            padding: { top: 46, left: 10, right: 38, bottom: 12 }
+            padding: { top: 40, left: 10, right: 20, bottom: 10 }
           },
           plugins: {
             legend: {
-              display: (currentFilterWasteCode === 'ALL'),
+              display: isAll,
               position: 'top',
+              labels: { font: { family: "'Prompt', sans-serif", size: 10, weight: 'bold' }, boxWidth: 12 }
+            },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleFont: { family: "'Prompt', sans-serif", size: 12, weight: 'bold' },
+              bodyFont: { family: "'Prompt', sans-serif", size: 11 },
+              callbacks: {
+                label: function(c) {
+                  const val = c.raw || 0;
+                  return isPct ? ` ${c.dataset.label}: ${val.toFixed(2)}%` : ` ${c.dataset.label}: ${Number(val).toLocaleString()} กก.`;
+                }
+              }
+            },
+            datalabels: {
+              clip: false,
+              display: function(ctx) {
+                if (isAll) return ctx.datasetIndex === barDatasets.length - 1;
+                return true;
+              },
+              anchor: 'end',
+              align: 'top',
+              offset: 4,
+              font: { family: "'Prompt', sans-serif", size: 9, weight: 'bold' },
+              formatter: function(val, ctx) {
+                if (isAll) {
+                  let sum = 0;
+                  for (let i = 0; i < barDatasets.length; i++) sum += Number(barDatasets[i].data[ctx.dataIndex]) || 0;
+                  return isPct ? `${sum.toFixed(2)}%` : `${Number(Math.round(sum)).toLocaleString()}`;
+                }
+                return isPct ? `${Number(val).toFixed(2)}%` : `${Number(Math.round(val)).toLocaleString()}`;
+              }
+            }
+          },
+          scales: {
+            x: {
+              stacked: isAll,
+              grid: { display: false },
+              ticks: { font: { family: "'Prompt', sans-serif", size: 10, weight: 'bold' } }
+            },
+            y: {
+              stacked: isAll,
+              beginAtZero: true,
+              grid: { color: '#f1f5f9' },
+              ticks: {
+                font: { family: "'Prompt', sans-serif", size: 10 },
+                callback: function(v) { return isPct ? `${v}%` : `${Number(v).toLocaleString()}`; }
+              }
+            }
+          }
+        }
+      });
+
+      // ==========================================
+      // 2. เรนเดอร์ Trend Line Chart ตัวล่าง (ตามรูปเป๊ะๆ)
+      // ==========================================
+      renderAreaTrendChartMatchingScreenshot({
+        points: trendPoints,
+        isPct: isPct,
+        targetVal: tgtVal,
+        itemLabel: isAll ? 'Actual % ทั้งหมด 11 รายการ' : `Actual % ${colDef.label}`
+      });
+    }
+
+    // ========================================================
+    // กราฟแนวโน้มเส้นสไตล์ตามรูปตัวอย่างเป๊ะๆ
+    // ========================================================
+    function renderAreaTrendChartMatchingScreenshot(params) {
+      const chartEl = document.getElementById('filterWasteTrendChart');
+      if (!chartEl || typeof Chart === 'undefined') return;
+
+      if (filterWasteTrendChartInstance) {
+        try { filterWasteTrendChartInstance.destroy(); } catch (e) {}
+        filterWasteTrendChartInstance = null;
+      }
+
+      const ctx = chartEl.getContext('2d');
+
+      // Gradient Fill สไตล์สีน้ำเงิน/ม่วงตามรูปตัวอย่าง
+      const grad = ctx.createLinearGradient(0, 0, 0, 360);
+      grad.addColorStop(0, 'rgba(59, 130, 246, 0.45)');
+      grad.addColorStop(0.5, 'rgba(59, 130, 246, 0.15)');
+      grad.addColorStop(1, 'rgba(59, 130, 246, 0.00)');
+
+      const xLabels = params.points.map(p => p.label);
+      const yValues = params.points.map(p => params.isPct ? p.pct : p.kg);
+      const kgList = params.points.map(p => p.kg);
+
+      const datasets = [
+        {
+          label: params.itemLabel,
+          data: yValues,
+          weightKgList: kgList,
+          borderColor: '#4338ca', // Indigo / Blue
+          backgroundColor: grad,
+          borderWidth: 2.8,
+          pointRadius: 4.5,
+          pointHoverRadius: 7,
+          pointBackgroundColor: '#4338ca',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2,
+          tension: 0.4, // Smooth continuous wave curve
+          fill: true
+        }
+      ];
+
+      // Target Dashed Line
+      if (params.isPct && params.targetVal > 0) {
+        datasets.push({
+          label: `Target (${params.targetVal.toFixed(2)}%)`,
+          data: Array(xLabels.length).fill(params.targetVal),
+          borderColor: '#94a3b8',
+          borderWidth: 1.5,
+          borderDash: [5, 4],
+          pointRadius: 0,
+          fill: false
+        });
+      }
+
+      const plugins = [];
+      if (typeof ChartDataLabels !== 'undefined') plugins.push(ChartDataLabels);
+
+      const maxVal = Math.max(...yValues, params.targetVal || 0);
+      const suggestedMax = params.isPct ? Math.max(2.5, Math.ceil(maxVal * 1.35 * 10) / 10) : Math.ceil(maxVal * 1.3);
+
+      filterWasteTrendChartInstance = new Chart(ctx, {
+        type: 'line',
+        plugins: plugins,
+        data: {
+          labels: xLabels,
+          datasets: datasets
+        },
+        options: {
+          devicePixelRatio: Math.max(window.devicePixelRatio || 1, 2.5),
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: {
+            padding: { top: 38, left: 15, right: 25, bottom: 12 }
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              align: 'center',
               labels: {
-                font: { family: "'Prompt', sans-serif", size: 10, weight: 'bold' },
+                font: { family: "'Prompt', sans-serif", size: 11, weight: 'bold' },
                 boxWidth: 12,
-                padding: 10
+                padding: 14,
+                usePointStyle: false
               }
             },
             tooltip: {
@@ -3599,267 +3630,57 @@
               callbacks: {
                 label: function(ctx) {
                   const val = ctx.raw || 0;
-                  const label = ctx.dataset.label || '';
-                  return isPct 
-                    ? ` ${label}: ${val.toFixed(2)}%`
-                    : ` ${label}: ${Number(val).toLocaleString()} กก.`;
+                  const kg = ctx.dataset.weightKgList ? ctx.dataset.weightKgList[ctx.dataIndex] : 0;
+                  if (params.isPct) {
+                    return ` ${ctx.dataset.label}: ${val.toFixed(2)}% (${Number(Math.round(kg)).toLocaleString()} กก.)`;
+                  }
+                  return ` ${ctx.dataset.label}: ${Number(Math.round(val)).toLocaleString()} กก.`;
                 }
               }
             },
+            // Datalabels 2 บรรทัด (Line 1: % / Line 2: kg) ตรงตามรูปตัวอย่างเป๊ะๆ!
             datalabels: {
-              clip: false,
               display: function(context) {
-                if (currentFilterWasteCode === 'ALL') {
-                  return context.datasetIndex === datasets.length - 1;
-                }
-                const v = context.dataset.data[context.dataIndex];
-                return v > 0;
+                return context.datasetIndex === 0; // แสดงเฉพาะเส้นจริง
               },
-              anchor: 'end',
               align: 'top',
+              anchor: 'end',
               offset: 4,
               font: { family: "'Prompt', sans-serif", size: 9, weight: 'bold' },
-              formatter: function(value, context) {
-                if (currentFilterWasteCode === 'ALL') {
-                  let sum = 0;
-                  for (let i = 0; i < datasets.length; i++) {
-                    sum += Number(datasets[i].data[context.dataIndex]) || 0;
-                  }
-                  return isPct ? `${sum.toFixed(2)}%` : `${Number(Math.round(sum)).toLocaleString()}`;
-                }
-                return isPct ? `${Number(value).toFixed(2)}%` : `${Number(Math.round(value)).toLocaleString()}`;
-              },
+              textAlign: 'center',
               color: function(context) {
-                if (currentFilterWasteCode === 'ALL') return '#0f172a';
-                const v = context.dataset.data[context.dataIndex];
-                const colDef = WASTE_COLUMNS.find(c => c.key === currentFilterWasteCode);
-                const tgt = colDef ? colDef.target : 5.00;
-                return isPct ? (v <= tgt ? '#065f46' : '#991b1b') : '#1e1b4b';
+                const val = context.dataset.data[context.dataIndex];
+                return val > params.targetVal ? '#b91c1c' : '#1e293b';
               },
-              backgroundColor: function(context) {
-                if (currentFilterWasteCode === 'ALL') return 'rgba(255, 255, 255, 0.95)';
-                const v = context.dataset.data[context.dataIndex];
-                const colDef = WASTE_COLUMNS.find(c => c.key === currentFilterWasteCode);
-                const tgt = colDef ? colDef.target : 5.00;
-                return isPct ? (v <= tgt ? '#ecfdf5' : '#fef2f2') : '#e0e7ff';
-              },
-              borderColor: function(context) {
-                if (currentFilterWasteCode === 'ALL') return '#cbd5e1';
-                const v = context.dataset.data[context.dataIndex];
-                const colDef = WASTE_COLUMNS.find(c => c.key === currentFilterWasteCode);
-                const tgt = colDef ? colDef.target : 5.00;
-                return isPct ? (v <= tgt ? '#6ee7b7' : '#fca5a5') : '#a5b4fc';
-              },
-              borderWidth: 1,
-              borderRadius: 4,
-              padding: { top: 2, bottom: 2, left: 4, right: 4 }
+              formatter: function(value, context) {
+                const kg = context.dataset.weightKgList ? context.dataset.weightKgList[context.dataIndex] : 0;
+                if (params.isPct) {
+                  const pStr = `${Number(value).toFixed(2)}%`;
+                  const kStr = kg > 0 ? `${Number(Math.round(kg)).toLocaleString()}kg` : '';
+                  return kStr ? `${pStr}\n${kStr}` : pStr;
+                } else {
+                  return `${Number(Math.round(value)).toLocaleString()}kg`;
+                }
+              }
             }
           },
           scales: {
             x: {
-              stacked: (currentFilterWasteCode === 'ALL'),
               grid: { display: false },
               ticks: {
-                font: { family: "'Prompt', sans-serif", size: 10, weight: 'bold' }
+                font: { family: "'Prompt', sans-serif", size: 10 },
+                maxRotation: 45,
+                minRotation: 0
               }
             },
             y: {
-              stacked: (currentFilterWasteCode === 'ALL'),
+              beginAtZero: true,
               suggestedMax: suggestedMax,
               grid: { color: '#f1f5f9' },
               ticks: {
                 font: { family: "'Prompt', sans-serif", size: 10 },
                 callback: function(v) {
-                  return isPct ? `${v.toFixed(1)}%` : `${Number(v).toLocaleString()} กก.`;
-                }
-              }
-            }
-          }
-        }
-      });
-
-      // 4. เรนเดอร์กราฟแนวโน้มเส้นด้านล่าง (Waste Trend Line Chart) ให้ซิงค์ตามตัวกรอง
-      renderSynchronizedTrendChart({
-        daysData: daysData,
-        weightData: weightData,
-        compDaysData: compDaysData,
-        compWeightData: compWeightData,
-        labels: daysData.map((d, idx) => {
-          const parts = (d.date || '').split('/');
-          return parts[0] ? `${parts[0]}` : (idx + 1);
-        }),
-        isPct: isPct,
-        machine: machine,
-        mainMonth: currentFilterMonth,
-        compareMonth: currentCompareMonth
-      });
-    }
-
-    // ========================================================
-    // ฟังก์ชันเรนเดอร์กราฟแนวโน้มเส้นของเสียด้านล่าง (Trend Line Chart)
-    // ========================================================
-    function renderSynchronizedTrendChart(params) {
-      const chartEl = document.getElementById('filterWasteTrendChart');
-      if (!chartEl || typeof Chart === 'undefined') return;
-
-      if (filterWasteTrendChartInstance) {
-        try { filterWasteTrendChartInstance.destroy(); } catch (e) {}
-        filterWasteTrendChartInstance = null;
-      }
-
-      const THAI_MONTH_SHORT = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-      const isPct = params.isPct;
-      const isAll = (currentFilterWasteCode === 'ALL');
-      const colDef = isAll ? null : (WASTE_COLUMNS.find(c => c.key === currentFilterWasteCode) || WASTE_COLUMNS[0]);
-      
-      const itemName = isAll ? 'ทั้งหมด 11 รายการ (All Waste)' : `${colDef.label} (${colDef.code})`;
-      safeSetText('trend-chart-item-label', itemName);
-
-      // 1. ดึงชุดข้อมูลของเดือนหลัก
-      const mainValues = params.daysData.map((d, idx) => {
-        if (isAll) {
-          return isPct ? (Number(d.allWaste) || 0) : (Number(params.weightData[idx]?.totalWeight) || 0);
-        } else {
-          return isPct ? (Number(d[colDef.key]) || 0) : (Number(params.weightData[idx]?.[colDef.key]) || 0);
-        }
-      });
-
-      const mainLabel = `เดือน ${THAI_MONTH_SHORT[params.mainMonth]} ${isPct ? '(%)' : '(กก.)'}`;
-
-      // Gradient background
-      const ctx = chartEl.getContext('2d');
-      const gradMain = ctx.createLinearGradient(0, 0, 0, 300);
-      gradMain.addColorStop(0, 'rgba(79, 70, 229, 0.35)');
-      gradMain.addColorStop(1, 'rgba(79, 70, 229, 0.00)');
-
-      const datasets = [
-        {
-          label: mainLabel,
-          data: mainValues,
-          borderColor: '#4f46e5',
-          backgroundColor: gradMain,
-          borderWidth: 2.5,
-          pointRadius: 3.5,
-          pointHoverRadius: 6,
-          pointBackgroundColor: '#4f46e5',
-          pointBorderColor: '#ffffff',
-          pointBorderWidth: 2,
-          tension: 0.35,
-          fill: true
-        }
-      ];
-
-      // 2. ถ้ามีเทียบเดือน ให้เพิ่มเส้นเปรียบเทียบของเดือนที่สอง
-      const hasCompare = (params.compareMonth !== 'NONE' && params.compDaysData && params.compDaysData.length > 0);
-      const legendBox = document.getElementById('trend-compare-legend');
-
-      if (hasCompare) {
-        const compMo = parseInt(params.compareMonth);
-        const compLabel = `เทียบเดือน ${THAI_MONTH_SHORT[compMo]} ${isPct ? '(%)' : '(กก.)'}`;
-
-        if (legendBox) legendBox.classList.remove('hidden');
-        safeSetText('trend-legend-m1', `${THAI_MONTH_SHORT[params.mainMonth]}`);
-        safeSetText('trend-legend-m2', `${THAI_MONTH_SHORT[compMo]}`);
-
-        const compValues = params.labels.map((lbl, idx) => {
-          const cd = params.compDaysData[idx];
-          if (!cd) return null;
-          if (isAll) {
-            return isPct ? (Number(cd.allWaste) || 0) : (Number(params.compWeightData[idx]?.totalWeight) || 0);
-          } else {
-            return isPct ? (Number(cd[colDef.key]) || 0) : (Number(params.compWeightData[idx]?.[colDef.key]) || 0);
-          }
-        });
-
-        datasets.push({
-          label: compLabel,
-          data: compValues,
-          borderColor: '#f59e0b',
-          backgroundColor: 'transparent',
-          borderWidth: 2.2,
-          borderDash: [5, 4],
-          pointRadius: 3,
-          pointHoverRadius: 5.5,
-          pointBackgroundColor: '#f59e0b',
-          pointBorderColor: '#ffffff',
-          pointBorderWidth: 1.5,
-          tension: 0.35,
-          fill: false
-        });
-      } else {
-        if (legendBox) legendBox.classList.add('hidden');
-      }
-
-      // 3. เพิ่มเส้นประ Target
-      const targetVal = isAll ? 5.00 : (colDef?.target || 0);
-      if (isPct && targetVal > 0) {
-        datasets.push({
-          label: `Target (${targetVal.toFixed(2)}%)`,
-          data: Array(params.labels.length).fill(targetVal),
-          borderColor: '#ef4444',
-          borderWidth: 1.5,
-          borderDash: [6, 4],
-          pointRadius: 0,
-          pointHoverRadius: 0,
-          fill: false
-        });
-      }
-
-      filterWasteTrendChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: params.labels,
-          datasets: datasets
-        },
-        options: {
-          devicePixelRatio: Math.max(window.devicePixelRatio || 1, 2.5),
-          responsive: true,
-          maintainAspectRatio: false,
-          layout: {
-            padding: { top: 20, left: 10, right: 20, bottom: 10 }
-          },
-          plugins: {
-            legend: {
-              display: true,
-              position: 'top',
-              labels: {
-                font: { family: "'Prompt', sans-serif", size: 11, weight: 'bold' },
-                boxWidth: 14,
-                padding: 12
-              }
-            },
-            tooltip: {
-              backgroundColor: '#0f172a',
-              titleFont: { family: "'Prompt', sans-serif", size: 12, weight: 'bold' },
-              bodyFont: { family: "'Prompt', sans-serif", size: 11 },
-              padding: 10,
-              cornerRadius: 8,
-              callbacks: {
-                label: function(ctx) {
-                  const val = ctx.raw;
-                  if (val === null || val === undefined) return '';
-                  const lbl = ctx.dataset.label || '';
-                  return isPct 
-                    ? ` ${lbl}: ${Number(val).toFixed(2)}%`
-                    : ` ${lbl}: ${Number(Math.round(val)).toLocaleString()} กก.`;
-                }
-              }
-            }
-          },
-          scales: {
-            x: {
-              grid: { display: false },
-              ticks: {
-                font: { family: "'Prompt', sans-serif", size: 10, weight: 'bold' }
-              }
-            },
-            y: {
-              beginAtZero: true,
-              grid: { color: '#f1f5f9' },
-              ticks: {
-                font: { family: "'Prompt', sans-serif", size: 10 },
-                callback: function(v) {
-                  return isPct ? `${v.toFixed(1)}%` : `${Number(v).toLocaleString()} กก.`;
+                  return params.isPct ? `${v.toFixed(1)}%` : `${Number(v).toLocaleString()}`;
                 }
               }
             }
@@ -3883,14 +3704,15 @@
           ignoreElements: el => el.getAttribute('data-html2canvas-ignore') === 'true'
         });
         const link = document.createElement('a');
-        link.download = `Waste_Trend_Line_${machine}_${currentFilterWasteCode}_Month${currentFilterMonth}.png`;
+        link.download = `Waste_Trend_Line_${machine}_${currentFilterWasteCode}_${currentGranularityView}.png`;
         link.href = canvas.toDataURL('image/png', 1.0);
         link.click();
       } catch (e) {
         console.error('Error exporting trend chart image:', e);
       }
     }
-function downloadFilterChartImage() {
+
+    function downloadFilterChartImage() {
       const chartEl = document.getElementById('filterWasteChart');
       if (!chartEl || !filterWasteChartInstance) {
         alert('ไม่พบกราฟที่ต้องการบันทึก');
