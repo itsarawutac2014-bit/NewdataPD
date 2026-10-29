@@ -1009,10 +1009,10 @@
     <!-- ======================================================== -->
     <section id="filter-waste-trend-card" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 mt-6 w-full">
       
-      <!-- Header ตรงตามรูปตัวอย่าง: | แนวโน้มเปอร์เซ็นต์ของเสีย (% NCP) และปุ่ม [ Daily ] [ Weekly ] [ Monthly ] -->
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-100">
+      <!-- Header: | แนวโน้มเปอร์เซ็นต์ของเสีย + ปุ่มเลือกสีเส้น + [ Daily | Weekly | Monthly ] + บันทึกกราฟ -->
+      <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 pb-4 border-b border-slate-100">
         <div class="flex items-center gap-2.5">
-          <span class="w-1.5 h-6 bg-blue-600 rounded-full inline-block"></span>
+          <span class="w-1.5 h-6 bg-blue-600 rounded-full inline-block transition-colors" id="trend-header-accent-bar"></span>
           <h3 class="text-base sm:text-lg font-black text-slate-800 tracking-tight flex items-center gap-2">
             <span>แนวโน้มเปอร์เซ็นต์ของเสีย</span>
             <span id="trend-waste-item-title" class="text-blue-600 font-black">(% ทั้งหมด 11 รายการ)</span>
@@ -1020,7 +1020,26 @@
         </div>
 
         <div class="flex items-center gap-3 flex-wrap" data-html2canvas-ignore="true">
-          <!-- Segmented Pills: [ Daily ] [ Weekly ] [ Monthly ] (ตามรูป) -->
+          <!-- ตัวเลือกเปลี่ยนสีเส้นกราฟตามคำขอ -->
+          <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 shadow-2xs">
+            <span class="text-xs font-bold text-slate-600 flex items-center gap-1">
+              <i class="fa-solid fa-palette text-indigo-500 text-xs"></i> สีเส้น:
+            </span>
+            <div class="flex items-center gap-1.5">
+              <button type="button" onclick="setTrendLineColor('#2563eb')" class="w-5 h-5 rounded-full bg-blue-600 border-2 border-white shadow-xs hover:scale-110 transition cursor-pointer trend-color-dot ring-2 ring-blue-500" data-color="#2563eb" title="น้ำเงิน (Blue)"></button>
+              <button type="button" onclick="setTrendLineColor('#059669')" class="w-5 h-5 rounded-full bg-emerald-600 border-2 border-white shadow-xs hover:scale-110 transition cursor-pointer trend-color-dot" data-color="#059669" title="เขียว (Emerald)"></button>
+              <button type="button" onclick="setTrendLineColor('#7c3aed')" class="w-5 h-5 rounded-full bg-violet-600 border-2 border-white shadow-xs hover:scale-110 transition cursor-pointer trend-color-dot" data-color="#7c3aed" title="ม่วง (Violet)"></button>
+              <button type="button" onclick="setTrendLineColor('#d97706')" class="w-5 h-5 rounded-full bg-amber-600 border-2 border-white shadow-xs hover:scale-110 transition cursor-pointer trend-color-dot" data-color="#d97706" title="ส้ม (Amber)"></button>
+              <button type="button" onclick="setTrendLineColor('#e11d48')" class="w-5 h-5 rounded-full bg-rose-600 border-2 border-white shadow-xs hover:scale-110 transition cursor-pointer trend-color-dot" data-color="#e11d48" title="แดง (Rose)"></button>
+              <button type="button" onclick="setTrendLineColor('#0f172a')" class="w-5 h-5 rounded-full bg-slate-900 border-2 border-white shadow-xs hover:scale-110 transition cursor-pointer trend-color-dot" data-color="#0f172a" title="ดำกราไฟต์ (Graphite)"></button>
+              <label class="relative flex items-center justify-center w-6 h-6 rounded-lg bg-white border border-slate-300 hover:border-indigo-400 cursor-pointer shadow-2xs ml-0.5" title="เลือกสีอื่นๆ (Custom Color)">
+                <i class="fa-solid fa-eye-dropper text-[10px] text-slate-600"></i>
+                <input type="color" id="trendCustomColorInput" value="#2563eb" onchange="setTrendLineColor(this.value)" class="opacity-0 absolute inset-0 w-full h-full cursor-pointer">
+              </label>
+            </div>
+          </div>
+
+          <!-- Segmented Pills: [ Daily ] [ Weekly ] [ Monthly ] -->
           <div class="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-bold border border-slate-200 shadow-2xs">
             <button type="button" onclick="setGranularityView('daily')" id="btn-gran-daily" class="px-4 py-1.5 rounded-lg bg-blue-600 text-white font-black shadow-xs transition cursor-pointer">
               Daily
@@ -1040,8 +1059,8 @@
         </div>
       </div>
 
-      <!-- Trend Area Canvas -->
-      <div class="relative h-[360px] sm:h-[420px] w-full mt-4">
+      <!-- Trend Area Canvas: ขยายให้ใหญ่ขึ้นอีก ชัดเจนเต็มตา (h-[480px] sm:h-[540px]) -->
+      <div class="relative h-[480px] sm:h-[540px] w-full mt-4">
         <canvas id="filterWasteTrendChart"></canvas>
       </div>
     </section>
@@ -3092,6 +3111,33 @@
     // ฟังก์ชันจัดการกราฟวิเคราะห์แยกของเสีย 11 รายการ (Filtered Breakdown Chart)
     // ========================================================
     let currentGranularityView = 'daily'; // 'daily' | 'weekly' | 'monthly'
+    let currentTrendLineColor = localStorage.getItem('waste_trend_custom_color') || '#2563eb';
+
+    function setTrendLineColor(color) {
+      if (!color) return;
+      currentTrendLineColor = color;
+      try {
+        localStorage.setItem('waste_trend_custom_color', color);
+      } catch (e) {}
+
+      // Update dot styles
+      document.querySelectorAll('.trend-color-dot').forEach(dot => {
+        const dotColor = dot.getAttribute('data-color');
+        if (dotColor && dotColor.toLowerCase() === color.toLowerCase()) {
+          dot.classList.add('ring-2', 'ring-offset-1', 'ring-slate-800');
+        } else {
+          dot.classList.remove('ring-2', 'ring-offset-1', 'ring-slate-800');
+        }
+      });
+
+      const customInput = document.getElementById('trendCustomColorInput');
+      if (customInput) customInput.value = color;
+
+      const accentBar = document.getElementById('trend-header-accent-bar');
+      if (accentBar) accentBar.style.backgroundColor = color;
+
+      renderFilterWasteChart();
+    }
 
     function setGranularityView(view) {
       currentGranularityView = view;
@@ -3116,6 +3162,19 @@
       const machine = (document.getElementById('selectedMachine')?.value || 'BHS').toUpperCase();
       const cacheKey = `${machine}_${currentFilterMonth}`;
 
+      // Synchronize top month dropdown
+      const topMonthSelect = document.getElementById('selectedMonth');
+      if (topMonthSelect && topMonthSelect.value != currentFilterMonth) {
+        topMonthSelect.value = currentFilterMonth;
+      }
+
+      // Show temporary loading indicator on ribbon
+      const statusEl = document.getElementById('filter-info-status-badge');
+      if (statusEl) {
+        statusEl.className = 'px-2.5 py-0.5 rounded-lg font-black bg-indigo-100 text-indigo-800 animate-pulse';
+        statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> กำลังโหลดเดือน ' + currentFilterMonth + '...';
+      }
+
       if (monthlyBreakdownCache[cacheKey]) {
         renderFilterWasteChart();
       } else {
@@ -3133,10 +3192,13 @@
                 weightSummary: res.weightSummary
               };
               renderFilterWasteChart();
+            } else {
+              renderFilterWasteChart();
             }
           })
           .catch(err => {
             console.error('Error fetching month for filter chart:', err);
+            renderFilterWasteChart();
           });
       }
     }
@@ -3308,11 +3370,13 @@
           });
           chartLabels.push('รวม MTD');
         } else {
+          // แสดงเฉพาะของเสียที่กดเลือกเพียงรายการเดียว!
           const vals = rawDays.map((d, idx) => isPct ? (d[colDef.key] || 0) : (rawWeights[idx]?.[colDef.key] || 0));
           vals.push(isPct ? (summary[colDef.key] || 0) : (weightSummary[colDef.key] || 0));
           chartLabels.push('รวม MTD');
 
-          const bgColors = vals.map((v, i) => i === vals.length - 1 ? (v <= tgtVal ? '#059669' : '#dc2626') : (v <= tgtVal ? '#10b981' : '#ef4444'));
+          const chosenColor = currentTrendLineColor || colDef.color || '#2563eb';
+          const bgColors = vals.map((v, i) => i === vals.length - 1 ? (v <= tgtVal ? '#059669' : '#dc2626') : (v <= tgtVal ? chosenColor : '#ef4444'));
           barDatasets = [{
             label: isPct ? `% ${colDef.label}` : `${colDef.label} (กก.)`,
             data: vals,
@@ -3397,8 +3461,10 @@
             };
           });
         } else {
+          // แสดงเฉพาะของเสียที่เลือกในแต่ละ Week!
           const vals = weeklyData.map(w => isPct ? (w.colPcts[colDef.key] || 0) : (w.colWeights[colDef.key] || 0));
-          const bgColors = vals.map(v => v <= tgtVal ? '#10b981' : '#ef4444');
+          const chosenColor = currentTrendLineColor || colDef.color || '#2563eb';
+          const bgColors = vals.map(v => v <= tgtVal ? chosenColor : '#ef4444');
           barDatasets = [{
             label: isPct ? `% ${colDef.label}` : `${colDef.label} (กก.)`,
             data: vals,
@@ -3413,24 +3479,44 @@
         const THAI_MONTH_LABELS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
         chartLabels = THAI_MONTH_LABELS;
 
-        // คำนวณจาก yearlyTrend หรือ fallback
+        // คำนวณจาก yearlyTrend หรือ monthlyBreakdownCache
         trendPoints = THAI_MONTH_LABELS.map((lbl, idx) => {
           const mNum = idx + 1;
-          const yItem = (currentYearlyTrend || []).find(y => Number(y.month) === mNum);
           let p = 0;
           let k = 0;
+
           if (mNum === currentFilterMonth) {
             p = avgPct;
             k = totKg;
-          } else if (yItem) {
-            p = Number(yItem.wastePct) || 4.5;
-            k = Number(yItem.wasteKg) || 12000;
+          } else if (monthlyBreakdownCache[`${machine}_${mNum}`]) {
+            const cached = monthlyBreakdownCache[`${machine}_${mNum}`];
+            if (isAll) {
+              p = cached.summary?.allWaste || 0;
+              k = cached.weightSummary?.totalAll || 0;
+            } else {
+              p = cached.summary?.[colDef.key] || 0;
+              k = cached.weightSummary?.[colDef.key] || 0;
+            }
+          } else {
+            const yItem = (currentYearlyTrend || []).find(y => Number(y.month) === mNum);
+            if (yItem) {
+              if (isAll) {
+                p = Number(yItem.wastePct) || 0;
+                k = Number(yItem.wasteKg) || 0;
+              } else {
+                // อัตราส่วนของเสียรายการที่เลือกเทียบกับผลรวมทั้งเดือน
+                const ratio = (summary.allWaste > 0) ? ((summary[colDef.key] || 0) / summary.allWaste) : 0.2;
+                p = parseFloat(((Number(yItem.wastePct) || 4.5) * ratio).toFixed(2));
+                k = Math.round((Number(yItem.wasteKg) || 10000) * ratio);
+              }
+            }
           }
           return { label: `${lbl} 2026`, pct: p, kg: k };
         });
 
         const vals = trendPoints.map(t => isPct ? t.pct : t.kg);
-        const bgColors = vals.map(v => v <= tgtVal ? '#10b981' : '#ef4444');
+        const chosenColor = currentTrendLineColor || (colDef ? colDef.color : '#2563eb');
+        const bgColors = vals.map(v => v <= tgtVal ? chosenColor : '#ef4444');
 
         barDatasets = [{
           label: isPct ? (isAll ? '% รวมของเสีย 12 เดือน' : `% ${colDef.label}`) : `${isAll ? 'ของเสียรวม' : colDef.label} (กก.)`,
@@ -3449,38 +3535,39 @@
         filterWasteChartInstance = null;
       }
 
-      const chartPlugins = [];
-      if (typeof ChartDataLabels !== 'undefined') chartPlugins.push(ChartDataLabels);
+      const barPlugins = [];
+      if (typeof ChartDataLabels !== 'undefined') barPlugins.push(ChartDataLabels);
 
       const ctxBar = chartEl.getContext('2d');
       filterWasteChartInstance = new Chart(ctxBar, {
         type: 'bar',
-        plugins: chartPlugins,
+        plugins: barPlugins,
         data: {
           labels: chartLabels,
           datasets: barDatasets
         },
         options: {
-          devicePixelRatio: Math.max(window.devicePixelRatio || 1, 3),
+          devicePixelRatio: Math.max(window.devicePixelRatio || 1, 2.5),
           responsive: true,
           maintainAspectRatio: false,
-          layout: {
-            padding: { top: 40, left: 10, right: 20, bottom: 10 }
-          },
+          layout: { padding: { top: 35, left: 10, right: 25, bottom: 10 } },
           plugins: {
             legend: {
               display: isAll,
               position: 'top',
-              labels: { font: { family: "'Prompt', sans-serif", size: 10, weight: 'bold' }, boxWidth: 12 }
+              labels: { font: { family: "'Prompt', sans-serif", size: 10, weight: 'bold' }, boxWidth: 12, padding: 8 }
             },
             tooltip: {
               backgroundColor: '#0f172a',
               titleFont: { family: "'Prompt', sans-serif", size: 12, weight: 'bold' },
               bodyFont: { family: "'Prompt', sans-serif", size: 11 },
+              padding: 10,
+              cornerRadius: 8,
               callbacks: {
-                label: function(c) {
-                  const val = c.raw || 0;
-                  return isPct ? ` ${c.dataset.label}: ${val.toFixed(2)}%` : ` ${c.dataset.label}: ${Number(val).toLocaleString()} กก.`;
+                label: function(ctx) {
+                  const val = ctx.raw || 0;
+                  const lbl = ctx.dataset.label || '';
+                  return isPct ? ` ${lbl}: ${Number(val).toFixed(2)}%` : ` ${lbl}: ${Number(Math.round(val)).toLocaleString()} กก.`;
                 }
               }
             },
@@ -3488,12 +3575,16 @@
               clip: false,
               display: function(ctx) {
                 if (isAll) return ctx.datasetIndex === barDatasets.length - 1;
-                return true;
+                return ctx.dataset.data[ctx.dataIndex] > 0;
               },
               anchor: 'end',
               align: 'top',
-              offset: 4,
-              font: { family: "'Prompt', sans-serif", size: 9, weight: 'bold' },
+              offset: 3,
+              font: { family: "'Prompt', sans-serif", size: 9.5, weight: 'bold' },
+              color: function(ctx) {
+                const val = ctx.dataset.data[ctx.dataIndex];
+                return (isPct && val > tgtVal) ? '#b91c1c' : '#1e293b';
+              },
               formatter: function(val, ctx) {
                 if (isAll) {
                   let sum = 0;
@@ -3524,18 +3615,34 @@
       });
 
       // ==========================================
-      // 2. เรนเดอร์ Trend Line Chart ตัวล่าง (ตามรูปเป๊ะๆ)
+      // 2. เรนเดอร์ Trend Line Chart ตัวล่าง (ใหญ่ขึ้น ตัวเลขชัดเจน เลือกสีได้)
       // ==========================================
       renderAreaTrendChartMatchingScreenshot({
         points: trendPoints,
         isPct: isPct,
         targetVal: tgtVal,
-        itemLabel: isAll ? 'Actual % ทั้งหมด 11 รายการ' : `Actual % ${colDef.label}`
+        itemLabel: isAll ? 'Actual % ทั้งหมด 11 รายการ' : `Actual % ${colDef.label}`,
+        color: currentTrendLineColor || (colDef ? colDef.color : '#2563eb')
       });
     }
 
     // ========================================================
-    // กราฟแนวโน้มเส้นสไตล์ตามรูปตัวอย่างเป๊ะๆ
+    // ฟังก์ชันแปลง Hex เป็น RGBA
+    // ========================================================
+    function hexToRgba(hex, alpha) {
+      if (!hex) return `rgba(37, 99, 235, ${alpha})`;
+      let c = hex.replace('#', '');
+      if (c.length === 3) c = c.split('').map(x => x + x).join('');
+      const num = parseInt(c, 16);
+      if (isNaN(num)) return `rgba(37, 99, 235, ${alpha})`;
+      const r = (num >> 16) & 255;
+      const g = (num >> 8) & 255;
+      const b = num & 255;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    // ========================================================
+    // กราฟแนวโน้มเส้นสไตล์ตามรูปตัวอย่าง: ใหญ่ขึ้น ตัวเลขชัดเจน เปลี่ยนสีได้
     // ========================================================
     function renderAreaTrendChartMatchingScreenshot(params) {
       const chartEl = document.getElementById('filterWasteTrendChart');
@@ -3547,12 +3654,13 @@
       }
 
       const ctx = chartEl.getContext('2d');
+      const chosenColor = params.color || currentTrendLineColor || '#2563eb';
 
-      // Gradient Fill สไตล์สีน้ำเงิน/ม่วงตามรูปตัวอย่าง
-      const grad = ctx.createLinearGradient(0, 0, 0, 360);
-      grad.addColorStop(0, 'rgba(59, 130, 246, 0.45)');
-      grad.addColorStop(0.5, 'rgba(59, 130, 246, 0.15)');
-      grad.addColorStop(1, 'rgba(59, 130, 246, 0.00)');
+      // Gradient Fill ตามสีที่เลือก
+      const grad = ctx.createLinearGradient(0, 0, 0, 480);
+      grad.addColorStop(0, hexToRgba(chosenColor, 0.45));
+      grad.addColorStop(0.5, hexToRgba(chosenColor, 0.15));
+      grad.addColorStop(1, hexToRgba(chosenColor, 0.00));
 
       const xLabels = params.points.map(p => p.label);
       const yValues = params.points.map(p => params.isPct ? p.pct : p.kg);
@@ -3563,14 +3671,14 @@
           label: params.itemLabel,
           data: yValues,
           weightKgList: kgList,
-          borderColor: '#4338ca', // Indigo / Blue
+          borderColor: chosenColor,
           backgroundColor: grad,
-          borderWidth: 2.8,
-          pointRadius: 4.5,
-          pointHoverRadius: 7,
-          pointBackgroundColor: '#4338ca',
+          borderWidth: 3.5,
+          pointRadius: 5.5,
+          pointHoverRadius: 9,
+          pointBackgroundColor: chosenColor,
           pointBorderColor: '#ffffff',
-          pointBorderWidth: 2,
+          pointBorderWidth: 2.2,
           tension: 0.4, // Smooth continuous wave curve
           fill: true
         }
@@ -3582,7 +3690,7 @@
           label: `Target (${params.targetVal.toFixed(2)}%)`,
           data: Array(xLabels.length).fill(params.targetVal),
           borderColor: '#94a3b8',
-          borderWidth: 1.5,
+          borderWidth: 1.8,
           borderDash: [5, 4],
           pointRadius: 0,
           fill: false
@@ -3607,7 +3715,7 @@
           responsive: true,
           maintainAspectRatio: false,
           layout: {
-            padding: { top: 38, left: 15, right: 25, bottom: 12 }
+            padding: { top: 48, left: 15, right: 30, bottom: 15 }
           },
           plugins: {
             legend: {
@@ -3615,9 +3723,9 @@
               position: 'top',
               align: 'center',
               labels: {
-                font: { family: "'Prompt', sans-serif", size: 11, weight: 'bold' },
-                boxWidth: 12,
-                padding: 14,
+                font: { family: "'Prompt', sans-serif", size: 12, weight: 'bold' },
+                boxWidth: 14,
+                padding: 16,
                 usePointStyle: false
               }
             },
@@ -3638,20 +3746,28 @@
                 }
               }
             },
-            // Datalabels 2 บรรทัด (Line 1: % / Line 2: kg) ตรงตามรูปตัวอย่างเป๊ะๆ!
+            // Datalabels 2 บรรทัด ตัวเลขชัดเจน มีกล่องพื้นหลังอ่านง่ายสบายตา
             datalabels: {
               display: function(context) {
                 return context.datasetIndex === 0; // แสดงเฉพาะเส้นจริง
               },
               align: 'top',
               anchor: 'end',
-              offset: 4,
-              font: { family: "'Prompt', sans-serif", size: 9, weight: 'bold' },
+              offset: 6,
+              font: { family: "'Prompt', sans-serif", size: 10.5, weight: 'bold' },
               textAlign: 'center',
               color: function(context) {
                 const val = context.dataset.data[context.dataIndex];
-                return val > params.targetVal ? '#b91c1c' : '#1e293b';
+                return (params.isPct && val > params.targetVal) ? '#b91c1c' : '#0f172a';
               },
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              borderColor: function(context) {
+                const val = context.dataset.data[context.dataIndex];
+                return (params.isPct && val > params.targetVal) ? '#fca5a5' : '#cbd5e1';
+              },
+              borderWidth: 1,
+              borderRadius: 6,
+              padding: { top: 3, bottom: 3, left: 6, right: 6 },
               formatter: function(value, context) {
                 const kg = context.dataset.weightKgList ? context.dataset.weightKgList[context.dataIndex] : 0;
                 if (params.isPct) {
@@ -3668,7 +3784,7 @@
             x: {
               grid: { display: false },
               ticks: {
-                font: { family: "'Prompt', sans-serif", size: 10 },
+                font: { family: "'Prompt', sans-serif", size: 10.5, weight: 'bold' },
                 maxRotation: 45,
                 minRotation: 0
               }
@@ -3678,7 +3794,7 @@
               suggestedMax: suggestedMax,
               grid: { color: '#f1f5f9' },
               ticks: {
-                font: { family: "'Prompt', sans-serif", size: 10 },
+                font: { family: "'Prompt', sans-serif", size: 11 },
                 callback: function(v) {
                   return params.isPct ? `${v.toFixed(1)}%` : `${Number(v).toLocaleString()}`;
                 }
