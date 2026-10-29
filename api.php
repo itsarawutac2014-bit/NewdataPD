@@ -44,7 +44,7 @@ $colMap = [
     'ISOWA' => ['consum' => 1, 'output' => 2, 'waste' => 5],
     'BHS'   => ['consum' => 7, 'output' => 8, 'waste' => 11],
     'YUELI' => ['consum' => 13, 'output' => 14, 'waste' => 17],
-    'TOTAL' => ['consum' => 19, 'output' => 20, 'waste' => -1]
+    'TOTAL' => ['consum' => 23, 'output' => 24, 'waste' => -1]
 ];
 $mCols = $colMap[$machine] ?? $colMap['BHS'];
 
@@ -102,12 +102,11 @@ foreach ($trySheets as $sName) {
 $dailyBreakdown = [];
 $baseCol = ($month - 1) * 9;
 $mOffset = [
-    'ISOWA' => 2,
     'BHS'   => 3,
     'YUELI' => 4,
-    'TOTAL' => 5
+    'ISOWA' => 5,
+    'TOTAL' => 6
 ];
-$kgCol = $baseCol + ($mOffset[$machine] ?? 3);
 
 if ($raw2 && preg_match('/setResponse\((.*)\);/s', $raw2, $m2)) {
     $j2 = json_decode($m2[1], true);
@@ -117,7 +116,20 @@ if ($raw2 && preg_match('/setResponse\((.*)\);/s', $raw2, $m2)) {
 
         for ($r = 0; $r < count($rows2); $r++) {
             $cCode = trim($rows2[$r]['c'][$baseCol]['v'] ?? '');
-            $cKg = floatval($rows2[$r]['c'][$kgCol]['v'] ?? 0);
+            
+            if ($machine === 'TOTAL') {
+                $cKg6 = floatval($rows2[$r]['c'][$baseCol + 6]['v'] ?? 0);
+                if ($cKg6 > 0) {
+                    $cKg = $cKg6;
+                } else {
+                    $cKg = floatval($rows2[$r]['c'][$baseCol + 3]['v'] ?? 0)
+                         + floatval($rows2[$r]['c'][$baseCol + 4]['v'] ?? 0)
+                         + floatval($rows2[$r]['c'][$baseCol + 5]['v'] ?? 0);
+                }
+            } else {
+                $kgCol = $baseCol + ($mOffset[$machine] ?? 3);
+                $cKg = floatval($rows2[$r]['c'][$kgCol]['v'] ?? 0);
+            }
 
             // ตรวจจับวันที่ของเดือนนั้นๆ เช่น 1/10/2025 หรือ 1/10/2026
             if (preg_match('/^(\d{1,2})\/' . $month . '\/\d{2,4}$/', $cCode, $dm) ||
@@ -454,12 +466,24 @@ if ($raw2 && isset($j2['table']['rows'])) {
     
     for ($mo = 1; $mo <= 12; $mo++) {
         $mBaseCol = ($mo - 1) * 9;
-        $mKgCol = $mBaseCol + ($mOffset[$machine] ?? 3);
         $currIso = null;
         
         for ($r = 0; $r < count($rows2All); $r++) {
             $cCode = trim($rows2All[$r]['c'][$mBaseCol]['v'] ?? '');
-            $cKg = floatval($rows2All[$r]['c'][$mKgCol]['v'] ?? 0);
+            
+            if ($machine === 'TOTAL') {
+                $cKg6 = floatval($rows2All[$r]['c'][$mBaseCol + 6]['v'] ?? 0);
+                if ($cKg6 > 0) {
+                    $cKg = $cKg6;
+                } else {
+                    $cKg = floatval($rows2All[$r]['c'][$mBaseCol + 3]['v'] ?? 0)
+                         + floatval($rows2All[$r]['c'][$mBaseCol + 4]['v'] ?? 0)
+                         + floatval($rows2All[$r]['c'][$mBaseCol + 5]['v'] ?? 0);
+                }
+            } else {
+                $mKgCol = $mBaseCol + ($mOffset[$machine] ?? 3);
+                $cKg = floatval($rows2All[$r]['c'][$mKgCol]['v'] ?? 0);
+            }
             
             if (preg_match('/^(\d{1,2})\/' . $mo . '\/\d{2,4}$/', $cCode, $dm) ||
                 preg_match('/^(\d{1,2})\/' . sprintf('%02d', $mo) . '\/\d{2,4}$/', $cCode, $dm)) {
