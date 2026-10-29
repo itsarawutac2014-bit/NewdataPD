@@ -3532,40 +3532,46 @@
           let p = 0;
           let k = 0;
 
+          // 1. ตรวจสอบว่าเดือนนี้มีข้อมูลการผลิตจริงหรือไม่
+          const yItem = (currentYearlyTrend || []).find(y => Number(y.month) === mNum);
+          const hasYearlyProduction = Boolean(yItem && (Number(yItem.consumption) > 0 || Number(yItem.output) > 0 || Number(yItem.daysCount) > 0));
+          const hasCurMonthProduction = (mNum === currentFilterMonth && Array.isArray(currentData) && currentData.some(d => (Number(d.consumption) > 0 || Number(d.output) > 0 || Number(d.allWaste) > 0)));
+          const cachedMonth = monthlyBreakdownCache[`${machine}_${mNum}`];
+          const hasCachedProduction = Boolean(cachedMonth && cachedMonth.summary && (Number(cachedMonth.summary.consumption) > 0 || Number(cachedMonth.summary.output) > 0 || (Array.isArray(cachedMonth.data) && cachedMonth.data.some(d => Number(d.consumption) > 0 || Number(d.output) > 0))));
+
+          // ถ้าไม่มีข้อมูลการผลิตเลยในเดือนนี้ (เช่น เดือน 11 หรือ 12 ที่ยังไม่ถึง) ข้ามทันที
+          if (!hasYearlyProduction && !hasCurMonthProduction && !hasCachedProduction) {
+            return;
+          }
+
           if (mNum === currentFilterMonth) {
-            hasData = Array.isArray(currentData) && currentData.length > 0 && currentData.some(d => (Number(d.consumption) > 0 || Number(d.output) > 0 || Number(d.allWaste) > 0));
+            hasData = hasCurMonthProduction;
             if (hasData) {
               p = avgPct;
               k = totKg;
             }
-          } else if (monthlyBreakdownCache[`${machine}_${mNum}`]) {
-            const cached = monthlyBreakdownCache[`${machine}_${mNum}`];
-            hasData = cached && cached.summary && (Number(cached.summary.consumption) > 0 || Number(cached.summary.output) > 0 || Number(cached.summary.allWaste) > 0 || (Array.isArray(cached.data) && cached.data.length > 0));
-            if (hasData) {
-              if (isAll) {
-                p = cached.summary?.allWaste || 0;
-                k = cached.weightSummary?.totalAll || 0;
-              } else {
-                p = cached.summary?.[colDef.key] || 0;
-                k = cached.weightSummary?.[colDef.key] || 0;
-              }
+          } else if (hasCachedProduction) {
+            hasData = true;
+            if (isAll) {
+              p = cachedMonth.summary?.allWaste || 0;
+              k = cachedMonth.weightSummary?.totalAll || 0;
+            } else {
+              p = cachedMonth.summary?.[colDef.key] || 0;
+              k = cachedMonth.weightSummary?.[colDef.key] || 0;
             }
-          } else {
-            const yItem = (currentYearlyTrend || []).find(y => Number(y.month) === mNum);
-            hasData = Boolean(yItem && (Number(yItem.consumption) > 0 || Number(yItem.output) > 0 || Number(yItem.wasteKg) > 0 || Number(yItem.daysCount) > 0));
-            if (hasData) {
-              if (isAll) {
-                p = Number(yItem.wastePct) || 0;
-                k = Number(yItem.wasteKg) || 0;
-              } else {
-                const ratio = (summary.allWaste > 0) ? ((summary[colDef.key] || 0) / summary.allWaste) : 0;
-                p = parseFloat(((Number(yItem.wastePct) || 0) * ratio).toFixed(2));
-                k = Math.round((Number(yItem.wasteKg) || 0) * ratio);
-              }
+          } else if (hasYearlyProduction) {
+            hasData = true;
+            if (isAll) {
+              p = Number(yItem.wastePct) || 0;
+              k = Number(yItem.wasteKg) || 0;
+            } else {
+              const ratio = (summary.allWaste > 0) ? ((summary[colDef.key] || 0) / summary.allWaste) : 0;
+              p = parseFloat(((Number(yItem.wastePct) || 0) * ratio).toFixed(2));
+              k = Math.round((Number(yItem.wasteKg) || 0) * ratio);
             }
           }
 
-          // ถ้าอันไหนยังไม่มีข้อมูล ไม่ต้องโชว์
+          // ถ้ามีข้อมูลจริงถึงจะนำมาแสดงในกราฟ
           if (hasData) {
             chartLabels.push(lbl);
             trendPoints.push({ label: `${lbl} 2026`, pct: p, kg: k });

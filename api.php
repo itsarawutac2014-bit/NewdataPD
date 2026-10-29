@@ -651,6 +651,7 @@ foreach ($yearlyTrend as &$y) {
     $y['consumptionWithWaste'] = round($y['consumptionWithWaste']);
     $y['output'] = round($y['output']);
     $y['wasteKg'] = round($y['wasteKg']);
+    $y['hasData'] = ($denom > 0 || $y['output'] > 0 || $y['daysCount'] > 0);
 }
 unset($y);
 
