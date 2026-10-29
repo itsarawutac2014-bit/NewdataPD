@@ -3521,43 +3521,55 @@
         }
 
       } else if (currentGranularityView === 'monthly') {
-        // แยกตาม 12 เดือน (ม.ค. ถึง ธ.ค.)
+        // แยกตามเดือนที่มีข้อมูลเท่านั้น (ถ้าอันไหนยังไม่มีข้อมูล ไม่ต้องโชว์)
         const THAI_MONTH_LABELS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-        chartLabels = THAI_MONTH_LABELS;
+        chartLabels = [];
+        trendPoints = [];
 
-        // คำนวณจาก yearlyTrend หรือ monthlyBreakdownCache
-        trendPoints = THAI_MONTH_LABELS.map((lbl, idx) => {
+        THAI_MONTH_LABELS.forEach((lbl, idx) => {
           const mNum = idx + 1;
+          let hasData = false;
           let p = 0;
           let k = 0;
 
           if (mNum === currentFilterMonth) {
-            p = avgPct;
-            k = totKg;
+            hasData = Array.isArray(currentData) && currentData.length > 0 && currentData.some(d => (Number(d.consumption) > 0 || Number(d.output) > 0 || Number(d.allWaste) > 0));
+            if (hasData) {
+              p = avgPct;
+              k = totKg;
+            }
           } else if (monthlyBreakdownCache[`${machine}_${mNum}`]) {
             const cached = monthlyBreakdownCache[`${machine}_${mNum}`];
-            if (isAll) {
-              p = cached.summary?.allWaste || 0;
-              k = cached.weightSummary?.totalAll || 0;
-            } else {
-              p = cached.summary?.[colDef.key] || 0;
-              k = cached.weightSummary?.[colDef.key] || 0;
+            hasData = cached && cached.summary && (Number(cached.summary.consumption) > 0 || Number(cached.summary.output) > 0 || Number(cached.summary.allWaste) > 0 || (Array.isArray(cached.data) && cached.data.length > 0));
+            if (hasData) {
+              if (isAll) {
+                p = cached.summary?.allWaste || 0;
+                k = cached.weightSummary?.totalAll || 0;
+              } else {
+                p = cached.summary?.[colDef.key] || 0;
+                k = cached.weightSummary?.[colDef.key] || 0;
+              }
             }
           } else {
             const yItem = (currentYearlyTrend || []).find(y => Number(y.month) === mNum);
-            if (yItem) {
+            hasData = Boolean(yItem && (Number(yItem.consumption) > 0 || Number(yItem.output) > 0 || Number(yItem.wasteKg) > 0 || Number(yItem.daysCount) > 0));
+            if (hasData) {
               if (isAll) {
                 p = Number(yItem.wastePct) || 0;
                 k = Number(yItem.wasteKg) || 0;
               } else {
-                // อัตราส่วนของเสียรายการที่เลือกเทียบกับผลรวมทั้งเดือน
-                const ratio = (summary.allWaste > 0) ? ((summary[colDef.key] || 0) / summary.allWaste) : 0.2;
-                p = parseFloat(((Number(yItem.wastePct) || 4.5) * ratio).toFixed(2));
-                k = Math.round((Number(yItem.wasteKg) || 10000) * ratio);
+                const ratio = (summary.allWaste > 0) ? ((summary[colDef.key] || 0) / summary.allWaste) : 0;
+                p = parseFloat(((Number(yItem.wastePct) || 0) * ratio).toFixed(2));
+                k = Math.round((Number(yItem.wasteKg) || 0) * ratio);
               }
             }
           }
-          return { label: `${lbl} 2026`, pct: p, kg: k };
+
+          // ถ้าอันไหนยังไม่มีข้อมูล ไม่ต้องโชว์
+          if (hasData) {
+            chartLabels.push(lbl);
+            trendPoints.push({ label: `${lbl} 2026`, pct: p, kg: k });
+          }
         });
 
         const vals = trendPoints.map(t => isPct ? t.pct : t.kg);
@@ -3565,7 +3577,7 @@
         const bgColors = vals.map(v => v <= tgtVal ? chosenColor : '#ef4444');
 
         barDatasets = [{
-          label: isPct ? (isAll ? '% รวมของเสีย 12 เดือน' : `% ${colDef.label}`) : `${isAll ? 'ของเสียรวม' : colDef.label} (กก.)`,
+          label: isPct ? (isAll ? '% รวมของเสียรายเดือน' : `% ${colDef.label}`) : `${isAll ? 'ของเสียรวม' : colDef.label} (กก.)`,
           data: vals,
           backgroundColor: bgColors,
           borderRadius: 6,
@@ -4445,9 +4457,12 @@
       ];
 
       const dataToUse = (yearlyData && yearlyData.length > 0) ? yearlyData : fallbackYearly;
+      // กรองเฉพาะเดือนที่มีข้อมูลจริง (ถ้าอันไหนยังไม่มีข้อมูล ไม่ต้องโชว์)
+      const filteredYearlyData = dataToUse.filter(d => (Number(d.consumption) > 0 || Number(d.output) > 0 || Number(d.daysCount) > 0 || Number(d.wasteKg) > 0 || Number(d.wastePct) > 0));
+      const finalYearlyData = filteredYearlyData.length > 0 ? filteredYearlyData : dataToUse;
 
-      const labels = dataToUse.map(d => d.label);
-      const values = dataToUse.map(d => d.wastePct || 0);
+      const labels = finalYearlyData.map(d => d.label);
+      const values = finalYearlyData.map(d => d.wastePct || 0);
 
       // คำนวณความสูงแกน Y ให้พ้นหัวตัวเลข DataLabels สวยงาม
       const maxVal = Math.max(...values, TARGETS.allWaste, 8);
@@ -5491,20 +5506,26 @@
         });
 
       } else if (currentWasteAllGranularity === 'monthly') {
-        // แยกตาม 12 เดือน (ม.ค. ถึง ธ.ค.)
+        // กรองเฉพาะเดือนที่มีข้อมูลจริง (ถ้าอันไหนยังไม่มีข้อมูล ไม่ต้องโชว์)
         const THAI_MONTH_LABELS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-        labels = THAI_MONTH_LABELS;
+        labels = [];
+        barValues = [];
+        trendPoints = [];
 
         THAI_MONTH_LABELS.forEach((lbl, idx) => {
           const mNum = idx + 1;
           const yItem = (yearly || []).find(y => Number(y.month) === mNum);
-          let c = yItem ? (yItem.consumption || 0) : 0;
-          let o = yItem ? (yItem.output || 0) : 0;
-          let wKg = c - o;
-          let pct = c > 0 ? Number(((wKg / c) * 100).toFixed(2)) : (yItem ? Number(yItem.wastePct) || 0 : 0);
+          const hasData = Boolean(yItem && (Number(yItem.consumption) > 0 || Number(yItem.output) > 0 || Number(yItem.daysCount) > 0));
+          if (hasData) {
+            let c = Number(yItem.consumption) || 0;
+            let o = Number(yItem.output) || 0;
+            let wKg = c - o;
+            let pct = c > 0 ? Number(((wKg / c) * 100).toFixed(2)) : (Number(yItem.wastePct) || 0);
 
-          barValues.push(pct);
-          trendPoints.push({ label: `${lbl} 2026`, pct: pct, kg: wKg });
+            labels.push(lbl);
+            barValues.push(pct);
+            trendPoints.push({ label: `${lbl} 2026`, pct: pct, kg: wKg });
+          }
         });
       }
 

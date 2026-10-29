@@ -2098,6 +2098,7 @@
         return { labels, actualValues, targetValues, pctValues, barColors, borderColors };
       } else if (granularity === 'monthly') {
         const labelsTh = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+        const labels = [];
         const actualValues = [];
         const targetValues = [];
         const pctValues = [];
@@ -2105,6 +2106,18 @@
         const borderColors = [];
 
         for (let m = 1; m <= 12; m++) {
+          const yearItem = (currentYearlyTrend || []).find(y => Number(y.month) === m);
+          let actualVal = 0;
+          if (m === currentMonth && currentApiSummary && currentApiSummary.output > 0) {
+            actualVal = currentApiSummary.output;
+          } else if (yearItem && typeof yearItem.output === 'number') {
+            actualVal = Math.max(0, yearItem.output);
+          }
+
+          // ถ้าอันไหนยังไม่มีข้อมูล ไม่ต้องโชว์
+          const hasData = (actualVal > 0) || Boolean(yearItem && (Number(yearItem.consumption) > 0 || Number(yearItem.daysCount) > 0));
+          if (!hasData) continue;
+
           const mStr = String(m).padStart(2, '0');
           const monthKey = `${currentYear}-${mStr}`;
           
@@ -2114,15 +2127,9 @@
           } else {
             moTarget = OUTPUT_TARGETS.machines?.[currentMachine]?.monthlyTarget || 2200000;
           }
-          targetValues.push(moTarget);
 
-          const yearItem = (currentYearlyTrend || []).find(y => Number(y.month) === m);
-          let actualVal = 0;
-          if (m === currentMonth && currentApiSummary && currentApiSummary.output > 0) {
-            actualVal = currentApiSummary.output;
-          } else if (yearItem && typeof yearItem.output === 'number') {
-            actualVal = yearItem.output;
-          }
+          labels.push(labelsTh[m - 1]);
+          targetValues.push(moTarget);
           actualValues.push(actualVal);
 
           const pct = moTarget > 0 ? ((actualVal / moTarget) * 100) : 0;
@@ -2131,7 +2138,7 @@
           borderColors.push(actualVal >= moTarget ? '#047857' : (actualVal > 0 ? '#b91c1c' : '#94a3b8'));
         }
 
-        return { labels: labelsTh, actualValues, targetValues, pctValues, barColors, borderColors };
+        return { labels, actualValues, targetValues, pctValues, barColors, borderColors };
       } else {
         // daily
         const labels = data.map(d => d.date);
@@ -2664,7 +2671,22 @@
       const barColors = [];
       const borderColors = [];
 
+      labelsTh = [];
+      const rawLabels = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+
       for (let m = 1; m <= 12; m++) {
+        const yearItem = (currentYearlyTrend || []).find(y => Number(y.month) === m);
+        let actualVal = 0;
+        if (m === currentMonth && currentApiSummary && currentApiSummary.output > 0) {
+          actualVal = currentApiSummary.output;
+        } else if (yearItem && typeof yearItem.output === 'number') {
+          actualVal = Math.max(0, yearItem.output);
+        }
+
+        // ถ้าอันไหนยังไม่มีข้อมูล ไม่ต้องโชว์
+        const hasData = (actualVal > 0) || Boolean(yearItem && (Number(yearItem.consumption) > 0 || Number(yearItem.daysCount) > 0));
+        if (!hasData) continue;
+
         const mStr = String(m).padStart(2, '0');
         const monthKey = `${currentYear}-${mStr}`;
         
@@ -2674,23 +2696,13 @@
         } else {
           moTarget = OUTPUT_TARGETS.machines?.[currentMachine]?.monthlyTarget || 2200000;
         }
+        
+        labelsTh.push(rawLabels[m - 1]);
         targetValues.push(moTarget);
-
-        const yearItem = (currentYearlyTrend || []).find(y => Number(y.month) === m);
-        let actualVal = 0;
-        if (m === currentMonth && currentApiSummary && currentApiSummary.output > 0) {
-          actualVal = currentApiSummary.output;
-        } else if (yearItem && typeof yearItem.output === 'number') {
-          actualVal = Math.max(0, yearItem.output);
-        }
         actualValues.push(actualVal);
 
         const isSelectedMonth = (m === currentMonth);
-        if (actualVal === 0 && m > currentMonth) {
-          // เดือนในอนาคตที่ยังไม่ถึง
-          barColors.push('rgba(203, 213, 225, 0.45)');
-          borderColors.push('#cbd5e1');
-        } else if (actualVal >= moTarget) {
+        if (actualVal >= moTarget) {
           // ได้ตามเป้าหมาย (เขียว)
           barColors.push(isSelectedMonth ? '#059669' : '#10b981');
           borderColors.push(isSelectedMonth ? '#047857' : '#059669');
