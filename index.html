@@ -1369,64 +1369,110 @@
 
       </div>
 
-      <!-- 4. กราฟแนวโน้ม (Trend Charts) -->
+      <!-- 4. กราฟแนวโน้ม % Waste ALL (Bar Chart & Trend Line Chart สไตล์เดียวกันเป๊ะๆ) -->
       <div class="mt-6 space-y-6">
         
-        <!-- Daily Chart Card -->
-        <div id="waste-all-daily-chart-card" class="bg-slate-50/70 p-4 sm:p-5 rounded-2xl border border-slate-200">
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3 pb-3 border-b border-slate-200">
+        <!-- 4.1 กราฟแท่ง % Waste ALL (Bar Chart) -->
+        <div id="waste-all-daily-chart-card" class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3 pb-3 border-b border-slate-100">
             <div>
-              <h3 class="text-base font-black text-slate-900 flex items-center gap-2">
-                <span class="w-3 h-3 rounded-full bg-rose-600"></span>
-                กราฟแนวโน้ม % Waste ALL รายวัน (Daily Trend) • เครื่อง <span class="text-rose-600" id="waste-all-daily-chart-mach">BHS</span>
+              <h3 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+                <span class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-sm shadow-xs border border-rose-100">
+                  <i class="fa-solid fa-chart-column"></i>
+                </span>
+                <span>กราฟแท่ง % Waste ALL (Con - Out) • เครื่อง <span class="text-rose-600 font-black" id="waste-all-daily-chart-mach">BHS</span></span>
               </h3>
               <p class="text-xs text-slate-500 mt-0.5">
-                คิดจาก (Consumption - Output) / Consumption × 100 รายวัน เทียบกับ Target 11.00%
+                คิดจาก (Consumption - Output) / Consumption × 100 เทียบกับ Target 11.00%
               </p>
             </div>
-            <div class="flex items-center gap-2 text-xs font-bold text-slate-600 flex-wrap">
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> ได้เป้า (≤ 11.00%)
+            
+            <div class="flex items-center gap-2.5 flex-wrap" data-html2canvas-ignore="true">
+              <!-- Target Badge -->
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-50 text-amber-900 border border-amber-200 text-xs font-bold">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Target: 11.00%
               </span>
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-rose-100 text-rose-800 border border-rose-300">
-                <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> เกินเป้า (> 11.00%)
-              </span>
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-amber-50 text-amber-800 border border-amber-300">
-                <span class="w-3 h-0.5 bg-amber-500 border-t border-dashed border-amber-600"></span> Target 11.00%
-              </span>
+
+              <!-- [ Daily ] [ Weekly ] [ Monthly ] Switcher -->
+              <div class="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-bold border border-slate-200 shadow-2xs">
+                <button type="button" onclick="setWasteAllGranularity('daily')" id="btn-waste-all-gran-daily-bar" class="px-3.5 py-1.5 rounded-lg bg-rose-600 text-white font-black shadow-xs transition cursor-pointer">
+                  Daily
+                </button>
+                <button type="button" onclick="setWasteAllGranularity('weekly')" id="btn-waste-all-gran-weekly-bar" class="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer">
+                  Weekly
+                </button>
+                <button type="button" onclick="setWasteAllGranularity('monthly')" id="btn-waste-all-gran-monthly-bar" class="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer">
+                  Monthly
+                </button>
+              </div>
+
+              <!-- บันทึกกราฟแท่ง -->
+              <button type="button" onclick="downloadWasteAllBarChartImage()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-700 hover:to-amber-700 text-white rounded-xl text-xs font-bold shadow-sm transition cursor-pointer">
+                <i class="fa-solid fa-download"></i> บันทึกกราฟ
+              </button>
             </div>
           </div>
+
           <div class="relative h-[380px] sm:h-[440px] w-full">
             <canvas id="wasteAllDailyChart"></canvas>
           </div>
         </div>
 
-        <!-- Monthly Chart Card -->
-        <div id="waste-all-monthly-chart-card" class="bg-slate-50/70 p-4 sm:p-5 rounded-2xl border border-slate-200" style="display: none;">
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3 pb-3 border-b border-slate-200">
-            <div>
-              <h3 class="text-base font-black text-slate-900 flex items-center gap-2">
-                <span class="w-3 h-3 rounded-full bg-indigo-600"></span>
-                กราฟแนวโน้ม % Waste ALL 12 เดือน (Monthly 12-Month Trend) • เครื่อง <span class="text-indigo-600" id="waste-all-monthly-chart-mach">BHS</span>
+        <!-- 4.2 กราฟแนวโน้มเส้น % Waste ALL (Area Trend Line Chart) สไตล์เดียวกับตัวบน -->
+        <div id="waste-all-trend-line-card" class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm w-full">
+          <!-- Header: | แนวโน้มเปอร์เซ็นต์ % Waste ALL + ตัวเลือกสีเส้น + [ Daily | Weekly | Monthly ] + ปุ่มบันทึก -->
+          <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 pb-4 border-b border-slate-100">
+            <div class="flex items-center gap-2.5">
+              <span class="w-1.5 h-6 bg-rose-600 rounded-full inline-block transition-colors" id="waste-all-trend-accent-bar"></span>
+              <h3 class="text-base sm:text-lg font-black text-slate-800 tracking-tight flex items-center gap-2">
+                <span>แนวโน้มเปอร์เซ็นต์ % Waste ALL</span>
+                <span class="text-rose-600 font-black">(Target 11.00% • เครื่อง <span id="waste-all-trend-line-mach">BHS</span>)</span>
               </h3>
-              <p class="text-xs text-slate-500 mt-0.5">
-                ภาพรวม % Waste ALL สะสมรายเดือน 12 เดือน (ม.ค. - ธ.ค. 2026) เทียบกับ Target 11.00%
-              </p>
             </div>
-            <div class="flex items-center gap-2 text-xs font-bold text-slate-600 flex-wrap">
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> ได้เป้า
-              </span>
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-rose-100 text-rose-800 border border-rose-300">
-                <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> เกินเป้า
-              </span>
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-amber-50 text-amber-800 border border-amber-300">
-                <span class="w-3 h-0.5 bg-amber-500 border-t border-dashed border-amber-600"></span> Target 11.00%
-              </span>
+
+            <div class="flex items-center gap-3 flex-wrap" data-html2canvas-ignore="true">
+              <!-- ตัวเลือกเปลี่ยนสีเส้นกราฟ -->
+              <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 shadow-2xs">
+                <span class="text-xs font-bold text-slate-600 flex items-center gap-1">
+                  <i class="fa-solid fa-palette text-rose-500 text-xs"></i> สีเส้น:
+                </span>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="setWasteAllTrendColor('#e11d48')" class="w-5 h-5 rounded-full bg-rose-600 border-2 border-white shadow-xs hover:scale-110 transition cursor-pointer waste-all-trend-color-dot ring-2 ring-rose-500" data-color="#e11d48" title="แดงกุหลาบ (Rose)"></button>
+                  <button type="button" onclick="setWasteAllTrendColor('#2563eb')" class="w-5 h-5 rounded-full bg-blue-600 border-2 border-white shadow-xs hover:scale-110 transition cursor-pointer waste-all-trend-color-dot" data-color="#2563eb" title="น้ำเงิน (Blue)"></button>
+                  <button type="button" onclick="setWasteAllTrendColor('#059669')" class="w-5 h-5 rounded-full bg-emerald-600 border-2 border-white shadow-xs hover:scale-110 transition cursor-pointer waste-all-trend-color-dot" data-color="#059669" title="เขียว (Emerald)"></button>
+                  <button type="button" onclick="setWasteAllTrendColor('#7c3aed')" class="w-5 h-5 rounded-full bg-violet-600 border-2 border-white shadow-xs hover:scale-110 transition cursor-pointer waste-all-trend-color-dot" data-color="#7c3aed" title="ม่วง (Violet)"></button>
+                  <button type="button" onclick="setWasteAllTrendColor('#d97706')" class="w-5 h-5 rounded-full bg-amber-600 border-2 border-white shadow-xs hover:scale-110 transition cursor-pointer waste-all-trend-color-dot" data-color="#d97706" title="ส้ม (Amber)"></button>
+                  <button type="button" onclick="setWasteAllTrendColor('#0f172a')" class="w-5 h-5 rounded-full bg-slate-900 border-2 border-white shadow-xs hover:scale-110 transition cursor-pointer waste-all-trend-color-dot" data-color="#0f172a" title="ดำกราไฟต์ (Graphite)"></button>
+                  <label class="relative flex items-center justify-center w-6 h-6 rounded-lg bg-white border border-slate-300 hover:border-rose-400 cursor-pointer shadow-2xs ml-0.5" title="เลือกสีอื่นๆ (Custom Color)">
+                    <i class="fa-solid fa-eye-dropper text-[10px] text-slate-600"></i>
+                    <input type="color" id="wasteAllTrendCustomColorInput" value="#e11d48" onchange="setWasteAllTrendColor(this.value)" class="opacity-0 absolute inset-0 w-full h-full cursor-pointer">
+                  </label>
+                </div>
+              </div>
+
+              <!-- Segmented Pills: [ Daily ] [ Weekly ] [ Monthly ] -->
+              <div class="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-bold border border-slate-200 shadow-2xs">
+                <button type="button" onclick="setWasteAllGranularity('daily')" id="btn-waste-all-gran-daily-trend" class="px-4 py-1.5 rounded-lg bg-rose-600 text-white font-black shadow-xs transition cursor-pointer">
+                  Daily
+                </button>
+                <button type="button" onclick="setWasteAllGranularity('weekly')" id="btn-waste-all-gran-weekly-trend" class="px-4 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer">
+                  Weekly
+                </button>
+                <button type="button" onclick="setWasteAllGranularity('monthly')" id="btn-waste-all-gran-monthly-trend" class="px-4 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer">
+                  Monthly
+                </button>
+              </div>
+
+              <!-- บันทึกกราฟแนวโน้ม -->
+              <button type="button" onclick="downloadWasteAllTrendLineChartImage()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
+                <i class="fa-solid fa-camera"></i> บันทึกกราฟ
+              </button>
             </div>
           </div>
-          <div class="relative h-[380px] sm:h-[440px] w-full">
-            <canvas id="wasteAllMonthlyChart"></canvas>
+
+          <!-- Trend Area Canvas: ใหญ่ชัดเจนเต็มตา (h-[480px] sm:h-[540px]) -->
+          <div class="relative h-[480px] sm:h-[540px] w-full mt-4">
+            <canvas id="wasteAllTrendLineChart"></canvas>
           </div>
         </div>
 
@@ -5108,25 +5154,73 @@
     let wasteAllActiveMachine = 'BHS';
     let wasteAllMachineCache = {};
     let wasteAllDailyChartInstance = null;
-    let wasteAllMonthlyChartInstance = null;
-    let wasteAllChartView = 'daily';
+    let wasteAllTrendLineChartInstance = null;
+    let currentWasteAllGranularity = 'daily'; // 'daily' | 'weekly' | 'monthly'
+    let currentWasteAllTrendColor = localStorage.getItem('waste_all_trend_custom_color') || '#e11d48';
+
+    function setWasteAllTrendColor(color) {
+      if (!color) return;
+      currentWasteAllTrendColor = color;
+      try {
+        localStorage.setItem('waste_all_trend_custom_color', color);
+      } catch (e) {}
+
+      document.querySelectorAll('.waste-all-trend-color-dot').forEach(dot => {
+        const dc = dot.getAttribute('data-color');
+        if (dc && dc.toLowerCase() === color.toLowerCase()) {
+          dot.classList.add('ring-2', 'ring-offset-1', 'ring-slate-800');
+        } else {
+          dot.classList.remove('ring-2', 'ring-offset-1', 'ring-slate-800');
+        }
+      });
+
+      const customInput = document.getElementById('wasteAllTrendCustomColorInput');
+      if (customInput) customInput.value = color;
+
+      const accentBar = document.getElementById('waste-all-trend-accent-bar');
+      if (accentBar) accentBar.style.backgroundColor = color;
+
+      const machData = wasteAllMachineCache[wasteAllActiveMachine];
+      if (machData) {
+        renderWasteAllCharts(machData);
+      }
+    }
+
+    function setWasteAllGranularity(view) {
+      currentWasteAllGranularity = view;
+
+      ['daily', 'weekly', 'monthly'].forEach(v => {
+        const btnTop = document.getElementById(`btn-waste-all-gran-${v}-top`);
+        const btnBar = document.getElementById(`btn-waste-all-gran-${v}-bar`);
+        const btnTrend = document.getElementById(`btn-waste-all-gran-${v}-trend`);
+        const isActive = (v === view);
+        const activeClass = 'px-3.5 py-1.5 rounded-lg bg-rose-600 text-white font-black shadow-xs transition cursor-pointer';
+        const inActiveClass = 'px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer';
+
+        if (btnTop) btnTop.className = isActive ? activeClass : inActiveClass;
+        if (btnBar) btnBar.className = isActive ? activeClass : inActiveClass;
+        if (btnTrend) btnTrend.className = isActive ? 'px-4 py-1.5 rounded-lg bg-rose-600 text-white font-black shadow-xs transition cursor-pointer' : 'px-4 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer';
+      });
+
+      const machData = wasteAllMachineCache[wasteAllActiveMachine];
+      if (machData) {
+        renderWasteAllCharts(machData);
+      }
+    }
 
     function renderWasteAllSection(data, summary, yearly) {
       const mainMachine = (document.getElementById('selectedMachine')?.value || 'BHS').toUpperCase();
       
-      // เก็บข้อมูลเครื่องปัจจุบันลงแคช
       wasteAllMachineCache[mainMachine] = {
         data: data || [],
         summary: summary || null,
         yearlyTrend: yearly || []
       };
 
-      // ซิงค์เครื่องที่เลือก
       if (!wasteAllActiveMachine || wasteAllActiveMachine === mainMachine) {
         wasteAllActiveMachine = mainMachine;
       }
 
-      // ปรับปุ่มเครื่องจักรที่เลือก
       ['BHS', 'ISOWA', 'YUELI', 'TOTAL'].forEach(m => {
         const btn = document.getElementById(`btn-waste-all-m-${m}`);
         if (!btn) return;
@@ -5137,13 +5231,11 @@
         }
       });
 
-      // เรนเดอร์มุมมองเครื่องที่เลือก
       const activeData = wasteAllMachineCache[wasteAllActiveMachine] || wasteAllMachineCache[mainMachine];
       if (activeData) {
         updateWasteAllActiveView(activeData);
       }
 
-      // ดึงข้อมูลเครื่องอื่นๆ ในเบื้องหลังเพื่อสร้างการ์ดเปรียบเทียบทั้ง 4 เครื่อง
       loadAllMachinesSummary();
     }
 
@@ -5200,10 +5292,11 @@
                 yearlyTrend: json.yearlyTrend || []
               };
             }
-          } catch(e) {}
+          } catch (err) {
+            console.error('Error loading summary machine:', m, err);
+          }
         }
       }
-
       renderWasteAllMachineCards();
     }
 
@@ -5212,41 +5305,36 @@
       if (!container) return;
       container.innerHTML = '';
 
-      const machines = [
-        { code: 'BHS', name: 'เครื่อง BHS', icon: 'fa-gears' },
-        { code: 'ISOWA', name: 'เครื่อง ISOWA', icon: 'fa-industry' },
-        { code: 'YUELI', name: 'เครื่อง YUELI', icon: 'fa-microchip' },
-        { code: 'TOTAL', name: 'รวมทุกเครื่อง (TOTAL)', icon: 'fa-chart-pie' }
-      ];
+      const machines = ['BHS', 'ISOWA', 'YUELI', 'TOTAL'];
+      const curMach = wasteAllActiveMachine;
 
       machines.forEach(m => {
-        const item = wasteAllMachineCache[m.code];
+        const mData = wasteAllMachineCache[m];
+        const rows = mData ? (mData.data || []) : [];
         let sumCon = 0;
         let sumOut = 0;
-        if (item && item.data) {
-          item.data.forEach(r => {
-            sumCon += Math.max(0, Math.round(Number(r.consumption) || 0));
-            sumOut += Math.max(0, Math.round(Number(r.output) || 0));
-          });
-        }
+        rows.forEach(r => {
+          sumCon += Math.max(0, Math.round(Number(r.consumption) || 0));
+          sumOut += Math.max(0, Math.round(Number(r.output) || 0));
+        });
         const wKg = sumCon - sumOut;
         const pct = sumCon > 0 ? ((wKg / sumCon) * 100) : 0;
-        const isPass = (pct <= TARGET_WASTE_ALL);
-        const isActive = (wasteAllActiveMachine === m.code);
+        const isPass = pct <= TARGET_WASTE_ALL;
+        const isSelected = (m === curMach);
 
         const card = document.createElement('div');
-        card.onclick = () => switchWasteAllMachine(m.code);
-        card.className = `p-4 rounded-2xl border-2 transition-all cursor-pointer relative overflow-hidden ${
-          isActive ? 'border-rose-500 bg-white shadow-md ring-2 ring-rose-400/30' : 'border-slate-200 bg-slate-50/70 hover:bg-white hover:border-slate-300 hover:shadow-sm'
+        card.onclick = () => switchWasteAllMachine(m);
+        card.className = `p-4 rounded-2xl border-2 transition-all cursor-pointer select-none ${
+          isSelected
+            ? 'bg-white border-rose-500 shadow-md ring-2 ring-rose-300'
+            : 'bg-white/80 hover:bg-white border-slate-200 hover:border-slate-300 shadow-2xs hover:shadow-xs'
         }`;
 
         card.innerHTML = `
           <div class="flex justify-between items-start">
             <div class="flex items-center gap-2">
-              <span class="w-7 h-7 rounded-lg ${isActive ? 'bg-rose-600 text-white' : 'bg-slate-200 text-slate-700'} flex items-center justify-center text-xs">
-                <i class="fa-solid ${m.icon}"></i>
-              </span>
-              <span class="font-black text-sm text-slate-900">${m.name}</span>
+              <span class="w-3 h-3 rounded-full ${isSelected ? 'bg-rose-600 animate-pulse' : 'bg-slate-400'}"></span>
+              <h4 class="font-black text-sm text-slate-800">${m === 'TOTAL' ? 'รวมทุกเครื่อง' : 'เครื่อง ' + m}</h4>
             </div>
             <span class="px-2 py-0.5 rounded-full text-[10.5px] font-black ${
               isPass ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300'
@@ -5274,33 +5362,6 @@
 
         container.appendChild(card);
       });
-    }
-
-    function setWasteAllChartView(view) {
-      wasteAllChartView = view;
-      const dailyCard = document.getElementById('waste-all-daily-chart-card');
-      const monthlyCard = document.getElementById('waste-all-monthly-chart-card');
-      const btnDaily = document.getElementById('btn-view-daily');
-      const btnMonthly = document.getElementById('btn-view-monthly');
-      const btnBoth = document.getElementById('btn-view-both');
-
-      const activeClass = 'px-3 py-1.5 rounded-lg font-black transition bg-white text-indigo-700 shadow-2xs cursor-pointer';
-      const inactiveClass = 'px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer';
-
-      if (btnDaily) btnDaily.className = view === 'daily' ? activeClass : inactiveClass;
-      if (btnMonthly) btnMonthly.className = view === 'monthly' ? activeClass : inactiveClass;
-      if (btnBoth) btnBoth.className = view === 'both' ? activeClass : inactiveClass;
-
-      if (view === 'daily') {
-        if (dailyCard) dailyCard.style.display = 'block';
-        if (monthlyCard) monthlyCard.style.display = 'none';
-      } else if (view === 'monthly') {
-        if (dailyCard) dailyCard.style.display = 'none';
-        if (monthlyCard) monthlyCard.style.display = 'block';
-      } else {
-        if (dailyCard) dailyCard.style.display = 'block';
-        if (monthlyCard) monthlyCard.style.display = 'block';
-      }
     }
 
     function toggleWasteAllTable() {
@@ -5344,7 +5405,7 @@
       safeSetText('waste-all-kpi-pct', `${wastePct.toFixed(2)}%`);
       safeSetText('waste-all-kpi-machine-1', wasteAllActiveMachine);
       safeSetText('waste-all-daily-chart-mach', wasteAllActiveMachine);
-      safeSetText('waste-all-monthly-chart-mach', wasteAllActiveMachine);
+      safeSetText('waste-all-trend-line-mach', wasteAllActiveMachine);
 
       const statusBadge = document.getElementById('waste-all-kpi-status-badge');
       const pctCard = document.getElementById('waste-all-pct-card');
@@ -5368,46 +5429,106 @@
         }
       }
 
-      renderWasteAllDailyChart(data);
-      renderWasteAllMonthlyChart(yearly);
+      renderWasteAllCharts(machData);
       renderWasteAllTable(data, sumCon, sumOut, wasteKg, wastePct, diffPct);
     }
 
-    function renderWasteAllDailyChart(data) {
+    // ========================================================
+    // เรนเดอร์ทั้ง 2 กราฟของ Waste ALL: Bar Chart และ Trend Line Chart
+    // รองรับ Daily, Weekly, Monthly พร้อมเปลี่ยนสีเส้นและตัวเลขชัดเจน
+    // ========================================================
+    function renderWasteAllCharts(machData) {
+      const data = machData.data || [];
+      const yearly = machData.yearlyTrend || [];
+
+      let labels = [];
+      let barValues = [];
+      let trendPoints = []; // { label, pct, kg }
+
+      if (currentWasteAllGranularity === 'daily') {
+        // รายวัน 1..31
+        labels = data.map(d => {
+          const parts = (d.date || '').split('/');
+          return parts[0] ? `${parts[0]}` : d.date;
+        });
+
+        data.forEach(d => {
+          const c = Math.max(0, Math.round(Number(d.consumption) || 0));
+          const o = Math.max(0, Math.round(Number(d.output) || 0));
+          const wKg = c - o;
+          const pct = c > 0 ? Number(((wKg / c) * 100).toFixed(2)) : 0;
+          barValues.push(pct);
+          trendPoints.push({ label: d.date || '', pct: pct, kg: wKg });
+        });
+
+      } else if (currentWasteAllGranularity === 'weekly') {
+        // แยกตาม Week (Week 1 ถึง Week 5)
+        const weekRanges = [
+          { name: 'Week 1', label: 'Week 1 (1-7)', start: 1, end: 7 },
+          { name: 'Week 2', label: 'Week 2 (8-14)', start: 8, end: 14 },
+          { name: 'Week 3', label: 'Week 3 (15-21)', start: 15, end: 21 },
+          { name: 'Week 4', label: 'Week 4 (22-28)', start: 22, end: 28 },
+          { name: 'Week 5', label: 'Week 5 (29-31)', start: 29, end: 31 }
+        ];
+
+        labels = weekRanges.map(w => w.label);
+
+        weekRanges.forEach(w => {
+          let sumCon = 0;
+          let sumOut = 0;
+          data.forEach((d, idx) => {
+            const dayNum = parseInt((d.date || '').split('/')[0]) || (idx + 1);
+            if (dayNum >= w.start && dayNum <= w.end) {
+              sumCon += Math.max(0, Math.round(Number(d.consumption) || 0));
+              sumOut += Math.max(0, Math.round(Number(d.output) || 0));
+            }
+          });
+
+          const wKg = sumCon - sumOut;
+          const pct = sumCon > 0 ? Number(((wKg / sumCon) * 100).toFixed(2)) : 0;
+          barValues.push(pct);
+          trendPoints.push({ label: w.label, pct: pct, kg: wKg });
+        });
+
+      } else if (currentWasteAllGranularity === 'monthly') {
+        // แยกตาม 12 เดือน (ม.ค. ถึง ธ.ค.)
+        const THAI_MONTH_LABELS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+        labels = THAI_MONTH_LABELS;
+
+        THAI_MONTH_LABELS.forEach((lbl, idx) => {
+          const mNum = idx + 1;
+          const yItem = (yearly || []).find(y => Number(y.month) === mNum);
+          let c = yItem ? (yItem.consumption || 0) : 0;
+          let o = yItem ? (yItem.output || 0) : 0;
+          let wKg = c - o;
+          let pct = c > 0 ? Number(((wKg / c) * 100).toFixed(2)) : (yItem ? Number(yItem.wastePct) || 0 : 0);
+
+          barValues.push(pct);
+          trendPoints.push({ label: `${lbl} 2026`, pct: pct, kg: wKg });
+        });
+      }
+
+      // 1. เรนเดอร์ Bar Chart
+      renderWasteAllBarChart(labels, barValues, trendPoints);
+
+      // 2. เรนเดอร์ Trend Line Chart
+      renderWasteAllTrendLineChart(trendPoints);
+    }
+
+    // ========================================================
+    // เรนเดอร์กราฟแท่ง % Waste ALL
+    // ========================================================
+    function renderWasteAllBarChart(labels, barValues, trendPoints) {
       const chartEl = document.getElementById('wasteAllDailyChart');
       if (!chartEl || typeof Chart === 'undefined') return;
 
-      const labels = data.map(d => d.date);
-      const values = [];
-      const barColors = [];
-      const borderColors = [];
-
-      data.forEach(d => {
-        const c = Math.max(0, Math.round(Number(d.consumption) || 0));
-        const o = Math.max(0, Math.round(Number(d.output) || 0));
-        if (c === 0 && o === 0) {
-          values.push(0);
-          barColors.push('rgba(226, 232, 240, 0.4)');
-          borderColors.push('#cbd5e1');
-        } else {
-          const wKg = c - o;
-          const pct = c > 0 ? Number(((wKg / c) * 100).toFixed(2)) : 0;
-          values.push(pct);
-          if (pct <= TARGET_WASTE_ALL) {
-            barColors.push('#10b981');
-            borderColors.push('#059669');
-          } else {
-            barColors.push('#ef4444');
-            borderColors.push('#dc2626');
-          }
-        }
-      });
-
       if (wasteAllDailyChartInstance) {
         try { wasteAllDailyChartInstance.destroy(); } catch (e) {}
+        wasteAllDailyChartInstance = null;
       }
 
-      const maxVal = Math.max(...values, TARGET_WASTE_ALL, 15);
+      const barColors = barValues.map(v => v <= TARGET_WASTE_ALL ? '#10b981' : '#ef4444');
+      const maxVal = Math.max(...barValues, TARGET_WASTE_ALL, 15);
       const ySuggestedMax = Math.ceil(maxVal * 1.25);
 
       const chartPlugins = (typeof ChartDataLabels !== 'undefined') ? [ChartDataLabels] : [];
@@ -5420,21 +5541,17 @@
           labels: labels,
           datasets: [{
             label: '% Waste ALL (Con - Out)',
-            data: values,
+            data: barValues,
             backgroundColor: barColors,
-            borderColor: borderColors,
-            borderWidth: 1.5,
             borderRadius: 6,
-            maxBarThickness: 42
+            maxBarThickness: 48
           }]
         },
         options: {
-          devicePixelRatio: Math.max(window.devicePixelRatio || 1, 3),
+          devicePixelRatio: Math.max(window.devicePixelRatio || 1, 2.5),
           responsive: true,
           maintainAspectRatio: false,
-          layout: {
-            padding: { top: 45, left: 10, right: 35, bottom: 12 }
-          },
+          layout: { padding: { top: 35, left: 10, right: 25, bottom: 10 } },
           plugins: {
             legend: { display: false },
             tooltip: {
@@ -5442,88 +5559,60 @@
               titleFont: { family: "'Prompt', sans-serif", size: 12, weight: 'bold' },
               bodyFont: { family: "'Prompt', sans-serif", size: 11 },
               padding: 10,
+              cornerRadius: 8,
               callbacks: {
                 label: function(ctx) {
                   const idx = ctx.dataIndex;
-                  const row = data[idx];
-                  const c = Math.max(0, Math.round(Number(row.consumption) || 0));
-                  const o = Math.max(0, Math.round(Number(row.output) || 0));
-                  const wKg = c - o;
-                  const pct = values[idx];
-                  if (c === 0 && o === 0) return ' ไม่มีการเดินเครื่อง';
+                  const pt = trendPoints[idx] || {};
+                  const pct = ctx.raw || 0;
                   const status = pct <= TARGET_WASTE_ALL ? 'ได้เป้า ✅' : 'เกินเป้า ❌';
                   return [
-                    ` Con (ใช้กระดาษ): ${c.toLocaleString()} กก.`,
-                    ` Out (ผลิตจริง): ${o.toLocaleString()} กก.`,
-                    ` Waste ALL: ${wKg.toLocaleString()} กก.`,
                     ` % Waste ALL: ${pct.toFixed(2)}% [${status}]`,
-                    ` Target: 11.00% (ส่วนต่าง: ${(pct - TARGET_WASTE_ALL).toFixed(2)}%)`
+                    ` Waste ALL (kg): ${Number(Math.round(pt.kg || 0)).toLocaleString()} กก.`,
+                    ` Target: 11.00% (Diff: ${(pct - TARGET_WASTE_ALL).toFixed(2)}%)`
                   ];
                 }
               }
             },
             datalabels: {
               display: function(ctx) {
-                return values[ctx.dataIndex] > 0;
+                return barValues[ctx.dataIndex] > 0;
               },
               anchor: 'end',
               align: 'top',
-              offset: 4,
-              formatter: function(val) {
-                return `${val.toFixed(1)}%`;
+              offset: 3,
+              font: { family: "'Prompt', sans-serif", size: 9.5, weight: '800' },
+              color: function(ctx) {
+                return barValues[ctx.dataIndex] <= TARGET_WASTE_ALL ? '#047857' : '#b91c1c';
               },
               backgroundColor: '#ffffff',
               borderColor: function(ctx) {
-                return values[ctx.dataIndex] <= TARGET_WASTE_ALL ? '#86efac' : '#fca5a5';
+                return barValues[ctx.dataIndex] <= TARGET_WASTE_ALL ? '#a7f3d0' : '#fecaca';
               },
-              borderWidth: 1.5,
-              borderRadius: 6,
+              borderWidth: 1,
+              borderRadius: 5,
               padding: { top: 2, bottom: 2, left: 5, right: 5 },
-              color: function(ctx) {
-                return values[ctx.dataIndex] <= TARGET_WASTE_ALL ? '#15803d' : '#b91c1c';
-              },
-              font: { family: "'Prompt', sans-serif", size: 9.5, weight: '800' }
-            },
-            annotation: {
-              annotations: {
-                targetLine: {
-                  type: 'line',
-                  yMin: TARGET_WASTE_ALL,
-                  yMax: TARGET_WASTE_ALL,
-                  borderColor: '#f59e0b',
-                  borderWidth: 2.5,
-                  borderDash: [6, 4],
-                  label: {
-                    display: true,
-                    content: `Target 11.00%`,
-                    position: 'end',
-                    backgroundColor: 'rgba(245, 158, 11, 0.95)',
-                    color: '#ffffff',
-                    font: { family: "'Prompt', sans-serif", size: 11, weight: 'bold' },
-                    padding: 4
-                  }
-                }
+              formatter: function(val) {
+                return `${Number(val).toFixed(1)}%`;
               }
             }
           },
           scales: {
-            y: {
-              beginAtZero: true,
-              suggestedMax: ySuggestedMax,
-              ticks: {
-                callback: v => `${v.toFixed(1)}%`,
-                font: { family: "'Prompt', sans-serif", size: 10.5, weight: '600' },
-                color: '#475569'
-              },
-              grid: { color: '#f1f5f9' }
-            },
             x: {
               grid: { display: false },
               ticks: {
                 font: { family: "'Prompt', sans-serif", size: 10, weight: 'bold' },
-                color: '#0f172a',
                 maxRotation: 45,
-                minRotation: 45
+                minRotation: 0
+              }
+            },
+            y: {
+              beginAtZero: true,
+              suggestedMax: ySuggestedMax,
+              grid: { color: '#f1f5f9' },
+              ticks: {
+                font: { family: "'Prompt', sans-serif", size: 10 },
+                callback: function(v) { return `${v.toFixed(1)}%`; }
               }
             }
           }
@@ -5531,161 +5620,148 @@
       });
     }
 
-    function renderWasteAllMonthlyChart(yearlyData) {
-      const chartEl = document.getElementById('wasteAllMonthlyChart');
+    // ========================================================
+    // เรนเดอร์กราฟแนวโน้มเส้น % Waste ALL (Area Trend Line Chart)
+    // ใหญ่ขึ้น ชัดเจน เปลี่ยนสีเส้นได้ ป้าย 2 บรรทัด (% และ kg)
+    // ========================================================
+    function renderWasteAllTrendLineChart(points) {
+      const chartEl = document.getElementById('wasteAllTrendLineChart');
       if (!chartEl || typeof Chart === 'undefined') return;
 
-      const labelsTh = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-      const values = [];
-      const barColors = [];
-      const borderColors = [];
-      const currentMo = parseInt(document.getElementById('selectedMonth')?.value || 10);
-
-      for (let m = 1; m <= 12; m++) {
-        const item = (yearlyData || []).find(y => Number(y.month) === m);
-        let c = item ? (item.consumption || 0) : 0;
-        let o = item ? (item.output || 0) : 0;
-        
-        let pct = 0;
-        if (c > 0 && o > 0) {
-          const wKg = c - o;
-          pct = Number(((wKg / c) * 100).toFixed(2));
-        }
-        values.push(pct);
-
-        const isCurMonth = (m === currentMo);
-        if (pct === 0 && m > currentMo) {
-          barColors.push('rgba(203, 213, 225, 0.45)');
-          borderColors.push('#cbd5e1');
-        } else if (pct <= TARGET_WASTE_ALL) {
-          barColors.push(isCurMonth ? '#059669' : '#10b981');
-          borderColors.push(isCurMonth ? '#047857' : '#059669');
-        } else {
-          barColors.push(isCurMonth ? '#dc2626' : '#ef4444');
-          borderColors.push(isCurMonth ? '#b91c1c' : '#dc2626');
-        }
+      if (wasteAllTrendLineChartInstance) {
+        try { wasteAllTrendLineChartInstance.destroy(); } catch (e) {}
+        wasteAllTrendLineChartInstance = null;
       }
 
-      if (wasteAllMonthlyChartInstance) {
-        try { wasteAllMonthlyChartInstance.destroy(); } catch (e) {}
-      }
-
-      const maxVal = Math.max(...values, TARGET_WASTE_ALL, 15);
-      const ySuggestedMax = Math.ceil(maxVal * 1.25);
-
-      const chartPlugins = (typeof ChartDataLabels !== 'undefined') ? [ChartDataLabels] : [];
       const ctx = chartEl.getContext('2d');
+      const chosenColor = currentWasteAllTrendColor || '#e11d48';
 
-      wasteAllMonthlyChartInstance = new Chart(ctx, {
-        type: 'bar',
-        plugins: chartPlugins,
+      // Gradient Fill
+      const grad = ctx.createLinearGradient(0, 0, 0, 480);
+      grad.addColorStop(0, hexToRgba(chosenColor, 0.45));
+      grad.addColorStop(0.5, hexToRgba(chosenColor, 0.15));
+      grad.addColorStop(1, hexToRgba(chosenColor, 0.00));
+
+      const xLabels = points.map(p => p.label);
+      const yValues = points.map(p => p.pct);
+      const kgList = points.map(p => p.kg);
+
+      const datasets = [
+        {
+          label: `Actual % Waste ALL (${wasteAllActiveMachine})`,
+          data: yValues,
+          weightKgList: kgList,
+          borderColor: chosenColor,
+          backgroundColor: grad,
+          borderWidth: 3.5,
+          pointRadius: 5.5,
+          pointHoverRadius: 9,
+          pointBackgroundColor: chosenColor,
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2.2,
+          tension: 0.4,
+          fill: true
+        },
+        {
+          label: `Target (${TARGET_WASTE_ALL.toFixed(2)}%)`,
+          data: Array(xLabels.length).fill(TARGET_WASTE_ALL),
+          borderColor: '#94a3b8',
+          borderWidth: 1.8,
+          borderDash: [5, 4],
+          pointRadius: 0,
+          fill: false
+        }
+      ];
+
+      const plugins = (typeof ChartDataLabels !== 'undefined') ? [ChartDataLabels] : [];
+      const maxVal = Math.max(...yValues, TARGET_WASTE_ALL, 15);
+      const suggestedMax = Math.ceil(maxVal * 1.3);
+
+      wasteAllTrendLineChartInstance = new Chart(ctx, {
+        type: 'line',
+        plugins: plugins,
         data: {
-          labels: labelsTh,
-          datasets: [{
-            label: '% Waste ALL 12 เดือน',
-            data: values,
-            backgroundColor: barColors,
-            borderColor: borderColors,
-            borderWidth: 2,
-            borderRadius: 8,
-            maxBarThickness: 54
-          }]
+          labels: xLabels,
+          datasets: datasets
         },
         options: {
-          devicePixelRatio: Math.max(window.devicePixelRatio || 1, 3),
+          devicePixelRatio: Math.max(window.devicePixelRatio || 1, 2.5),
           responsive: true,
           maintainAspectRatio: false,
           layout: {
-            padding: { top: 48, left: 10, right: 38, bottom: 12 }
+            padding: { top: 48, left: 15, right: 30, bottom: 15 }
           },
           plugins: {
-            legend: { display: false },
+            legend: {
+              display: true,
+              position: 'top',
+              align: 'center',
+              labels: {
+                font: { family: "'Prompt', sans-serif", size: 12, weight: 'bold' },
+                boxWidth: 14,
+                padding: 16
+              }
+            },
             tooltip: {
               backgroundColor: '#0f172a',
               titleFont: { family: "'Prompt', sans-serif", size: 12, weight: 'bold' },
               bodyFont: { family: "'Prompt', sans-serif", size: 11 },
               padding: 10,
+              cornerRadius: 8,
               callbacks: {
-                title: items => `เดือน ${labelsTh[items[0].dataIndex]} 2026`,
                 label: function(ctx) {
-                  const idx = ctx.dataIndex;
-                  const item = (yearlyData || []).find(y => Number(y.month) === (idx + 1));
-                  const c = item ? (item.consumption || 0) : 0;
-                  const o = item ? (item.output || 0) : 0;
-                  const wKg = c - o;
-                  const val = values[idx];
-                  if (val === 0 && (idx + 1) > currentMo) return ' ยังไม่มีข้อมูลการผลิต';
-                  const status = val <= TARGET_WASTE_ALL ? 'ได้เป้า ✅' : 'เกินเป้า ❌';
-                  return [
-                    ` Con (ใช้กระดาษ): ${c.toLocaleString()} กก.`,
-                    ` Out (ผลิตสำเร็จ): ${o.toLocaleString()} กก.`,
-                    ` Waste ALL: ${wKg.toLocaleString()} กก.`,
-                    ` % Waste ALL: ${val.toFixed(2)}% [${status}]`,
-                    ` Target: 11.00% (ส่วนต่าง: ${(val - TARGET_WASTE_ALL).toFixed(2)}%)`
-                  ];
+                  const val = ctx.raw || 0;
+                  const kg = ctx.dataset.weightKgList ? ctx.dataset.weightKgList[ctx.dataIndex] : 0;
+                  return ` ${ctx.dataset.label}: ${val.toFixed(2)}% (${Number(Math.round(kg)).toLocaleString()} กก.)`;
                 }
               }
             },
+            // Datalabels 2 บรรทัด พร้อมกรอบขาวคมชัด (Line 1: % / Line 2: kg)
             datalabels: {
-              display: function(ctx) {
-                return values[ctx.dataIndex] > 0;
+              display: function(context) {
+                return context.datasetIndex === 0;
               },
-              anchor: 'end',
               align: 'top',
-              offset: 4,
-              formatter: val => `${val.toFixed(2)}%`,
-              backgroundColor: '#ffffff',
-              borderColor: function(ctx) {
-                return values[ctx.dataIndex] <= TARGET_WASTE_ALL ? '#86efac' : '#fca5a5';
+              anchor: 'end',
+              offset: 6,
+              font: { family: "'Prompt', sans-serif", size: 10.5, weight: 'bold' },
+              textAlign: 'center',
+              color: function(context) {
+                const val = context.dataset.data[context.dataIndex];
+                return val > TARGET_WASTE_ALL ? '#b91c1c' : '#0f172a';
               },
-              borderWidth: 1.5,
+              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+              borderColor: function(context) {
+                const val = context.dataset.data[context.dataIndex];
+                return val > TARGET_WASTE_ALL ? '#fca5a5' : '#cbd5e1';
+              },
+              borderWidth: 1,
               borderRadius: 6,
-              padding: { top: 2, bottom: 2, left: 6, right: 6 },
-              color: function(ctx) {
-                return values[ctx.dataIndex] <= TARGET_WASTE_ALL ? '#15803d' : '#b91c1c';
-              },
-              font: { family: "'Prompt', sans-serif", size: 10, weight: '800' }
-            },
-            annotation: {
-              annotations: {
-                targetLine: {
-                  type: 'line',
-                  yMin: TARGET_WASTE_ALL,
-                  yMax: TARGET_WASTE_ALL,
-                  borderColor: '#f59e0b',
-                  borderWidth: 2.5,
-                  borderDash: [6, 4],
-                  label: {
-                    display: true,
-                    content: `Target 11.00%`,
-                    position: 'end',
-                    backgroundColor: 'rgba(245, 158, 11, 0.95)',
-                    color: '#ffffff',
-                    font: { family: "'Prompt', sans-serif", size: 11, weight: 'bold' },
-                    padding: 4
-                  }
-                }
+              padding: { top: 3, bottom: 3, left: 6, right: 6 },
+              formatter: function(value, context) {
+                const kg = context.dataset.weightKgList ? context.dataset.weightKgList[context.dataIndex] : 0;
+                const pStr = `${Number(value).toFixed(2)}%`;
+                const kStr = kg > 0 ? `${Number(Math.round(kg)).toLocaleString()}kg` : '';
+                return kStr ? `${pStr}\n${kStr}` : pStr;
               }
             }
           },
           scales: {
-            y: {
-              beginAtZero: true,
-              suggestedMax: ySuggestedMax,
-              ticks: {
-                callback: v => `${v.toFixed(1)}%`,
-                font: { family: "'Prompt', sans-serif", size: 10.5, weight: '600' },
-                color: '#475569'
-              },
-              grid: { color: '#f1f5f9' }
-            },
             x: {
               grid: { display: false },
               ticks: {
-                font: { family: "'Prompt', sans-serif", size: 11, weight: 'bold' },
-                color: function(ctx) {
-                  return (ctx.index + 1 === currentMo) ? '#4338ca' : '#0f172a';
-                }
+                font: { family: "'Prompt', sans-serif", size: 10.5, weight: 'bold' },
+                maxRotation: 45,
+                minRotation: 0
+              }
+            },
+            y: {
+              beginAtZero: true,
+              suggestedMax: suggestedMax,
+              grid: { color: '#f1f5f9' },
+              ticks: {
+                font: { family: "'Prompt', sans-serif", size: 11 },
+                callback: function(v) { return `${v.toFixed(1)}%`; }
               }
             }
           }
@@ -5693,63 +5769,43 @@
       });
     }
 
-    function renderWasteAllTable(data, sumCon, sumOut, totalWasteKg, totalWastePct, totalDiffPct) {
-      const tbody = document.getElementById('wasteAllTableBody');
-      if (!tbody) return;
-      tbody.innerHTML = '';
+    async function downloadWasteAllBarChartImage() {
+      const card = document.getElementById('waste-all-daily-chart-card');
+      if (!card || typeof html2canvas === 'undefined') return;
+      try {
+        const canvas = await html2canvas(card, {
+          scale: 2.5,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          logging: false,
+          ignoreElements: el => el.getAttribute('data-html2canvas-ignore') === 'true'
+        });
+        const link = document.createElement('a');
+        link.download = `Waste_ALL_Bar_${wasteAllActiveMachine}_${currentWasteAllGranularity}.png`;
+        link.href = canvas.toDataURL('image/png', 1.0);
+        link.click();
+      } catch (e) {
+        console.error('Error downloading waste all bar chart:', e);
+      }
+    }
 
-      data.forEach(d => {
-        const c = Math.max(0, Math.round(Number(d.consumption) || 0));
-        const o = Math.max(0, Math.round(Number(d.output) || 0));
-        const isIdle = (c === 0 && o === 0);
-        const wKg = c - o;
-        const pct = c > 0 ? ((wKg / c) * 100) : 0;
-        const diff = pct - TARGET_WASTE_ALL;
-
-        let statusBadge = '';
-        let rowClass = '';
-        if (isIdle) {
-          statusBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-200 text-slate-700">ไม่เดิน</span>';
-        } else if (pct <= TARGET_WASTE_ALL) {
-          statusBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">ได้เป้า ✅</span>';
-          rowClass = 'bg-emerald-50/40';
-        } else {
-          statusBadge = '<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300">เกินเป้า ❌</span>';
-          rowClass = 'bg-rose-50/40';
-        }
-
-        const diffStr = isIdle ? '-' : `${diff >= 0 ? '+' : ''}${diff.toFixed(2)}%`;
-        const diffClass = isIdle ? 'text-slate-500' : (diff <= 0 ? 'text-emerald-700 font-bold' : 'text-rose-700 font-bold');
-
-        const tr = document.createElement('tr');
-        tr.className = `hover:bg-slate-100/70 transition border-b border-slate-200 ${rowClass}`;
-        tr.innerHTML = `
-          <td class="p-2.5 text-left font-bold text-slate-800 whitespace-nowrap">${d.date}</td>
-          <td class="p-2.5 font-semibold text-slate-800">${c > 0 ? c.toLocaleString() : '-'}</td>
-          <td class="p-2.5 font-semibold text-slate-800">${o > 0 ? o.toLocaleString() : '-'}</td>
-          <td class="p-2.5 font-bold text-amber-900 bg-amber-50/50">${isIdle ? '-' : wKg.toLocaleString()}</td>
-          <td class="p-2.5 font-black text-slate-900">${isIdle ? '-' : `${pct.toFixed(2)}%`}</td>
-          <td class="p-2.5 font-bold text-slate-600 bg-slate-50">11.00%</td>
-          <td class="p-2.5 ${diffClass}">${diffStr}</td>
-          <td class="p-2.5 whitespace-nowrap">${statusBadge}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      safeSetText('waste-all-foot-con', sumCon.toLocaleString());
-      safeSetText('waste-all-foot-out', sumOut.toLocaleString());
-      safeSetText('waste-all-foot-waste-kg', totalWasteKg.toLocaleString());
-      safeSetText('waste-all-foot-pct', `${totalWastePct.toFixed(2)}%`);
-      const diffSign = totalDiffPct >= 0 ? '+' : '';
-      safeSetText('waste-all-foot-diff', `${diffSign}${totalDiffPct.toFixed(2)}%`);
-
-      const footStatus = document.getElementById('waste-all-foot-status');
-      if (footStatus) {
-        if (totalWastePct <= TARGET_WASTE_ALL) {
-          footStatus.innerHTML = '<span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-500 text-white">ได้เป้า ✅</span>';
-        } else {
-          footStatus.innerHTML = '<span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-500 text-white">เกินเป้า ❌</span>';
-        }
+    async function downloadWasteAllTrendLineChartImage() {
+      const card = document.getElementById('waste-all-trend-line-card');
+      if (!card || typeof html2canvas === 'undefined') return;
+      try {
+        const canvas = await html2canvas(card, {
+          scale: 2.5,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          logging: false,
+          ignoreElements: el => el.getAttribute('data-html2canvas-ignore') === 'true'
+        });
+        const link = document.createElement('a');
+        link.download = `Waste_ALL_Trend_Line_${wasteAllActiveMachine}_${currentWasteAllGranularity}.png`;
+        link.href = canvas.toDataURL('image/png', 1.0);
+        link.click();
+      } catch (e) {
+        console.error('Error downloading waste all trend line chart:', e);
       }
     }
 
