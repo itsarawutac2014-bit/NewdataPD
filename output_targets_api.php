@@ -112,11 +112,24 @@ if ($method === 'POST') {
         foreach (['BHS', 'ISOWA', 'YUELI', 'TOTAL'] as $mKey) {
             if (isset($payload['machines'][$mKey])) {
                 $mInput = $payload['machines'][$mKey];
-                $daily = isset($mInput['dailyTarget']) ? max(0, round((float)$mInput['dailyTarget'])) : $defaultTargets['machines'][$mKey]['dailyTarget'];
-                $monthly = isset($mInput['monthlyTarget']) ? max(0, round((float)$mInput['monthlyTarget'])) : $defaultTargets['machines'][$mKey]['monthlyTarget'];
+                $daily = isset($mInput['dailyTarget']) ? max(0, round((float)$mInput['dailyTarget'])) : ($currentData['machines'][$mKey]['dailyTarget'] ?? $defaultTargets['machines'][$mKey]['dailyTarget']);
+                $monthly = isset($mInput['monthlyTarget']) ? max(0, round((float)$mInput['monthlyTarget'])) : ($currentData['machines'][$mKey]['monthlyTarget'] ?? $defaultTargets['machines'][$mKey]['monthlyTarget']);
                 $currentData['machines'][$mKey]['dailyTarget'] = $daily;
                 $currentData['machines'][$mKey]['monthlyTarget'] = $monthly;
             }
+        }
+        // Auto compute TOTAL daily & monthly if not explicitly overridden
+        if (!isset($payload['machines']['TOTAL']['dailyTarget'])) {
+            $currentData['machines']['TOTAL']['dailyTarget'] = 
+                ($currentData['machines']['BHS']['dailyTarget'] ?? 100000) +
+                ($currentData['machines']['ISOWA']['dailyTarget'] ?? 60000) +
+                ($currentData['machines']['YUELI']['dailyTarget'] ?? 50000);
+        }
+        if (!isset($payload['machines']['TOTAL']['monthlyTarget'])) {
+            $currentData['machines']['TOTAL']['monthlyTarget'] = 
+                ($currentData['machines']['BHS']['monthlyTarget'] ?? 2200000) +
+                ($currentData['machines']['ISOWA']['monthlyTarget'] ?? 1300000) +
+                ($currentData['machines']['YUELI']['monthlyTarget'] ?? 1100000);
         }
     }
 
@@ -127,13 +140,24 @@ if ($method === 'POST') {
             if (!isset($currentData['monthlyTargets']) || !is_array($currentData['monthlyTargets'])) {
                 $currentData['monthlyTargets'] = [];
             }
+            if (!isset($currentData['monthlyTargets'][$monthKey]) || !is_array($currentData['monthlyTargets'][$monthKey])) {
+                $currentData['monthlyTargets'][$monthKey] = [];
+            }
             $cleanTargets = [];
             foreach (['BHS', 'ISOWA', 'YUELI', 'TOTAL'] as $mKey) {
                 if (isset($payload['monthTargets'][$mKey])) {
                     $cleanTargets[$mKey] = max(0, round((float)$payload['monthTargets'][$mKey]));
                 }
             }
-            $currentData['monthlyTargets'][$monthKey] = $cleanTargets;
+            $currentData['monthlyTargets'][$monthKey] = array_merge($currentData['monthlyTargets'][$monthKey], $cleanTargets);
+            
+            // Recalculate TOTAL for this month if not explicitly given
+            if (!isset($cleanTargets['TOTAL'])) {
+                $bhs = $currentData['monthlyTargets'][$monthKey]['BHS'] ?? $currentData['machines']['BHS']['monthlyTarget'] ?? 2200000;
+                $isw = $currentData['monthlyTargets'][$monthKey]['ISOWA'] ?? $currentData['machines']['ISOWA']['monthlyTarget'] ?? 1300000;
+                $yue = $currentData['monthlyTargets'][$monthKey]['YUELI'] ?? $currentData['machines']['YUELI']['monthlyTarget'] ?? 1100000;
+                $currentData['monthlyTargets'][$monthKey]['TOTAL'] = $bhs + $isw + $yue;
+            }
         }
     }
 
@@ -144,13 +168,24 @@ if ($method === 'POST') {
         }
         foreach ($payload['monthlyTargets'] as $mKey => $vals) {
             if (is_array($vals)) {
+                if (!isset($currentData['monthlyTargets'][$mKey]) || !is_array($currentData['monthlyTargets'][$mKey])) {
+                    $currentData['monthlyTargets'][$mKey] = [];
+                }
                 $clean = [];
                 foreach (['BHS', 'ISOWA', 'YUELI', 'TOTAL'] as $mach) {
                     if (isset($vals[$mach])) {
                         $clean[$mach] = max(0, round((float)$vals[$mach]));
                     }
                 }
-                $currentData['monthlyTargets'][$mKey] = $clean;
+                $currentData['monthlyTargets'][$mKey] = array_merge($currentData['monthlyTargets'][$mKey], $clean);
+
+                // Recalculate TOTAL if not explicitly given
+                if (!isset($vals['TOTAL'])) {
+                    $bhs = $currentData['monthlyTargets'][$mKey]['BHS'] ?? $currentData['machines']['BHS']['monthlyTarget'] ?? 2200000;
+                    $isw = $currentData['monthlyTargets'][$mKey]['ISOWA'] ?? $currentData['machines']['ISOWA']['monthlyTarget'] ?? 1300000;
+                    $yue = $currentData['monthlyTargets'][$mKey]['YUELI'] ?? $currentData['machines']['YUELI']['monthlyTarget'] ?? 1100000;
+                    $currentData['monthlyTargets'][$mKey]['TOTAL'] = $bhs + $isw + $yue;
+                }
             }
         }
     }

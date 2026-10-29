@@ -1052,7 +1052,7 @@
           <div class="flex items-center bg-amber-50/80 border border-amber-300 rounded-xl px-3 py-1.5 shadow-2xs">
             <i class="fa-solid fa-crosshairs text-amber-600 mr-2 text-xs"></i>
             <span class="text-xs text-amber-900 font-bold mr-1.5 whitespace-nowrap">เป้ารายวัน:</span>
-            <input type="number" id="modal-target-daily" step="1000" min="0" class="w-24 text-right font-black text-slate-900 bg-white border border-amber-400 rounded-lg px-2 py-0.5 text-xs focus:ring-1 focus:ring-amber-500">
+            <input type="number" id="modal-target-daily" oninput="onModalDailyInput(this)" step="1000" min="0" class="w-24 text-right font-black text-slate-900 bg-white border border-amber-400 rounded-lg px-2 py-0.5 text-xs focus:ring-1 focus:ring-amber-500">
             <span class="text-[11px] text-amber-800 font-bold ml-1">กก./วัน</span>
           </div>
         </div>
@@ -1382,21 +1382,101 @@
     // ==========================================
     // โหลด / บันทึก ค่าเป้าหมาย Target Output
     // ==========================================
+    let currentModalMachine = 'BHS';
+    let currentModalYear = 2026;
+
+    function mergeTargets(base, override) {
+      if (!base) return override || {};
+      if (!override) return base || {};
+      const merged = JSON.parse(JSON.stringify(base));
+
+      if (override.machines) {
+        if (!merged.machines) merged.machines = {};
+        for (const mKey of ['BHS', 'ISOWA', 'YUELI', 'TOTAL']) {
+          if (override.machines[mKey]) {
+            merged.machines[mKey] = Object.assign({}, merged.machines[mKey] || {}, override.machines[mKey]);
+          }
+        }
+      }
+
+      if (override.monthlyTargets) {
+        if (!merged.monthlyTargets) merged.monthlyTargets = {};
+        for (const [monthKey, machVals] of Object.entries(override.monthlyTargets)) {
+          if (!merged.monthlyTargets[monthKey]) {
+            merged.monthlyTargets[monthKey] = {};
+          }
+          Object.assign(merged.monthlyTargets[monthKey], machVals);
+        }
+      }
+
+      merged.updated_at = override.updated_at || base.updated_at || new Date().toISOString();
+      return merged;
+    }
+
+    async function syncTargetsToServer(data) {
+      try {
+        await fetch('output_targets_api.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'save',
+            machines: data.machines,
+            monthlyTargets: data.monthlyTargets
+          })
+        });
+      } catch (err) {
+        console.warn('Background sync target to server failed:', err);
+      }
+    }
+
     async function loadOutputTargets() {
+      // 1. ดึงจาก localStorage ก่อนเสมอ เพื่อให้ค่าที่ผู้ใช้เคยกรอกไม่หายแม้เซิร์ฟเวอร์จะรีสตาร์ท
+      let localData = null;
+      try {
+        const saved = localStorage.getItem('output_targets_settings');
+        if (saved) {
+          localData = JSON.parse(saved);
+          if (localData && localData.machines) {
+            OUTPUT_TARGETS = mergeTargets(OUTPUT_TARGETS, localData);
+          }
+        }
+      } catch (err) {}
+
+      // 2. ดึงข้อมูลจาก backend API
       try {
         const res = await fetch('output_targets_api.php');
         const json = await res.json();
         if (json && json.success && json.data && json.data.machines) {
-          OUTPUT_TARGETS = json.data;
+          const serverData = json.data;
+
+          if (localData && localData.updated_at) {
+            const localTime = new Date(localData.updated_at).getTime() || 0;
+            const serverTime = new Date(serverData.updated_at).getTime() || 0;
+
+            // ถ้า local ใหม่กว่า หรือเซิร์ฟเวอร์เป็นค่า default (เช่น พึ่งรีสตาร์ทบน Render)
+            if (localTime >= serverTime || json.is_default) {
+              OUTPUT_TARGETS = mergeTargets(serverData, localData);
+              // ซิงค์เป้าหมายกลับขึ้นไปเก็บบนเซิร์ฟเวอร์ในพื้นหลัง
+              syncTargetsToServer(OUTPUT_TARGETS);
+            } else {
+              // เซิร์ฟเวอร์มีข้อมูลที่ใหม่กว่า
+              OUTPUT_TARGETS = mergeTargets(localData, serverData);
+              localStorage.setItem('output_targets_settings', JSON.stringify(OUTPUT_TARGETS));
+            }
+          } else {
+            OUTPUT_TARGETS = mergeTargets(OUTPUT_TARGETS, serverData);
+            localStorage.setItem('output_targets_settings', JSON.stringify(OUTPUT_TARGETS));
+          }
         }
       } catch (e) {
-        // Fallback localStorage
-        try {
-          const saved = localStorage.getItem('output_targets_settings');
-          if (saved) OUTPUT_TARGETS = JSON.parse(saved);
-        } catch(err) {}
+        console.warn('Cannot fetch server targets, fallback to local/default', e);
       }
+
       updateModalInputs();
+      renderDashboard();
+      if (typeof loadOverviewTableData === 'function') {
+        loadOverviewTableData();
+      }
     }
 
     function getActiveMonthlyTarget(machineKey) {
@@ -1422,10 +1502,41 @@
       'กันยายน (09)', 'ตุลาคม (10)', 'พฤศจิกายน (11)', 'ธันวาคม (12)'
     ];
 
+    function saveCurrentModalDraft() {
+      if (!currentModalMachine || !currentModalYear) return;
+      const dailyInput = document.getElementById('modal-target-daily');
+      if (dailyInput && OUTPUT_TARGETS.machines?.[currentModalMachine]) {
+        const dVal = parseFloat(dailyInput.value);
+        if (!isNaN(dVal) && dVal >= 0) {
+          OUTPUT_TARGETS.machines[currentModalMachine].dailyTarget = dVal;
+        }
+      }
+
+      if (!OUTPUT_TARGETS.monthlyTargets) OUTPUT_TARGETS.monthlyTargets = {};
+      if (!OUTPUT_TARGETS.machines) OUTPUT_TARGETS.machines = {};
+      if (!OUTPUT_TARGETS.machines[currentModalMachine]) OUTPUT_TARGETS.machines[currentModalMachine] = {};
+
+      for (let m = 1; m <= 12; m++) {
+        const input = document.getElementById(`modal-month-input-${m}`);
+        if (input) {
+          const val = parseFloat(input.value);
+          if (!isNaN(val) && val >= 0) {
+            const mStr = String(m).padStart(2, '0');
+            const key = `${currentModalYear}-${mStr}`;
+            if (!OUTPUT_TARGETS.monthlyTargets[key]) OUTPUT_TARGETS.monthlyTargets[key] = {};
+            OUTPUT_TARGETS.monthlyTargets[key][currentModalMachine] = val;
+          }
+        }
+      }
+    }
+
     function updateModalInputs() {
       const modalMach = document.getElementById('modal-target-machine')?.value || currentMachine;
-      const modalYear = document.getElementById('modal-target-year')?.value || currentYear;
+      const modalYear = parseInt(document.getElementById('modal-target-year')?.value) || currentYear;
       
+      currentModalMachine = modalMach;
+      currentModalYear = modalYear;
+
       const yearLabel = document.getElementById('modal-table-year-label');
       if (yearLabel) yearLabel.textContent = modalYear;
 
@@ -1496,7 +1607,16 @@
     }
 
     function onModalFilterChange() {
+      // เซฟค่าที่ผู้ใช้กรอกไว้ก่อนหน้าลง Memory ก่อนเปลี่ยนหน้าจอไปเครื่อง/ปีอื่น ป้องกันข้อมูลหาย
+      saveCurrentModalDraft();
       updateModalInputs();
+    }
+
+    function onModalDailyInput(inputEl) {
+      const val = parseFloat(inputEl.value) || 0;
+      if (currentModalMachine && OUTPUT_TARGETS.machines?.[currentModalMachine]) {
+        OUTPUT_TARGETS.machines[currentModalMachine].dailyTarget = val;
+      }
     }
 
     function onModalMonthTableInput(inputEl) {
@@ -1507,6 +1627,15 @@
         tonEl.textContent = `${(val / 1000).toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 1})} ตัน`;
       }
       updateModalYearTotals();
+
+      // บันทึกเข้า Memory ทันทีที่พิมพ์ ป้องกันการสลับเครื่องแล้วค่าหาย
+      if (currentModalMachine && currentModalYear) {
+        const mStr = String(m).padStart(2, '0');
+        const key = `${currentModalYear}-${mStr}`;
+        if (!OUTPUT_TARGETS.monthlyTargets) OUTPUT_TARGETS.monthlyTargets = {};
+        if (!OUTPUT_TARGETS.monthlyTargets[key]) OUTPUT_TARGETS.monthlyTargets[key] = {};
+        OUTPUT_TARGETS.monthlyTargets[key][currentModalMachine] = val;
+      }
     }
 
     function updateModalYearTotals() {
@@ -1537,12 +1666,14 @@
           }
         }
       }
+      saveCurrentModalDraft();
       updateModalYearTotals();
     }
 
     async function resetOutputTargetsToDefault() {
       if (!confirm('ต้องการรีเซ็ตค่าเป้าหมายเป็นค่าเริ่มต้นหรือไม่?')) return;
       try {
+        localStorage.removeItem('output_targets_settings');
         const res = await fetch('output_targets_api.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1551,10 +1682,15 @@
         const json = await res.json();
         if (json && json.success) {
           OUTPUT_TARGETS = json.data;
+          localStorage.setItem('output_targets_settings', JSON.stringify(OUTPUT_TARGETS));
           updateModalInputs();
           renderDashboard();
+          if (typeof loadOverviewTableData === 'function') loadOverviewTableData();
+          alert('รีเซ็ตเป้าหมายเป็นค่าเริ่มต้นเรียบร้อยแล้ว');
         }
-      } catch(e) {}
+      } catch(e) {
+        alert('เกิดข้อผิดพลาดในการรีเซ็ตเป้าหมาย');
+      }
     }
 
     function openTargetSettingsModal() {
@@ -1563,6 +1699,9 @@
       if (selMach) selMach.value = currentMachine;
       const selY = document.getElementById('modal-target-year');
       if (selY) selY.value = String(currentYear);
+
+      currentModalMachine = selMach ? selMach.value : currentMachine;
+      currentModalYear = selY ? parseInt(selY.value) : currentYear;
 
       updateModalInputs();
       document.getElementById('targetSettingsModal').classList.remove('hidden');
@@ -1576,45 +1715,47 @@
       const btn = document.getElementById('btn-save-targets');
       if (btn) btn.disabled = true;
 
+      // 1. บันทึกข้อมูลที่เพิ่งพิมพ์ใน Modal เข้า Memory ทันที
+      saveCurrentModalDraft();
+
       const modalMach = document.getElementById('modal-target-machine')?.value || currentMachine;
-      const modalYear = document.getElementById('modal-target-year')?.value || currentYear;
-      const dailyVal = parseFloat(document.getElementById('modal-target-daily')?.value) || 100000;
+      const modalYear = parseInt(document.getElementById('modal-target-year')?.value) || currentYear;
 
-      // รวมข้อมูล 12 เดือนที่กรอก
-      const monthly12 = {};
-      for (let m = 1; m <= 12; m++) {
-        const mStr = String(m).padStart(2, '0');
-        const key = `${modalYear}-${mStr}`;
-        const inputVal = parseFloat(document.getElementById(`modal-month-input-${m}`)?.value) || 0;
-        monthly12[key] = inputVal;
-      }
-
-      // เตรียม payload ส่งบันทึก
-      if (!OUTPUT_TARGETS.monthlyTargets) OUTPUT_TARGETS.monthlyTargets = {};
-      if (!OUTPUT_TARGETS.machines) OUTPUT_TARGETS.machines = {};
-      if (!OUTPUT_TARGETS.machines[modalMach]) OUTPUT_TARGETS.machines[modalMach] = {};
-
-      OUTPUT_TARGETS.machines[modalMach].dailyTarget = dailyVal;
-      // ให้ monthlyTarget เริ่มต้นอิงจากเดือนที่ 1 หรือเฉลี่ย
-      OUTPUT_TARGETS.machines[modalMach].monthlyTarget = monthly12[`${modalYear}-01`] || OUTPUT_TARGETS.machines[modalMach].monthlyTarget;
-
+      // คำนวณ TOTAL ของทุกเดือนในระบบให้แม่นยำอัตโนมัติ
       for (let m = 1; m <= 12; m++) {
         const mStr = String(m).padStart(2, '0');
         const key = `${modalYear}-${mStr}`;
         if (!OUTPUT_TARGETS.monthlyTargets[key]) OUTPUT_TARGETS.monthlyTargets[key] = {};
-        OUTPUT_TARGETS.monthlyTargets[key][modalMach] = monthly12[key];
+        const bhsVal = OUTPUT_TARGETS.monthlyTargets[key]?.BHS ?? OUTPUT_TARGETS.machines?.BHS?.monthlyTarget ?? 2200000;
+        const iswVal = OUTPUT_TARGETS.monthlyTargets[key]?.ISOWA ?? OUTPUT_TARGETS.machines?.ISOWA?.monthlyTarget ?? 1300000;
+        const yueVal = OUTPUT_TARGETS.monthlyTargets[key]?.YUELI ?? OUTPUT_TARGETS.machines?.YUELI?.monthlyTarget ?? 1100000;
+        OUTPUT_TARGETS.monthlyTargets[key].TOTAL = bhsVal + iswVal + yueVal;
       }
 
-      // ถ้าเป็นเครื่องจักร BHS / ISOWA / YUELI คำนวณ TOTAL ของแต่ละเดือนให้ด้วย
-      if (modalMach !== 'TOTAL') {
-        for (let m = 1; m <= 12; m++) {
-          const mStr = String(m).padStart(2, '0');
-          const key = `${modalYear}-${mStr}`;
-          const bhsVal = OUTPUT_TARGETS.monthlyTargets[key]?.BHS || OUTPUT_TARGETS.machines?.BHS?.monthlyTarget || 2200000;
-          const iswVal = OUTPUT_TARGETS.monthlyTargets[key]?.ISOWA || OUTPUT_TARGETS.machines?.ISOWA?.monthlyTarget || 1300000;
-          const yueVal = OUTPUT_TARGETS.monthlyTargets[key]?.YUELI || OUTPUT_TARGETS.machines?.YUELI?.monthlyTarget || 1100000;
-          OUTPUT_TARGETS.monthlyTargets[key].TOTAL = bhsVal + iswVal + yueVal;
-        }
+      // คำนวณ TOTAL เครื่องจักรตั้งต้น
+      if (OUTPUT_TARGETS.machines) {
+        OUTPUT_TARGETS.machines.TOTAL = OUTPUT_TARGETS.machines.TOTAL || { name: 'รวมทุกเครื่อง (TOTAL)', unit: 'kg' };
+        OUTPUT_TARGETS.machines.TOTAL.dailyTarget = 
+          (OUTPUT_TARGETS.machines.BHS?.dailyTarget || 100000) +
+          (OUTPUT_TARGETS.machines.ISOWA?.dailyTarget || 60000) +
+          (OUTPUT_TARGETS.machines.YUELI?.dailyTarget || 50000);
+        OUTPUT_TARGETS.machines.TOTAL.monthlyTarget = 
+          (OUTPUT_TARGETS.machines.BHS?.monthlyTarget || 2200000) +
+          (OUTPUT_TARGETS.machines.ISOWA?.monthlyTarget || 1300000) +
+          (OUTPUT_TARGETS.machines.YUELI?.monthlyTarget || 1100000);
+      }
+
+      OUTPUT_TARGETS.updated_at = new Date().toISOString();
+
+      // บันทึกลง localStorage ทันที (ไม่หายแน่นอน 100%)
+      try {
+        localStorage.setItem('output_targets_settings', JSON.stringify(OUTPUT_TARGETS));
+      } catch (err) {}
+
+      // อัปเดตกราฟและตารางภาพรวมทันที
+      renderDashboard();
+      if (typeof loadOverviewTableData === 'function') {
+        loadOverviewTableData();
       }
 
       const postPayload = {
@@ -1630,21 +1771,19 @@
           body: JSON.stringify(postPayload)
         });
         const json = await res.json();
-        if (json && json.success) {
-          OUTPUT_TARGETS = json.data;
+        if (json && json.success && json.data) {
+          OUTPUT_TARGETS = mergeTargets(OUTPUT_TARGETS, json.data);
           localStorage.setItem('output_targets_settings', JSON.stringify(OUTPUT_TARGETS));
           closeTargetSettingsModal();
           renderDashboard();
+          if (typeof loadOverviewTableData === 'function') loadOverviewTableData();
           alert(`บันทึกเป้าหมาย Target Output 12 เดือน ประจำปี ${modalYear} (${modalMach}) สำเร็จเรียบร้อยแล้ว!`);
         } else {
-          alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+          closeTargetSettingsModal();
+          alert('บันทึกเป้าหมายในเบราว์เซอร์สำเร็จ (เซิร์ฟเวอร์ยังไม่อัปเดต)');
         }
       } catch(e) {
-        // Fallback localStorage
-        OUTPUT_TARGETS.updated_at = new Date().toLocaleString();
-        localStorage.setItem('output_targets_settings', JSON.stringify(OUTPUT_TARGETS));
         closeTargetSettingsModal();
-        renderDashboard();
         alert(`บันทึกเป้าหมาย 12 เดือน ประจำปี ${modalYear} ลงหน่วยความจำเบราว์เซอร์สำเร็จ!`);
       } finally {
         if (btn) btn.disabled = false;
