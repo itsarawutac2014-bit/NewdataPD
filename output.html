@@ -570,6 +570,77 @@
       </section>
 
       <!-- ========================================== -->
+      <!-- Table 3: Daily Operating & Downtime Matrix 1-31 (Image 4) -->
+      <!-- ========================================== -->
+      <section id="operating-matrix-card" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 overflow-hidden">
+        
+        <!-- Header ของตารางเมทริกซ์ 1-31 วัน -->
+        <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 pb-4 border-b border-slate-100">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-violet-600"></span>
+              <h2 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+                ตารางบันทึกวันเดินงานและชั่วโมงไม่เดิน (Daily Operating & Downtime Matrix)
+              </h2>
+            </div>
+            <p class="text-xs text-slate-500 font-medium mt-1">
+              ประจำเดือน <span id="op-matrix-month-label" class="font-bold text-indigo-600">-</span> • บันทึกเวลาจอดของแต่ละเครื่องจักรแยกตามวัน 1–31 (0 = เดินปกติ, 1–24 = ชั่วโมงที่จอด)
+            </p>
+          </div>
+
+          <!-- ปุ่มเครื่องมือตารางเมทริกซ์ -->
+          <div class="flex items-center gap-2 flex-wrap" data-html2canvas-ignore="true">
+            <button onclick="openTargetDays12MonthsModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-black shadow-2xs transition cursor-pointer">
+              <i class="fa-solid fa-sliders"></i> Target วันเดิน 12 เดือน
+            </button>
+            <button onclick="autoSyncMatrixFromOutput()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold transition cursor-pointer">
+              <i class="fa-solid fa-bolt text-amber-500"></i> ซิงค์จากยอดผลิต
+            </button>
+            <button onclick="saveOperatingMatrixData()" id="btn-save-matrix" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
+              <i class="fa-solid fa-floppy-disk"></i> บันทึกตาราง
+            </button>
+            <button onclick="exportOperatingMatrixTableAsImage(this)" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
+              <i class="fa-solid fa-camera"></i> บันทึกภาพตาราง
+            </button>
+          </div>
+        </div>
+
+        <!-- คำอธิบายสถานะสี -->
+        <div class="mt-3 flex items-center justify-between gap-3 text-xs flex-wrap bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+          <div class="flex items-center gap-3 flex-wrap">
+            <span class="text-slate-600 font-bold">สัญลักษณ์สี:</span>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span> 0 = เดินเครื่องปกติ
+            </span>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+              <span class="w-2 h-2 rounded-full bg-amber-500"></span> 1–23 = จอดบางส่วน (ชม.)
+            </span>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
+              <span class="w-2 h-2 rounded-full bg-rose-500"></span> 24 = จอดทั้งวัน (24 ชม.)
+            </span>
+          </div>
+          <span class="text-slate-400 text-[11px]">💡 สามารถแก้ไขตัวเลขชั่วโมงในช่องตารางได้โดยตรง แล้วกด "บันทึกตาราง"</span>
+        </div>
+
+        <!-- ตารางปฏิทิน 1-31 วัน ตามแบบรูปที่ 4 -->
+        <div class="mt-4 overflow-x-auto rounded-xl border border-slate-200 shadow-2xs max-w-full">
+          <table class="w-full text-xs text-left border-collapse" id="operating-matrix-table">
+            <thead>
+              <tr class="bg-slate-800 text-white font-black text-center divide-x divide-slate-700" id="matrix-header-row">
+                <th scope="col" class="py-2.5 px-3 min-w-[90px] sticky left-0 z-10 bg-slate-800 shadow-xs">เครื่อง</th>
+                <!-- วันที่ 1-31 จะถูกเรนเดอร์ผ่าน JS -->
+                <th scope="col" class="py-2.5 px-3 min-w-[95px] bg-slate-900">รวมจอด (ชม.)</th>
+                <th scope="col" class="py-2.5 px-3 min-w-[125px] bg-slate-900">คิดเป็น</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 font-bold" id="matrix-body-rows">
+              <!-- แถว BHS, YUELI, ISOWA เรนเดอร์ผ่าน JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
       <!-- Chart 1: Daily Output vs Target Bar Chart -->
       <!-- ========================================== -->
       <section id="chart-card-daily" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 overflow-hidden">
@@ -1036,7 +1107,78 @@
     </div>
   </div>
 
-  <!-- Footer -->
+  <!-- ========================================== -->
+<!-- Modal: ตั้งค่าเป้าหมายวันเดินงาน 12 เดือน (แยกตามเดือน) -->
+<!-- ========================================== -->
+<div id="targetDays12MonthsModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+  <div class="bg-white rounded-3xl max-w-3xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all flex flex-col max-h-[92vh]">
+    
+    <!-- Modal Header -->
+    <div class="px-6 py-4 bg-gradient-to-r from-slate-900 via-amber-950 to-slate-900 text-white flex justify-between items-center border-b border-amber-800 shrink-0">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 text-lg">
+          <i class="fa-solid fa-sliders"></i>
+        </div>
+        <div>
+          <h3 class="text-base sm:text-lg font-black tracking-tight">ตั้งค่าเป้าหมายวันเดินงาน 12 เดือน (Target Operating Days)</h3>
+          <p class="text-xs text-amber-200/80">กำหนดเป้าหมายวันเดินงานแยกตามแต่ละเดือน ประจำปี <span id="target-days-year-display" class="font-bold text-white">2026</span> (แต่ละเดือนวันทำงานไม่เท่ากัน)</p>
+        </div>
+      </div>
+      <button onclick="closeTargetDays12MonthsModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition cursor-pointer">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Quick Preset Toolbar -->
+    <div class="p-4 bg-amber-50/70 border-b border-amber-200/80 flex items-center justify-between gap-3 flex-wrap shrink-0">
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-bold text-amber-950">เลือกปี:</span>
+        <select id="target-days-modal-year" onchange="renderTargetDays12MonthsInputs()" class="px-3 py-1.5 bg-white border border-amber-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none">
+          <option value="2026" selected>2026 (2569)</option>
+          <option value="2027">2027 (2570)</option>
+        </select>
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="setAll12MonthsTargetDays(22)" class="px-3 py-1.5 bg-white hover:bg-amber-100 border border-amber-300 text-amber-950 rounded-xl text-xs font-bold transition cursor-pointer">
+          เติม 22 วันทุกเดือน
+        </button>
+        <button type="button" onclick="setAll12MonthsTargetDays(20)" class="px-3 py-1.5 bg-white hover:bg-amber-100 border border-amber-300 text-amber-950 rounded-xl text-xs font-bold transition cursor-pointer">
+          เติม 20 วันทุกเดือน
+        </button>
+      </div>
+    </div>
+
+    <!-- 12 Months Table List (Scrollable) -->
+    <div class="p-4 sm:p-6 overflow-y-auto flex-1 bg-slate-50">
+      <table class="w-full text-xs text-left border-collapse bg-white rounded-2xl shadow-xs overflow-hidden border border-slate-200">
+        <thead>
+          <tr class="bg-slate-800 text-white font-black text-center divide-x divide-slate-700">
+            <th class="py-2.5 px-3 w-[160px]">เดือน</th>
+            <th class="py-2.5 px-3 w-[90px]">วันในเดือน</th>
+            <th class="py-2.5 px-3 min-w-[110px]">Target BHS (วัน)</th>
+            <th class="py-2.5 px-3 min-w-[110px]">Target YUELI (วัน)</th>
+            <th class="py-2.5 px-3 min-w-[110px]">Target ISOWA (วัน)</th>
+          </tr>
+        </thead>
+        <tbody id="target-days-12months-tbody" class="divide-y divide-slate-200">
+          <!-- 12 Months Inputs rendered via JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="px-6 py-4 bg-white border-t border-slate-200 flex justify-between items-center shrink-0">
+      <button type="button" onclick="closeTargetDays12MonthsModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+        ยกเลิก
+      </button>
+      <button type="button" onclick="saveTargetDays12Months()" id="btn-save-12months-targets" class="px-6 py-2.5 text-xs font-black text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer">
+        <i class="fa-solid fa-check"></i> บันทึก Target วันเดินงาน 12 เดือน
+      </button>
+    </div>
+
+  </div>
+</div>
+<!-- Footer -->
   <footer class="mt-8 text-center text-xs text-slate-400 font-medium pb-4">
     Production Waste & Output Monitoring System • แผนกผลิต PD • พัฒนาเพื่อการวิเคราะห์ข้อมูลความแม่นยำสูง
   </footer>
@@ -2669,6 +2811,7 @@
 
       // TOTAL Row
       const totalRemain = totalTarget - totalRun;
+      renderOperatingMatrix();
       renderOperatingDaysRow('total', {
         target: totalTarget,
         run: totalRun,
@@ -2976,7 +3119,426 @@
       }
     }
 
-    function exportOperatingDaysTableAsImage(btn) {
+        // ==========================================
+    // ตารางบันทึกวันเดินงานและชั่วโมงไม่เดิน (Matrix 1-31) (Image 4)
+    // ==========================================
+    let opMatrixState = {
+      BHS: {},
+      YUELI: {},
+      ISOWA: {}
+    };
+    let monthlyTargetDaysStore = {}; // "YYYY-MM" => { BHS: 22, YUELI: 22, ISOWA: 22 }
+
+    function getMonthlyTargetDays(machineKey, monthNum = currentMonth, yearNum = currentYear) {
+      const monthStr = String(monthNum).padStart(2, '0');
+      const monthKey = `${yearNum}-${monthStr}`;
+
+      if (monthlyTargetDaysStore[monthKey] && typeof monthlyTargetDaysStore[monthKey][machineKey] === 'number') {
+        return monthlyTargetDaysStore[monthKey][machineKey];
+      }
+      if (opDaysRecordCache && opDaysRecordCache.targetDays && typeof opDaysRecordCache.targetDays[machineKey] === 'number') {
+        return opDaysRecordCache.targetDays[machineKey];
+      }
+      return 22; // default
+    }
+
+    function renderOperatingMatrix() {
+      const monthStr = String(currentMonth).padStart(2, '0');
+      const monthKey = `${currentYear}-${monthStr}`;
+      const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+      const THAI_MONTH_ONLY = ['', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+      safeSetText('op-matrix-month-label', `${THAI_MONTH_ONLY[currentMonth] || ''} ${currentYear}`);
+
+      const headerRow = document.getElementById('matrix-header-row');
+      const tbody = document.getElementById('matrix-body-rows');
+      if (!headerRow || !tbody) return;
+
+      const THAI_DAY_SHORT = ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'];
+
+      // 1. Build Header Row: เครื่อง | 1 .. 31 | รวมจอด | คิดเป็น
+      let headerHtml = `<th scope="col" class="py-2.5 px-3 min-w-[90px] sticky left-0 z-10 bg-slate-800 text-center shadow-xs">เครื่อง</th>`;
+      for (let d = 1; d <= daysInMonth; d++) {
+        const curDate = new Date(currentYear, currentMonth - 1, d);
+        const dayOfWeek = curDate.getDay();
+        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+        const bgCol = isWeekend ? 'bg-slate-700 text-amber-300' : 'bg-slate-800 text-white';
+        headerHtml += `
+          <th scope="col" class="py-2 px-1 text-center min-w-[42px] max-w-[48px] ${bgCol} border-r border-slate-700">
+            <div class="font-black text-xs leading-none">${d}</div>
+            <div class="text-[10px] opacity-80 leading-tight mt-0.5">${THAI_DAY_SHORT[dayOfWeek]}</div>
+          </th>
+        `;
+      }
+      headerHtml += `
+        <th scope="col" class="py-2.5 px-3 min-w-[95px] bg-slate-900 text-center">รวมจอด (ชม.)</th>
+        <th scope="col" class="py-2.5 px-3 min-w-[125px] bg-slate-900 text-center">คิดเป็น</th>
+      `;
+      headerRow.innerHTML = headerHtml;
+
+      // 2. Initialize matrix state from opDaysRecordCache if available
+      ['BHS', 'YUELI', 'ISOWA'].forEach(m => {
+        if (!opMatrixState[m]) opMatrixState[m] = {};
+        for (let d = 1; d <= daysInMonth; d++) {
+          if (opDaysRecordCache && opDaysRecordCache[m] && opDaysRecordCache[m][d]) {
+            opMatrixState[m][d] = Number(opDaysRecordCache[m][d].idleHours) || 0;
+          } else if (typeof opMatrixState[m][d] !== 'number') {
+            opMatrixState[m][d] = 0;
+          }
+        }
+      });
+
+      // 3. Render Body Rows (BHS ส้มอ่อน, YUELI น้ำเงินอ่อน, ISOWA เขียวอ่อน)
+      const machineConfigs = [
+        { key: 'BHS', name: 'BHS', bgClass: 'bg-amber-50/90 text-amber-950 divide-amber-200/80', badgeClass: 'bg-amber-500 text-white' },
+        { key: 'YUELI', name: 'YUELI', bgClass: 'bg-blue-50/90 text-blue-950 divide-blue-200/80', badgeClass: 'bg-blue-600 text-white' },
+        { key: 'ISOWA', name: 'ISOWA', bgClass: 'bg-emerald-50/90 text-emerald-950 divide-emerald-200/80', badgeClass: 'bg-emerald-600 text-white' }
+      ];
+
+      tbody.innerHTML = '';
+
+      machineConfigs.forEach(cfg => {
+        const m = cfg.key;
+        let sumIdleHours = 0;
+
+        let rowHtml = `
+          <tr class="${cfg.bgClass} divide-x transition border-b border-slate-200">
+            <td class="py-2 px-3 text-center sticky left-0 z-10 ${cfg.bgClass} font-black shadow-xs">
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg ${cfg.badgeClass} text-xs font-black shadow-2xs">
+                ${m}
+              </span>
+            </td>
+        `;
+
+        for (let d = 1; d <= daysInMonth; d++) {
+          const idleH = Number(opMatrixState[m][d]) || 0;
+          sumIdleHours += idleH;
+
+          // Color-coding for cell
+          let cellStyle = 'bg-emerald-100 text-emerald-800 border-emerald-300'; // 0h = normal run
+          if (idleH >= 24) {
+            cellStyle = 'bg-rose-100 text-rose-800 border-rose-300 font-black'; // 24h = stopped
+          } else if (idleH > 0) {
+            cellStyle = 'bg-amber-100 text-amber-900 border-amber-300 font-bold'; // partial stopped
+          }
+
+          rowHtml += `
+            <td class="p-1 text-center border-r border-slate-200/70">
+              <input type="number" min="0" max="24" value="${idleH}" 
+                oninput="onMatrixCellInput('${m}', ${d}, this.value)"
+                class="w-9 h-7 text-center rounded-lg border text-xs font-black transition cursor-pointer focus:ring-2 focus:ring-indigo-500 focus:outline-none ${cellStyle}"
+                title="${m} วันที่ ${d}: จอด ${idleH} ชม.">
+            </td>
+          `;
+        }
+
+        // Summary columns for this machine
+        const fmt = formatDowntimeHours(sumIdleHours);
+        rowHtml += `
+            <td class="py-2 px-3 text-center font-black text-sm text-slate-900 bg-white/70" id="matrix-${m.toLowerCase()}-sum-h">
+              ${sumIdleHours} ชม.
+            </td>
+            <td class="py-2 px-3 text-center font-bold text-xs bg-white/70" id="matrix-${m.toLowerCase()}-sum-d">
+              ${fmt.days > 0 ? `<span class="text-rose-700 font-black">${fmt.days} วัน ${fmt.hours} ชม.</span>` : (fmt.hours > 0 ? `<span class="text-amber-800 font-bold">${fmt.hours} ชม.</span>` : '<span class="text-emerald-700 font-bold">0 ชม.</span>')}
+            </td>
+          </tr>
+        `;
+
+        tbody.innerHTML += rowHtml;
+      });
+    }
+
+    function onMatrixCellInput(machine, day, value) {
+      const h = Math.min(24, Math.max(0, Number(value) || 0));
+      if (!opMatrixState[machine]) opMatrixState[machine] = {};
+      opMatrixState[machine][day] = h;
+
+      // Update input styling live
+      const inputEl = event?.target;
+      if (inputEl) {
+        inputEl.className = inputEl.className.replace(/bg-\S+|text-\S+|border-\S+/g, '');
+        if (h >= 24) {
+          inputEl.classList.add('bg-rose-100', 'text-rose-800', 'border-rose-300', 'font-black');
+        } else if (h > 0) {
+          inputEl.classList.add('bg-amber-100', 'text-amber-900', 'border-amber-300', 'font-bold');
+        } else {
+          inputEl.classList.add('bg-emerald-100', 'text-emerald-800', 'border-emerald-300', 'font-bold');
+        }
+      }
+
+      // Recalculate row summary
+      const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+      let totalH = 0;
+      let runDays = 0;
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dh = Number(opMatrixState[machine][d]) || 0;
+        totalH += dh;
+        if (dh < 24) runDays++;
+      }
+
+      const sumHEl = document.getElementById(`matrix-${machine.toLowerCase()}-sum-h`);
+      if (sumHEl) sumHEl.textContent = `${totalH} ชม.`;
+
+      const sumDEl = document.getElementById(`matrix-${machine.toLowerCase()}-sum-d`);
+      if (sumDEl) {
+        const fmt = formatDowntimeHours(totalH);
+        sumDEl.innerHTML = fmt.days > 0 ? `<span class="text-rose-700 font-black">${fmt.days} วัน ${fmt.hours} ชม.</span>` : (fmt.hours > 0 ? `<span class="text-amber-800 font-bold">${fmt.hours} ชม.</span>` : '<span class="text-emerald-700 font-bold">0 ชม.</span>');
+      }
+
+      // Also live update Table 2 (Operating Days Table) row for this machine!
+      const targetDays = getMonthlyTargetDays(machine);
+      const remainDays = targetDays - runDays;
+      renderOperatingDaysRow(machine.toLowerCase(), {
+        target: targetDays,
+        run: runDays,
+        idleHours: totalH,
+        remain: remainDays
+      });
+    }
+
+    async function autoSyncMatrixFromOutput() {
+      const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+      const machines = ['BHS', 'YUELI', 'ISOWA'];
+
+      const fetchList = machines.map(async m => {
+        let rawDays = [];
+        if (m === currentMachine && Array.isArray(currentRawData) && currentRawData.length > 0) {
+          rawDays = currentRawData;
+        } else {
+          try {
+            const r = await fetch(`api.php?machine=${m}&month=${currentMonth}`);
+            const j = await r.json();
+            if (j && Array.isArray(j.data)) rawDays = j.data;
+          } catch(e) {}
+        }
+        return { machine: m, data: rawDays };
+      });
+
+      const results = await Promise.all(fetchList);
+
+      results.forEach(res => {
+        const m = res.machine;
+        const rawDays = res.data;
+        if (!opMatrixState[m]) opMatrixState[m] = {};
+
+        for (let d = 1; d <= daysInMonth; d++) {
+          const item = rawDays[d - 1] || rawDays.find(r => r.date && r.date.startsWith(`${d}/`));
+          const out = item ? (Number(item.output) || 0) : 0;
+          if (out > 0) {
+            opMatrixState[m][d] = 0; // เดินเครื่องปกติ 0 ชม. จอด
+          } else {
+            opMatrixState[m][d] = 24; // ไม่มี output = จอด 24 ชม.
+          }
+        }
+      });
+
+      renderOperatingMatrix();
+      alert('ซิงค์ข้อมูลจากยอดผลิตจริงของทั้ง 3 เครื่องเรียบร้อยแล้ว! (Output > 0 = 0 ชม. จอด, ไม่มี Output = 24 ชม. จอด)');
+    }
+
+    async function saveOperatingMatrixData() {
+      const btn = document.getElementById('btn-save-matrix');
+      if (btn) btn.disabled = true;
+
+      const monthStr = String(currentMonth).padStart(2, '0');
+      const monthKey = `${currentYear}-${monthStr}`;
+      const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+
+      // Transform opMatrixState into formatted records
+      const matrixPayload = {};
+      const targetDaysPayload = {};
+
+      ['BHS', 'YUELI', 'ISOWA'].forEach(m => {
+        matrixPayload[m] = {};
+        targetDaysPayload[m] = getMonthlyTargetDays(m);
+        for (let d = 1; d <= daysInMonth; d++) {
+          const h = Number(opMatrixState[m][d]) || 0;
+          matrixPayload[m][d] = {
+            run: (h < 24),
+            idleHours: h
+          };
+        }
+      });
+
+      if (!opDaysRecordCache) opDaysRecordCache = { records: {}, targetDays: targetDaysPayload };
+      opDaysRecordCache.BHS = matrixPayload.BHS;
+      opDaysRecordCache.YUELI = matrixPayload.YUELI;
+      opDaysRecordCache.ISOWA = matrixPayload.ISOWA;
+      opDaysRecordCache.targetDays = targetDaysPayload;
+
+      const payload = {
+        action: 'save_matrix',
+        monthKey: monthKey,
+        matrix: matrixPayload,
+        targetDays: targetDaysPayload
+      };
+
+      try {
+        const res = await fetch('operating_days_api.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+        if (json && json.success) {
+          localStorage.setItem(`operating_days_${monthKey}`, JSON.stringify(opDaysRecordCache));
+          loadOperatingDaysData();
+          renderOperatingMatrix();
+          alert(`บันทึกตารางวันเดินงานและชั่วโมงไม่เดิน ประจำเดือน ${currentMonth}/${currentYear} สำเร็จ!`);
+        } else {
+          throw new Error('API save matrix failed');
+        }
+      } catch (err) {
+        console.warn('API error, saved matrix to localStorage', err);
+        localStorage.setItem(`operating_days_${monthKey}`, JSON.stringify(opDaysRecordCache));
+        loadOperatingDaysData();
+        renderOperatingMatrix();
+        alert(`บันทึกข้อมูลตารางลงในเบราว์เซอร์เรียบร้อยแล้ว!`);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    function exportOperatingMatrixTableAsImage(btn) {
+      exportChartCardWithHeader('operating-matrix-card', 'Machine_Operating_Downtime_Matrix', btn || event?.currentTarget);
+    }
+
+    // ==========================================
+    // Modal Target วันเดินงาน 12 เดือน (แยกตามเดือน)
+    // ==========================================
+    function openTargetDays12MonthsModal() {
+      const modalYearSelect = document.getElementById('target-days-modal-year');
+      if (modalYearSelect) modalYearSelect.value = String(currentYear);
+      safeSetText('target-days-year-display', currentYear);
+
+      renderTargetDays12MonthsInputs();
+      document.getElementById('targetDays12MonthsModal').classList.remove('hidden');
+    }
+
+    function closeTargetDays12MonthsModal() {
+      document.getElementById('targetDays12MonthsModal').classList.add('hidden');
+    }
+
+    function renderTargetDays12MonthsInputs() {
+      const tbody = document.getElementById('target-days-12months-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const modalYear = parseInt(document.getElementById('target-days-modal-year')?.value) || currentYear;
+      safeSetText('target-days-year-display', modalYear);
+
+      const THAI_MONTH_NAMES = [
+        '', 'มกราคม (01)', 'กุมภาพันธ์ (02)', 'มีนาคม (03)', 'เมษายน (04)',
+        'พฤษภาคม (05)', 'มิถุนายน (06)', 'กรกฎาคม (07)', 'สิงหาคม (08)',
+        'กันยายน (09)', 'ตุลาคม (10)', 'พฤศจิกายน (11)', 'ธันวาคม (12)'
+      ];
+
+      for (let m = 1; m <= 12; m++) {
+        const mStr = String(m).padStart(2, '0');
+        const monthKey = `${modalYear}-${mStr}`;
+        const daysInMonth = new Date(modalYear, m, 0).getDate();
+
+        const tBHS = getMonthlyTargetDays('BHS', m, modalYear);
+        const tYUELI = getMonthlyTargetDays('YUELI', m, modalYear);
+        const tISOWA = getMonthlyTargetDays('ISOWA', m, modalYear);
+
+        const isCurrentMo = (m === currentMonth && modalYear === currentYear);
+
+        const tr = document.createElement('tr');
+        tr.className = `hover:bg-amber-50/50 transition border-b border-slate-100 ${isCurrentMo ? 'bg-amber-50/80 font-bold' : ''}`;
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 font-bold text-slate-800">
+            <div class="flex items-center gap-1.5">
+              <span>${THAI_MONTH_NAMES[m]}</span>
+              ${isCurrentMo ? '<span class="text-[10px] bg-amber-500 text-white px-1.5 py-0.2 rounded font-black">เดือนนี้</span>' : ''}
+            </div>
+          </td>
+          <td class="py-2.5 px-3 text-center font-bold text-slate-500">
+            ${daysInMonth} วัน
+          </td>
+          <td class="py-2 px-3 text-center">
+            <input type="number" min="0" max="31" id="t-days-bhs-${m}" value="${tBHS}" 
+              class="w-20 px-2 py-1 text-center font-black bg-white border border-amber-300 rounded-lg focus:ring-1 focus:ring-amber-500">
+          </td>
+          <td class="py-2 px-3 text-center">
+            <input type="number" min="0" max="31" id="t-days-yueli-${m}" value="${tYUELI}" 
+              class="w-20 px-2 py-1 text-center font-black bg-white border border-blue-300 rounded-lg focus:ring-1 focus:ring-blue-500">
+          </td>
+          <td class="py-2 px-3 text-center">
+            <input type="number" min="0" max="31" id="t-days-isowa-${m}" value="${tISOWA}" 
+              class="w-20 px-2 py-1 text-center font-black bg-white border border-emerald-300 rounded-lg focus:ring-1 focus:ring-emerald-500">
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    function setAll12MonthsTargetDays(days) {
+      for (let m = 1; m <= 12; m++) {
+        ['bhs', 'yueli', 'isowa'].forEach(mach => {
+          const inp = document.getElementById(`t-days-${mach}-${m}`);
+          if (inp) inp.value = days;
+        });
+      }
+    }
+
+    async function saveTargetDays12Months() {
+      const btn = document.getElementById('btn-save-12months-targets');
+      if (btn) btn.disabled = true;
+
+      const modalYear = parseInt(document.getElementById('target-days-modal-year')?.value) || currentYear;
+      const payloadMap = {};
+
+      for (let m = 1; m <= 12; m++) {
+        const mStr = String(m).padStart(2, '0');
+        const monthKey = `${modalYear}-${mStr}`;
+
+        const vBHS = parseInt(document.getElementById(`t-days-bhs-${m}`)?.value) || 22;
+        const vYUELI = parseInt(document.getElementById(`t-days-yueli-${m}`)?.value) || 22;
+        const vISOWA = parseInt(document.getElementById(`t-days-isowa-${m}`)?.value) || 22;
+
+        payloadMap[monthKey] = {
+          BHS: vBHS,
+          YUELI: vYUELI,
+          ISOWA: vISOWA,
+          TOTAL: Math.round((vBHS + vYUELI + vISOWA) / 3)
+        };
+
+        monthlyTargetDaysStore[monthKey] = payloadMap[monthKey];
+      }
+
+      try {
+        const res = await fetch('operating_days_api.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'save_12months_target_days',
+            year: modalYear,
+            monthlyTargetDays: payloadMap
+          })
+        });
+        const json = await res.json();
+        if (json && json.success) {
+          localStorage.setItem(`monthly_target_days_${modalYear}`, JSON.stringify(payloadMap));
+          closeTargetDays12MonthsModal();
+          loadOperatingDaysData();
+          renderOperatingMatrix();
+          alert(`บันทึกเป้าหมาย Target วันเดินงาน 12 เดือน ประจำปี ${modalYear} สำเร็จเรียบร้อยแล้ว!`);
+        } else {
+          throw new Error('API save 12 months targets failed');
+        }
+      } catch (err) {
+        console.warn('API error, saved 12 months target days to localStorage', err);
+        localStorage.setItem(`monthly_target_days_${modalYear}`, JSON.stringify(payloadMap));
+        closeTargetDays12MonthsModal();
+        loadOperatingDaysData();
+        renderOperatingMatrix();
+        alert(`บันทึกเป้าหมายวันเดินงาน 12 เดือนลงในเบราว์เซอร์เรียบร้อยแล้ว!`);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+function exportOperatingDaysTableAsImage(btn) {
       exportChartCardWithHeader('operating-days-card', 'Machine_Operating_Days_Summary', btn || event?.currentTarget);
     }
 
