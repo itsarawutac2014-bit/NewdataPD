@@ -1751,31 +1751,71 @@
       updated_at: ''
     };
 
-    function loadOutputTargetsGlobal() {
+    function mergeTargets(base, override) {
+      if (!base) return override || {};
+      if (!override) return base || {};
+      const merged = JSON.parse(JSON.stringify(base));
+
+      if (override.machines) {
+        if (!merged.machines) merged.machines = {};
+        for (const mKey of ['BHS', 'ISOWA', 'YUELI', 'TOTAL']) {
+          if (override.machines[mKey]) {
+            merged.machines[mKey] = Object.assign({}, merged.machines[mKey] || {}, override.machines[mKey]);
+          }
+        }
+      }
+
+      if (override.monthlyTargets) {
+        if (!merged.monthlyTargets) merged.monthlyTargets = {};
+        for (const [monthKey, machVals] of Object.entries(override.monthlyTargets)) {
+          if (!merged.monthlyTargets[monthKey]) {
+            merged.monthlyTargets[monthKey] = {};
+          }
+          Object.assign(merged.monthlyTargets[monthKey], machVals);
+        }
+      }
+
+      merged.updated_at = override.updated_at || base.updated_at || new Date().toISOString();
+      return merged;
+    }
+
+    async function loadOutputTargetsGlobal() {
+      let localData = null;
       try {
         const saved = localStorage.getItem('output_targets_settings');
         if (saved) {
-          const parsed = JSON.parse(saved);
-          if (parsed && parsed.machines) OUTPUT_TARGETS = parsed;
+          localData = JSON.parse(saved);
+          if (localData && localData.machines) {
+            OUTPUT_TARGETS = mergeTargets(OUTPUT_TARGETS, localData);
+          }
         }
       } catch (e) {}
 
-      fetch('output_targets_api.php')
-        .then(res => res.json())
-        .then(res => {
-          if (res && res.success && res.data && res.data.machines) {
-            OUTPUT_TARGETS = res.data;
-            try {
-              localStorage.setItem('output_targets_settings', JSON.stringify(res.data));
-            } catch (e) {}
-            if (currentData && currentData.length > 0) {
-              renderKPIs(currentData, currentSummary);
+      try {
+        const res = await fetch('output_targets_api.php');
+        const json = await res.json();
+        if (json && json.success && json.data && json.data.machines) {
+          const serverData = json.data;
+          if (localData && localData.updated_at) {
+            const localTime = new Date(localData.updated_at).getTime() || 0;
+            const serverTime = new Date(serverData.updated_at).getTime() || 0;
+            if (localTime >= serverTime || json.is_default) {
+              OUTPUT_TARGETS = mergeTargets(serverData, localData);
+            } else {
+              OUTPUT_TARGETS = mergeTargets(localData, serverData);
+              localStorage.setItem('output_targets_settings', JSON.stringify(OUTPUT_TARGETS));
             }
+          } else {
+            OUTPUT_TARGETS = mergeTargets(OUTPUT_TARGETS, serverData);
+            localStorage.setItem('output_targets_settings', JSON.stringify(OUTPUT_TARGETS));
           }
-        })
-        .catch(err => {
-          console.warn('Cannot load output targets from API, using default/cached targets:', err);
-        });
+          if (currentData && currentData.length > 0) {
+            renderKPIs(currentData, currentSummary);
+          }
+        }
+      } catch (err) {
+        console.warn('Cannot load output targets from API, using default/cached targets:', err);
+      }
     }
 
     function getMachineOutputTarget(machine = 'BHS', year = 2026, month = 10) {
@@ -1784,7 +1824,13 @@
       if (OUTPUT_TARGETS.monthlyTargets && OUTPUT_TARGETS.monthlyTargets[key] && typeof OUTPUT_TARGETS.monthlyTargets[key][machine] === 'number') {
         return OUTPUT_TARGETS.monthlyTargets[key][machine];
       }
-      return OUTPUT_TARGETS.machines?.[machine]?.monthlyTarget || 3326000;
+      const defaultMap = {
+        'BHS': 3326000,
+        'ISOWA': 941000,
+        'YUELI': 3326000,
+        'TOTAL': 7592000
+      };
+      return OUTPUT_TARGETS.machines?.[machine]?.monthlyTarget || defaultMap[machine] || 3326000;
     }
 
     function getMachineConsumptionTarget(machine = 'BHS', year = 2026, month = 10) {

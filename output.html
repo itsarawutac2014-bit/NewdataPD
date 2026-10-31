@@ -2032,17 +2032,33 @@
       }
 
       // 2. เรนเดอร์กราฟแท่งหลักเปรียบเทียบ Output vs Target รายวัน
-      renderDailyOutputChart(processedData, targetDaily, displayActual, totalTarget);
-      renderOutputTrendLineChart();
+      try {
+        renderDailyOutputChart(processedData, targetDaily, displayActual, totalTarget);
+        renderOutputTrendLineChart();
+      } catch (err) {
+        console.error('Error rendering daily output charts:', err);
+      }
 
       // 3. เรนเดอร์กราฟแนวโน้มผลผลิตรายเดือน 12 เดือน (Monthly Output Trend)
-      renderMonthlyTrendChart();
+      try {
+        renderMonthlyTrendChart();
+      } catch (err) {
+        console.error('Error rendering monthly trend chart:', err);
+      }
 
       // 4. เรนเดอร์กราฟเส้นสะสมแนวโน้ม MTD
-      renderCumulativeChart(processedData);
+      try {
+        renderCumulativeChart(processedData);
+      } catch (err) {
+        console.error('Error rendering cumulative chart:', err);
+      }
 
       // 5. เรนเดอร์ตารางเปรียบเทียบข้อมูลรายวัน
-      renderOutputTable(processedData, totalTarget, displayActual, displayDiff, displayAchievedPct, displayConsum, avgWastePct);
+      try {
+        renderOutputTable(processedData, totalTarget, displayActual, displayDiff, displayAchievedPct, displayConsum, avgWastePct);
+      } catch (err) {
+        console.error('Error rendering output table:', err);
+      }
     }
 
     // ==========================================
@@ -2664,15 +2680,12 @@
       const chartEl = document.getElementById('monthlyTrendChart');
       if (!chartEl || typeof Chart === 'undefined') return;
 
-      const labelsTh = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-      
+      const labelsTh = [];
+      const rawLabels = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
       const actualValues = [];
       const targetValues = [];
       const barColors = [];
       const borderColors = [];
-
-      labelsTh = [];
-      const rawLabels = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 
       for (let m = 1; m <= 12; m++) {
         const yearItem = (currentYearlyTrend || []).find(y => Number(y.month) === m);
