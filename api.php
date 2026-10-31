@@ -56,6 +56,14 @@ $totalConsumMTD = 0;
 $totalOutputMTD = 0;
 $totalWasteKgMTD = 0;
 
+// สรุปยอดรวมสำหรับตารางเปรียบเทียบผลผลิตแยกเครื่อง (Machine Output Summary) ทั้ง 3 เครื่อง + TOTAL
+$machineSummaries = [
+    'BHS'   => ['consum' => 0, 'output' => 0, 'wasteKg' => 0],
+    'YUELI' => ['consum' => 0, 'output' => 0, 'wasteKg' => 0],
+    'ISOWA' => ['consum' => 0, 'output' => 0, 'wasteKg' => 0],
+    'TOTAL' => ['consum' => 0, 'output' => 0, 'wasteKg' => 0]
+];
+
 if ($raw1 && preg_match('/setResponse\((.*)\);/s', $raw1, $m1)) {
     $j1 = json_decode($m1[1], true);
     if (isset($j1['table']['rows'])) {
@@ -64,15 +72,34 @@ if ($raw1 && preg_match('/setResponse\((.*)\);/s', $raw1, $m1)) {
             if (preg_match('/(\d{1,2})\/' . $monthPad . '\//', $dateVal, $dm) ||
                 preg_match('/(\d{1,2})\/' . $month . '\//', $dateVal, $dm)) {
                 $day = intval($dm[1]);
+
+                // คำนวณแต่ละเครื่องจากคอลัมน์มาตรฐาน
+                $rowBhsC = floatval($r['c'][7]['v'] ?? 0);
+                $rowBhsO = max(0.0, floatval($r['c'][8]['v'] ?? 0));
+                $rowYueliC = floatval($r['c'][13]['v'] ?? 0);
+                $rowYueliO = max(0.0, floatval($r['c'][14]['v'] ?? 0));
+                $rowIsowaC = floatval($r['c'][1]['v'] ?? 0);
+                $rowIsowaO = max(0.0, floatval($r['c'][2]['v'] ?? 0));
+                $rowTotC = floatval($r['c'][19]['v'] ?? 0);
+                $rowTotO = max(0.0, floatval($r['c'][20]['v'] ?? 0));
+                if ($rowTotC <= 0 && $rowTotO <= 0) {
+                    $rowTotC = $rowBhsC + $rowYueliC + $rowIsowaC;
+                    $rowTotO = $rowBhsO + $rowYueliO + $rowIsowaO;
+                }
+
+                $machineSummaries['BHS']['consum'] += $rowBhsC;
+                $machineSummaries['BHS']['output'] += $rowBhsO;
+                $machineSummaries['YUELI']['consum'] += $rowYueliC;
+                $machineSummaries['YUELI']['output'] += $rowYueliO;
+                $machineSummaries['ISOWA']['consum'] += $rowIsowaC;
+                $machineSummaries['ISOWA']['output'] += $rowIsowaO;
+                $machineSummaries['TOTAL']['consum'] += $rowTotC;
+                $machineSummaries['TOTAL']['output'] += $rowTotO;
+
                 if ($machine === 'TOTAL') {
-                    $c = floatval($r['c'][19]['v'] ?? 0);
-                    $o = max(0.0, floatval($r['c'][20]['v'] ?? 0));
+                    $c = $rowTotC;
+                    $o = $rowTotO;
                     $w = floatval($r['c'][23]['v'] ?? 0);
-                    // ถ้า col 19, 20 ว่าง ให้ fallback รวม 3 เครื่อง
-                    if ($c <= 0 && $o <= 0) {
-                        $c = floatval($r['c'][7]['v'] ?? 0) + floatval($r['c'][13]['v'] ?? 0) + floatval($r['c'][1]['v'] ?? 0);
-                        $o = max(0.0, floatval($r['c'][8]['v'] ?? 0)) + max(0.0, floatval($r['c'][14]['v'] ?? 0)) + max(0.0, floatval($r['c'][2]['v'] ?? 0));
-                    }
                 } else {
                     $c = floatval($r['c'][$mCols['consum']]['v'] ?? 0);
                     $o = max(0.0, floatval($r['c'][$mCols['output']]['v'] ?? 0)); // clamp ค่าลบเป็น 0
@@ -90,6 +117,14 @@ if ($raw1 && preg_match('/setResponse\((.*)\);/s', $raw1, $m1)) {
         }
     }
 }
+
+foreach ($machineSummaries as $mKey => &$mInfo) {
+    $mInfo['consum'] = round($mInfo['consum']);
+    $mInfo['output'] = round($mInfo['output']);
+    $mInfo['wasteKg'] = max(0, $mInfo['consum'] - $mInfo['output']);
+    $mInfo['wastePct'] = ($mInfo['consum'] > 0) ? round((($mInfo['consum'] - $mInfo['output']) / $mInfo['consum']) * 100, 2) : 0;
+}
+unset($mInfo);
 
 // 2. ดึงข้อมูล Sheet 2 (หน้า "Waste " หรือ "Waste" หรือ "Waste {$machine}": แยก 11 หมวดหมู่ตามวัน)
 $trySheets = ["Waste ", "Waste", "Waste {$machine}", "Waste_{$machine}", "Waste BHS", "Waste YUELI"];
@@ -718,6 +753,7 @@ echo json_encode([
     'weightData' => $transformedWeight,
     'weightSummary' => $weightTotals,
     'yearlyTrend' => $yearlyTrend,
-    'weeklyTrend' => $weeklyTrend
+    'weeklyTrend' => $weeklyTrend,
+    'machineSummaries' => $machineSummaries
 ], JSON_UNESCAPED_UNICODE);
 

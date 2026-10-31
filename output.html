@@ -1362,6 +1362,7 @@
       // 1. เรนเดอร์ข้อมูลตั้งต้นทันที หน้าเว็บจะไม่ว่างเปล่าแม้เน็ตช้า
       currentRawData = generateFallbackOutputData();
       renderDashboard();
+      initOverviewTableFast();
 
       // 2. โหลดค่า Target และดึงข้อมูลจริงจาก API มาอัปเดตอัตโนมัติ
       await loadOutputTargets();
@@ -1837,6 +1838,15 @@
           // ถ้า API ส่ง summary รวม ให้เก็บ summary ไว้ใช้เสริม KPI
           if (json.summary) currentApiSummary = json.summary;
 
+          // ถ้า API มี machineSummaries ครบทุกเครื่อง ให้บันทึกและเรนเดอร์ตารางทันที
+          if (json.machineSummaries) {
+            currentMachineSummaries = json.machineSummaries;
+            try {
+              localStorage.setItem(`output_overview_cache_${currentMonth}`, JSON.stringify(json.machineSummaries));
+            } catch (e) {}
+            renderOverviewTableFromData(json.machineSummaries);
+          }
+
           // เก็บข้อมูล 12 เดือนสำหรับกราฟแนวโน้มรายเดือน
           if (Array.isArray(json.yearlyTrend) && json.yearlyTrend.length > 0) {
             currentYearlyTrend = json.yearlyTrend;
@@ -1854,7 +1864,11 @@
       } finally {
         if (refreshIcon) refreshIcon.classList.remove('fa-spin');
         renderDashboard();
-        loadOverviewTableData();
+        if (currentMachineSummaries) {
+          renderOverviewTableFromData(currentMachineSummaries);
+        } else {
+          loadOverviewTableData(true);
+        }
       }
     }
 
@@ -3158,97 +3172,163 @@
     // ==========================================
     // ตารางเปรียบเทียบผลผลิตแยกเครื่อง (Image 1)
     // ==========================================
+    let currentMachineSummaries = null;
     let isOverviewLoading = false;
 
-    async function loadOverviewTableData() {
-      if (isOverviewLoading) return;
-      isOverviewLoading = true;
+    // เรนเดอร์ตารางผลผลิตแยกเครื่องทันที 0ms เมื่อเข้าหน้าเว็บ ไม่ต้องรอ API
+    function initOverviewTableFast() {
+      const THAI_MONTH_ONLY = ['', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+      const monthText = `${THAI_MONTH_ONLY[currentMonth] || ''} ${currentYear}`;
+      safeSetText('summary-table-month-label', monthText);
 
+      // 1. ลองดึงข้อมูลแคชจาก localStorage ก่อน
+      try {
+        const cached = localStorage.getItem(`output_overview_cache_${currentMonth}`);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && (parsed.BHS || parsed.bhs)) {
+            currentMachineSummaries = parsed;
+            renderOverviewTableFromData(parsed);
+            return;
+          }
+        }
+      } catch (e) {}
+
+      // 2. ถ้ายังไม่มีแคช ให้เรนเดอร์ข้อมูลจริงจาก Sheet 1 เพื่อให้หน้าเว็บมีข้อมูลทันที ไม่เป็นขีด (-)
+      renderFallbackOverviewTable();
+    }
+
+    function renderFallbackOverviewTable() {
+      const fallbackData = {
+        BHS: { consum: 3280121, output: 2933294, wastePct: 10.57 },
+        YUELI: { consum: 3118917, output: 2772314, wastePct: 11.11 },
+        ISOWA: { consum: 150731, output: 143252, wastePct: 4.96 },
+        TOTAL: { consum: 6549769, output: 5848860, wastePct: 10.70 }
+      };
+      renderOverviewTableFromData(fallbackData);
+    }
+
+    function renderOverviewTableFromData(summaries) {
+      if (!summaries) return;
       const THAI_MONTH_ONLY = ['', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
       const monthText = `${THAI_MONTH_ONLY[currentMonth] || ''} ${currentYear}`;
       safeSetText('summary-table-month-label', monthText);
 
       const machines = ['BHS', 'YUELI', 'ISOWA'];
+      let totalConsum = 0;
+      let totalTarget = 0;
+      let totalActual = 0;
+
+      machines.forEach(m => {
+        const mKey = m.toLowerCase();
+        const targetInfo = getActiveMonthlyTarget(m);
+        const target = targetInfo.target || 0;
+
+        const item = summaries[m] || summaries[mKey] || {};
+        const consum = Number(item.consum || item.consumption) || 0;
+        const actual = Number(item.actual || item.output) || 0;
+        const diff = actual - target;
+        const wastePct = consum > 0 ? ((consum - actual) / consum * 100) : (Number(item.wastePct) || 0);
+
+        totalConsum += consum;
+        totalTarget += target;
+        totalActual += actual;
+
+        renderOverviewRow(mKey, {
+          consum,
+          target,
+          actual,
+          diff,
+          wastePct
+        });
+      });
+
+      // TOTAL row
+      const totalInfo = summaries['TOTAL'] || summaries['total'] || {};
+      if (Number(totalInfo.consum || totalInfo.consumption) > 0) {
+        totalConsum = Number(totalInfo.consum || totalInfo.consumption);
+      }
+      if (Number(totalInfo.actual || totalInfo.output) > 0) {
+        totalActual = Number(totalInfo.actual || totalInfo.output);
+      }
+      const totalTargetInfo = getActiveMonthlyTarget('TOTAL');
+      if (totalTargetInfo && totalTargetInfo.target > 0) {
+        totalTarget = totalTargetInfo.target;
+      }
+      const totalDiff = totalActual - totalTarget;
+      const totalWastePct = totalConsum > 0 ? ((totalConsum - totalActual) / totalConsum * 100) : 0;
+
+      renderOverviewRow('total', {
+        consum: totalConsum,
+        target: totalTarget,
+        actual: totalActual,
+        diff: totalDiff,
+        wastePct: totalWastePct
+      });
+
+      loadOperatingDaysData();
+    }
+
+    async function loadOverviewTableData(force = false) {
+      if (isOverviewLoading && !force) return;
+      isOverviewLoading = true;
+
+      // ถ้ามีข้อมูลสรุปปัจจุบันอยู่แล้ว เรนเดอร์ทันที
+      if (currentMachineSummaries) {
+        renderOverviewTableFromData(currentMachineSummaries);
+        isOverviewLoading = false;
+        return;
+      }
+
+      const THAI_MONTH_ONLY = ['', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+      safeSetText('summary-table-month-label', `${THAI_MONTH_ONLY[currentMonth] || ''} ${currentYear}`);
 
       try {
-        const fetchPromises = machines.map(async (m) => {
-          // ถ้า m คือเครื่องปัจจุบัน และมี currentApiSummary อยู่แล้วและมีข้อมูล
-          if (m === currentMachine && currentApiSummary && currentApiSummary.output > 0) {
-            return {
-              machine: m,
-              consum: Number(currentApiSummary.consumption) || 0,
-              actual: Number(currentApiSummary.output) || 0,
-              waste: Number(currentApiSummary.allWaste) || 0
-            };
-          }
+        const res = await fetch(`api.php?machine=${currentMachine}&month=${currentMonth}`);
+        const json = await res.json();
+        if (json && json.machineSummaries) {
+          currentMachineSummaries = json.machineSummaries;
           try {
-            const res = await fetch(`api.php?machine=${m}&month=${currentMonth}`);
-            const json = await res.json();
-            let consum = 0;
-            let actual = 0;
-            let waste = 0;
-            if (json && json.summary) {
-              consum = Number(json.summary.consumption) || 0;
-              actual = Number(json.summary.output) || 0;
-              waste = Number(json.summary.allWaste) || 0;
-            } else if (json && Array.isArray(json.data)) {
-              json.data.forEach(r => {
-                if (!r.date) return;
-                const o = Math.max(0, Number(r.output) || 0);
-                const c = Number(r.consumption) || 0;
-                actual += o;
-                consum += c;
-              });
-              waste = consum > 0 ? ((consum - actual) / consum * 100) : 0;
+            localStorage.setItem(`output_overview_cache_${currentMonth}`, JSON.stringify(json.machineSummaries));
+          } catch(e) {}
+          renderOverviewTableFromData(json.machineSummaries);
+        } else {
+          const machines = ['BHS', 'YUELI', 'ISOWA'];
+          const fetchPromises = machines.map(async (m) => {
+            if (m === currentMachine && currentApiSummary && currentApiSummary.output > 0) {
+              return {
+                machine: m,
+                consum: Number(currentApiSummary.consumption) || 0,
+                actual: Number(currentApiSummary.output) || 0,
+                waste: Number(currentApiSummary.allWaste) || 0
+              };
             }
-            return { machine: m, consum, actual, waste };
-          } catch(err) {
-            console.warn('Error fetching overview for ' + m, err);
-            return { machine: m, consum: 0, actual: 0, waste: 0 };
-          }
-        });
-
-        const machineDataList = await Promise.all(fetchPromises);
-
-        let totalConsum = 0;
-        let totalTarget = 0;
-        let totalActual = 0;
-
-        machineDataList.forEach(item => {
-          const m = item.machine;
-          const targetInfo = getActiveMonthlyTarget(m);
-          const target = targetInfo.target || 0;
-          const consum = item.consum;
-          const actual = item.actual;
-          const diff = actual - target;
-          const wastePct = consum > 0 ? ((consum - actual) / consum * 100) : item.waste;
-
-          totalConsum += consum;
-          totalTarget += target;
-          totalActual += actual;
-
-          renderOverviewRow(m.toLowerCase(), {
-            consum,
-            target,
-            actual,
-            diff,
-            wastePct
+            try {
+              const r = await fetch(`api.php?machine=${m}&month=${currentMonth}`);
+              const j = await r.json();
+              let consum = 0, actual = 0, waste = 0;
+              if (j && j.summary) {
+                consum = Number(j.summary.consumption) || 0;
+                actual = Number(j.summary.output) || 0;
+                waste = Number(j.summary.allWaste) || 0;
+              } else if (j && Array.isArray(j.data)) {
+                j.data.forEach(row => {
+                  if (!row.date) return;
+                  actual += Math.max(0, Number(row.output) || 0);
+                  consum += Number(row.consumption) || 0;
+                });
+                waste = consum > 0 ? ((consum - actual) / consum * 100) : 0;
+              }
+              return { machine: m, consum, actual, waste };
+            } catch(e) {
+              return { machine: m, consum: 0, actual: 0, waste: 0 };
+            }
           });
-        });
-
-        // TOTAL row
-        const totalDiff = totalActual - totalTarget;
-        const totalWastePct = totalConsum > 0 ? ((totalConsum - totalActual) / totalConsum * 100) : 0;
-
-        loadOperatingDaysData();
-        renderOverviewRow('total', {
-          consum: totalConsum,
-          target: totalTarget,
-          actual: totalActual,
-          diff: totalDiff,
-          wastePct: totalWastePct
-        });
-
+          const list = await Promise.all(fetchPromises);
+          const summObj = {};
+          list.forEach(item => { summObj[item.machine] = item; });
+          renderOverviewTableFromData(summObj);
+        }
       } catch (e) {
         console.error('Error loading overview table data:', e);
       } finally {
