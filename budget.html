@@ -173,10 +173,33 @@
                 <th colspan="1" class="bg-excel-red text-white font-extrabold text-base sm:text-lg px-4 py-3 tracking-wide">
                   Profermanas PD
                 </th>
-                <th colspan="1" class="bg-excel-navy text-white text-center font-black text-xl sm:text-2xl px-3 py-3 w-32 border-l border-white/20">
+                <th colspan="1" class="bg-excel-navy text-white text-center font-black text-xl sm:text-2xl px-2 py-2 w-44 border-l border-white/20 select-none">
                   <div class="flex flex-col items-center justify-center">
-                    <span class="text-[10px] font-normal text-slate-300 uppercase tracking-widest">เลือกเดือน</span>
-                    <span id="header-month-num" class="text-white text-2xl font-black">1</span>
+                    <span class="text-[11px] font-bold text-yellow-300 uppercase tracking-wider mb-1 flex items-center gap-1">
+                      <i class="fa-solid fa-calendar-check text-[10px]"></i> เลือกเดือน
+                    </span>
+                    <div class="inline-flex items-center gap-1 bg-blue-950 px-2 py-1 rounded-xl border-2 border-yellow-400 shadow-md">
+                      <button onclick="changeMonthRelative(-1)" type="button" class="w-7 h-7 flex items-center justify-center rounded-lg bg-blue-900 hover:bg-yellow-400 hover:text-slate-900 text-yellow-300 font-bold text-xs transition cursor-pointer" title="เดือนก่อนหน้า">
+                        <i class="fa-solid fa-chevron-left"></i>
+                      </button>
+                      <select id="header-month-select" onchange="onMonthChange(this.value)" class="bg-transparent text-yellow-300 text-2xl font-black text-center cursor-pointer focus:outline-none appearance-none px-2 py-0 border-none">
+                        <option value="1" class="bg-slate-900 text-white text-base">1</option>
+                        <option value="2" class="bg-slate-900 text-white text-base">2</option>
+                        <option value="3" class="bg-slate-900 text-white text-base">3</option>
+                        <option value="4" class="bg-slate-900 text-white text-base">4</option>
+                        <option value="5" class="bg-slate-900 text-white text-base">5</option>
+                        <option value="6" class="bg-slate-900 text-white text-base">6</option>
+                        <option value="7" class="bg-slate-900 text-white text-base">7</option>
+                        <option value="8" class="bg-slate-900 text-white text-base">8</option>
+                        <option value="9" class="bg-slate-900 text-white text-base">9</option>
+                        <option value="10" class="bg-slate-900 text-white text-base">10</option>
+                        <option value="11" class="bg-slate-900 text-white text-base">11</option>
+                        <option value="12" class="bg-slate-900 text-white text-base">12</option>
+                      </select>
+                      <button onclick="changeMonthRelative(1)" type="button" class="w-7 h-7 flex items-center justify-center rounded-lg bg-blue-900 hover:bg-yellow-400 hover:text-slate-900 text-yellow-300 font-bold text-xs transition cursor-pointer" title="เดือนถัดไป">
+                        <i class="fa-solid fa-chevron-right"></i>
+                      </button>
+                    </div>
                   </div>
                 </th>
                 <th colspan="1" class="bg-excel-navy text-white text-center font-black text-base px-4 py-3 w-40 border-l border-white/20">
@@ -254,21 +277,21 @@
         <div class="overflow-x-auto">
           <table class="w-full text-xs text-left border-collapse" style="min-width:900px">
             <thead>
-              <tr class="bg-slate-800 text-white">
+              <tr id="monthly-summary-header-row" class="bg-slate-800 text-white">
                 <th class="px-2 py-2 border border-slate-600 whitespace-nowrap">Cost เดือน</th>
-                <th class="px-2 py-2 border border-slate-600 text-center">1</th>
-                <th class="px-2 py-2 border border-slate-600 text-center">2</th>
-                <th class="px-2 py-2 border border-slate-600 text-center">3</th>
-                <th class="px-2 py-2 border border-slate-600 text-center">4</th>
-                <th class="px-2 py-2 border border-slate-600 text-center">5</th>
-                <th class="px-2 py-2 border border-slate-600 text-center">6</th>
-                <th class="px-2 py-2 border border-slate-600 text-center">7</th>
-                <th class="px-2 py-2 border border-slate-600 text-center">8</th>
-                <th class="px-2 py-2 border border-slate-600 text-center">9</th>
-                <th class="px-2 py-2 border border-slate-600 text-center">10</th>
-                <th class="px-2 py-2 border border-slate-600 text-center">11</th>
-                <th class="px-2 py-2 border border-slate-600 text-center">12</th>
-                <th class="px-2 py-2 border border-slate-600 text-center bg-yellow-600">ALL</th>
+                <th onclick="onMonthChange(1)" class="px-2 py-2 border border-slate-600 text-center cursor-pointer hover:bg-blue-600 transition" id="th-month-1">1</th>
+                <th onclick="onMonthChange(2)" class="px-2 py-2 border border-slate-600 text-center cursor-pointer hover:bg-blue-600 transition" id="th-month-2">2</th>
+                <th onclick="onMonthChange(3)" class="px-2 py-2 border border-slate-600 text-center cursor-pointer hover:bg-blue-600 transition" id="th-month-3">3</th>
+                <th onclick="onMonthChange(4)" class="px-2 py-2 border border-slate-600 text-center cursor-pointer hover:bg-blue-600 transition" id="th-month-4">4</th>
+                <th onclick="onMonthChange(5)" class="px-2 py-2 border border-slate-600 text-center cursor-pointer hover:bg-blue-600 transition" id="th-month-5">5</th>
+                <th onclick="onMonthChange(6)" class="px-2 py-2 border border-slate-600 text-center cursor-pointer hover:bg-blue-600 transition" id="th-month-6">6</th>
+                <th onclick="onMonthChange(7)" class="px-2 py-2 border border-slate-600 text-center cursor-pointer hover:bg-blue-600 transition" id="th-month-7">7</th>
+                <th onclick="onMonthChange(8)" class="px-2 py-2 border border-slate-600 text-center cursor-pointer hover:bg-blue-600 transition" id="th-month-8">8</th>
+                <th onclick="onMonthChange(9)" class="px-2 py-2 border border-slate-600 text-center cursor-pointer hover:bg-blue-600 transition" id="th-month-9">9</th>
+                <th onclick="onMonthChange(10)" class="px-2 py-2 border border-slate-600 text-center cursor-pointer hover:bg-blue-600 transition" id="th-month-10">10</th>
+                <th onclick="onMonthChange(11)" class="px-2 py-2 border border-slate-600 text-center cursor-pointer hover:bg-blue-600 transition" id="th-month-11">11</th>
+                <th onclick="onMonthChange(12)" class="px-2 py-2 border border-slate-600 text-center cursor-pointer hover:bg-blue-600 transition" id="th-month-12">12</th>
+                <th class="px-2 py-2 border border-slate-600 text-center bg-yellow-600 font-bold">ALL</th>
               </tr>
             </thead>
             <tbody id="monthly-summary-body">
@@ -402,8 +425,11 @@
       const params = new URLSearchParams(window.location.search);
       if (params.has('month')) {
         currentMonth = parseInt(params.get('month')) || 1;
-        document.getElementById('select-month').value = currentMonth;
       }
+      const selTop = document.getElementById('select-month');
+      if (selTop) selTop.value = currentMonth;
+      const selHdr = document.getElementById('header-month-select');
+      if (selHdr) selHdr.value = currentMonth;
       if (params.has('machine')) {
         currentMachine = params.get('machine');
         document.getElementById('select-machine').value = currentMachine;
@@ -414,10 +440,34 @@
       loadCostDetail();
     });
 
+    function changeMonthRelative(delta) {
+      let m = currentMonth + delta;
+      if (m < 1) m = 12;
+      if (m > 12) m = 1;
+      onMonthChange(m);
+    }
+
     function onMonthChange(m) {
       currentMonth = parseInt(m) || 1;
-      document.getElementById('header-month-num').textContent = currentMonth;
-      document.getElementById('chart-month-num').textContent = currentMonth;
+      const selTop = document.getElementById('select-month');
+      if (selTop) selTop.value = currentMonth;
+      const selHdr = document.getElementById('header-month-select');
+      if (selHdr) selHdr.value = currentMonth;
+      const chartMonth = document.getElementById('chart-month-num');
+      if (chartMonth) chartMonth.textContent = currentMonth;
+
+      // Highlight active month header in Table 1
+      for (let i = 1; i <= 12; i++) {
+        const th = document.getElementById(`th-month-${i}`);
+        if (th) {
+          if (i === currentMonth) {
+            th.className = "px-2 py-2 border border-blue-400 text-center cursor-pointer bg-blue-600 text-yellow-300 font-black text-sm ring-2 ring-yellow-400";
+          } else {
+            th.className = "px-2 py-2 border border-slate-600 text-center cursor-pointer hover:bg-blue-600 transition";
+          }
+        }
+      }
+
       loadBudgetData();
       if (monthlyData) renderMonthlySummary(monthlyData);
       if (costDetailData) renderCostDetail(costDetailData);
@@ -897,7 +947,7 @@
         const isCurrent = (mi + 1 === currentMonth);
         const rowClass = isAll ? 'bg-yellow-50 font-bold' : (isCurrent ? 'bg-blue-100 font-black ring-2 ring-blue-500' : (mi % 2 === 0 ? 'bg-white' : 'bg-slate-50'));
         let row = `<tr class="${rowClass}">
-          <td class="px-2 py-1 text-xs font-bold border border-slate-300 text-center ${isAll ? 'bg-yellow-100' : (isCurrent ? 'bg-blue-600 text-white' : '')}">${isAll ? 'ALL Target' : mLabels[mi]}</td>`;
+          <td ${isAll ? '' : `onclick="onMonthChange(${mi+1})"`} class="px-2 py-1 text-xs font-bold border border-slate-300 text-center ${isAll ? 'bg-yellow-100 font-bold' : (isCurrent ? 'bg-blue-600 text-white font-black shadow-xs' : 'cursor-pointer hover:bg-blue-500 hover:text-white')}">${isAll ? 'ALL Target' : mLabels[mi]}</td>`;
         costItems.forEach(item => {
           const d = data.costs[item]?.[m];
           const isTotal = (item === 'Total VC+FC');
@@ -918,7 +968,7 @@
         const isCurrent = (mi + 1 === currentMonth);
         const rowClass = isAll ? 'bg-yellow-50 font-bold' : (isCurrent ? 'ring-2 ring-blue-500 font-bold' : '');
         let row = `<tr class="${rowClass}">
-          <td class="px-2 py-1 text-xs font-bold border border-slate-300 text-center ${isAll ? 'bg-yellow-100' : (isCurrent ? 'bg-emerald-600 text-white' : '')}">${isAll ? 'ALL' : mLabels[mi]}</td>`;
+          <td ${isAll ? '' : `onclick="onMonthChange(${mi+1})"`} class="px-2 py-1 text-xs font-bold border border-slate-300 text-center ${isAll ? 'bg-yellow-100 font-bold' : (isCurrent ? 'bg-emerald-600 text-white font-black shadow-xs' : 'cursor-pointer hover:bg-emerald-500 hover:text-white')}">${isAll ? 'ALL' : mLabels[mi]}</td>`;
         costItems.forEach(item => {
           const d = data.costs[item]?.[m];
           const isTotal = (item === 'Total VC+FC');
