@@ -2,7 +2,7 @@
     "machines": {
         "BHS": {
             "name": "เครื่อง BHS",
-            "dailyTarget": 124978,
+            "dailyTarget": 126978,
             "monthlyTarget": 3326000,
             "unit": "kg"
         },
@@ -14,28 +14,97 @@
         },
         "YUELI": {
             "name": "เครื่อง YUELI",
-            "dailyTarget": 124978,
+            "dailyTarget": 126978,
             "monthlyTarget": 3326000,
             "unit": "kg"
         },
         "TOTAL": {
             "name": "รวมทุกเครื่อง (TOTAL)",
-            "dailyTarget": 289880,
-            "monthlyTarget": 7592000,
+            "dailyTarget": 289881,
+            "monthlyTarget": 7593000,
             "unit": "kg"
         }
     },
     "monthlyTargets": {
+        "2026-01": {
+            "ISOWA": 614000,
+            "BHS": 3757000,
+            "YUELI": 3200000,
+            "TOTAL": 7571000
+        },
+        "2026-02": {
+            "ISOWA": 593000,
+            "BHS": 3266000,
+            "YUELI": 2664000,
+            "TOTAL": 6523000
+        },
+        "2026-03": {
+            "ISOWA": 858000,
+            "BHS": 3806000,
+            "YUELI": 3355000,
+            "TOTAL": 8019000
+        },
+        "2026-04": {
+            "ISOWA": 1355000,
+            "BHS": 3761000,
+            "YUELI": 1706000,
+            "TOTAL": 6822000
+        },
+        "2026-05": {
+            "ISOWA": 561000,
+            "BHS": 3526000,
+            "YUELI": 3144000,
+            "TOTAL": 7231000
+        },
+        "2026-06": {
+            "ISOWA": 46000,
+            "BHS": 2722000,
+            "YUELI": 2444000,
+            "TOTAL": 5212000
+        },
+        "2026-07": {
+            "ISOWA": 941000,
+            "BHS": 3326000,
+            "YUELI": 3326000,
+            "TOTAL": 7593000
+        },
+        "2026-08": {
+            "ISOWA": 906000,
+            "BHS": 3202000,
+            "YUELI": 3202000,
+            "TOTAL": 7310000
+        },
+        "2026-09": {
+            "ISOWA": 941000,
+            "BHS": 3326000,
+            "YUELI": 3326000,
+            "TOTAL": 7593000
+        },
+        "2026-10": {
+            "ISOWA": 941000,
+            "BHS": 3326000,
+            "YUELI": 3326000,
+            "TOTAL": 7593000
+        },
+        "2026-11": {
+            "ISOWA": 906000,
+            "BHS": 3202000,
+            "YUELI": 3202000,
+            "TOTAL": 7310000
+        },
+        "2026-12": {
+            "ISOWA": 836000,
+            "BHS": 2956000,
+            "YUELI": 2956000,
+            "TOTAL": 6748000
+        },
         "2027-01": {
             "BHS": 2500000,
             "ISOWA": 1500000,
             "YUELI": 1200000,
             "TOTAL": 5200000
-        },
-        "2026-10": {
-            "ISOWA": 950000,
-            "TOTAL": 7602000
         }
     },
-    "updated_at": "2026-10-29 08:22:11"
+    "source": "google_sheet_target_output",
+    "updated_at": "2026-11-02 05:50:29"
 }

@@ -1,0 +1,84 @@
+{
+    "updated_at": "2026-11-02 05:55:01",
+    "defaultTargetDays": {
+        "ISOWA": 27,
+        "BHS": 27,
+        "YUELI": 27,
+        "TOTAL": 81
+    },
+    "monthlyTargetDays": {
+        "2026-01": {
+            "ISOWA": 27,
+            "BHS": 27,
+            "YUELI": 27,
+            "TOTAL": 81
+        },
+        "2026-02": {
+            "ISOWA": 25,
+            "BHS": 25,
+            "YUELI": 25,
+            "TOTAL": 75
+        },
+        "2026-03": {
+            "ISOWA": 27,
+            "BHS": 27,
+            "YUELI": 27,
+            "TOTAL": 81
+        },
+        "2026-04": {
+            "ISOWA": 24,
+            "BHS": 24,
+            "YUELI": 24,
+            "TOTAL": 72
+        },
+        "2026-05": {
+            "ISOWA": 26,
+            "BHS": 26,
+            "YUELI": 26,
+            "TOTAL": 78
+        },
+        "2026-06": {
+            "ISOWA": 26,
+            "BHS": 26,
+            "YUELI": 26,
+            "TOTAL": 78
+        },
+        "2026-07": {
+            "ISOWA": 27,
+            "BHS": 27,
+            "YUELI": 27,
+            "TOTAL": 81
+        },
+        "2026-08": {
+            "ISOWA": 26,
+            "BHS": 26,
+            "YUELI": 26,
+            "TOTAL": 78
+        },
+        "2026-09": {
+            "ISOWA": 27,
+            "BHS": 27,
+            "YUELI": 27,
+            "TOTAL": 81
+        },
+        "2026-10": {
+            "ISOWA": 27,
+            "BHS": 27,
+            "YUELI": 27,
+            "TOTAL": 81
+        },
+        "2026-11": {
+            "ISOWA": 26,
+            "BHS": 26,
+            "YUELI": 26,
+            "TOTAL": 78
+        },
+        "2026-12": {
+            "ISOWA": 24,
+            "BHS": 24,
+            "YUELI": 24,
+            "TOTAL": 72
+        }
+    },
+    "records": []
+}

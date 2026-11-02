@@ -1742,10 +1742,10 @@
     // ========================================================
     let OUTPUT_TARGETS = {
       machines: {
-        BHS: { name: 'เครื่อง BHS', dailyTarget: 124978, monthlyTarget: 3326000, unit: 'kg' },
+        BHS: { name: 'เครื่อง BHS', dailyTarget: 126978, monthlyTarget: 3326000, unit: 'kg' },
         ISOWA: { name: 'เครื่อง ISOWA', dailyTarget: 35925, monthlyTarget: 941000, unit: 'kg' },
-        YUELI: { name: 'เครื่อง YUELI', dailyTarget: 124978, monthlyTarget: 3326000, unit: 'kg' },
-        TOTAL: { name: 'รวมทุกเครื่อง (TOTAL)', dailyTarget: 289880, monthlyTarget: 7592000, unit: 'kg' }
+        YUELI: { name: 'เครื่อง YUELI', dailyTarget: 126978, monthlyTarget: 3326000, unit: 'kg' },
+        TOTAL: { name: 'รวมทุกเครื่อง (TOTAL)', dailyTarget: 289881, monthlyTarget: 7593000, unit: 'kg' }
       },
       monthlyTargets: {},
       updated_at: ''
@@ -1796,10 +1796,13 @@
         const json = await res.json();
         if (json && json.success && json.data && json.data.machines) {
           const serverData = json.data;
-          if (localData && localData.updated_at) {
+          if (json.source === 'google_sheet_live' || serverData.source === 'google_sheet_target_output' || json.is_default) {
+            OUTPUT_TARGETS = mergeTargets(localData || OUTPUT_TARGETS, serverData);
+            localStorage.setItem('output_targets_settings', JSON.stringify(OUTPUT_TARGETS));
+          } else if (localData && localData.updated_at) {
             const localTime = new Date(localData.updated_at).getTime() || 0;
             const serverTime = new Date(serverData.updated_at).getTime() || 0;
-            if (localTime >= serverTime || json.is_default) {
+            if (localTime >= serverTime) {
               OUTPUT_TARGETS = mergeTargets(serverData, localData);
             } else {
               OUTPUT_TARGETS = mergeTargets(localData, serverData);

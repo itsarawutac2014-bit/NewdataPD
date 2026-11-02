@@ -492,6 +492,9 @@
             <button onclick="openOperatingDaysModal()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
               <i class="fa-solid fa-calendar-check"></i> บันทึกวันเดิน / เวลาจอด
             </button>
+            <button onclick="openTargetDays12MonthsModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-black shadow-2xs transition cursor-pointer">
+              <i class="fa-solid fa-sliders"></i> Target วันเดิน 12 เดือน
+            </button>
             <button onclick="exportOperatingDaysTableAsImage(this)" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
               <i class="fa-solid fa-camera"></i> บันทึกภาพตาราง
             </button>
@@ -570,80 +573,6 @@
       </section>
 
       <!-- ========================================== -->
-      <!-- Table 3: Daily Operating & Downtime Matrix 1-31 (Image 4) -->
-      <!-- ========================================== -->
-      <section id="operating-matrix-card" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 overflow-hidden">
-        
-        <!-- Header ของตารางเมทริกซ์ 1-31 วัน -->
-        <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 pb-4 border-b border-slate-100">
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="w-3 h-3 rounded-full bg-violet-600"></span>
-              <h2 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
-                ตารางบันทึกวันเดินงานและชั่วโมงไม่เดิน (Daily Operating & Downtime Matrix)
-              </h2>
-            </div>
-            <p class="text-xs text-slate-500 font-medium mt-1">
-              ประจำเดือน <span id="op-matrix-month-label" class="font-bold text-indigo-600">-</span> • บันทึกเวลาจอดของแต่ละเครื่องจักรแยกตามวัน 1–31 (0 = เดินปกติ, 1–24 = ชั่วโมงที่จอด)
-            </p>
-          </div>
-
-          <!-- ปุ่มเครื่องมือตารางเมทริกซ์ -->
-          <div class="flex items-center gap-2 flex-wrap" data-html2canvas-ignore="true">
-            <button onclick="openTargetDays12MonthsModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-black shadow-2xs transition cursor-pointer">
-              <i class="fa-solid fa-sliders"></i> Target วันเดิน 12 เดือน
-            </button>
-            <button onclick="autoSyncMatrixFromOutput()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold transition cursor-pointer">
-              <i class="fa-solid fa-bolt text-amber-500"></i> ซิงค์จากยอดผลิต
-            </button>
-            <button onclick="saveOperatingMatrixData()" id="btn-save-matrix" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
-              <i class="fa-solid fa-floppy-disk"></i> บันทึกตาราง
-            </button>
-            <button onclick="exportOperatingMatrixTableAsImage(this)" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
-              <i class="fa-solid fa-camera"></i> บันทึกภาพตาราง
-            </button>
-          </div>
-        </div>
-
-        <!-- คำอธิบายสถานะสี -->
-        <div class="mt-3 flex items-center justify-between gap-3 text-xs flex-wrap bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-          <div class="flex items-center gap-3 flex-wrap">
-            <span class="text-slate-600 font-bold">สัญลักษณ์สี:</span>
-            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-              <span class="w-2 h-2 rounded-full bg-emerald-500"></span> 0 = เดินเครื่องปกติ
-            </span>
-            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
-              <span class="w-2 h-2 rounded-full bg-amber-500"></span> 1–23 = จอดบางส่วน (ชม.)
-            </span>
-            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
-              <span class="w-2 h-2 rounded-full bg-rose-500"></span> 24 = จอดทั้งวัน (24 ชม.)
-            </span>
-          </div>
-          <span class="text-slate-400 text-[11px]">💡 สามารถแก้ไขตัวเลขชั่วโมงในช่องตารางได้โดยตรง แล้วกด "บันทึกตาราง"</span>
-        </div>
-
-        <!-- ตารางปฏิทิน 1-31 วัน ตามแบบรูปที่ 4 -->
-        <div class="mt-4 overflow-x-auto rounded-xl border border-slate-200 shadow-2xs max-w-full">
-          <table class="w-full text-xs text-left border-collapse" id="operating-matrix-table">
-            <thead>
-              <tr class="bg-slate-800 text-white font-black text-center divide-x divide-slate-700" id="matrix-header-row">
-                <th scope="col" class="py-2.5 px-3 min-w-[90px] sticky left-0 z-10 bg-slate-800 shadow-xs">เครื่อง</th>
-                <!-- วันที่ 1-31 จะถูกเรนเดอร์ผ่าน JS -->
-                <th scope="col" class="py-2.5 px-3 min-w-[95px] bg-slate-900">รวมจอด (ชม.)</th>
-                <th scope="col" class="py-2.5 px-3 min-w-[125px] bg-slate-900">คิดเป็น</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-200 font-bold" id="matrix-body-rows">
-              <!-- แถว BHS, YUELI, ISOWA เรนเดอร์ผ่าน JS -->
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- ========================================== -->
-      <!-- Chart 1: Daily Output vs Target Bar Chart -->
-      <!-- ========================================== -->
-            <!-- ========================================== -->
       <!-- Chart 1: Output vs Target Chart (Bar / Line / Combo) -->
       <!-- ========================================== -->
       <section id="chart-card-daily" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 overflow-hidden">
@@ -1293,13 +1222,27 @@
   <!-- JavaScript Logic -->
   <!-- ========================================== -->
   <script>
-    // ข้อมูลเริ่มต้นสำหรับเป้าหมาย Target Output
+    // ข้อมูลเริ่มต้นสำหรับเป้าหมาย Target Output (ตรงตาม Google Sheet "Target Out-put")
     let OUTPUT_TARGETS = {
       machines: {
-        BHS: { dailyTarget: 100000, monthlyTarget: 2200000, unit: 'kg' },
-        ISOWA: { dailyTarget: 60000, monthlyTarget: 1300000, unit: 'kg' },
-        YUELI: { dailyTarget: 50000, monthlyTarget: 1100000, unit: 'kg' },
-        TOTAL: { dailyTarget: 210000, monthlyTarget: 4600000, unit: 'kg' }
+        BHS: { dailyTarget: 126978, monthlyTarget: 3326000, unit: 'kg' },
+        ISOWA: { dailyTarget: 35925, monthlyTarget: 941000, unit: 'kg' },
+        YUELI: { dailyTarget: 126978, monthlyTarget: 3326000, unit: 'kg' },
+        TOTAL: { dailyTarget: 289881, monthlyTarget: 7593000, unit: 'kg' }
+      },
+      monthlyTargets: {
+        '2026-01': { ISOWA: 614000,  BHS: 3757000, YUELI: 3200000, TOTAL: 7571000 },
+        '2026-02': { ISOWA: 593000,  BHS: 3266000, YUELI: 2664000, TOTAL: 6523000 },
+        '2026-03': { ISOWA: 858000,  BHS: 3806000, YUELI: 3355000, TOTAL: 8019000 },
+        '2026-04': { ISOWA: 1355000, BHS: 3761000, YUELI: 1706000, TOTAL: 6822000 },
+        '2026-05': { ISOWA: 561000,  BHS: 3526000, YUELI: 3144000, TOTAL: 7231000 },
+        '2026-06': { ISOWA: 46000,   BHS: 2722000, YUELI: 2444000, TOTAL: 5212000 },
+        '2026-07': { ISOWA: 941000,  BHS: 3326000, YUELI: 3326000, TOTAL: 7593000 },
+        '2026-08': { ISOWA: 906000,  BHS: 3202000, YUELI: 3202000, TOTAL: 7310000 },
+        '2026-09': { ISOWA: 941000,  BHS: 3326000, YUELI: 3326000, TOTAL: 7593000 },
+        '2026-10': { ISOWA: 941000,  BHS: 3326000, YUELI: 3326000, TOTAL: 7593000 },
+        '2026-11': { ISOWA: 906000,  BHS: 3202000, YUELI: 3202000, TOTAL: 7310000 },
+        '2026-12': { ISOWA: 836000,  BHS: 2956000, YUELI: 2956000, TOTAL: 6748000 }
       },
       updated_at: ''
     };
@@ -1450,17 +1393,18 @@
         if (json && json.success && json.data && json.data.machines) {
           const serverData = json.data;
 
-          if (localData && localData.updated_at) {
+          // ถ้าข้อมูลมาจาก Google Sheet แผ่นงาน "Target Out-put" ให้อัปเดตและใช้ค่าล่าสุดจาก Google Sheet ทันที
+          if (json.source === 'google_sheet_live' || serverData.source === 'google_sheet_target_output' || json.is_default) {
+            OUTPUT_TARGETS = mergeTargets(localData || OUTPUT_TARGETS, serverData);
+            localStorage.setItem('output_targets_settings', JSON.stringify(OUTPUT_TARGETS));
+          } else if (localData && localData.updated_at) {
             const localTime = new Date(localData.updated_at).getTime() || 0;
             const serverTime = new Date(serverData.updated_at).getTime() || 0;
 
-            // ถ้า local ใหม่กว่า หรือเซิร์ฟเวอร์เป็นค่า default (เช่น พึ่งรีสตาร์ทบน Render)
-            if (localTime >= serverTime || json.is_default) {
+            if (localTime >= serverTime) {
               OUTPUT_TARGETS = mergeTargets(serverData, localData);
-              // ซิงค์เป้าหมายกลับขึ้นไปเก็บบนเซิร์ฟเวอร์ในพื้นหลัง
               syncTargetsToServer(OUTPUT_TARGETS);
             } else {
-              // เซิร์ฟเวอร์มีข้อมูลที่ใหม่กว่า
               OUTPUT_TARGETS = mergeTargets(localData, serverData);
               localStorage.setItem('output_targets_settings', JSON.stringify(OUTPUT_TARGETS));
             }
@@ -3514,11 +3458,13 @@
       const THAI_MONTH_ONLY = ['', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
       safeSetText('op-days-month-label', `${THAI_MONTH_ONLY[currentMonth] || ''} ${currentYear}`);
 
+      let currentTargetDaysObj = null;
       try {
         const res = await fetch(`operating_days_api.php?monthKey=${monthKey}`);
         const json = await res.json();
-        if (json && json.success && json.data) {
-          opDaysRecordCache = json.data;
+        if (json && json.success) {
+          if (json.data) opDaysRecordCache = json.data;
+          if (json.targetDays) currentTargetDaysObj = json.targetDays;
         } else {
           // Fallback to localStorage
           try {
@@ -3542,8 +3488,10 @@
 
       for (const m of machines) {
         const mKey = m.toLowerCase();
-        let targetDays = 22;
-        if (opDaysRecordCache && opDaysRecordCache.targetDays && typeof opDaysRecordCache.targetDays[m] === 'number') {
+        let targetDays = 27;
+        if (currentTargetDaysObj && typeof currentTargetDaysObj[m] === 'number') {
+          targetDays = currentTargetDaysObj[m];
+        } else if (opDaysRecordCache && opDaysRecordCache.targetDays && typeof opDaysRecordCache.targetDays[m] === 'number') {
           targetDays = opDaysRecordCache.targetDays[m];
         }
 
