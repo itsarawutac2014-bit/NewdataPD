@@ -419,6 +419,8 @@
       document.getElementById('header-month-num').textContent = currentMonth;
       document.getElementById('chart-month-num').textContent = currentMonth;
       loadBudgetData();
+      if (monthlyData) renderMonthlySummary(monthlyData);
+      if (costDetailData) renderCostDetail(costDetailData);
     }
 
     function onMachineChange(m) {
@@ -745,7 +747,9 @@
         for (let i = 0; i < vals.length; i++) {
           const v = vals[i];
           const isAll = (i === 12);
-          cells += `<td class="px-1.5 py-1.5 text-right text-xs border border-slate-300 ${isAll ? 'bg-yellow-50 font-bold' : ''}">${fn(v)}</td>`;
+          const isCurrent = (i + 1 === currentMonth);
+          const cellClass = isAll ? 'bg-yellow-50 font-bold' : (isCurrent ? 'bg-blue-100 font-black' : '');
+          cells += `<td class="px-1.5 py-1.5 text-right text-xs border border-slate-300 ${cellClass}">${fn(v)}</td>`;
         }
         return `<tr class="${rowClass}">
           <td class="px-2 py-1.5 font-bold text-xs border border-slate-300 whitespace-nowrap ${isBold ? 'font-extrabold' : ''}">${label}</td>
@@ -758,9 +762,11 @@
         for (let i = 0; i < vals.length; i++) {
           const v = parseFloat(vals[i]);
           const isAll = (i === 12);
+          const isCurrent = (i + 1 === currentMonth);
           const over = !isNaN(v) && v > threshold;
-          const cellBg = over ? 'bg-red-100 text-red-700 font-bold' : 'bg-green-50 text-green-700';
-          cells += `<td class="px-1.5 py-1.5 text-right text-xs border border-slate-300 ${isAll ? 'bg-yellow-50 font-bold' : cellBg}">${isNaN(v) || vals[i] === null ? '-' : fmt(v * 100, 2) + '%'}</td>`;
+          const normalBg = over ? 'bg-red-100 text-red-700 font-bold' : 'bg-green-50 text-green-700';
+          const cellBg = isAll ? 'bg-yellow-50 font-bold' : (isCurrent ? `${normalBg} ring-1 ring-blue-500 font-black` : normalBg);
+          cells += `<td class="px-1.5 py-1.5 text-right text-xs border border-slate-300 ${cellBg}">${isNaN(v) || vals[i] === null ? '-' : fmt(v * 100, 2) + '%'}</td>`;
         }
         return `<tr class="${rowClass}">
           <td class="px-2 py-1.5 font-bold text-xs border border-slate-300">${label}</td>
@@ -774,12 +780,14 @@
           const raw = vals[i];
           const v = parseFloat(raw);
           const isAll = (i === 12);
+          const isCurrent = (i + 1 === currentMonth);
           const isNull = (raw === null || raw === undefined || isNaN(v));
           const neg = !isNull && v < 0;
           const pos = !isNull && v > 0;
           const bgClass = isNull ? '' : (neg ? 'bg-red-50' : 'bg-green-50');
           const textClass = isNull ? 'text-slate-400' : (neg ? 'text-red-700 font-bold' : 'text-green-800');
-          cells += `<td class="px-1.5 py-1.5 text-right text-xs border border-slate-300 ${isAll ? 'bg-yellow-50 font-bold' : bgClass} ${isAll ? '' : textClass}">${isNull ? '-' : fmt(v)}</td>`;
+          const curClass = isCurrent ? 'ring-1 ring-blue-500 font-black' : '';
+          cells += `<td class="px-1.5 py-1.5 text-right text-xs border border-slate-300 ${isAll ? 'bg-yellow-50 font-bold' : bgClass} ${isAll ? '' : textClass} ${curClass}">${isNull ? '-' : fmt(v)}</td>`;
         }
         return `<tr class="${rowClass}">
           <td class="px-2 py-1.5 font-bold text-xs border border-slate-300">${label}</td>
@@ -814,7 +822,9 @@
         <td class="px-2 py-1.5 font-extrabold text-xs border border-slate-400">Out Put</td>
         ${months.map((m, i) => {
           const v = outActual[i];
-          return `<td class="px-1.5 py-1.5 text-right text-xs border border-slate-400 font-bold ${i===12?'bg-yellow-300 text-black':''}">${fmt(v)}</td>`;
+          const isCurrent = (i + 1 === currentMonth);
+          const cellClass = (i === 12) ? 'bg-yellow-300 text-black' : (isCurrent ? 'bg-blue-900 text-yellow-300 font-black ring-1 ring-yellow-400' : '');
+          return `<td class="px-1.5 py-1.5 text-right text-xs border border-slate-400 font-bold ${cellClass}">${fmt(v)}</td>`;
         }).join('')}
       </tr>`;
 
@@ -884,9 +894,10 @@
       let tHtml = '';
       months.forEach((m, mi) => {
         const isAll = (m === 'ALL');
-        const rowClass = isAll ? 'bg-yellow-50 font-bold' : (mi % 2 === 0 ? 'bg-white' : 'bg-slate-50');
+        const isCurrent = (mi + 1 === currentMonth);
+        const rowClass = isAll ? 'bg-yellow-50 font-bold' : (isCurrent ? 'bg-blue-100 font-black ring-2 ring-blue-500' : (mi % 2 === 0 ? 'bg-white' : 'bg-slate-50'));
         let row = `<tr class="${rowClass}">
-          <td class="px-2 py-1 text-xs font-bold border border-slate-300 text-center ${isAll ? 'bg-yellow-100' : ''}">${isAll ? 'ALL Target' : mLabels[mi]}</td>`;
+          <td class="px-2 py-1 text-xs font-bold border border-slate-300 text-center ${isAll ? 'bg-yellow-100' : (isCurrent ? 'bg-blue-600 text-white' : '')}">${isAll ? 'ALL Target' : mLabels[mi]}</td>`;
         costItems.forEach(item => {
           const d = data.costs[item]?.[m];
           const isTotal = (item === 'Total VC+FC');
@@ -904,9 +915,10 @@
       let aHtml = '';
       months.forEach((m, mi) => {
         const isAll = (m === 'ALL');
-        const rowClass = isAll ? 'bg-yellow-50 font-bold' : '';
+        const isCurrent = (mi + 1 === currentMonth);
+        const rowClass = isAll ? 'bg-yellow-50 font-bold' : (isCurrent ? 'ring-2 ring-blue-500 font-bold' : '');
         let row = `<tr class="${rowClass}">
-          <td class="px-2 py-1 text-xs font-bold border border-slate-300 text-center ${isAll ? 'bg-yellow-100' : ''}">${isAll ? 'ALL' : mLabels[mi]}</td>`;
+          <td class="px-2 py-1 text-xs font-bold border border-slate-300 text-center ${isAll ? 'bg-yellow-100' : (isCurrent ? 'bg-emerald-600 text-white' : '')}">${isAll ? 'ALL' : mLabels[mi]}</td>`;
         costItems.forEach(item => {
           const d = data.costs[item]?.[m];
           const isTotal = (item === 'Total VC+FC');

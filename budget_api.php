@@ -9,8 +9,6 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
     exit;
 }
 
-$cacheFile = __DIR__ . '/data/budget_control.json';
-$force = isset($_GET['refresh']) && $_GET['refresh'] === '1';
 $selectedMonth = intval($_GET['month'] ?? 1);
 if ($selectedMonth < 1 || $selectedMonth > 12) $selectedMonth = 1;
 
@@ -19,256 +17,214 @@ if (!in_array($selectedMachine, ['TOTAL', 'BHS', 'YUELI', 'ISOWA'])) {
     $selectedMachine = 'TOTAL';
 }
 
-// 1. ตรวจสอบข้อมูลจาก Cache หรือดึงสดจาก Google Sheet
-function fetchBudgetFromGoogleSheet($sheetId = '1viioRJ5I3BmqiD7KLwSG9_uNQ_9u_a8LYR-4GaPGuYI') {
-    $url = "https://docs.google.com/spreadsheets/d/{$sheetId}/gviz/tq?tqx=out:json&sheet=" . urlencode('Budget control');
-    $ctx = stream_context_create([
-        'http' => [
-            'timeout' => 15,
-            'header' => "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)\r\n"
-        ],
-        'ssl' => ['verify_peer' => false, 'verify_peer_name' => false]
-    ]);
-    $raw = @file_get_contents($url, false, $ctx);
-    if (!$raw || !preg_match('/setResponse\((.*)\);/s', $raw, $m)) {
-        return null;
-    }
-    $j = json_decode($m[1], true);
-    return $j['table'] ?? null;
-}
+// 12-Month Production Data (Target / Actual kg, Waste %)
+$productionMonths = [
+    1  => ['con_t' => 7418912, 'con_a' => 6949630, 'out_t' => 6602831, 'out_a' => 6137701, 'w11' => 11.68, 'w485' => 5.55],
+    2  => ['con_t' => 6848226, 'con_a' => 5827824, 'out_t' => 6094921, 'out_a' => 5169130, 'w11' => 11.30, 'w485' => 5.20],
+    3  => ['con_t' => 7418912, 'con_a' => 7128650, 'out_t' => 6602831, 'out_a' => 6357217, 'w11' => 10.82, 'w485' => 4.83],
+    4  => ['con_t' => 6562883, 'con_a' => 6507650, 'out_t' => 5840966, 'out_a' => 5826254, 'w11' => 10.47, 'w485' => 4.89],
+    5  => ['con_t' => 7418912, 'con_a' => 8272089, 'out_t' => 6602831, 'out_a' => 7417037, 'w11' => 10.34, 'w485' => 5.10],
+    6  => ['con_t' => 6848226, 'con_a' => 7588223, 'out_t' => 6094921, 'out_a' => 6777593, 'w11' => 10.68, 'w485' => 5.19],
+    7  => ['con_t' => 7418912, 'con_a' => 8165325, 'out_t' => 6602831, 'out_a' => 7293680, 'w11' => 10.67, 'w485' => 5.24],
+    8  => ['con_t' => 7133569, 'con_a' => 7405017, 'out_t' => 6348876, 'out_a' => 6560576, 'w11' => 10.34, 'w485' => 5.95],
+    9  => ['con_t' => 7418912, 'con_a' => 7115974, 'out_t' => 6602831, 'out_a' => 6321601, 'w11' =>  9.73, 'w485' => 5.84],
+    10 => ['con_t' => 7418912, 'con_a' => 7571110, 'out_t' => 6602831, 'out_a' => 6770906, 'w11' => 10.57, 'w485' => 5.52],
+    11 => ['con_t' => 7133569, 'con_a' => 8188675, 'out_t' => 6348876, 'out_a' => 7274966, 'w11' => 11.16, 'w485' => 5.74],
+    12 => ['con_t' => 6562883, 'con_a' => 7257540, 'out_t' => 5840966, 'out_a' => 6430414, 'w11' => 11.40, 'w485' => 5.81],
+];
 
-$budgetData = null;
-if (!$force && file_exists($cacheFile)) {
-    $cached = @json_decode(file_get_contents($cacheFile), true);
-    if (!empty($cached['months'])) {
-        $budgetData = $cached;
-    }
-}
+// 12-Month Cost Targets (บาท/kg)
+// Fixed targets: ถ่านหิน 0.282, กาว 0.376, น้ำ 0.005, ลม 0.025, ไฟฟ้า 0.227, ซ่อมแซม 0.150, ล่วงเวลา 0.051, ค่าแรง 0.112
+// Total Target = 1.228
+$costTargets = [
+    'coal'   => 0.282,
+    'glue'   => 0.376,
+    'water'  => 0.005,
+    'air'    => 0.025,
+    'elec'   => 0.227,
+    'repair' => 0.150,
+    'ot'     => 0.051,
+    'labor'  => 0.112,
+    'total'  => 1.228,
+];
 
-if (!$budgetData || $force) {
-    $table = fetchBudgetFromGoogleSheet();
-    if ($table && !empty($table['rows'])) {
-        $budgetData = parseBudgetTable($table);
-        if ($budgetData) {
-            @file_put_contents($cacheFile, json_encode($budgetData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-        }
-    }
-}
+// 12-Month Cost Actuals (บาท/kg) from Budget control sheet
+$costActuals = [
+    1  => ['coal' => 0.236, 'glue' => 0.509, 'water' => 0.005, 'air' => 0.022, 'elec' => 0.218, 'repair' => 0.207, 'ot' => 0.066, 'labor' => 0.113, 'total' => 1.376],
+    2  => ['coal' => 0.248, 'glue' => 0.356, 'water' => 0.004, 'air' => 0.015, 'elec' => 0.177, 'repair' => 0.188, 'ot' => 0.056, 'labor' => 0.104, 'total' => 1.149],
+    3  => ['coal' => 0.225, 'glue' => 0.378, 'water' => 0.004, 'air' => 0.017, 'elec' => 0.166, 'repair' => 0.162, 'ot' => 0.059, 'labor' => 0.099, 'total' => 1.109],
+    4  => ['coal' => 0.327, 'glue' => 0.379, 'water' => 0.005, 'air' => 0.021, 'elec' => 0.217, 'repair' => 0.190, 'ot' => 0.062, 'labor' => 0.108, 'total' => 1.309],
+    5  => ['coal' => 0.234, 'glue' => 0.328, 'water' => 0.004, 'air' => 0.017, 'elec' => 0.160, 'repair' => 0.174, 'ot' => 0.052, 'labor' => 0.089, 'total' => 1.066],
+    6  => ['coal' => 0.245, 'glue' => 0.328, 'water' => 0.005, 'air' => 0.017, 'elec' => 0.172, 'repair' => 0.256, 'ot' => 0.059, 'labor' => 0.127, 'total' => 1.209],
+    7  => ['coal' => 0.256, 'glue' => 0.368, 'water' => 0.004, 'air' => 0.012, 'elec' => 0.124, 'repair' => 0.094, 'ot' => 0.047, 'labor' => 0.098, 'total' => 1.013],
+    8  => ['coal' => 0.248, 'glue' => 0.405, 'water' => 0.004, 'air' => 0.014, 'elec' => 0.159, 'repair' => 0.125, 'ot' => 0.047, 'labor' => 0.109, 'total' => 1.111],
+    9  => ['coal' => 0.259, 'glue' => 0.372, 'water' => 0.004, 'air' => 0.016, 'elec' => 0.192, 'repair' => 0.172, 'ot' => 0.056, 'labor' => 0.113, 'total' => 1.183],
+    10 => ['coal' => 0.201, 'glue' => 0.374, 'water' => 0.004, 'air' => 0.017, 'elec' => 0.190, 'repair' => 0.245, 'ot' => 0.046, 'labor' => 0.089, 'total' => 1.166],
+    11 => ['coal' => 0.227, 'glue' => 0.421, 'water' => 0.004, 'air' => 0.020, 'elec' => 0.209, 'repair' => 0.191, 'ot' => 0.049, 'labor' => 0.096, 'total' => 1.207],
+    12 => ['coal' => 0.241, 'glue' => 0.366, 'water' => 0.004, 'air' => 0.017, 'elec' => 0.199, 'repair' => 0.143, 'ot' => 0.052, 'labor' => 0.093, 'total' => 1.164],
+];
 
-// ถ้ายังไม่มีข้อมูลจากชีต ให้ใช้ข้อมูลมาตรฐานของเดือน 1 และโครงสร้าง 12 เดือน
-if (!$budgetData) {
-    $budgetData = getDefaultBudgetData();
-}
+// 12-Month Financial Summary (Actual บาท)
+$financialMonths = [
+    1  => ['paper' => -907211,  'running' => -209522,  'net' => -1116733],
+    2  => ['paper' => -315969,  'running' => -539873,  'net' => -855842],
+    3  => ['paper' => 388623,   'running' => 339683,   'net' => 728306],
+    4  => ['paper' => 832012,   'running' => 271984,   'net' => 1103996],
+    5  => ['paper' => 1137711,  'running' => 1829232,  'net' => 2966943],
+    6  => ['paper' => 556883,   'running' => 935296,   'net' => 1492179],
+    7  => ['paper' => 651631,   'running' => 952071,   'net' => 1603702],
+    8  => ['paper' => -502639,  'running' => 157765,   'net' => -344874],
+    9  => ['paper' => -157435,  'running' => -6607,    'net' => -164042],
+    10 => ['paper' => 714844,   'running' => 587371,   'net' => 1302215],
+    11 => ['paper' => -160244,  'running' => 1589633,  'net' => 1429389],
+    12 => ['paper' => -395600,  'running' => 1133117,  'net' => 737517],
+];
 
-function parseBudgetTable($table) {
-    // โครงสร้างมาตรฐานตามเดือน 1-12
-    return getDefaultBudgetData();
-}
+// Function to generate data for a given month
+function buildMonthKPI($m, $productionMonths, $costTargets, $costActuals, $financialMonths) {
+    $p = $productionMonths[$m] ?? $productionMonths[1];
+    $c = $costActuals[$m] ?? $costActuals[1];
+    $f = $financialMonths[$m] ?? $financialMonths[1];
+    $t = $costTargets;
 
-function getDefaultBudgetData() {
-    $months = [];
-    
-    // ข้อมูลเดือน 1 อ้างอิงตามตาราง Profermanas PD ในรูปภาพ
-    $months[1] = [
+    // Production items
+    $conDiff = $p['con_a'] - $p['con_t'];
+    $conPct  = round(($p['con_a'] / $p['con_t']) * 100);
+    $outDiff = $p['out_a'] - $p['out_t'];
+    $outPct  = round(($p['out_a'] / $p['out_t']) * 100);
+
+    $w11Diff = round(11.00 - $p['w11'], 2);
+    $w11Pass = ($p['w11'] <= 11.00);
+    $w11Pct  = round((11.00 / $p['w11']) * 100);
+
+    $w485Diff = round(4.85 - $p['w485'], 2);
+    $w485Pass = ($p['w485'] <= 4.85);
+    $w485Pct  = round((4.85 / $p['w485']) * 100);
+
+    // Cost helper: Diff = Target - Actual (positive = saved/pass, negative = over/fail)
+    $costItem = function($name, $tVal, $aVal) {
+        $diff = round($tVal - $aVal, 3);
+        $pass = ($diff >= 0);
+        $pct = ($aVal > 0) ? round(($tVal / $aVal) * 100, 1) : 100;
+        return [
+            'title'       => $name,
+            'target'      => $tVal,
+            'actual'      => $aVal,
+            'unit'        => 'บาท/kg',
+            'status'      => $pass ? 'ได้เป้า' : 'เกินเป้า',
+            'achievedPct' => $pct,
+            'diff'        => $diff,
+            'pass'        => $pass,
+            'isCurrency'  => true
+        ];
+    };
+
+    $coal   = $costItem('ถ่านหิน',      $t['coal'],   $c['coal']);
+    $glue   = $costItem('กาว',          $t['glue'],   $c['glue']);
+    $water  = $costItem('ค่าน้ำประปา',  $t['water'],  $c['water']);
+    $air    = $costItem('ค่าลม',        $t['air'],    $c['air']);
+    $elec   = $costItem('ค่าไฟฟ้า',      $t['elec'],   $c['elec']);
+    $repair = $costItem('ค่าซ่อมแซม',   $t['repair'], $c['repair']);
+    $ot     = $costItem('ค่าล่วงเวลา',   $t['ot'],     $c['ot']);
+    $labor  = $costItem('ค่าแรง',       $t['labor'],  $c['labor']);
+    $budget = $costItem('Budjet B/kg',  $t['total'],  $c['total']);
+
+    return [
         'consum' => [
-            'title' => 'Consumtion',
-            'target' => 7418912,
-            'actual' => 6949630,
-            'unit' => 'กก.',
-            'status' => 'ผลิตได้',
-            'achievedPct' => 94,
-            'diff' => -469282,
-            'pass' => true,
-            'isCurrency' => false
+            'title'       => 'Consumtion',
+            'target'      => $p['con_t'],
+            'actual'      => $p['con_a'],
+            'unit'        => 'กก.',
+            'status'      => 'ผลิตได้',
+            'achievedPct' => $conPct,
+            'diff'        => $conDiff,
+            'pass'        => true,
+            'isCurrency'  => false
         ],
         'output' => [
-            'title' => 'Out Put',
-            'target' => 6602831,
-            'actual' => 6137701,
-            'unit' => 'กก.',
-            'status' => 'ผลิตได้',
-            'achievedPct' => 93,
-            'diff' => -465131,
-            'pass' => true,
-            'isCurrency' => false
+            'title'       => 'Out Put',
+            'target'      => $p['out_t'],
+            'actual'      => $p['out_a'],
+            'unit'        => 'กก.',
+            'status'      => 'ผลิตได้',
+            'achievedPct' => $outPct,
+            'diff'        => $outDiff,
+            'pass'        => true,
+            'isCurrency'  => false
         ],
         'waste11' => [
-            'title' => 'Waste 11.00%',
-            'target' => 11.00,
-            'actual' => 11.68,
-            'unit' => '%',
-            'status' => 'เกินเป้า',
-            'achievedPct' => 94,
-            'diff' => -0.68,
-            'pass' => false,
-            'isCurrency' => false
+            'title'       => 'Waste 11.00%',
+            'target'      => 11.00,
+            'actual'      => $p['w11'],
+            'unit'        => '%',
+            'status'      => $w11Pass ? 'ได้เป้า' : 'เกินเป้า',
+            'achievedPct' => $w11Pct,
+            'diff'        => $w11Diff,
+            'pass'        => $w11Pass,
+            'isCurrency'  => false
         ],
         'waste485' => [
-            'title' => 'Waste 4.85%',
-            'target' => 4.85,
-            'actual' => 5.55,
-            'unit' => '%',
-            'status' => 'เกินเป้า',
-            'achievedPct' => 87,
-            'diff' => -0.70,
-            'pass' => false,
-            'isCurrency' => false
+            'title'       => 'Waste 4.85%',
+            'target'      => 4.85,
+            'actual'      => $p['w485'],
+            'unit'        => '%',
+            'status'      => $w485Pass ? 'ได้เป้า' : 'เกินเป้า',
+            'achievedPct' => $w485Pct,
+            'diff'        => $w485Diff,
+            'pass'        => $w485Pass,
+            'isCurrency'  => false
         ],
-        // รายการต้นทุน 8 หมวด (บาท/kg)
-        'cost_coal' => [
-            'title' => 'ถ่านหิน',
-            'target' => 0.282,
-            'actual' => 0.236,
-            'unit' => 'บาท/kg',
-            'status' => 'ได้เป้า',
-            'achievedPct' => 119.5,
-            'diff' => 0.046,
-            'pass' => true,
-            'isCurrency' => true
-        ],
-        'cost_glue' => [
-            'title' => 'กาว',
-            'target' => 0.376,
-            'actual' => 0.509,
-            'unit' => 'บาท/kg.',
-            'status' => 'เกินเป้า',
-            'achievedPct' => 73.9,
-            'diff' => -0.134,
-            'pass' => false,
-            'isCurrency' => true
-        ],
-        'cost_water' => [
-            'title' => 'ค่าน้ำประปา',
-            'target' => 0.005,
-            'actual' => 0.005,
-            'unit' => 'บาท/kg',
-            'status' => 'ได้เป้า',
-            'achievedPct' => 100.0,
-            'diff' => 0.000,
-            'pass' => true,
-            'isCurrency' => true
-        ],
-        'cost_air' => [
-            'title' => 'ค่าลม',
-            'target' => 0.025,
-            'actual' => 0.022,
-            'unit' => 'บาท/kg',
-            'status' => 'ได้เป้า',
-            'achievedPct' => 112.0,
-            'diff' => 0.003,
-            'pass' => true,
-            'isCurrency' => true
-        ],
-        'cost_elec' => [
-            'title' => 'ค่าไฟฟ้า',
-            'target' => 0.227,
-            'actual' => 0.218,
-            'unit' => 'บาท/kg',
-            'status' => 'ได้เป้า',
-            'achievedPct' => 104.0,
-            'diff' => 0.010,
-            'pass' => true,
-            'isCurrency' => true
-        ],
-        'cost_repair' => [
-            'title' => 'ค่าซ่อมแซม',
-            'target' => 0.150,
-            'actual' => 0.207,
-            'unit' => 'บาท/kg.',
-            'status' => 'เกินเป้า',
-            'achievedPct' => 72.5,
-            'diff' => -0.057,
-            'pass' => false,
-            'isCurrency' => true
-        ],
-        'cost_ot' => [
-            'title' => 'ค่าล่วงเวลา',
-            'target' => 0.051,
-            'actual' => 0.066,
-            'unit' => 'บาท/kg.',
-            'status' => 'เกินเป้า',
-            'achievedPct' => 77.3,
-            'diff' => -0.015,
-            'pass' => false,
-            'isCurrency' => true
-        ],
-        'cost_labor' => [
-            'title' => 'ค่าแรง',
-            'target' => 0.112,
-            'actual' => 0.113,
-            'unit' => 'บาท/kg.',
-            'status' => 'เกินเป้า',
-            'achievedPct' => 99.1,
-            'diff' => -0.001,
-            'pass' => false,
-            'isCurrency' => true
-        ],
-        'budget_b_kg' => [
-            'title' => 'Budjet B/kg',
-            'target' => 1.228,
-            'actual' => 1.376,
-            'unit' => 'บาท/kg.',
-            'status' => 'เกินเป้า',
-            'achievedPct' => 89.2,
-            'diff' => -0.148,
-            'pass' => false,
-            'isCurrency' => true
-        ],
+        'cost_coal'   => $coal,
+        'cost_glue'   => $glue,
+        'cost_water'  => $water,
+        'cost_air'    => $air,
+        'cost_elec'   => $elec,
+        'cost_repair' => $repair,
+        'cost_ot'     => $ot,
+        'cost_labor'  => $labor,
+        'budget_b_kg' => $budget,
         'profit_paper' => [
-            'title' => 'กำไรค่ากระดาษ',
-            'target' => null,
-            'actual' => -907211,
-            'unit' => 'บาท',
-            'status' => 'ติดลบ',
-            'note' => 'คุมของเสียเกินเป้าหมาย',
-            'diff' => null,
-            'pass' => false,
+            'title'      => 'กำไรค่ากระดาษ',
+            'target'     => null,
+            'actual'     => $f['paper'],
+            'unit'       => 'บาท',
+            'status'     => ($f['paper'] < 0) ? 'ติดลบ' : 'ได้กำไร',
+            'note'       => ($f['paper'] < 0) ? 'คุมของเสียเกินเป้าหมาย' : 'ตามเป้าหมาย',
+            'diff'       => null,
+            'pass'       => ($f['paper'] >= 0),
             'isCurrency' => true
         ],
         'running_cost' => [
-            'title' => 'Runing cost',
-            'target' => null,
-            'actual' => -209522,
-            'unit' => 'บาท',
-            'status' => 'ติดลบ',
-            'note' => 'รวมรายได้หักค่าใช้จ่าย',
-            'diff' => null,
-            'pass' => false,
+            'title'      => 'Runing cost',
+            'target'     => null,
+            'actual'     => $f['running'],
+            'unit'       => 'บาท',
+            'status'     => ($f['running'] < 0) ? 'ติดลบ' : 'ได้กำไร',
+            'note'       => ($f['running'] < 0) ? 'รวมรายได้หักค่าใช้จ่าย' : 'ตามเป้าหมาย',
+            'diff'       => null,
+            'pass'       => ($f['running'] >= 0),
             'isCurrency' => true
         ],
         'net_profit' => [
-            'title' => 'กำไรสุทธิ',
-            'target' => null,
-            'actual' => -1116733,
-            'unit' => 'บาท',
-            'status' => 'ติดลบ',
-            'note' => 'รวมค่าต้นทุนกระดาษหัก...',
-            'diff' => null,
-            'pass' => false,
+            'title'      => 'กำไรสุทธิ',
+            'target'     => null,
+            'actual'     => $f['net'],
+            'unit'       => 'บาท',
+            'status'     => ($f['net'] < 0) ? 'ติดลบ' : 'ได้กำไร',
+            'note'       => ($f['net'] < 0) ? 'รวมค่าต้นทุนกระดาษหัก...' : 'ตามเป้าหมาย',
+            'diff'       => null,
+            'pass'       => ($f['net'] >= 0),
             'isCurrency' => true
         ]
     ];
-
-    // สร้างข้อมูลเดือนอื่นๆ 2 ถึง 12
-    for ($m = 2; $m <= 12; $m++) {
-        // คัดลอกโครงสร้างและปรับตัวเลข
-        $months[$m] = $months[1];
-    }
-
-    return [
-        'source' => 'Google Sheet (Budget control)',
-        'updated_at' => date('Y-m-d H:i:s'),
-        'months' => $months
-    ];
 }
 
-$monthData = $budgetData['months'][$selectedMonth] ?? $budgetData['months'][1];
+$monthData = buildMonthKPI($selectedMonth, $productionMonths, $costTargets, $costActuals, $financialMonths);
 
-// คำนวณสรุปผลลัพธ์
+// Calculate pass/fail summary
 $passCount = 0;
 $failCount = 0;
 $totalCount = 0;
-
 $diffChartItems = [];
 
 foreach ($monthData as $key => $item) {
@@ -280,18 +236,18 @@ foreach ($monthData as $key => $item) {
             $failCount++;
         }
     }
-    // รายการสำหรับกราฟ Diff บาท/kg
+    // Items for Diff bar chart (8 cost items)
     if (in_array($key, [
         'cost_coal', 'cost_glue', 'cost_water', 'cost_air',
         'cost_elec', 'cost_repair', 'cost_ot', 'cost_labor'
     ])) {
         $diffChartItems[] = [
-            'key' => $key,
-            'name' => $item['title'],
-            'diff' => floatval($item['diff'] ?? 0),
+            'key'    => $key,
+            'name'   => $item['title'],
+            'diff'   => floatval($item['diff'] ?? 0),
             'target' => floatval($item['target'] ?? 0),
             'actual' => floatval($item['actual'] ?? 0),
-            'pass' => $item['pass']
+            'pass'   => $item['pass']
         ];
     }
 }
@@ -300,17 +256,17 @@ $overallPct = ($totalCount > 0) ? round(($passCount / $totalCount) * 100) : 0;
 
 echo json_encode([
     'success' => true,
-    'month' => $selectedMonth,
+    'month'   => $selectedMonth,
     'machine' => $selectedMachine,
     'summary' => [
-        'passCount' => $passCount,
-        'failCount' => $failCount,
+        'passCount'  => $passCount,
+        'failCount'  => $failCount,
         'totalCount' => $totalCount,
         'overallPct' => $overallPct,
-        'scoreText' => "{$overallPct}%",
+        'scoreText'  => "{$overallPct}%",
         'resultText' => "ผลลัพธ์ {$passCount} / {$failCount}"
     ],
-    'items' => $monthData,
-    'chart' => $diffChartItems,
-    'updated_at' => $budgetData['updated_at'] ?? date('Y-m-d H:i:s')
+    'items'      => $monthData,
+    'chart'      => $diffChartItems,
+    'updated_at' => date('Y-m-d H:i:s')
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
