@@ -238,6 +238,139 @@
         </div>
       </div>
 
+      <!-- ========================================== -->
+      <!-- TABLE 1: 12-Month Summary                  -->
+      <!-- ========================================== -->
+      <div class="bg-white rounded-xl shadow-md border border-slate-300 overflow-hidden">
+        <div class="bg-red-800 text-white px-4 py-3 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-table text-red-200"></i>
+            <h3 class="font-extrabold text-sm sm:text-base tracking-tight">สรุปข้อมูล 12 เดือน — Production & Financial</h3>
+          </div>
+          <div id="monthly-loading" class="hidden items-center gap-1.5 text-xs font-medium text-red-200">
+            <i class="fa-solid fa-circle-notch fa-spin"></i> กำลังโหลด...
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left border-collapse" style="min-width:900px">
+            <thead>
+              <tr class="bg-slate-800 text-white">
+                <th class="px-2 py-2 border border-slate-600 whitespace-nowrap">Cost เดือน</th>
+                <th class="px-2 py-2 border border-slate-600 text-center">1</th>
+                <th class="px-2 py-2 border border-slate-600 text-center">2</th>
+                <th class="px-2 py-2 border border-slate-600 text-center">3</th>
+                <th class="px-2 py-2 border border-slate-600 text-center">4</th>
+                <th class="px-2 py-2 border border-slate-600 text-center">5</th>
+                <th class="px-2 py-2 border border-slate-600 text-center">6</th>
+                <th class="px-2 py-2 border border-slate-600 text-center">7</th>
+                <th class="px-2 py-2 border border-slate-600 text-center">8</th>
+                <th class="px-2 py-2 border border-slate-600 text-center">9</th>
+                <th class="px-2 py-2 border border-slate-600 text-center">10</th>
+                <th class="px-2 py-2 border border-slate-600 text-center">11</th>
+                <th class="px-2 py-2 border border-slate-600 text-center">12</th>
+                <th class="px-2 py-2 border border-slate-600 text-center bg-yellow-600">ALL</th>
+              </tr>
+            </thead>
+            <tbody id="monthly-summary-body">
+              <tr><td colspan="14" class="text-center py-8 text-slate-400">
+                <i class="fa-solid fa-circle-notch fa-spin text-blue-500 text-2xl mb-2 block"></i>
+                กำลังโหลดข้อมูล 12 เดือน...
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- TABLE 2: Cost Detail Breakdown             -->
+      <!-- ========================================== -->
+      <div class="bg-white rounded-xl shadow-md border border-slate-300 overflow-hidden">
+        <div class="bg-slate-700 text-white px-4 py-3 flex items-center gap-2">
+          <i class="fa-solid fa-chart-bar text-slate-300"></i>
+          <h3 class="font-extrabold text-sm sm:text-base">รายละเอียดต้นทุน (Target vs Actual) รายเดือน</h3>
+        </div>
+
+        <!-- Target Section -->
+        <div class="px-2 pt-3">
+          <div class="bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-t-lg inline-block">Target</div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs border-collapse" style="min-width:1100px">
+            <thead>
+              <tr class="bg-blue-100 text-blue-900">
+                <th class="px-2 py-1.5 border border-slate-300 text-center w-8">เดือน</th>
+                <th class="px-1 py-1.5 border border-slate-300 text-center" colspan="2">กาว</th>
+                <th class="px-1 py-1.5 border border-slate-300 text-center" colspan="2">ถ่านหิน</th>
+                <th class="px-1 py-1.5 border border-slate-300 text-center" colspan="2">ไฟฟ้า</th>
+                <th class="px-1 py-1.5 border border-slate-300 text-center" colspan="2">น้ำประปา</th>
+                <th class="px-1 py-1.5 border border-slate-300 text-center" colspan="2">ลม</th>
+                <th class="px-1 py-1.5 border border-slate-300 text-center" colspan="2">ซ่อมแซม</th>
+                <th class="px-1 py-1.5 border border-slate-300 text-center" colspan="2">ล่วงเวลา</th>
+                <th class="px-1 py-1.5 border border-slate-300 text-center" colspan="2">แรงงาน</th>
+              </tr>
+              <tr class="bg-blue-50 text-blue-800 text-[10px]">
+                <th class="px-2 py-1 border border-slate-300"></th>
+                <!-- Repeat for each cost item -->
+                <th class="px-1 py-1 border border-slate-300 text-right">มูลค่า</th><th class="px-1 py-1 border border-slate-300 text-right">บาท/kg</th>
+                <th class="px-1 py-1 border border-slate-300 text-right">มูลค่า</th><th class="px-1 py-1 border border-slate-300 text-right">บาท/kg</th>
+                <th class="px-1 py-1 border border-slate-300 text-right">มูลค่า</th><th class="px-1 py-1 border border-slate-300 text-right">บาท/kg</th>
+                <th class="px-1 py-1 border border-slate-300 text-right">มูลค่า</th><th class="px-1 py-1 border border-slate-300 text-right">บาท/kg</th>
+                <th class="px-1 py-1 border border-slate-300 text-right">มูลค่า</th><th class="px-1 py-1 border border-slate-300 text-right">บาท/kg</th>
+                <th class="px-1 py-1 border border-slate-300 text-right">มูลค่า</th><th class="px-1 py-1 border border-slate-300 text-right">บาท/kg</th>
+                <th class="px-1 py-1 border border-slate-300 text-right">มูลค่า</th><th class="px-1 py-1 border border-slate-300 text-right">บาท/kg</th>
+                <th class="px-1 py-1 border border-slate-300 text-right">มูลค่า</th><th class="px-1 py-1 border border-slate-300 text-right">บาท/kg</th>
+              </tr>
+            </thead>
+            <tbody id="cost-detail-body">
+              <tr><td colspan="17" class="text-center py-4 text-slate-400">กำลังโหลด...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Actual Section -->
+        <div class="px-2 pt-4">
+          <div class="bg-green-700 text-white text-xs font-bold px-3 py-1.5 rounded-t-lg inline-block">Actual</div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs border-collapse" style="min-width:1400px">
+            <thead>
+              <tr class="bg-green-100 text-green-900">
+                <th class="px-2 py-1.5 border border-slate-300 text-center w-8">เดือน</th>
+                <th class="px-1 py-1.5 border border-slate-300 text-center" colspan="3">กาว</th>
+                <th class="px-1 py-1.5 border border-slate-300 text-center" colspan="3">ถ่านหิน</th>
+                <th class="px-1 py-1.5 border border-slate-300 text-center" colspan="3">ไฟฟ้า</th>
+                <th class="px-1 py-1.5 border border-slate-300 text-center" colspan="3">น้ำประปา</th>
+                <th class="px-1 py-1.5 border border-slate-300 text-center" colspan="3">ลม</th>
+                <th class="px-1 py-1.5 border border-slate-300 text-center" colspan="3">ซ่อมแซม</th>
+                <th class="px-1 py-1.5 border border-slate-300 text-center" colspan="3">ล่วงเวลา</th>
+                <th class="px-1 py-1.5 border border-slate-300 text-center" colspan="3">แรงงาน</th>
+              </tr>
+              <tr class="bg-green-50 text-green-800 text-[10px]">
+                <th class="px-2 py-1 border border-slate-300"></th>
+                <th class="px-1 py-1 border border-slate-300 text-right">มูลค่า</th><th class="px-1 py-1 border border-slate-300 text-right">บาท/kg</th><th class="px-1 py-1 border border-slate-300 text-right">%</th>
+                <th class="px-1 py-1 border border-slate-300 text-right">มูลค่า</th><th class="px-1 py-1 border border-slate-300 text-right">บาท/kg</th><th class="px-1 py-1 border border-slate-300 text-right">%</th>
+                <th class="px-1 py-1 border border-slate-300 text-right">มูลค่า</th><th class="px-1 py-1 border border-slate-300 text-right">บาท/kg</th><th class="px-1 py-1 border border-slate-300 text-right">%</th>
+                <th class="px-1 py-1 border border-slate-300 text-right">มูลค่า</th><th class="px-1 py-1 border border-slate-300 text-right">บาท/kg</th><th class="px-1 py-1 border border-slate-300 text-right">%</th>
+                <th class="px-1 py-1 border border-slate-300 text-right">มูลค่า</th><th class="px-1 py-1 border border-slate-300 text-right">บาท/kg</th><th class="px-1 py-1 border border-slate-300 text-right">%</th>
+                <th class="px-1 py-1 border border-slate-300 text-right">มูลค่า</th><th class="px-1 py-1 border border-slate-300 text-right">บาท/kg</th><th class="px-1 py-1 border border-slate-300 text-right">%</th>
+                <th class="px-1 py-1 border border-slate-300 text-right">มูลค่า</th><th class="px-1 py-1 border border-slate-300 text-right">บาท/kg</th><th class="px-1 py-1 border border-slate-300 text-right">%</th>
+                <th class="px-1 py-1 border border-slate-300 text-right">มูลค่า</th><th class="px-1 py-1 border border-slate-300 text-right">บาท/kg</th><th class="px-1 py-1 border border-slate-300 text-right">%</th>
+              </tr>
+            </thead>
+            <tbody id="cost-detail-body2">
+              <tr><td colspan="25" class="text-center py-4 text-slate-400">กำลังโหลด...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="px-4 pb-3 mt-2">
+          <div class="flex gap-4 text-xs">
+            <span class="flex items-center gap-1"><span class="inline-block w-4 h-3 bg-green-100 border border-green-300 rounded-xs"></span> Actual ≤ Target (ดี)</span>
+            <span class="flex items-center gap-1"><span class="inline-block w-4 h-3 bg-red-100 border border-red-300 rounded-xs"></span> Actual > Target (เกินเป้า)</span>
+            <span class="flex items-center gap-1"><span class="inline-block w-4 h-3 bg-yellow-50 border border-yellow-300 rounded-xs"></span> แถว ALL (รวมทั้งปี)</span>
+          </div>
+        </div>
+      </div>
+
     </div>
 
   </main>
@@ -274,6 +407,8 @@
       }
 
       loadBudgetData();
+      loadMonthlySummary();
+      loadCostDetail();
     });
 
     function onMonthChange(m) {
@@ -558,6 +693,211 @@
           </tr>
         `;
       }
+    }
+
+    // =====================================================
+    // TABLE 1: 12-Month Summary
+    // =====================================================
+    let monthlyData = null;
+
+    async function loadMonthlySummary() {
+      const tbody = document.getElementById('monthly-summary-body');
+      const loading = document.getElementById('monthly-loading');
+      if (loading) loading.style.display = 'flex';
+      if (tbody) tbody.innerHTML = '';
+      try {
+        const resp = await fetch('budget_monthly_api.php');
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        monthlyData = await resp.json();
+        renderMonthlySummary(monthlyData);
+      } catch (e) {
+        console.error(e);
+        if (tbody) tbody.innerHTML = `<tr><td colspan="14" class="text-center py-6 text-rose-500 font-bold">ไม่สามารถโหลดข้อมูลสรุป 12 เดือนได้</td></tr>`;
+      } finally {
+        if (loading) loading.style.display = 'none';
+      }
+    }
+
+    function fmt(val, decimals = 0) {
+      if (val === null || val === undefined || val === '' || isNaN(val)) return '-';
+      const n = parseFloat(val);
+      if (decimals === 0) return n.toLocaleString('th-TH', { maximumFractionDigits: 0 });
+      return n.toLocaleString('th-TH', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    }
+
+    function renderMonthlySummary(data) {
+      const tbody = document.getElementById('monthly-summary-body');
+      if (!tbody || !data) return;
+
+      const prod = data.production;
+      const fin  = data.financials;
+      const months = ['m1','m2','m3','m4','m5','m6','m7','m8','m9','m10','m11','m12','ALL'];
+      const mLabels = ['1','2','3','4','5','6','7','8','9','10','11','12','ALL'];
+
+      function makeRow(label, vals, rowClass = '', fmtFn = null, isBold = false) {
+        const fn = fmtFn || fmt;
+        let cells = '';
+        for (let i = 0; i < vals.length; i++) {
+          const v = vals[i];
+          const isAll = (i === 12);
+          cells += `<td class="px-1.5 py-1.5 text-right text-xs border border-slate-300 ${isAll ? 'bg-yellow-50 font-bold' : ''}">${fn(v)}</td>`;
+        }
+        return `<tr class="${rowClass}">
+          <td class="px-2 py-1.5 font-bold text-xs border border-slate-300 whitespace-nowrap ${isBold ? 'font-extrabold' : ''}">${label}</td>
+          ${cells}
+        </tr>`;
+      }
+
+      function makeWasteRow(label, vals, threshold, rowClass) {
+        let cells = '';
+        for (let i = 0; i < vals.length; i++) {
+          const v = parseFloat(vals[i]);
+          const isAll = (i === 12);
+          const over = !isNaN(v) && v > threshold;
+          const cellBg = over ? 'bg-red-100 text-red-700 font-bold' : 'bg-green-50 text-green-700';
+          cells += `<td class="px-1.5 py-1.5 text-right text-xs border border-slate-300 ${isAll ? 'bg-yellow-50 font-bold' : cellBg}">${isNaN(v) || vals[i] === null ? '-' : fmt(v * 100, 2) + '%'}</td>`;
+        }
+        return `<tr class="${rowClass}">
+          <td class="px-2 py-1.5 font-bold text-xs border border-slate-300">${label}</td>
+          ${cells}
+        </tr>`;
+      }
+
+      function makeFinRow(label, vals, rowClass) {
+        let cells = '';
+        for (let i = 0; i < vals.length; i++) {
+          const v = parseFloat(vals[i]);
+          const isAll = (i === 12);
+          const neg = !isNaN(v) && v < 0;
+          cells += `<td class="px-1.5 py-1.5 text-right text-xs border border-slate-300 ${isAll ? 'bg-yellow-50 font-bold' : ''} ${neg ? 'text-red-600 font-bold' : ''}">${isNaN(v) || vals[i] === null ? '-' : fmt(v)}</td>`;
+        }
+        return `<tr class="${rowClass}">
+          <td class="px-2 py-1.5 font-bold text-xs border border-slate-300">${label}</td>
+          ${cells}
+        </tr>`;
+      }
+
+      let html = '';
+
+      // Production rows
+      const conTarget  = months.map(m => prod[m]?.consumption_target ?? null);
+      const outTarget  = months.map(m => prod[m]?.output_target ?? null);
+      const wastePct   = months.map(m => prod[m]?.waste_pct_actual != null && prod[m]?.consumption_actual > 0
+        ? prod[m].waste_pct_actual / prod[m].consumption_actual : null);
+      const waste485   = months.map(m => prod[m]?.waste_pd_actual != null && prod[m]?.consumption_actual > 0
+        ? prod[m].waste_pd_actual / prod[m].consumption_actual : null);
+      const conActual  = months.map(m => prod[m]?.consumption_actual ?? null);
+      const outActual  = months.map(m => prod[m]?.output_pd_actual ?? prod[m]?.output_actual ?? null);
+
+      html += makeRow('ConsumtionTarget', conTarget, 'bg-blue-50', null, true);
+      html += makeRow('OutPutTarget',     outTarget,  'bg-blue-50', null, true);
+      html += makeWasteRow('Waste',     wastePct,  0.11, 'bg-orange-50');
+      html += makeWasteRow('Waste 4.85%', waste485, 0.0485, 'bg-yellow-50');
+      html += makeRow('Consumtion', conActual, '');
+      html += `<tr class="bg-blue-700 text-white">
+        <td class="px-2 py-1.5 font-extrabold text-xs border border-slate-400">Out Put</td>
+        ${months.map((m, i) => {
+          const v = outActual[i];
+          return `<td class="px-1.5 py-1.5 text-right text-xs border border-slate-400 font-bold ${i===12?'bg-yellow-300 text-black':''}">${fmt(v)}</td>`;
+        }).join('')}
+      </tr>`;
+
+      // Financial rows (separator)
+      html += `<tr><td colspan="14" class="bg-slate-800 text-white text-xs font-bold px-2 py-1">ข้อมูลการเงิน (บาท)</td></tr>`;
+
+      if (fin) {
+        const revActual   = months.map(m => fin.revenue?.['m' === m.substring(0,1) ? m : 'ALL']?.actual ?? fin.revenue?.[m]?.actual ?? null);
+        const costActual  = months.map(m => fin.paper_cost?.[m]?.actual ?? null);
+        const fgActual    = months.map(m => fin.sell_fg?.[m]?.actual ?? null);
+        const profPaper   = months.map(m => fin.profit_paper?.[m]?.actual ?? null);
+        const runCost     = months.map(m => fin.running_cost?.[m]?.actual ?? null);
+        const netProfit   = months.map(m => fin.profit_net?.[m]?.actual ?? null);
+
+        html += makeFinRow('รายได้',         months.map(m => fin.revenue?.[m]?.actual), 'bg-slate-50');
+        html += makeFinRow('รวมต้นทุน',      months.map(m => fin.paper_cost?.[m]?.actual), 'bg-slate-50');
+        html += makeFinRow('ขาย FG',         months.map(m => fin.sell_fg?.[m]?.actual), 'bg-slate-50');
+        html += makeFinRow('กำไรค่ากระดาษ', months.map(m => fin.profit_paper?.[m]?.actual), 'bg-pink-50');
+        html += makeFinRow('Runing cost',    months.map(m => fin.running_cost?.[m]?.actual), 'bg-slate-50');
+        html += makeFinRow('กำไรสุทธิ',     months.map(m => fin.profit_net?.[m]?.actual), 'bg-yellow-50');
+      }
+
+      tbody.innerHTML = html;
+    }
+
+    // =====================================================
+    // TABLE 2: Cost Detail Breakdown
+    // =====================================================
+    let costDetailData = null;
+
+    async function loadCostDetail() {
+      const tbody = document.getElementById('cost-detail-body');
+      const tbody2 = document.getElementById('cost-detail-body2');
+      try {
+        const resp = await fetch('budget_cost_detail_api.php');
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        costDetailData = await resp.json();
+        renderCostDetail(costDetailData);
+      } catch (e) {
+        console.error(e);
+        if (tbody) tbody.innerHTML = `<tr><td colspan="40" class="text-center py-4 text-rose-500 font-bold">ไม่สามารถโหลดข้อมูล Cost Detail ได้</td></tr>`;
+      }
+    }
+
+    function renderCostDetail(data) {
+      const targetBody = document.getElementById('cost-detail-body');
+      const actualBody = document.getElementById('cost-detail-body2');
+      if (!targetBody || !actualBody || !data?.costs) return;
+
+      const costItems = Object.keys(data.costs);
+      const months = ['m1','m2','m3','m4','m5','m6','m7','m8','m9','m10','m11','m12','ALL'];
+      const mLabels = ['1','2','3','4','5','6','7','8','9','10','11','12','ALL'];
+
+      function fmtBk(v) {
+        if (v === null || v === undefined || v === 0 || isNaN(v)) return '-';
+        return parseFloat(v).toFixed(3);
+      }
+      function fmtVal(v) {
+        if (v === null || v === undefined || v === 0 || isNaN(v)) return '-';
+        return parseInt(v).toLocaleString('th-TH');
+      }
+
+      // Target section
+      let tHtml = '';
+      months.forEach((m, mi) => {
+        const isAll = (m === 'ALL');
+        const rowClass = isAll ? 'bg-yellow-50 font-bold' : (mi % 2 === 0 ? 'bg-white' : 'bg-slate-50');
+        let row = `<tr class="${rowClass}">
+          <td class="px-2 py-1 text-xs font-bold border border-slate-300 text-center">${mLabels[mi]}</td>`;
+        costItems.forEach(item => {
+          const d = data.costs[item]?.[m];
+          row += `<td class="px-1 py-1 text-right text-xs border border-slate-300">${fmtVal(d?.target_value)}</td>`;
+          row += `<td class="px-1 py-1 text-right text-xs border border-slate-300">${fmtBk(d?.target_bahtkg)}</td>`;
+        });
+        row += '</tr>';
+        tHtml += row;
+      });
+      targetBody.innerHTML = tHtml;
+
+      // Actual section
+      let aHtml = '';
+      months.forEach((m, mi) => {
+        const isAll = (m === 'ALL');
+        const rowClass = isAll ? 'bg-yellow-50 font-bold' : '';
+        let row = `<tr class="${rowClass}">
+          <td class="px-2 py-1 text-xs font-bold border border-slate-300 text-center">${mLabels[mi]}</td>`;
+        costItems.forEach(item => {
+          const d = data.costs[item]?.[m];
+          const pct = parseFloat(d?.pct_actual);
+          const over = !isNaN(pct) && pct > 100;
+          const cellBg = over ? 'bg-red-100 text-red-700 font-bold' : (pct > 0 ? 'bg-green-50 text-green-700' : '');
+          row += `<td class="px-1 py-1 text-right text-xs border border-slate-300 ${cellBg}">${fmtVal(d?.actual_value)}</td>`;
+          row += `<td class="px-1 py-1 text-right text-xs border border-slate-300 ${cellBg}">${fmtBk(d?.actual_bahtkg)}</td>`;
+          row += `<td class="px-1 py-1 text-right text-xs border border-slate-300 ${cellBg}">${d?.pct_actual != null ? d.pct_actual + '%' : '-'}</td>`;
+        });
+        row += '</tr>';
+        aHtml += row;
+      });
+      actualBody.innerHTML = aHtml;
     }
 
     // ส่งออกเป็นภาพ 4K UHD
