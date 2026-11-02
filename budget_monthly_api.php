@@ -148,29 +148,25 @@ for ($m = 0; $m <= 12; $m++) {
 }
 
 // =====================================================================
-// Financial rows - sheet rows (1-indexed), verified:
-//   รวมรายได้  = sheet row 12
-//   รวมต้นทุน  = sheet row 21
-//   ขาย FG     = sheet row 26  (รวม FG ราคา SD)
-//   กำไรหลักค่ากระดาษ = sheet row 30 (กำไรขั้นต้น)
-//   running_cost (TOTAL VC+FC) = sheet row 60
-//   กำไรสุทธิ  = sheet row 72
+// Financial rows - sheet rows (1-indexed), mapped to user specification:
+//   รายได้         = sheet row 21 (ACTUAL มูลค่า ต้นทุนกระดาษ / รวมต้นทุน)
+//   รวมต้นทุน      = sheet row 15 (ACTUAL มูลค่า รวมรายได้)
+//   ขาย FG         = sheet row 28 (ACTUAL มูลค่า รวม FG ราคา SD)
+//   กำไรค่ากระดาษ  = sheet row 23 (รวมต้นทุน ลบ รวมรายได้ / กำไรหลังหักค่ากระดาษ)
+//   running_cost   = sheet row 65 (ACTUAL มูลค่า กำไรขาดทุนจากค่าทำ)
+//   กำไรสุทธิ      = sheet row 67 (ACTUAL มูลค่า กำไรก่อนหักค่าเสื่อมและดอกเบี้ย)
 //
 // Column offsets within each month block:
 //   target_value = base+2, actual_value = base+7
-// ALL columns:
-//   ISOWA: target_value=col[3], actual_value=col[8]
-//   BHS:   target_value=col[135], actual_value=col[140]
-//   YUELI: target_value=col[268], actual_value=col[273]
 // =====================================================================
 
 $finDefs = [
-    'revenue'      => 12,   // รวมรายได้
-    'paper_cost'   => 21,   // รวมต้นทุน
-    'sell_fg'      => 26,   // รวม FG (ราคา SD)
-    'profit_paper' => 30,   // กำไรขั้นต้น
-    'running_cost' => 60,   // TOTAL VC+FC
-    'profit_net'   => 72,   // กำไรสุทธิ
+    'revenue'      => 21,   // ต้นทุนกระดาษ
+    'paper_cost'   => 15,   // รวมรายได้
+    'sell_fg'      => 28,   // รวม FG (ราคา SD)
+    'profit_paper' => 23,   // กำไรค่ากระดาษ (รวมต้นทุน - รวมรายได้)
+    'running_cost' => 65,   // Running cost (กำไรขาดทุนจากค่าทำ)
+    'profit_net'   => 67,   // กำไรสุทธิ (กำไรก่อนหักค่าเสื่อมและดอกเบี้ย)
 ];
 
 $financials = [];
@@ -180,14 +176,10 @@ foreach ($finDefs as $key => $sheetRow) {
     $yD = fetchRowBySheetRow($sheetId, $gid, $sheetRow, 265, 397, $ctx);
 
     $financials[$key] = [];
+    $allTarget = 0;
+    $allActual = 0;
 
-    // ALL
-    $it = fv($iD, 3);   $ia = fv($iD, 8);
-    $bt = fv($bD, 135); $ba = fv($bD, 140);
-    $yt = fv($yD, 268); $ya = fv($yD, 273);
-    $financials[$key]['ALL'] = ['target'=>$it+$bt+$yt, 'actual'=>$ia+$ba+$ya];
-
-    // Per month
+    // Per month (1..12)
     for ($m = 1; $m <= 12; $m++) {
         $ib = $isowaMonthBase[$m];
         $bb = $bhsMonthBase[$m];
@@ -195,8 +187,15 @@ foreach ($finDefs as $key => $sheetRow) {
         $it = fv($iD, $ib+2); $ia = fv($iD, $ib+7);
         $bt = fv($bD, $bb+2); $ba = fv($bD, $bb+7);
         $yt = fv($yD, $yb+2); $ya = fv($yD, $yb+7);
-        $financials[$key]['m'.$m] = ['target'=>$it+$bt+$yt, 'actual'=>$ia+$ba+$ya];
+        $t = $it + $bt + $yt;
+        $a = $ia + $ba + $ya;
+        $financials[$key]['m'.$m] = ['target' => $t, 'actual' => $a];
+        $allTarget += $t;
+        $allActual += $a;
     }
+
+    // ALL sum
+    $financials[$key]['ALL'] = ['target' => $allTarget, 'actual' => $allActual];
 }
 
 $output = [

@@ -64,21 +64,45 @@ $costActuals = [
     12 => ['coal' => 0.241, 'glue' => 0.366, 'water' => 0.004, 'air' => 0.017, 'elec' => 0.199, 'repair' => 0.143, 'ot' => 0.052, 'labor' => 0.093, 'total' => 1.164],
 ];
 
-// 12-Month Financial Summary (Actual บาท)
+// 12-Month Financial Summary (Actual บาท) - from Google Sheet Budget control tab:
+// profit_paper = รวมต้นทุน - รวมรายได้ (Sheet row 23)
+// running_cost = กำไรขาดทุนจากค่าทำ (Sheet row 65)
+// net_profit   = กำไรก่อนหักค่าเสื่อมและดอกเบี้ย (Sheet row 67)
 $financialMonths = [
-    1  => ['paper' => -907211,  'running' => -209522,  'net' => -1116733],
-    2  => ['paper' => -315969,  'running' => -539873,  'net' => -855842],
-    3  => ['paper' => 388623,   'running' => 339683,   'net' => 728306],
-    4  => ['paper' => 832012,   'running' => 271984,   'net' => 1103996],
-    5  => ['paper' => 1137711,  'running' => 1829232,  'net' => 2966943],
-    6  => ['paper' => 556883,   'running' => 935296,   'net' => 1492179],
-    7  => ['paper' => 651631,   'running' => 952071,   'net' => 1603702],
-    8  => ['paper' => -502639,  'running' => 157765,   'net' => -344874],
-    9  => ['paper' => -157435,  'running' => -6607,    'net' => -164042],
-    10 => ['paper' => 714844,   'running' => 587371,   'net' => 1302215],
-    11 => ['paper' => -160244,  'running' => 1589633,  'net' => 1429389],
-    12 => ['paper' => -395600,  'running' => 1133117,  'net' => 737517],
+    1  => ['paper' => -241436,  'running' => 1407369,  'net' => 1165932],
+    2  => ['paper' => -1794292, 'running' => -1200913, 'net' => -2995205],
+    3  => ['paper' => 118980,   'running' => -593332,  'net' => -474352],
+    4  => ['paper' => 504911,   'running' => -1290269, 'net' => -785358],
+    5  => ['paper' => 845005,   'running' => -576945,  'net' => 268060],
+    6  => ['paper' => 757618,   'running' => -1018710, 'net' => -261092],
+    7  => ['paper' => -791269,  'running' => -3516019, 'net' => -4307288],
+    8  => ['paper' => 242033,   'running' => -1407204, 'net' => -1165170],
+    9  => ['paper' => -212018,  'running' => -1299787, 'net' => -1511805],
+    10 => ['paper' => 0,        'running' => -4703785, 'net' => 0],
+    11 => ['paper' => 0,        'running' => -2835487, 'net' => 0],
+    12 => ['paper' => 0,        'running' => -34879,   'net' => 0],
 ];
+
+// If data/budget_monthly.json exists, load dynamically
+$monthlyJsonPath = __DIR__ . '/data/budget_monthly.json';
+if (file_exists($monthlyJsonPath)) {
+    $monthlyData = json_decode(file_get_contents($monthlyJsonPath), true);
+    if (!empty($monthlyData['financials'])) {
+        for ($i = 1; $i <= 12; $i++) {
+            $k = 'm' . $i;
+            $p = $monthlyData['financials']['profit_paper'][$k]['actual'] ?? null;
+            $r = $monthlyData['financials']['running_cost'][$k]['actual'] ?? null;
+            $n = $monthlyData['financials']['profit_net'][$k]['actual'] ?? null;
+            if ($p !== null || $r !== null || $n !== null) {
+                $financialMonths[$i] = [
+                    'paper'   => $p !== null ? round($p) : 0,
+                    'running' => $r !== null ? round($r) : 0,
+                    'net'     => $n !== null ? round($n) : 0,
+                ];
+            }
+        }
+    }
+}
 
 // Function to generate data for a given month
 function buildMonthKPI($m, $productionMonths, $costTargets, $costActuals, $financialMonths) {

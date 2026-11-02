@@ -892,11 +892,17 @@
           return (v === 0 || v === null || v === undefined) ? null : v;
         }
 
+        // รายได้       = ต้นทุนกระดาษ (ACTUAL มูลค่า รวมต้นทุน, sheet row 21)
+        // รวมต้นทุน   = รวมรายได้ (ACTUAL มูลค่า รวมรายได้, sheet row 15)
+        // ขาย FC/FG   = รวม FG (ราคา SD) (sheet row 28)
+        // กำไรค่ากระดาษ = รวมต้นทุน - รวมรายได้ (sheet row 23)
+        // Running cost = กำไรขาดทุนจากค่าทำ (sheet row 65)
+        // กำไรสุทธิ   = กำไรก่อนหักค่าเสื่อมและดอกเบี้ย (sheet row 67)
         html += makeFinRow('รายได้',         months.map(m => finActual('revenue', m)),      'bg-slate-50');
         html += makeFinRow('รวมต้นทุน',      months.map(m => finActual('paper_cost', m)),   'bg-slate-50');
-        html += makeFinRow('ขาย FG',         months.map(m => finActual('sell_fg', m)),      'bg-slate-50');
+        html += makeFinRow('ขาย FC/FG',      months.map(m => finActual('sell_fg', m)),      'bg-slate-50');
         html += makeFinRow('กำไรค่ากระดาษ', months.map(m => finActual('profit_paper', m)), 'bg-pink-50');
-        html += makeFinRow('Runing cost',    months.map(m => finActual('running_cost', m)), 'bg-slate-50');
+        html += makeFinRow('Running cost',   months.map(m => finActual('running_cost', m)), 'bg-slate-50');
         html += makeFinRow('กำไรสุทธิ',     months.map(m => finActual('profit_net', m)),   'bg-yellow-50');
       }
 
