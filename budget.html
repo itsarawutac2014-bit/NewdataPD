@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Budget Control - Profermanas PD Dashboard | แผนกผลิต PD</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts: Prompt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js & Plugins -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  
+  <!-- html2canvas for 4K Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Prompt', sans-serif;
+      background-color: #f1f5f9;
+      color: #1e293b;
+    }
+    
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Custom Color Themes matching Excel Profermanas Sheet */
+    .bg-excel-red { background-color: #b00000; }
+    .text-excel-red { color: #b00000; }
+    .bg-excel-navy { background-color: #001f5c; }
+    .bg-excel-blue-target { background-color: #4b88d8; }
+    .bg-excel-target-cell { background-color: #92bbee; }
+    .bg-excel-light-pink { background-color: #ffd7d9; }
+    .bg-excel-light-green { background-color: #c6efce; }
+    .text-excel-dark-green { color: #006100; }
+    .text-excel-dark-red { color: #9c0006; }
+    .bg-excel-light-yellow { background-color: #fff2cc; }
+    .border-excel-dark { border-color: #475569; }
+
+    /* Custom Table Border Style */
+    .excel-table th, .excel-table td {
+      border: 1px solid #64748b;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+  <!-- ========================================== -->
+  <!-- Top Navigation Bar                         -->
+  <!-- ========================================== -->
+  <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo & Title -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-600 to-amber-600 flex items-center justify-center text-white shadow-md shadow-rose-500/20">
+            <i class="fa-solid fa-calculator text-lg"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-extrabold text-slate-900 text-lg sm:text-xl tracking-tight">Budget Control</span>
+              <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200">Profermanas PD</span>
+            </div>
+            <p class="text-xs text-slate-500 hidden sm:block">ระบบติดตามผลประกอบการและงบประมาณต้นทุนจริง เปรียบเทียบ Target (Google Sheet)</p>
+          </div>
+        </div>
+
+        <!-- Navigation Links -->
+        <nav class="flex items-center gap-2">
+          <a href="index.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+            <i class="fa-solid fa-chart-pie text-emerald-600"></i>
+            <span>Waste</span>
+          </a>
+          <a href="output.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+            <i class="fa-solid fa-chart-line text-blue-600"></i>
+            <span>Output</span>
+          </a>
+          <a href="budget.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-600 text-white shadow-xs">
+            <i class="fa-solid fa-coins text-white"></i>
+            <span>Budget Control</span>
+          </a>
+          <a href="targets.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+            <i class="fa-solid fa-bullseye text-amber-600"></i>
+            <span class="hidden md:inline">ตั้งค่าเป้าหมาย</span>
+          </a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================== -->
+  <!-- Main Content Container                     -->
+  <!-- ========================================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Top Action / Control Bar -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex flex-wrap items-center gap-3">
+        <!-- Month Selector -->
+        <div class="flex items-center gap-2">
+          <label for="select-month" class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+            <i class="fa-solid fa-calendar-days text-rose-600"></i> เลือกเดือน:
+          </label>
+          <select id="select-month" onchange="onMonthChange(this.value)" class="bg-slate-50 border border-slate-300 text-slate-900 text-sm font-bold rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-rose-500 focus:outline-none">
+            <option value="1">มกราคม (เดือน 1)</option>
+            <option value="2">กุมภาพันธ์ (เดือน 2)</option>
+            <option value="3">มีนาคม (เดือน 3)</option>
+            <option value="4">เมษายน (เดือน 4)</option>
+            <option value="5">พฤษภาคม (เดือน 5)</option>
+            <option value="6">มิถุนายน (เดือน 6)</option>
+            <option value="7">กรกฎาคม (เดือน 7)</option>
+            <option value="8">สิงหาคม (เดือน 8)</option>
+            <option value="9">กันยายน (เดือน 9)</option>
+            <option value="10">ตุลาคม (เดือน 10)</option>
+            <option value="11">พฤศจิกายน (เดือน 11)</option>
+            <option value="12">ธันวาคม (เดือน 12)</option>
+          </select>
+        </div>
+
+        <!-- Machine Selector -->
+        <div class="flex items-center gap-2">
+          <label for="select-machine" class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+            <i class="fa-solid fa-industry text-blue-600"></i> เครื่องจักร:
+          </label>
+          <select id="select-machine" onchange="onMachineChange(this.value)" class="bg-slate-50 border border-slate-300 text-slate-900 text-sm font-bold rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <option value="TOTAL">รวมทุกเครื่อง (TOTAL)</option>
+            <option value="BHS">เครื่อง BHS</option>
+            <option value="YUELI">เครื่อง YUELI</option>
+            <option value="ISOWA">เครื่อง ISOWA</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2">
+        <button onclick="refreshData(true)" id="btn-refresh" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition shadow-2xs">
+          <i class="fa-solid fa-rotate text-slate-600"></i>
+          <span>ซิงค์ Google Sheet</span>
+        </button>
+        <button onclick="exportDashboardImage()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition">
+          <i class="fa-solid fa-camera text-white"></i>
+          <span>บันทึกภาพ (4K UHD)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- Profermanas PD Dashboard Card              -->
+    <!-- ========================================== -->
+    <div id="export-area" class="space-y-6 bg-slate-50 p-4 sm:p-6 rounded-2xl border border-slate-200">
+      
+      <!-- Table Section -->
+      <div class="bg-white rounded-xl shadow-md border border-slate-300 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left border-collapse excel-table">
+            <thead>
+              <!-- Top Red & Navy Header Row -->
+              <tr>
+                <th colspan="1" class="bg-excel-red text-white font-extrabold text-base sm:text-lg px-4 py-3 tracking-wide">
+                  Profermanas PD
+                </th>
+                <th colspan="1" class="bg-excel-navy text-white text-center font-black text-xl sm:text-2xl px-3 py-3 w-32 border-l border-white/20">
+                  <div class="flex flex-col items-center justify-center">
+                    <span class="text-[10px] font-normal text-slate-300 uppercase tracking-widest">เลือกเดือน</span>
+                    <span id="header-month-num" class="text-white text-2xl font-black">1</span>
+                  </div>
+                </th>
+                <th colspan="1" class="bg-excel-navy text-white text-center font-black text-base px-4 py-3 w-40 border-l border-white/20">
+                  Actual
+                </th>
+                <th colspan="3" class="bg-excel-navy text-white text-center font-bold text-base px-4 py-3 border-l border-white/20">
+                  Performans ผลประกอบการ
+                </th>
+                <th colspan="1" class="bg-excel-red text-white text-center font-black text-xl px-4 py-3 w-28 border-l border-white/20">
+                  <div class="flex flex-col items-center justify-center">
+                    <span id="score-pct-badge" class="text-2xl font-black text-white">38%</span>
+                    <span id="score-result-badge" class="text-xs font-bold text-slate-100">ผลลัพธ์ 6 / 10</span>
+                  </div>
+                </th>
+              </tr>
+
+              <!-- Subheader Row -->
+              <tr class="bg-excel-red text-white text-xs font-bold">
+                <th class="px-4 py-2 border-r border-slate-400">เดือน</th>
+                <th class="bg-excel-blue-target text-white text-center px-4 py-2 border-r border-slate-400">Target</th>
+                <th class="bg-excel-navy text-white text-center px-4 py-2 border-r border-slate-400">Actual</th>
+                <th colspan="3" class="bg-excel-navy text-white text-center px-4 py-2 border-r border-slate-400">ผลการดำเนินงาน</th>
+                <th class="bg-excel-red text-white text-center px-2 py-2">ผลลัพธ์</th>
+              </tr>
+            </thead>
+            
+            <tbody id="budget-table-body" class="divide-y divide-slate-400 font-medium text-slate-900">
+              <!-- Rendered via JS -->
+              <tr>
+                <td colspan="7" class="text-center py-8 text-slate-400">
+                  <i class="fa-solid fa-spinner fa-spin text-2xl text-rose-500 mb-2"></i>
+                  <p class="text-xs font-bold">กำลังโหลดข้อมูล Budget Control จาก Google Sheet...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- Bottom Chart: Diff Target % (บาท/kg)       -->
+      <!-- ========================================== -->
+      <div class="bg-white rounded-xl shadow-md border border-slate-300 p-4 sm:p-6">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4 pb-3 border-b border-slate-100">
+          <div class="flex items-center gap-2">
+            <span class="w-3.5 h-3.5 bg-blue-600 inline-block rounded-xs"></span>
+            <span class="text-xs font-bold text-slate-800">บาท/kg</span>
+            <h3 class="font-extrabold text-base sm:text-lg text-slate-900 tracking-tight">
+              Diff Target % เดือน <span id="chart-month-num" class="text-excel-red font-black underline">1</span>
+            </h3>
+          </div>
+          <span class="text-xs font-bold text-slate-500">
+            * แท่งบวก (อยู่เหนือ 0) = ประหยัดได้ตามเป้า / แท่งลบ (อยู่ใต้ 0) = ต้นทุนเกินเป้าหมาย
+          </span>
+        </div>
+
+        <div class="relative w-full h-[320px] sm:h-[360px]">
+          <canvas id="diffBarChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- Footer                                     -->
+  <!-- ========================================== -->
+  <footer class="bg-white border-t border-slate-200 py-4 mt-8">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 font-medium">
+      Budget Control & Performance PD &bull; แผนกผลิต PD &bull; เชื่อมโยงข้อมูลสดจาก Google Sheet
+    </div>
+  </footer>
+
+  <!-- ========================================== -->
+  <!-- JavaScript Application Logic               -->
+  <!-- ========================================== -->
+  <script>
+    let currentMonth = 1;
+    let currentMachine = 'TOTAL';
+    let budgetApiData = null;
+    let diffChart = null;
+
+    // โหลดข้อมูลเมื่อเปิดหน้าเว็บ
+    document.addEventListener('DOMContentLoaded', () => {
+      // ดึงเดือนจาก URL parameter ถ้ามี
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('month')) {
+        currentMonth = parseInt(params.get('month')) || 1;
+        document.getElementById('select-month').value = currentMonth;
+      }
+      if (params.has('machine')) {
+        currentMachine = params.get('machine');
+        document.getElementById('select-machine').value = currentMachine;
+      }
+
+      loadBudgetData();
+    });
+
+    function onMonthChange(m) {
+      currentMonth = parseInt(m) || 1;
+      document.getElementById('header-month-num').textContent = currentMonth;
+      document.getElementById('chart-month-num').textContent = currentMonth;
+      loadBudgetData();
+    }
+
+    function onMachineChange(m) {
+      currentMachine = m;
+      loadBudgetData();
+    }
+
+    async function loadBudgetData(force = false) {
+      const btn = document.getElementById('btn-refresh');
+      if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-rose-500"></i> กำลังซิงค์...';
+
+      try {
+        const url = `budget_api.php?month=${currentMonth}&machine=${encodeURIComponent(currentMachine)}${force ? '&refresh=1' : ''}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        if (data && data.success) {
+          budgetApiData = data;
+          renderBudgetTable(data);
+          renderDiffChart(data.chart || []);
+        } else {
+          showErrorState();
+        }
+      } catch (err) {
+        console.error('Fetch budget data failed:', err);
+        // Fallback default
+        renderFallback();
+      } finally {
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-rotate text-slate-600"></i> ซิงค์ Google Sheet';
+      }
+    }
+
+    function refreshData() {
+      loadBudgetData(true);
+    }
+
+    // แสดงผลข้อมูลลงในตาราง
+    function renderBudgetTable(data) {
+      const tbody = document.getElementById('budget-table-body');
+      if (!tbody || !data || !data.items) return;
+
+      // อัปเดตการ์ดสรุปคะแนน
+      const sum = data.summary || {};
+      document.getElementById('score-pct-badge').textContent = sum.scoreText || `${sum.overallPct}%`;
+      document.getElementById('score-result-badge').textContent = sum.resultText || `ผลลัพธ์ ${sum.passCount} / ${sum.failCount}`;
+      document.getElementById('header-month-num').textContent = data.month || currentMonth;
+      document.getElementById('chart-month-num').textContent = data.month || currentMonth;
+
+      const items = data.items;
+      let html = '';
+
+      // ลำดับแถวตามรูปภาพ
+      const rowKeys = [
+        'consum', 'output', 'waste11', 'waste485',
+        'cost_coal', 'cost_glue', 'cost_water', 'cost_air',
+        'cost_elec', 'cost_repair', 'cost_ot', 'cost_labor',
+        'budget_b_kg', 'profit_paper', 'running_cost', 'net_profit'
+      ];
+
+      rowKeys.forEach(key => {
+        const item = items[key];
+        if (!item) return;
+
+        const isPass = item.pass === true;
+        const passIcon = isPass ? '/' : 'X';
+        const passBg = isPass ? 'bg-excel-light-green text-excel-dark-green' : 'bg-excel-light-pink text-excel-dark-red';
+        const actualBg = isPass ? 'bg-excel-light-green' : 'bg-excel-light-pink';
+
+        // จัดรูปแบบ Target
+        let targetText = '-';
+        if (item.target !== null && item.target !== undefined) {
+          if (item.unit === '%') {
+            targetText = `${Number(item.target).toFixed(2)}%`;
+          } else if (item.isCurrency && item.unit.indexOf('บาท/kg') !== -1) {
+            targetText = Number(item.target).toFixed(3);
+          } else {
+            targetText = Number(item.target).toLocaleString();
+          }
+        }
+
+        // จัดรูปแบบ Actual
+        let actualText = '-';
+        if (item.actual !== null && item.actual !== undefined) {
+          if (item.unit === '%') {
+            actualText = `${Number(item.actual).toFixed(2)}%`;
+          } else if (item.isCurrency && item.unit.indexOf('บาท/kg') !== -1) {
+            actualText = Number(item.actual).toFixed(3);
+          } else {
+            actualText = Number(item.actual).toLocaleString();
+          }
+        }
+
+        // จัดรูปแบบ Diff
+        let diffText = '';
+        if (item.diff !== null && item.diff !== undefined) {
+          if (item.unit === '%') {
+            diffText = `${Number(item.diff) > 0 ? '+' : ''}${Number(item.diff).toFixed(2)}%`;
+          } else if (item.isCurrency && item.unit.indexOf('บาท/kg') !== -1) {
+            diffText = `${Number(item.diff) > 0 ? '' : ''}${Number(item.diff).toFixed(3)}`;
+          } else {
+            diffText = Number(item.diff).toLocaleString();
+          }
+        }
+
+        // ข้อความสถานะ
+        const statusText = item.status || '';
+        const noteText = item.note || '';
+
+        // หน่วย
+        const unitText = item.unit || '';
+
+        // สไตล์เฉพาะหัวข้อ เช่น Budjet B/kg มีแถบสีเขียว
+        let titleClass = 'px-4 py-2 font-bold';
+        let rowClass = 'hover:bg-slate-50 transition';
+        if (key === 'budget_b_kg') {
+          titleClass += ' bg-excel-light-green text-slate-900 font-extrabold';
+        } else if (['profit_paper', 'running_cost', 'net_profit'].includes(key)) {
+          titleClass += ' bg-excel-light-yellow text-slate-900';
+        }
+
+        html += `
+          <tr class="${rowClass}">
+            <td class="${titleClass} border-r border-slate-400">
+              ${item.title}
+            </td>
+            <td class="bg-excel-target-cell text-right font-black px-4 py-2 border-r border-slate-400">
+              ${targetText}
+            </td>
+            <td class="${actualBg} text-right font-black px-4 py-2 border-r border-slate-400 ${item.actual < 0 ? 'text-red-700' : 'text-slate-900'}">
+              ${actualText}
+            </td>
+            <td class="px-3 py-2 text-center text-xs font-bold border-r border-slate-400 ${isPass ? 'text-emerald-700' : 'text-rose-700'}">
+              ${statusText}
+            </td>
+            <td class="px-3 py-2 text-center text-xs font-black border-r border-slate-400 ${isPass ? 'text-emerald-800' : 'text-rose-800'}">
+              ${item.achievedPct ? `${item.achievedPct}%` : (unitText ? unitText : '')}
+            </td>
+            <td class="px-4 py-2 text-right font-bold text-xs border-r border-slate-400 ${Number(item.diff) < 0 || String(item.diff).startsWith('-') ? 'text-red-600' : 'text-emerald-700'}">
+              ${diffText ? diffText : noteText}
+            </td>
+            <td class="${passBg} text-center font-black text-base px-2 py-2">
+              ${passIcon}
+            </td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    // เรนเดอร์กราฟแท่ง Diff บาท/kg
+    function renderDiffChart(chartData) {
+      const ctx = document.getElementById('diffBarChart');
+      if (!ctx || !chartData) return;
+
+      const labels = chartData.map(d => d.name);
+      const values = chartData.map(d => d.diff);
+      const backgroundColors = values.map(v => v >= 0 ? '#1d4ed8' : '#1d4ed8'); // สีน้ำเงินตามรูป
+      const borderColors = values.map(v => v >= 0 ? '#1e40af' : '#1e40af');
+
+      if (diffChart) {
+        diffChart.destroy();
+      }
+
+      diffChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Diff (บาท/kg)',
+            data: values,
+            backgroundColor: backgroundColors,
+            borderColor: borderColors,
+            borderWidth: 1,
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `Diff: ${ctx.raw > 0 ? '+' : ''}${ctx.raw.toFixed(3)} บาท/kg`
+              }
+            },
+            datalabels: {
+              anchor: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'end' : 'start',
+              align: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'top' : 'bottom',
+              formatter: (value) => {
+                if (value === 0) return '0.000';
+                return (value > 0 ? '' : '') + value.toFixed(3);
+              },
+              font: {
+                family: 'Prompt',
+                weight: 'bold',
+                size: 11
+              },
+              color: '#0f172a'
+            }
+          },
+          scales: {
+            y: {
+              grid: {
+                color: (ctx) => ctx.tick.value === 0 ? '#334155' : '#e2e8f0',
+                lineWidth: (ctx) => ctx.tick.value === 0 ? 2 : 1
+              },
+              ticks: {
+                callback: (val) => val.toFixed(3),
+                font: { family: 'Prompt', size: 10 }
+              }
+            },
+            x: {
+              grid: { display: false },
+              ticks: {
+                font: { family: 'Prompt', weight: 'bold', size: 11 },
+                color: '#1e293b'
+              }
+            }
+          }
+        },
+        plugins: [ChartDataLabels]
+      });
+    }
+
+    function renderFallback() {
+      // Default Month 1 values
+      const dummy = {
+        month: currentMonth,
+        summary: { scoreText: '38%', resultText: 'ผลลัพธ์ 6 / 10' },
+        items: {
+          consum: { title: 'Consumtion', target: 7418912, actual: 6949630, unit: 'กก.', status: 'ผลิตได้', achievedPct: 94, diff: -469282, pass: true },
+          output: { title: 'Out Put', target: 6602831, actual: 6137701, unit: 'กก.', status: 'ผลิตได้', achievedPct: 93, diff: -465131, pass: true },
+          waste11: { title: 'Waste 11.00%', target: 11, actual: 11.68, unit: '%', status: 'เกินเป้า', achievedPct: 94, diff: -0.68, pass: false },
+          waste485: { title: 'Waste 4.85%', target: 4.85, actual: 5.55, unit: '%', status: 'เกินเป้า', achievedPct: 87, diff: -0.70, pass: false },
+          cost_coal: { title: 'ถ่านหิน', target: 0.282, actual: 0.236, unit: 'บาท/kg', status: 'ได้เป้า', diff: 0.046, pass: true, isCurrency: true },
+          cost_glue: { title: 'กาว', target: 0.376, actual: 0.509, unit: 'บาท/kg.', status: 'เกินเป้า', diff: -0.134, pass: false, isCurrency: true },
+          cost_water: { title: 'ค่าน้ำประปา', target: 0.005, actual: 0.005, unit: 'บาท/kg', status: 'ได้เป้า', diff: 0.000, pass: true, isCurrency: true },
+          cost_air: { title: 'ค่าลม', target: 0.025, actual: 0.022, unit: 'บาท/kg', status: 'ได้เป้า', diff: 0.003, pass: true, isCurrency: true },
+          cost_elec: { title: 'ค่าไฟฟ้า', target: 0.227, actual: 0.218, unit: 'บาท/kg', status: 'ได้เป้า', diff: 0.010, pass: true, isCurrency: true },
+          cost_repair: { title: 'ค่าซ่อมแซม', target: 0.150, actual: 0.207, unit: 'บาท/kg.', status: 'เกินเป้า', diff: -0.057, pass: false, isCurrency: true },
+          cost_ot: { title: 'ค่าล่วงเวลา', target: 0.051, actual: 0.066, unit: 'บาท/kg.', status: 'เกินเป้า', diff: -0.015, pass: false, isCurrency: true },
+          cost_labor: { title: 'ค่าแรง', target: 0.112, actual: 0.113, unit: 'บาท/kg.', status: 'เกินเป้า', diff: -0.001, pass: false, isCurrency: true },
+          budget_b_kg: { title: 'Budjet B/kg', target: 1.228, actual: 1.376, unit: 'บาท/kg.', status: 'เกินเป้า', diff: -0.148, pass: false, isCurrency: true },
+          profit_paper: { title: 'กำไรค่ากระดาษ', target: null, actual: -907211, status: 'ติดลบ', note: 'คุมของเสียเกินเป้าหมาย', pass: false },
+          running_cost: { title: 'Runing cost', target: null, actual: -209522, status: 'ติดลบ', note: 'รวมรายได้หักค่าใช้จ่าย', pass: false },
+          net_profit: { title: 'กำไรสุทธิ', target: null, actual: -1116733, status: 'ติดลบ', note: 'รวมค่าต้นทุนกระดาษหัก...', pass: false }
+        },
+        chart: [
+          { name: 'ถ่านหิน', diff: 0.046 },
+          { name: 'กาว', diff: -0.134 },
+          { name: 'ค่าน้ำประปา', diff: 0.000 },
+          { name: 'ค่าลม', diff: 0.003 },
+          { name: 'ค่าไฟฟ้า', diff: 0.010 },
+          { name: 'ค่าซ่อมแซม', diff: -0.057 },
+          { name: 'ค่าล่วงเวลา', diff: -0.015 },
+          { name: 'ค่าแรง', diff: -0.001 }
+        ]
+      };
+      renderBudgetTable(dummy);
+      renderDiffChart(dummy.chart);
+    }
+
+    function showErrorState() {
+      const tbody = document.getElementById('budget-table-body');
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center py-8 text-rose-500">
+              <i class="fa-solid fa-triangle-exclamation text-2xl mb-2"></i>
+              <p class="font-bold">ไม่สามารถดึงข้อมูล Budget Control จาก Google Sheet ได้</p>
+              <button onclick="loadBudgetData(true)" class="mt-3 px-3 py-1 bg-rose-600 text-white text-xs font-bold rounded-lg shadow-xs hover:bg-rose-700">ลองใหม่อีกครั้ง</button>
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    // ส่งออกเป็นภาพ 4K UHD
+    async function exportDashboardImage() {
+      const area = document.getElementById('export-area');
+      if (!area) return;
+
+      try {
+        const canvas = await html2canvas(area, {
+          scale: 3,
+          useCORS: true,
+          backgroundColor: '#f8fafc'
+        });
+        const link = document.createElement('a');
+        link.download = `Budget_Control_Month_${currentMonth}_${currentMachine}_4K.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      } catch (err) {
+        console.error('Export image failed:', err);
+        alert('เกิดข้อผิดพลาดในการบันทึกภาพ');
+      }
+    }
+  </script>
+</body>
+</html>
