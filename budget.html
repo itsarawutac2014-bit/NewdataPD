@@ -478,9 +478,37 @@
       loadBudgetData();
     }
 
+    // ===== localStorage cache helpers =====
+    const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+    function lsGet(key) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+        const { ts, data } = JSON.parse(raw);
+        if (Date.now() - ts > CACHE_TTL_MS) { localStorage.removeItem(key); return null; }
+        return data;
+      } catch(e) { return null; }
+    }
+    function lsSet(key, data) {
+      try { localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data })); } catch(e) {}
+    }
+    function lsClear(key) { try { localStorage.removeItem(key); } catch(e) {} }
+
     async function loadBudgetData(force = false) {
       const btn = document.getElementById('btn-refresh');
       if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-rose-500"></i> กำลังซิงค์...';
+
+      const cacheKey = `budget_api_m${currentMonth}_${currentMachine}`;
+      if (!force) {
+        const cached = lsGet(cacheKey);
+        if (cached && cached.success) {
+          budgetApiData = cached;
+          renderBudgetTable(cached);
+          renderDiffChart(cached.chart || []);
+          if (btn) btn.innerHTML = '<i class="fa-solid fa-rotate text-slate-600"></i> ซิงค์ Google Sheet';
+          return;
+        }
+      }
 
       try {
         const url = `budget_api.php?month=${currentMonth}&machine=${encodeURIComponent(currentMachine)}${force ? '&refresh=1' : ''}`;
@@ -489,6 +517,7 @@
         
         if (data && data.success) {
           budgetApiData = data;
+          lsSet(cacheKey, data);
           renderBudgetTable(data);
           renderDiffChart(data.chart || []);
         } else {
@@ -496,7 +525,6 @@
         }
       } catch (err) {
         console.error('Fetch budget data failed:', err);
-        // Fallback default
         renderFallback();
       } finally {
         if (btn) btn.innerHTML = '<i class="fa-solid fa-rotate text-slate-600"></i> ซิงค์ Google Sheet';
@@ -504,6 +532,12 @@
     }
 
     function refreshData() {
+      // Clear all localStorage caches first
+      for (let m = 1; m <= 12; m++) {
+        ['TOTAL','BHS','YUELI','ISOWA'].forEach(mach => lsClear(`budget_api_m${m}_${mach}`));
+      }
+      lsClear('budget_monthly_data');
+      lsClear('budget_cost_detail_data');
       loadBudgetData(true);
       loadMonthlySummary(true);
       loadCostDetail(true);
@@ -760,12 +794,25 @@
     async function loadMonthlySummary(force = false) {
       const tbody = document.getElementById('monthly-summary-body');
       const loading = document.getElementById('monthly-loading');
+
+      // Try localStorage first
+      if (!force) {
+        const cached = lsGet('budget_monthly_data');
+        if (cached) {
+          monthlyData = cached;
+          renderMonthlySummary(cached);
+          if (loading) loading.style.display = 'none';
+          return;
+        }
+      }
+
       if (loading) loading.style.display = 'flex';
       if (tbody && !force) tbody.innerHTML = '';
       try {
         const resp = await fetch('budget_monthly_api.php' + (force ? '?refresh=1' : ''));
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         monthlyData = await resp.json();
+        lsSet('budget_monthly_data', monthlyData);
         renderMonthlySummary(monthlyData);
       } catch (e) {
         console.error(e);
@@ -917,10 +964,22 @@
     async function loadCostDetail(force = false) {
       const tbody = document.getElementById('cost-detail-body');
       const tbody2 = document.getElementById('cost-detail-body2');
+
+      // Try localStorage first
+      if (!force) {
+        const cached = lsGet('budget_cost_detail_data');
+        if (cached) {
+          costDetailData = cached;
+          renderCostDetail(cached);
+          return;
+        }
+      }
+
       try {
         const resp = await fetch('budget_cost_detail_api.php' + (force ? '?refresh=1' : ''));
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         costDetailData = await resp.json();
+        lsSet('budget_cost_detail_data', costDetailData);
         renderCostDetail(costDetailData);
       } catch (e) {
         console.error(e);

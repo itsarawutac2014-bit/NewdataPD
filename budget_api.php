@@ -3,6 +3,11 @@ header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
+// Allow browsers to cache for 30 minutes (reduces Render cold-start impact)
+$force = isset($_GET['refresh']) && $_GET['refresh'] === '1';
+if (!$force) {
+    header('Cache-Control: public, max-age=1800');
+}
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
     http_response_code(200);
