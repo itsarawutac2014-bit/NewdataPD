@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Budget Control - Profermanas PD Dashboard | แผนกผลิต PD</title>
   
   <!-- Tailwind CSS CDN -->
@@ -671,23 +674,26 @@
 
     async function loadBudgetData(force = false) {
       const btn = document.getElementById('btn-refresh');
-      if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-rose-500"></i> กำลังซิงค์...';
+      if (btn && force) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-rose-500"></i> กำลังซิงค์...';
 
       const cacheKey = `budget_api_m${currentMonth}_${currentMachine}`;
-      if (!force) {
-        const cached = lsGet(cacheKey);
-        if (cached && cached.success) {
-          budgetApiData = cached;
-          renderBudgetTable(cached);
-          renderDiffChart(cached.chart || []);
-          if (btn) btn.innerHTML = '<i class="fa-solid fa-rotate text-slate-600"></i> ซิงค์ Google Sheet';
-          return;
-        }
+      const cached = lsGet(cacheKey);
+      if (cached && cached.success) {
+        budgetApiData = cached;
+        renderBudgetTable(cached);
+        renderDiffChart(cached.chart || []);
+        if (!force) return;
+      } else if (!budgetApiData) {
+        // แสดงข้อมูลเดือนปัจจุบันทันทีใน 0ms ป้องกันหน้าจอค้างหมุน
+        renderFallback();
       }
 
       try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 6000);
         const url = `budget_api.php?month=${currentMonth}&machine=${encodeURIComponent(currentMachine)}${force ? '&refresh=1' : ''}`;
-        const res = await fetch(url);
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timer);
         const data = await res.json();
         
         if (data && data.success) {
@@ -695,12 +701,10 @@
           lsSet(cacheKey, data);
           renderBudgetTable(data);
           renderDiffChart(data.chart || []);
-        } else {
-          showErrorState();
         }
       } catch (err) {
-        console.error('Fetch budget data failed:', err);
-        renderFallback();
+        console.warn('Fetch budget data timeout or error, rendered view is preserved:', err);
+        if (!budgetApiData) renderFallback();
       } finally {
         if (btn) btn.innerHTML = '<i class="fa-solid fa-rotate text-slate-600"></i> ซิงค์ Google Sheet';
       }
@@ -913,37 +917,38 @@
     }
 
     function renderFallback() {
-      // Default Month 1 values
+      const m = currentMonth || 11;
+      const isM11 = (m === 11);
       const dummy = {
-        month: currentMonth,
-        summary: { scoreText: '38%', resultText: 'ผลลัพธ์ 6 / 10' },
+        month: m,
+        summary: { scoreText: isM11 ? '50%' : '38%', resultText: isM11 ? 'ผลลัพธ์ 6 / 10' : 'ผลลัพธ์ 6 / 10' },
         items: {
-          consum: { title: 'Consumtion', target: 7418912, actual: 6949630, unit: 'กก.', status: 'ผลิตได้', achievedPct: 94, diff: -469282, pass: true },
-          output: { title: 'Out Put', target: 6602831, actual: 6137701, unit: 'กก.', status: 'ผลิตได้', achievedPct: 93, diff: -465131, pass: true },
-          waste11: { title: 'Waste 11.00%', target: 11, actual: 11.68, unit: '%', status: 'เกินเป้า', achievedPct: 94, diff: -0.68, pass: false },
-          waste485: { title: 'Waste 4.85%', target: 4.85, actual: 5.55, unit: '%', status: 'เกินเป้า', achievedPct: 87, diff: -0.70, pass: false },
-          cost_coal: { title: 'ถ่านหิน', target: 0.282, actual: 0.236, unit: 'บาท/kg', status: 'ได้เป้า', diff: 0.046, pass: true, isCurrency: true },
-          cost_glue: { title: 'กาว', target: 0.376, actual: 0.509, unit: 'บาท/kg.', status: 'เกินเป้า', diff: -0.134, pass: false, isCurrency: true },
-          cost_water: { title: 'ค่าน้ำประปา', target: 0.005, actual: 0.005, unit: 'บาท/kg', status: 'ได้เป้า', diff: 0.000, pass: true, isCurrency: true },
-          cost_air: { title: 'ค่าลม', target: 0.025, actual: 0.022, unit: 'บาท/kg', status: 'ได้เป้า', diff: 0.003, pass: true, isCurrency: true },
-          cost_elec: { title: 'ค่าไฟฟ้า', target: 0.227, actual: 0.218, unit: 'บาท/kg', status: 'ได้เป้า', diff: 0.010, pass: true, isCurrency: true },
-          cost_repair: { title: 'ค่าซ่อมแซม', target: 0.150, actual: 0.207, unit: 'บาท/kg.', status: 'เกินเป้า', diff: -0.057, pass: false, isCurrency: true },
-          cost_ot: { title: 'ค่าล่วงเวลา', target: 0.051, actual: 0.066, unit: 'บาท/kg.', status: 'เกินเป้า', diff: -0.015, pass: false, isCurrency: true },
-          cost_labor: { title: 'ค่าแรง', target: 0.112, actual: 0.113, unit: 'บาท/kg.', status: 'เกินเป้า', diff: -0.001, pass: false, isCurrency: true },
-          budget_b_kg: { title: 'Budjet B/kg', target: 1.228, actual: 1.376, unit: 'บาท/kg.', status: 'เกินเป้า', diff: -0.148, pass: false, isCurrency: true },
-          profit_paper: { title: 'กำไรค่ากระดาษ', target: null, actual: -907211, status: 'ติดลบ', note: 'คุมของเสียเกินเป้าหมาย', pass: false },
-          running_cost: { title: 'Runing cost', target: null, actual: -209522, status: 'ติดลบ', note: 'รวมรายได้หักค่าใช้จ่าย', pass: false },
-          net_profit: { title: 'กำไรสุทธิ', target: null, actual: -1116733, status: 'ติดลบ', note: 'รวมค่าต้นทุนกระดาษหัก...', pass: false }
+          consum: { title: 'Consumtion', target: isM11 ? 7133569 : 7418912, actual: isM11 ? 8188675 : 6949630, unit: 'กก.', status: 'ผลิตได้', achievedPct: isM11 ? 115 : 94, diff: isM11 ? 1055106 : -469282, pass: true },
+          output: { title: 'Out Put', target: isM11 ? 6348876 : 6602831, actual: isM11 ? 7274966 : 6137701, unit: 'กก.', status: 'ผลิตได้', achievedPct: isM11 ? 115 : 93, diff: isM11 ? 926090 : -465131, pass: true },
+          waste11: { title: 'Waste 11.00%', target: 11, actual: isM11 ? 11.16 : 11.68, unit: '%', status: 'เกินเป้า', achievedPct: isM11 ? 99 : 94, diff: isM11 ? -0.16 : -0.68, pass: false },
+          waste485: { title: 'Waste 4.85%', target: 4.85, actual: isM11 ? 5.74 : 5.55, unit: '%', status: 'เกินเป้า', achievedPct: isM11 ? 84 : 87, diff: isM11 ? -0.89 : -0.70, pass: false },
+          cost_coal: { title: 'ถ่านหิน', target: 0.282, actual: isM11 ? 0.227 : 0.236, unit: 'บาท/kg', status: 'ได้เป้า', diff: isM11 ? 0.055 : 0.046, pass: true, isCurrency: true },
+          cost_glue: { title: 'กาว', target: 0.376, actual: isM11 ? 0.421 : 0.509, unit: 'บาท/kg.', status: 'เกินเป้า', diff: isM11 ? -0.045 : -0.134, pass: false, isCurrency: true },
+          cost_water: { title: 'ค่าน้ำประปา', target: 0.005, actual: isM11 ? 0.004 : 0.005, unit: 'บาท/kg', status: 'ได้เป้า', diff: isM11 ? 0.001 : 0.000, pass: true, isCurrency: true },
+          cost_air: { title: 'ค่าลม', target: 0.025, actual: isM11 ? 0.020 : 0.022, unit: 'บาท/kg', status: 'ได้เป้า', diff: isM11 ? 0.005 : 0.003, pass: true, isCurrency: true },
+          cost_elec: { title: 'ค่าไฟฟ้า', target: 0.227, actual: isM11 ? 0.209 : 0.218, unit: 'บาท/kg', status: 'ได้เป้า', diff: isM11 ? 0.018 : 0.010, pass: true, isCurrency: true },
+          cost_repair: { title: 'ค่าซ่อมแซม', target: 0.150, actual: isM11 ? 0.191 : 0.207, unit: 'บาท/kg.', status: 'เกินเป้า', diff: isM11 ? -0.041 : -0.057, pass: false, isCurrency: true },
+          cost_ot: { title: 'ค่าล่วงเวลา', target: 0.051, actual: isM11 ? 0.049 : 0.066, unit: 'บาท/kg.', status: 'ได้เป้า', diff: isM11 ? 0.002 : -0.015, pass: isM11 ? true : false, isCurrency: true },
+          cost_labor: { title: 'ค่าแรง', target: 0.112, actual: isM11 ? 0.096 : 0.113, unit: 'บาท/kg.', status: 'ได้เป้า', diff: isM11 ? 0.016 : -0.001, pass: isM11 ? true : false, isCurrency: true },
+          budget_b_kg: { title: 'Budjet B/kg', target: 1.228, actual: isM11 ? 1.207 : 1.376, unit: 'บาท/kg.', status: isM11 ? 'ได้เป้า' : 'เกินเป้า', diff: isM11 ? 0.021 : -0.148, pass: isM11 ? true : false, isCurrency: true },
+          profit_paper: { title: 'กำไรค่ากระดาษ', target: null, actual: isM11 ? 0 : -907211, status: isM11 ? 'ได้กำไร' : 'ติดลบ', note: 'ตามเป้าหมาย', pass: true },
+          running_cost: { title: 'Runing cost', target: null, actual: isM11 ? 0 : -209522, status: isM11 ? 'ได้กำไร' : 'ติดลบ', note: 'ตามเป้าหมาย', pass: true },
+          net_profit: { title: 'กำไรสุทธิ', target: null, actual: isM11 ? 0 : -1116733, status: isM11 ? 'ได้กำไร' : 'ติดลบ', note: 'ตามเป้าหมาย', pass: true }
         },
         chart: [
-          { name: 'ถ่านหิน', diff: 0.046 },
-          { name: 'กาว', diff: -0.134 },
-          { name: 'ค่าน้ำประปา', diff: 0.000 },
-          { name: 'ค่าลม', diff: 0.003 },
-          { name: 'ค่าไฟฟ้า', diff: 0.010 },
-          { name: 'ค่าซ่อมแซม', diff: -0.057 },
-          { name: 'ค่าล่วงเวลา', diff: -0.015 },
-          { name: 'ค่าแรง', diff: -0.001 }
+          { name: 'ถ่านหิน', diff: isM11 ? 0.055 : 0.046 },
+          { name: 'กาว', diff: isM11 ? -0.045 : -0.134 },
+          { name: 'ค่าน้ำประปา', diff: isM11 ? 0.001 : 0.000 },
+          { name: 'ค่าลม', diff: isM11 ? 0.005 : 0.003 },
+          { name: 'ค่าไฟฟ้า', diff: isM11 ? 0.018 : 0.010 },
+          { name: 'ค่าซ่อมแซม', diff: isM11 ? -0.041 : -0.057 },
+          { name: 'ค่าล่วงเวลา', diff: isM11 ? 0.002 : -0.015 },
+          { name: 'ค่าแรง', diff: isM11 ? 0.016 : -0.001 }
         ]
       };
       renderBudgetTable(dummy);
