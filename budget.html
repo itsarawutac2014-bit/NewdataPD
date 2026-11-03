@@ -284,6 +284,42 @@
       </div>
 
       <!-- ========================================== -->
+      <!-- NEW Cost Comparison Chart: บาท/kg (Target vs Actual) -->
+      <!-- ========================================== -->
+      <div class="bg-white rounded-2xl shadow-md border border-slate-300 p-4 sm:p-6 space-y-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-200">
+          <div class="flex items-center gap-3">
+            <span class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 text-lg">
+              <i class="fa-solid fa-chart-column"></i>
+            </span>
+            <div>
+              <h3 class="font-extrabold text-base sm:text-lg text-slate-900 tracking-tight flex items-center gap-2">
+                <span>กราฟเปรียบเทียบต้นทุนจริง vs เป้าหมาย (บาท/kg)</span>
+                <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200 font-bold">
+                  เดือน <span id="cost-chart-month-badge">11</span>
+                </span>
+              </h3>
+              <p class="text-xs text-slate-500 font-medium">
+                ต้นทุน 8 หมวดหมู่หลัก (บาท/kg) จากตาราง Cost Target &amp; Actual &bull; 
+                <span class="text-emerald-700 font-bold"><i class="fa-solid fa-square text-emerald-500"></i> แท่งเขียว = ได้เป้า</span> &bull; 
+                <span class="text-red-700 font-bold"><i class="fa-solid fa-square text-red-500"></i> แท่งแดง = เกินเป้า</span> &bull; 
+                <span class="text-blue-700 font-bold"><i class="fa-solid fa-chart-line text-blue-600"></i> เส้นน้ำเงิน = Target</span>
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold px-3 py-1 bg-slate-100 text-slate-700 rounded-lg border border-slate-200">
+              หน่วย: บาท/kg
+            </span>
+          </div>
+        </div>
+
+        <div class="relative w-full h-[360px] sm:h-[420px]">
+          <canvas id="costComparisonChart"></canvas>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
       <!-- TABLE 1: 12-Month Summary                  -->
       <!-- ========================================== -->
       <div class="bg-white rounded-xl shadow-md border border-slate-300 overflow-hidden">
@@ -443,39 +479,185 @@
         </div>
 
       <!-- ======================================================== -->
-      <!-- NEW Cost Comparison Chart: บาท/kg (Target vs Actual)      -->
-      <!-- ดึงจาก 2 ตารางด้านบน (Cost Target & Cost Actual)         -->
+      <!-- กราฟวิเคราะห์แนวโน้มต้นทุน 8 หมวดหลัก (บาท/kg)             -->
+      <!-- ดึงจาก 2 ตาราง Cost Target & Actual                     -->
       <!-- ======================================================== -->
-      <div class="bg-white rounded-2xl shadow-md border border-slate-300 p-4 sm:p-6 space-y-4 mt-6">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-200">
+      <div class="mt-8 space-y-6" id="cost-trend-charts-section">
+        <!-- Section Header -->
+        <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white rounded-2xl p-4 shadow-md flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-3">
-            <span class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 text-lg">
-              <i class="fa-solid fa-chart-column"></i>
+            <span class="w-10 h-10 rounded-xl bg-blue-600/30 border border-blue-400/30 flex items-center justify-center text-blue-400 text-lg shadow-inner">
+              <i class="fa-solid fa-chart-line"></i>
             </span>
             <div>
-              <h3 class="font-extrabold text-base sm:text-lg text-slate-900 tracking-tight flex items-center gap-2">
-                <span>กราฟเปรียบเทียบต้นทุนจริง vs เป้าหมาย (บาท/kg)</span>
-                <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200 font-bold">
-                  เดือน <span id="cost-chart-month-badge">11</span>
-                </span>
-              </h3>
-              <p class="text-xs text-slate-500 font-medium mt-0.5">
-                ต้นทุน 8 หมวดหมู่หลัก (บาท/kg) ดึงตรงจาก 2 ตาราง &bull; 
-                <span class="text-emerald-700 font-bold"><i class="fa-solid fa-square text-emerald-500"></i> แท่งสีเขียว = ได้เป้า</span> &bull; 
-                <span class="text-red-700 font-bold"><i class="fa-solid fa-square text-red-500"></i> แท่งสีแดง = เกินเป้า</span> &bull; 
-                <span class="text-blue-700 font-bold"><i class="fa-solid fa-chart-line text-blue-600"></i> เส้นสีน้ำเงิน = Target</span>
+              <h2 class="text-base font-extrabold tracking-wide flex items-center gap-2">
+                <span>กราฟวิเคราะห์แนวโน้มต้นทุน 8 หมวดหลัก (บาท/kg)</span>
+                <span class="text-xs px-2.5 py-0.5 rounded-md bg-blue-500/20 text-blue-300 border border-blue-400/30 font-semibold">12 เดือน (ม.ค. - ธ.ค.)</span>
+              </h2>
+              <p class="text-xs text-slate-300 mt-0.5">
+                <span class="inline-flex items-center gap-1 text-blue-300 font-bold"><i class="fa-solid fa-chart-line"></i> เส้นน้ำเงิน = Target เป้าหมาย</span> &bull; 
+                <span class="inline-flex items-center gap-1 text-emerald-400 font-bold"><i class="fa-solid fa-square"></i> แท่งเขียว = Actual ได้เป้า</span> &bull; 
+                <span class="inline-flex items-center gap-1 text-red-400 font-bold"><i class="fa-solid fa-square"></i> แท่งแดง = Actual เกินเป้า</span>
               </p>
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-xs font-bold px-3 py-1 bg-slate-100 text-slate-700 rounded-lg border border-slate-200">
+            <span class="px-3 py-1 rounded-full text-xs font-black bg-blue-500/30 text-blue-200 border border-blue-400/40 shadow-xs">
               หน่วย: บาท/kg
+            </span>
+            <span id="trend-month-badge" class="px-3 py-1 rounded-full text-xs font-black bg-amber-500/30 text-amber-200 border border-amber-400/40 shadow-xs">
+              เดือน: 11
             </span>
           </div>
         </div>
 
-        <div class="relative w-full h-[380px] sm:h-[430px]">
-          <canvas id="costComparisonChart"></canvas>
+        <!-- 8 Charts Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Chart: ถ่านหิน -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 transition hover:shadow-md">
+          <div class="flex flex-wrap items-center justify-between mb-3 border-b border-slate-100 pb-2.5 gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-8 h-8 rounded-lg bg-amber-600 flex items-center justify-center text-white text-xs shadow-xs">
+                <i class="fa-solid fa-fire"></i>
+              </span>
+              <div>
+                <h3 class="text-sm font-extrabold text-slate-900">1. ถ่านหิน</h3>
+                <span class="text-[11px] text-slate-500 font-medium">(หน่วย: บาท/kg &bull; เส้นน้ำเงิน = Target, แท่งเขียว/แดง = Actual)</span>
+              </div>
+            </div>
+            <div id="stat-coal" class="text-xs font-bold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs"></div>
+          </div>
+          <div class="h-64 sm:h-72 relative">
+            <canvas id="chart-cost-coal"></canvas>
+          </div>
+        </div>
+        <!-- Chart: กาว -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 transition hover:shadow-md">
+          <div class="flex flex-wrap items-center justify-between mb-3 border-b border-slate-100 pb-2.5 gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-xs shadow-xs">
+                <i class="fa-solid fa-flask"></i>
+              </span>
+              <div>
+                <h3 class="text-sm font-extrabold text-slate-900">2. กาว</h3>
+                <span class="text-[11px] text-slate-500 font-medium">(หน่วย: บาท/kg &bull; เส้นน้ำเงิน = Target, แท่งเขียว/แดง = Actual)</span>
+              </div>
+            </div>
+            <div id="stat-glue" class="text-xs font-bold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs"></div>
+          </div>
+          <div class="h-64 sm:h-72 relative">
+            <canvas id="chart-cost-glue"></canvas>
+          </div>
+        </div>
+        <!-- Chart: ค่าน้ำประปา -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 transition hover:shadow-md">
+          <div class="flex flex-wrap items-center justify-between mb-3 border-b border-slate-100 pb-2.5 gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-8 h-8 rounded-lg bg-cyan-600 flex items-center justify-center text-white text-xs shadow-xs">
+                <i class="fa-solid fa-droplet"></i>
+              </span>
+              <div>
+                <h3 class="text-sm font-extrabold text-slate-900">3. ค่าน้ำประปา</h3>
+                <span class="text-[11px] text-slate-500 font-medium">(หน่วย: บาท/kg &bull; เส้นน้ำเงิน = Target, แท่งเขียว/แดง = Actual)</span>
+              </div>
+            </div>
+            <div id="stat-water" class="text-xs font-bold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs"></div>
+          </div>
+          <div class="h-64 sm:h-72 relative">
+            <canvas id="chart-cost-water"></canvas>
+          </div>
+        </div>
+        <!-- Chart: ค่าลม -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 transition hover:shadow-md">
+          <div class="flex flex-wrap items-center justify-between mb-3 border-b border-slate-100 pb-2.5 gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center text-white text-xs shadow-xs">
+                <i class="fa-solid fa-wind"></i>
+              </span>
+              <div>
+                <h3 class="text-sm font-extrabold text-slate-900">4. ค่าลม</h3>
+                <span class="text-[11px] text-slate-500 font-medium">(หน่วย: บาท/kg &bull; เส้นน้ำเงิน = Target, แท่งเขียว/แดง = Actual)</span>
+              </div>
+            </div>
+            <div id="stat-air" class="text-xs font-bold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs"></div>
+          </div>
+          <div class="h-64 sm:h-72 relative">
+            <canvas id="chart-cost-air"></canvas>
+          </div>
+        </div>
+        <!-- Chart: ค่าไฟฟ้า -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 transition hover:shadow-md">
+          <div class="flex flex-wrap items-center justify-between mb-3 border-b border-slate-100 pb-2.5 gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-8 h-8 rounded-lg bg-yellow-500 flex items-center justify-center text-white text-xs shadow-xs">
+                <i class="fa-solid fa-bolt"></i>
+              </span>
+              <div>
+                <h3 class="text-sm font-extrabold text-slate-900">5. ค่าไฟฟ้า</h3>
+                <span class="text-[11px] text-slate-500 font-medium">(หน่วย: บาท/kg &bull; เส้นน้ำเงิน = Target, แท่งเขียว/แดง = Actual)</span>
+              </div>
+            </div>
+            <div id="stat-elec" class="text-xs font-bold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs"></div>
+          </div>
+          <div class="h-64 sm:h-72 relative">
+            <canvas id="chart-cost-elec"></canvas>
+          </div>
+        </div>
+        <!-- Chart: ค่าซ่อมแซมเครื่องจักร -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 transition hover:shadow-md">
+          <div class="flex flex-wrap items-center justify-between mb-3 border-b border-slate-100 pb-2.5 gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-8 h-8 rounded-lg bg-orange-600 flex items-center justify-center text-white text-xs shadow-xs">
+                <i class="fa-solid fa-wrench"></i>
+              </span>
+              <div>
+                <h3 class="text-sm font-extrabold text-slate-900">6. ค่าซ่อมแซมเครื่องจักร</h3>
+                <span class="text-[11px] text-slate-500 font-medium">(หน่วย: บาท/kg &bull; เส้นน้ำเงิน = Target, แท่งเขียว/แดง = Actual)</span>
+              </div>
+            </div>
+            <div id="stat-repair" class="text-xs font-bold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs"></div>
+          </div>
+          <div class="h-64 sm:h-72 relative">
+            <canvas id="chart-cost-repair"></canvas>
+          </div>
+        </div>
+        <!-- Chart: ค่าล่วงเวลา -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 transition hover:shadow-md">
+          <div class="flex flex-wrap items-center justify-between mb-3 border-b border-slate-100 pb-2.5 gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-8 h-8 rounded-lg bg-pink-600 flex items-center justify-center text-white text-xs shadow-xs">
+                <i class="fa-solid fa-clock"></i>
+              </span>
+              <div>
+                <h3 class="text-sm font-extrabold text-slate-900">7. ค่าล่วงเวลา</h3>
+                <span class="text-[11px] text-slate-500 font-medium">(หน่วย: บาท/kg &bull; เส้นน้ำเงิน = Target, แท่งเขียว/แดง = Actual)</span>
+              </div>
+            </div>
+            <div id="stat-ot" class="text-xs font-bold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs"></div>
+          </div>
+          <div class="h-64 sm:h-72 relative">
+            <canvas id="chart-cost-ot"></canvas>
+          </div>
+        </div>
+        <!-- Chart: ค่าแรง -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 transition hover:shadow-md">
+          <div class="flex flex-wrap items-center justify-between mb-3 border-b border-slate-100 pb-2.5 gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white text-xs shadow-xs">
+                <i class="fa-solid fa-users"></i>
+              </span>
+              <div>
+                <h3 class="text-sm font-extrabold text-slate-900">8. ค่าแรง</h3>
+                <span class="text-[11px] text-slate-500 font-medium">(หน่วย: บาท/kg &bull; เส้นน้ำเงิน = Target, แท่งเขียว/แดง = Actual)</span>
+              </div>
+            </div>
+            <div id="stat-labor" class="text-xs font-bold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs"></div>
+          </div>
+          <div class="h-64 sm:h-72 relative">
+            <canvas id="chart-cost-labor"></canvas>
+          </div>
+        </div>
         </div>
       </div>
 
@@ -552,7 +734,7 @@
 
             // Clear legacy localStorage cache keys so user immediately gets fresh data
       ['TOTAL','BHS','ISOWA','YUELI'].forEach(mach => {
-        for (let i = 1; i <= 6; i++) {
+        for (let i = 1; i <= 9; i++) {
           lsClear(`budget_monthly_v${i}_${mach}`);
           lsClear(`budget_cost_detail_v${i}_${mach}`);
         }
@@ -563,7 +745,7 @@
       if (typeof INITIAL_BUDGET_DATA !== 'undefined' && INITIAL_BUDGET_DATA[currentMachine]) {
         monthlyData = INITIAL_BUDGET_DATA[currentMachine];
         renderMonthlySummary(monthlyData);
-        renderCostComparisonChart();
+        renderMonthlyCostTrendCharts();
         syncTopTableFromData();
       }
       loadBudgetData();
@@ -572,7 +754,7 @@
         costDetailData = INITIAL_COST_DETAIL_DATA;
         renderCostDetail(costDetailData);
       }
-      renderCostComparisonChart();
+      renderMonthlyCostTrendCharts();
       loadCostDetail();
     });
 
@@ -614,10 +796,10 @@
       loadBudgetData();
       if (monthlyData) {
         renderMonthlySummary(monthlyData);
-        renderCostComparisonChart();
+        renderMonthlyCostTrendCharts();
       }
       if (costDetailData) renderCostDetail(costDetailData);
-      renderCostComparisonChart();
+      renderMonthlyCostTrendCharts();
     }
 
     function onMachineChange(m) {
@@ -626,7 +808,7 @@
       if (trendMachBadge) trendMachBadge.textContent = 'เครื่อง: ' + currentMachine;
             // Clear legacy localStorage cache keys so user immediately gets fresh data
       ['TOTAL','BHS','ISOWA','YUELI'].forEach(mach => {
-        for (let i = 1; i <= 6; i++) {
+        for (let i = 1; i <= 9; i++) {
           lsClear(`budget_monthly_v${i}_${mach}`);
           lsClear(`budget_cost_detail_v${i}_${mach}`);
         }
@@ -637,7 +819,7 @@
       if (typeof INITIAL_BUDGET_DATA !== 'undefined' && INITIAL_BUDGET_DATA[currentMachine]) {
         monthlyData = INITIAL_BUDGET_DATA[currentMachine];
         renderMonthlySummary(monthlyData);
-        renderCostComparisonChart();
+        renderMonthlyCostTrendCharts();
         syncTopTableFromData();
       }
       loadBudgetData();
@@ -646,7 +828,7 @@
         costDetailData = INITIAL_COST_DETAIL_DATA;
         renderCostDetail(costDetailData);
       }
-      renderCostComparisonChart();
+      renderMonthlyCostTrendCharts();
       loadCostDetail();
     }
 
@@ -1133,7 +1315,7 @@
           costDetailData = cached;
           renderCostDetail(cached);
           syncTopTableFromData();
-          renderCostComparisonChart();
+          renderMonthlyCostTrendCharts();
           return;
         } else {
           lsClear(cacheKey);
@@ -1149,7 +1331,7 @@
         monthlyData = json.data || json;
         lsSet(cacheKey, monthlyData);
         renderMonthlySummary(monthlyData);
-        renderCostComparisonChart();
+        renderMonthlyCostTrendCharts();
         syncTopTableFromData();
       } catch (e) {
         console.error(e);
@@ -1298,14 +1480,14 @@
       const tbody = document.getElementById('cost-detail-body');
       const tbody2 = document.getElementById('cost-detail-body2');
 
-      const cacheKey = `budget_cost_detail_v7_${currentMachine}`;
+      const cacheKey = `budget_cost_detail_v9_${currentMachine}`;
       if (!force) {
                 const cached = lsGet(cacheKey);
         if (cached && cached.costs && cached.costs['ถ่านหิน'] && cached.costs['ถ่านหิน']['m1'] && cached.costs['ถ่านหิน']['m1']['target_bahtkg'] !== null) {
           costDetailData = cached;
           renderCostDetail(cached);
           syncTopTableFromData();
-          renderCostComparisonChart();
+          renderMonthlyCostTrendCharts();
           return;
         } else {
           lsClear(cacheKey);
@@ -1387,7 +1569,8 @@
         aHtml += row;
       });
       actualBody.innerHTML = aHtml;
-      renderCostComparisonChart();
+      renderMonthlyCostTrendCharts();
+      renderMonthlyCostTrendCharts();
     }
 
     // =====================================================
@@ -1414,197 +1597,227 @@
         alert('เกิดข้อผิดพลาดในการบันทึกภาพ');
       }
     }
-    // =====================================================
-    // NEW CHART: เปรียบเทียบต้นทุนจริง vs เป้าหมาย (บาท/kg)
-    // 8 หมวดหมู่: ถ่านหิน, กาว, ค่าน้ำประปา, ค่าลม, ค่าไฟฟ้า, ค่าซ่อมแซมเครื่องจักร, ค่าล่วงเวลา, ค่าแรง
-    // Actual = แท่ง (ได้เป้า=เขียว, ไม่ได้เป้า=แดง), Target = เส้น
-    // =====================================================
-    let costChartInstance = null;
+    
 
-    function renderCostComparisonChart() {
+    // =====================================================
+    // 8 SEPARATE MONTHLY COST TREND CHARTS (บาท/kg)
+    // 8 หมวด: ถ่านหิน, กาว, ค่าน้ำประปา, ค่าลม, ค่าไฟฟ้า, ค่าซ่อมแซมเครื่องจักร, ค่าล่วงเวลา, ค่าแรง
+    // Actual = แท่ง 12 เดือน (ได้เป้า=เขียว, เกินเป้า=แดง), Target = เส้นน้ำเงิน
+    // =====================================================
+    let costTrendCharts = {};
+
+    function renderMonthlyCostTrendCharts() {
       try {
-        const canvas = document.getElementById("costComparisonChart");
-        if (!canvas || typeof Chart === "undefined") return;
-
-        const m = currentMonth || 11;
-        const mKey = "m" + m;
-        const badge = document.getElementById("cost-chart-month-badge");
-        if (badge) badge.textContent = m;
-
-        const categories = [
-          "ถ่านหิน",
-          "กาว",
-          "ค่าน้ำประปา",
-          "ค่าลม",
-          "ค่าไฟฟ้า",
-          "ค่าซ่อมแซมเครื่องจักร",
-          "ค่าล่วงเวลา",
-          "ค่าแรง"
-        ];
+        if (typeof Chart === "undefined") return;
 
         const costs = costDetailData?.costs || (typeof INITIAL_COST_DETAIL_DATA !== "undefined" ? INITIAL_COST_DETAIL_DATA.costs : {});
+        if (!costs) return;
 
-        const targetVals = [];
-        const actualVals = [];
-        const barColors = [];
-        const borderColors = [];
+        const items = [
+          { key: "coal",   name: "ถ่านหิน",              canvasId: "chart-cost-coal" },
+          { key: "glue",   name: "กาว",                  canvasId: "chart-cost-glue" },
+          { key: "water",  name: "ค่าน้ำประปา",          canvasId: "chart-cost-water" },
+          { key: "air",    name: "ค่าลม",                canvasId: "chart-cost-air" },
+          { key: "elec",   name: "ค่าไฟฟ้า",              canvasId: "chart-cost-elec" },
+          { key: "repair", name: "ค่าซ่อมแซมเครื่องจักร",  canvasId: "chart-cost-repair" },
+          { key: "ot",     name: "ค่าล่วงเวลา",          canvasId: "chart-cost-ot" },
+          { key: "labor",  name: "ค่าแรง",                canvasId: "chart-cost-labor" }
+        ];
 
-        categories.forEach(cat => {
-          const d = costs[cat]?.[mKey] || {};
-          const t = (d.target_bahtkg != null && !isNaN(d.target_bahtkg)) ? parseFloat(d.target_bahtkg) : null;
-          const a = (d.actual_bahtkg != null && !isNaN(d.actual_bahtkg)) ? parseFloat(d.actual_bahtkg) : null;
+        const monthLabels = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
+        const curIdx = (currentMonth || 11) - 1;
 
-          targetVals.push(t);
-          actualVals.push(a);
+        const badge = document.getElementById("trend-month-badge");
+        if (badge) badge.textContent = "เดือน: " + currentMonth;
 
-          if (a !== null && t !== null) {
-            // Actual <= Target: ได้เป้า = สีเขียว / Actual > Target: เกินเป้า = สีแดง
-            if (a <= t) {
-              barColors.push("rgba(16, 185, 129, 0.9)"); // emerald-500
-              borderColors.push("#059669");
-            } else {
-              barColors.push("rgba(239, 68, 68, 0.9)"); // red-500
-              borderColors.push("#dc2626");
-            }
-          } else if (a !== null) {
-            barColors.push("rgba(16, 185, 129, 0.9)");
-            borderColors.push("#059669");
-          } else {
-            barColors.push("rgba(148, 163, 184, 0.25)");
-            borderColors.push("#cbd5e1");
-          }
-        });
+        items.forEach(cfg => {
+          const canvas = document.getElementById(cfg.canvasId);
+          if (!canvas) return;
 
-        if (costChartInstance) {
-          costChartInstance.destroy();
-        }
+          const itemData = costs[cfg.name] || {};
 
-        const ctx = canvas.getContext("2d");
-        costChartInstance = new Chart(ctx, {
-          data: {
-            labels: categories,
-            datasets: [
-              {
-                type: "line",
-                label: "Target (บาท/kg) — เป้าหมาย",
-                data: targetVals,
-                borderColor: "#2563eb",
-                backgroundColor: "#2563eb",
-                borderWidth: 3,
-                pointRadius: 6,
-                pointHoverRadius: 8,
-                pointBackgroundColor: "#ffffff",
-                pointBorderColor: "#2563eb",
-                pointBorderWidth: 2.5,
-                tension: 0.15,
-                order: 1,
-                datalabels: {
-                  align: "top",
-                  anchor: "end",
-                  offset: 4,
-                  color: "#1d4ed8",
-                  font: { family: "Prompt", weight: "bold", size: 11 },
-                  formatter: (v) => (v != null && !isNaN(v) && v > 0) ? v.toFixed(3) : ""
-                }
-              },
-              {
-                type: "bar",
-                label: "Actual (บาท/kg) — ผลจริง (เขียว=ได้เป้า, แดง=เกินเป้า)",
-                data: actualVals,
-                backgroundColor: barColors,
-                borderColor: borderColors,
-                borderWidth: 1.5,
-                borderRadius: 6,
-                maxBarThickness: 54,
-                order: 2,
-                datalabels: {
-                  align: "end",
-                  anchor: "end",
-                  offset: 2,
-                  color: "#0f172a",
-                  font: { family: "Prompt", weight: "bold", size: 11 },
-                  formatter: (v) => (v != null && !isNaN(v) && v > 0) ? v.toFixed(3) : (v === 0 ? "0.000" : "")
-                }
+          const targetVals = [];
+          const actualVals = [];
+          const barColors = [];
+          const borderColors = [];
+          const borderWidths = [];
+
+          for (let m = 1; m <= 12; m++) {
+            const d = itemData["m" + m] || {};
+            const t = (d.target_bahtkg != null && !isNaN(d.target_bahtkg)) ? parseFloat(d.target_bahtkg) : null;
+            const a = (d.actual_bahtkg != null && !isNaN(d.actual_bahtkg)) ? parseFloat(d.actual_bahtkg) : null;
+
+            targetVals.push(t);
+            actualVals.push(a);
+
+            const isCurrentMonth = (m === currentMonth);
+
+            if (a !== null && t !== null) {
+              if (a <= t) {
+                barColors.push("rgba(16, 185, 129, 0.85)"); // green
+                borderColors.push(isCurrentMonth ? "#f59e0b" : "#059669");
+                borderWidths.push(isCurrentMonth ? 2.5 : 1);
+              } else {
+                barColors.push("rgba(239, 68, 68, 0.85)"); // red
+                borderColors.push(isCurrentMonth ? "#f59e0b" : "#dc2626");
+                borderWidths.push(isCurrentMonth ? 2.5 : 1);
               }
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-              mode: "index",
-              intersect: false
+            } else if (a !== null) {
+              barColors.push("rgba(16, 185, 129, 0.85)");
+              borderColors.push(isCurrentMonth ? "#f59e0b" : "#059669");
+              borderWidths.push(isCurrentMonth ? 2.5 : 1);
+            } else {
+              barColors.push("rgba(203, 213, 225, 0.25)");
+              borderColors.push(isCurrentMonth ? "#f59e0b" : "#cbd5e1");
+              borderWidths.push(isCurrentMonth ? 2 : 0);
+            }
+          }
+
+          // Stat badge in card header
+          const curT = targetVals[curIdx];
+          const curA = actualVals[curIdx];
+          const statEl = document.getElementById("stat-" + cfg.key);
+          if (statEl) {
+            if (curT != null && curA != null) {
+              const isPass = curA <= curT;
+              const statusText = isPass ? "ได้เป้า" : "เกินเป้า";
+              const badgeClass = isPass ? "bg-emerald-100 text-emerald-800 border-emerald-200" : "bg-rose-100 text-rose-800 border-rose-200";
+              statEl.className = "text-xs font-bold px-2.5 py-1 rounded-lg border shadow-2xs " + badgeClass;
+              statEl.innerHTML = `เดือน ${currentMonth}: Target ${curT.toFixed(3)} | Actual ${curA.toFixed(3)} (${statusText})`;
+            } else if (curT != null) {
+              statEl.className = "text-xs font-bold px-2.5 py-1 rounded-lg border shadow-2xs bg-slate-100 text-slate-700 border-slate-200";
+              statEl.innerHTML = `เดือน ${currentMonth}: Target ${curT.toFixed(3)} | Actual -`;
+            }
+          }
+
+          if (costTrendCharts[cfg.key]) {
+            costTrendCharts[cfg.key].destroy();
+          }
+
+          const ctx = canvas.getContext("2d");
+          costTrendCharts[cfg.key] = new Chart(ctx, {
+            data: {
+              labels: monthLabels,
+              datasets: [
+                {
+                  type: "line",
+                  label: "Target (เป้าหมาย)",
+                  data: targetVals,
+                  borderColor: "#2563eb",
+                  backgroundColor: "#2563eb",
+                  borderWidth: 2.5,
+                  pointRadius: 4.5,
+                  pointHoverRadius: 7,
+                  pointBackgroundColor: "#ffffff",
+                  pointBorderColor: "#2563eb",
+                  pointBorderWidth: 2,
+                  tension: 0.15,
+                  order: 1,
+                  datalabels: {
+                    align: "top",
+                    anchor: "end",
+                    offset: 3,
+                    color: "#1d4ed8",
+                    font: { family: "Prompt", weight: "bold", size: 10 },
+                    formatter: (v) => (v != null && !isNaN(v) && v > 0) ? v.toFixed(3) : ""
+                  }
+                },
+                {
+                  type: "bar",
+                  label: "Actual (ผลงานจริง)",
+                  data: actualVals,
+                  backgroundColor: barColors,
+                  borderColor: borderColors,
+                  borderWidth: borderWidths,
+                  borderRadius: 4,
+                  maxBarThickness: 34,
+                  order: 2,
+                  datalabels: {
+                    align: "end",
+                    anchor: "end",
+                    offset: 1,
+                    color: "#0f172a",
+                    font: { family: "Prompt", weight: "bold", size: 10 },
+                    formatter: (v) => (v != null && !isNaN(v) && v > 0) ? v.toFixed(3) : ""
+                  }
+                }
+              ]
             },
-            plugins: {
-              legend: {
-                position: "top",
-                labels: {
-                  font: { family: "Prompt", weight: "bold", size: 12 },
-                  color: "#1e293b",
-                  usePointStyle: true,
-                  boxWidth: 10
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: {
+                mode: "index",
+                intersect: false
+              },
+              plugins: {
+                legend: {
+                  position: "top",
+                  align: "end",
+                  labels: {
+                    boxWidth: 10,
+                    boxHeight: 10,
+                    usePointStyle: true,
+                    font: { family: "Prompt", size: 11, weight: "bold" },
+                    color: "#334155"
+                  }
+                },
+                tooltip: {
+                  backgroundColor: "rgba(15, 23, 42, 0.95)",
+                  titleFont: { family: "Prompt", size: 12, weight: "bold" },
+                  bodyFont: { family: "Prompt", size: 11 },
+                  padding: 9,
+                  cornerRadius: 8,
+                  callbacks: {
+                    title: (items) => `เดือน ${items[0].label}`,
+                    label: function(ctx) {
+                      const val = ctx.raw;
+                      const formatted = (val !== null && val !== undefined) ? Number(val).toFixed(3) : "-";
+                      return ` ${ctx.dataset.label}: ${formatted} บาท/kg`;
+                    },
+                    afterBody: function(tooltipItems) {
+                      const idx = tooltipItems[0].dataIndex;
+                      const t = targetVals[idx];
+                      const a = actualVals[idx];
+                      if (t != null && a != null) {
+                        const diff = a - t;
+                        const isPass = a <= t;
+                        const status = isPass ? "✅ ได้ตามเป้า" : "❌ เกินเป้าหมาย";
+                        const diffText = (diff > 0 ? "+" : "") + diff.toFixed(3) + " บาท/kg";
+                        return [` Diff: ${diffText}`, ` สถานะ: ${status}`];
+                      }
+                      return [];
+                    }
+                  }
                 }
               },
-              tooltip: {
-                backgroundColor: "rgba(15, 23, 42, 0.95)",
-                titleFont: { family: "Prompt", size: 13, weight: "bold" },
-                bodyFont: { family: "Prompt", size: 12 },
-                padding: 10,
-                cornerRadius: 8,
-                callbacks: {
-                  label: function(context) {
-                    const val = context.raw;
-                    const formatted = (val !== null && val !== undefined) ? Number(val).toFixed(3) : "-";
-                    return ` ${context.dataset.label.split("—")[0].trim()}: ${formatted} บาท/kg`;
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  grid: {
+                    color: "#f1f5f9",
+                    lineWidth: 1
                   },
-                  afterBody: function(tooltipItems) {
-                    const idx = tooltipItems[0].dataIndex;
-                    const t = targetVals[idx];
-                    const a = actualVals[idx];
-                    if (t != null && a != null) {
-                      const diff = a - t;
-                      const isPass = a <= t;
-                      const status = isPass ? "✅ ได้ตามเป้าหมาย (ประหยัด)" : "❌ เกินเป้าหมาย (ต้นทุนสูง)";
-                      const diffText = (diff > 0 ? "+" : "") + diff.toFixed(3) + " บาท/kg";
-                      return [` ผลต่าง (Diff): ${diffText}`, ` สถานะ: ${status}`];
-                    }
-                    return [];
+                  ticks: {
+                    callback: (v) => Number(v).toFixed(3),
+                    font: { family: "Prompt", size: 10, weight: "500" },
+                    color: "#64748b"
+                  }
+                },
+                x: {
+                  grid: { display: false },
+                  ticks: {
+                    font: { family: "Prompt", size: 11, weight: "bold" },
+                    color: (c) => c.index === curIdx ? "#1d4ed8" : "#334155"
                   }
                 }
               }
             },
-            scales: {
-              y: {
-                beginAtZero: true,
-                title: {
-                  display: true,
-                  text: "บาท / กก. (Baht / kg)",
-                  font: { family: "Prompt", size: 12, weight: "bold" },
-                  color: "#475569"
-                },
-                grid: {
-                  color: "#e2e8f0",
-                  lineWidth: 1
-                },
-                ticks: {
-                  callback: (v) => Number(v).toFixed(3),
-                  font: { family: "Prompt", size: 11, weight: "500" },
-                  color: "#475569"
-                }
-              },
-              x: {
-                grid: { display: false },
-                ticks: {
-                  font: { family: "Prompt", size: 12, weight: "bold" },
-                  color: "#0f172a"
-                }
-              }
-            }
-          },
-          plugins: (typeof ChartDataLabels !== "undefined") ? [ChartDataLabels] : []
+            plugins: (typeof ChartDataLabels !== "undefined") ? [ChartDataLabels] : []
+          });
         });
       } catch (err) {
-        console.error("Error rendering cost comparison chart:", err);
+        console.error("Error rendering monthly cost trend charts:", err);
       }
     }
 
