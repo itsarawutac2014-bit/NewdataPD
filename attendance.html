@@ -3,52 +3,202 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard ลงรายชื่อผู้ปฏิบัติงานประจำเครื่องจักร & กะทำงาน | แผนกผลิต PD</title>
-  
+  <title>ตารางบันทึกเวลาทำงาน & ประวัติการลาฝ่ายผลิต | datamanbhs</title>
+
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
 
-  <!-- Tailwind CSS CDN -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  
+
   <!-- Google Fonts: Prompt -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
 
-  <!-- html2canvas for 4K Export -->
+  <!-- FontAwesome 6 -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- html2canvas -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- Embedded Datamanbhs Data -->
+  <script src="assets/data/datamanbhs_data.js"></script>
 
   <style>
     * {
       font-family: 'Prompt', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .att-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 0.78rem;
+    }
+    .att-table th, .att-table td {
+      border: 1px solid #e2e8f0;
+      text-align: center;
+      padding: 3px 2px;
+      vertical-align: middle;
+    }
+    .att-table thead th {
+      position: sticky;
+      top: 0;
+      background: #f8fafc;
+      z-index: 10;
+      font-weight: 700;
+    }
+    .col-emp {
+      min-width: 230px;
+      max-width: 250px;
+      text-align: left !important;
+      padding: 6px 8px !important;
+      position: sticky;
+      left: 0;
+      background: #ffffff;
+      z-index: 20;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.04);
+    }
+    thead th.col-emp {
+      z-index: 30;
+      background: #f1f5f9;
+    }
+    .col-shift {
+      min-width: 44px;
+      width: 44px;
+    }
+    .col-day {
+      min-width: 38px;
+      width: 38px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .col-sunday, .cell-sunday {
+      background-color: #fff1f2 !important;
+      color: #e11d48 !important;
+    }
+    /* กะเช้า: สีเหลือง + ตัวหนังสือสีดำ */
+    .col-shift-morning {
+      background-color: #fef08a !important;
+      border-top: 4px solid #eab308 !important;
+      color: #000000 !important;
+    }
+    .col-shift-morning .day-num { color: #000000 !important; font-weight: 900 !important; }
+    .col-shift-morning .day-name { color: #000000 !important; font-weight: 800 !important; }
+
+    /* กะดึก: สีฟ้า + ตัวหนังสือสีขาว */
+    .col-shift-night {
+      background-color: #2563eb !important;
+      border-top: 4px solid #93c5fd !important;
+      color: #ffffff !important;
+    }
+    .col-shift-night .day-num { color: #ffffff !important; font-weight: 900 !important; }
+    .col-shift-night .day-name { color: #ffffff !important; font-weight: 800 !important; }
+
+    /* กะ PM: สีม่วง */
+    .col-shift-pm {
+      background-color: #7c3aed !important;
+      border-top: 4px solid #a78bfa !important;
+      color: #ffffff !important;
+    }
+    .col-shift-pm .day-num { color: #ffffff !important; font-weight: 900 !important; }
+    .col-shift-pm .day-name { color: #ffffff !important; font-weight: 800 !important; }
+
+    /* Right Sticky Summary Columns */
+    .col-sum {
+      min-width: 42px;
+      width: 42px;
+      font-weight: 800;
+      font-size: 0.74rem;
+      background: #f8fafc;
+    }
+    .col-sum-start {
+      border-left: 2px solid #cbd5e1 !important;
+    }
+    .sum-present { color: #166534; background: #f0fdf4 !important; }
+    .sum-holiday { color: #991b1b; background: #fef2f2 !important; }
+    .sum-annual { color: #075985; background: #f0f9ff !important; }
+    .sum-sick { color: #92400e; background: #fefce8 !important; }
+    .sum-business { color: #155e75; background: #ecfeff !important; }
+    .sum-other { color: #6b21a8; background: #faf5ff !important; }
+    .sum-total-leave { color: #1e40af; background: #eff6ff !important; }
+    .sum-absent { color: #9f1239; background: #fff1f2 !important; }
+
+    .cell-badge-full {
+      font-size: 0.68rem;
+      font-weight: 700;
+      display: block;
+      line-height: 1.25;
+      padding: 3px 1px;
+      border-radius: 4px;
+      text-align: center;
+    }
+    .legend-box {
+      display: inline-block;
+      width: 20px;
+      height: 15px;
+      border-radius: 4px;
+      border: 1px solid #cbd5e1;
+      vertical-align: middle;
+    }
+    .emp-avatar-lg {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #ff7900;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+      flex-shrink: 0;
+    }
+    .floating-bulk-bar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1050;
+      background: #ffffff;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      border: 2px solid #ff7900;
+      border-radius: 50rem;
+      padding: 8px 24px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      animation: floatUp 0.25s ease-out;
+    }
+    @keyframes floatUp {
+      from { transform: translate(-50%, 35px); opacity: 0; }
+      to { transform: translate(-50%, 0); opacity: 1; }
     }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased">
 
   <!-- ========================================== -->
-  <!-- Top Navigation Bar                         -->
+  <!-- Top Global Navigation Bar                  -->
   <!-- ========================================== -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-xs">
+    <div class="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         
         <!-- Brand & Title -->
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-600 to-emerald-500 text-white flex items-center justify-center text-xl shadow-md shrink-0">
-            <i class="fa-solid fa-clipboard-user"></i>
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white flex items-center justify-center text-xl shadow-md shrink-0">
+            <i class="fa-solid fa-industry"></i>
           </div>
           <div>
             <div class="flex items-center gap-2">
-              <span class="font-black text-slate-900 text-lg sm:text-xl tracking-tight">ลงรายชื่อผู้ปฏิบัติงาน</span>
-              <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 border border-teal-200">PD Attendance</span>
+              <span class="font-black text-slate-900 text-lg sm:text-xl tracking-tight">ระบบบันทึกประวัติและอายุงาน</span>
+              <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 border border-orange-200">datamanbhs</span>
             </div>
-            <p class="text-xs text-slate-500 hidden sm:block">ระบบบันทึกรายชื่อผู้ปฏิบัติงานประจำเครื่องจักร & กะทำงาน แผนกผลิต (PD)</p>
+            <p class="text-xs text-slate-500 hidden sm:block">ตารางบันทึกเวลาทำงาน & ประวัติการลาฝ่ายผลิต (PD Attendance Matrix)</p>
           </div>
         </div>
 
@@ -66,13 +216,17 @@
             <i class="fa-solid fa-calculator text-rose-600"></i>
             <span>Budget Control</span>
           </a>
-          <a href="attendance.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-teal-600 text-white shadow-xs">
+          <a href="attendance.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-xs">
             <i class="fa-solid fa-clipboard-user text-white"></i>
             <span>ลงรายชื่อ</span>
           </a>
           <a href="targets.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
             <i class="fa-solid fa-bullseye text-amber-600"></i>
             <span class="hidden md:inline">ตั้งค่า</span>
+          </a>
+          <a href="login.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition border border-slate-200">
+            <i class="fa-solid fa-right-to-bracket text-slate-500"></i>
+            <span>เข้าสู่ระบบ</span>
           </a>
         </nav>
       </div>
@@ -82,626 +236,1427 @@
   <!-- ========================================== -->
   <!-- Main Content Container                     -->
   <!-- ========================================== -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+  <main class="flex-1 max-w-[1680px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
 
-    <!-- Top Action / Control Bar -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-wrap items-center justify-between gap-4">
-      
-      <!-- Left Filters: Machine, Shift, Date -->
-      <div class="flex flex-wrap items-center gap-3">
-        
-        <!-- Machine Selector -->
-        <div class="flex items-center gap-2">
-          <label for="select-machine" class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-            <i class="fa-solid fa-industry text-teal-600"></i> เครื่องจักร:
-          </label>
-          <select id="select-machine" onchange="onFilterChange()" class="bg-slate-50 border border-slate-300 text-slate-900 text-xs sm:text-sm font-bold rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-teal-500 focus:outline-none">
-            <option value="ALL">รวมทุกเครื่อง (TOTAL)</option>
-            <option value="BHS" selected>เครื่อง BHS</option>
-            <option value="YUELI">เครื่อง YUELI</option>
-            <option value="ISOWA">เครื่อง ISOWA</option>
-          </select>
-        </div>
-
-        <!-- Shift Selector -->
-        <div class="flex items-center gap-2">
-          <label for="select-shift" class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-            <i class="fa-solid fa-clock text-indigo-600"></i> กะทำงาน:
-          </label>
-          <select id="select-shift" onchange="onFilterChange()" class="bg-slate-50 border border-slate-300 text-slate-900 text-xs sm:text-sm font-bold rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-            <option value="A" selected>กะ A (กะเช้า 08:00 - 20:00)</option>
-            <option value="B">กะ B (กะดึก 20:00 - 08:00)</option>
-            <option value="C">กะ C (กะปกติ / เสริม)</option>
-          </select>
-        </div>
-
-        <!-- Date Selector -->
-        <div class="flex items-center gap-2">
-          <label for="select-date" class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-            <i class="fa-solid fa-calendar-day text-emerald-600"></i> วันที่:
-          </label>
-          <input type="date" id="select-date" onchange="onFilterChange()" class="bg-slate-50 border border-slate-300 text-slate-900 text-xs sm:text-sm font-bold rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-          <button type="button" onclick="setTodayDate()" class="text-[11px] font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 px-2.5 py-1 rounded-lg border border-teal-200 transition">
-            วันนี้
-          </button>
-        </div>
-
+    <!-- Top Action / Header Area -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h2 class="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-table-list text-orange-600"></i>
+          <span>บันทึกประจำวัน &mdash;</span>
+          <span id="title-machine-badge" class="px-2.5 py-0.5 rounded-full text-sm font-bold bg-blue-100 text-blue-800 border border-blue-200">เครื่อง BHS</span>
+          <span id="title-shift-badge" class="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-200 text-slate-800">ทุกกะ</span>
+        </h2>
+        <p class="text-xs text-slate-500 mt-1 flex items-center flex-wrap gap-2">
+          <span>เดือน <strong id="title-month-text" class="text-slate-800 font-bold">พฤศจิกายน 2569</strong></span>
+          <span>&bull;</span>
+          <span class="text-emerald-700 font-semibold"><i class="fa-solid fa-briefcase text-emerald-600"></i> ทำงาน: จันทร์ - เสาร์</span>
+          <span>|</span>
+          <span class="text-rose-600 font-semibold"><i class="fa-solid fa-calendar-xmark text-rose-500"></i> หยุดสัปดาห์: วันอาทิตย์ (1 วัน)</span>
+        </p>
       </div>
 
-      <!-- Right Action Buttons -->
-      <div class="flex items-center gap-2 flex-wrap" data-html2canvas-ignore="true">
-        <button onclick="openAddOperatorModal()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer">
-          <i class="fa-solid fa-user-plus"></i>
-          <span>+ เพิ่มรายชื่อ</span>
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <button type="button" onclick="openBulkAttendanceModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition">
+          <i class="fa-solid fa-user-check"></i> เช็คชื่อมาทำงานหลายคน
         </button>
-        <button onclick="exportAttendanceReportImage()" id="btn-save-image" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer">
-          <i class="fa-solid fa-camera text-white" id="save-image-icon"></i>
-          <span id="save-image-text">บันทึกภาพ (4K UHD)</span>
+        <button type="button" onclick="downloadAllTablesImage()" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition">
+          <i class="fa-solid fa-camera"></i> บันทึกตารางเป็นภาพ (HD)
+        </button>
+        <button type="button" onclick="resetToDefaultData()" class="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 rounded-xl text-xs font-bold shadow-2xs transition" title="ล้างการแก้ไข คืนค่าข้อมูลดั้งเดิมจากฐานข้อมูล">
+          <i class="fa-solid fa-rotate-left text-amber-600"></i> คืนค่าเดิม
         </button>
       </div>
-
     </div>
 
-    <!-- ========================================== -->
-    <!-- Printable Area for 4K Export               -->
-    <!-- ========================================== -->
-    <div id="attendance-printable-area" class="space-y-6">
-
-      <!-- Executive Header Banner in Export -->
-      <div class="bg-gradient-to-r from-teal-800 via-emerald-800 to-slate-900 text-white p-5 rounded-2xl shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <div class="flex items-center gap-2.5 flex-wrap">
-            <span class="w-8 h-8 rounded-lg bg-teal-500/30 border border-teal-300/40 flex items-center justify-center text-teal-200 text-base">
-              <i class="fa-solid fa-users-gear"></i>
-            </span>
-            <h2 class="text-xl sm:text-2xl font-black tracking-tight">
-              ผังรายชื่อผู้ปฏิบัติงานประจำกะ — <span id="banner-machine-label" class="text-teal-300">เครื่อง BHS</span>
-            </h2>
-            <span id="banner-shift-badge" class="px-3 py-0.5 rounded-full text-xs font-black bg-indigo-500 text-white shadow-xs">
-              กะ A (เช้า)
-            </span>
-          </div>
-          <p class="text-xs text-teal-100 mt-1">
-            ประจำวันที่: <strong id="banner-date-label" class="text-white font-bold">3 พฤศจิกายน 2569</strong> &bull; แผนกผลิต PD
-          </p>
-        </div>
-        <div class="text-right flex items-center gap-3">
-          <div class="bg-white/10 backdrop-blur-xs px-3.5 py-1.5 rounded-xl border border-white/20 text-xs">
-            <span class="text-teal-200 block text-[10px]">สถานะกำลังพล</span>
-            <strong id="banner-headcount-badge" class="text-white font-black text-sm">มาปฏิบัติงาน 8/8 คน</strong>
-          </div>
-        </div>
-      </div>
-
-      <!-- 4 Top KPI Cards -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        
-        <!-- Total Roster -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex items-center justify-between">
-          <div>
-            <p class="text-xs font-bold text-slate-500">กำลังพลตามผัง</p>
-            <h3 id="kpi-total-staff" class="text-2xl sm:text-3xl font-black text-slate-900 mt-1">8 คน</h3>
-            <span class="text-[11px] font-semibold text-slate-400">ครบตามกรอบอัตรา</span>
-          </div>
-          <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center text-xl shrink-0">
-            <i class="fa-solid fa-users"></i>
-          </div>
+    <!-- Filter Card -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+      <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-12 gap-3 items-end">
+        <!-- Machine -->
+        <div class="col-span-2 sm:col-span-2 lg:col-span-3">
+          <label class="block text-xs font-bold text-slate-700 mb-1">
+            <i class="fa-solid fa-industry text-amber-500 mr-1"></i> เครื่องจักร
+          </label>
+          <select id="filter-machine" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+            <option value="ALL">⚡ ทุกเครื่องจักร (ทั้งหมด)</option>
+            <option value="BHS" selected>BHS</option>
+            <option value="YUELI">YUELI</option>
+            <option value="ISOWA">ISOWA</option>
+          </select>
         </div>
 
-        <!-- Present -->
-        <div class="bg-white rounded-2xl border border-emerald-200 shadow-sm p-4 flex items-center justify-between bg-gradient-to-br from-white to-emerald-50/50">
-          <div>
-            <p class="text-xs font-bold text-emerald-700">มาปฏิบัติงานจริง</p>
-            <h3 id="kpi-present-staff" class="text-2xl sm:text-3xl font-black text-emerald-600 mt-1">8 คน</h3>
-            <span id="kpi-present-pct" class="text-[11px] font-bold text-emerald-700">100% ของกะ</span>
-          </div>
-          <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl shrink-0">
-            <i class="fa-solid fa-user-check"></i>
-          </div>
+        <!-- Shift -->
+        <div class="col-span-2 sm:col-span-2 lg:col-span-2">
+          <label class="block text-xs font-bold text-slate-700 mb-1">
+            <i class="fa-solid fa-users text-blue-500 mr-1"></i> กะการทำงาน
+          </label>
+          <select id="filter-shift" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+            <option value="" selected>ทุกกะ (ทั้งหมด)</option>
+            <option value="A">กะ A</option>
+            <option value="B">กะ B</option>
+            <option value="Normal">กลาง (Normal)</option>
+          </select>
         </div>
 
-        <!-- Overtime -->
-        <div class="bg-white rounded-2xl border border-purple-200 shadow-sm p-4 flex items-center justify-between bg-gradient-to-br from-white to-purple-50/50">
-          <div>
-            <p class="text-xs font-bold text-purple-700">ทำล่วงเวลา (OT)</p>
-            <h3 id="kpi-ot-staff" class="text-2xl sm:text-3xl font-black text-purple-600 mt-1">4 คน</h3>
-            <span class="text-[11px] font-bold text-purple-700">OT ต่อกะ</span>
-          </div>
-          <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-xl shrink-0">
-            <i class="fa-solid fa-clock-rotate-left"></i>
-          </div>
+        <!-- Month -->
+        <div class="col-span-2 sm:col-span-2 lg:col-span-3">
+          <label class="block text-xs font-bold text-slate-700 mb-1">
+            <i class="fa-solid fa-calendar-days text-teal-500 mr-1"></i> เดือน
+          </label>
+          <select id="filter-month" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+            <option value="1">มกราคม</option>
+            <option value="2">กุมภาพันธ์</option>
+            <option value="3">มีนาคม</option>
+            <option value="4">เมษายน</option>
+            <option value="5">พฤษภาคม</option>
+            <option value="6">มิถุนายน</option>
+            <option value="7">กรกฎาคม</option>
+            <option value="8">สิงหาคม</option>
+            <option value="9">กันยายน</option>
+            <option value="10">ตุลาคม</option>
+            <option value="11" selected>พฤศจิกายน</option>
+            <option value="12">ธันวาคม</option>
+          </select>
         </div>
 
-        <!-- Absent / Leave -->
-        <div class="bg-white rounded-2xl border border-rose-200 shadow-sm p-4 flex items-center justify-between bg-gradient-to-br from-white to-rose-50/50">
-          <div>
-            <p class="text-xs font-bold text-rose-700">ขาด / ลางาน</p>
-            <h3 id="kpi-leave-staff" class="text-2xl sm:text-3xl font-black text-rose-600 mt-1">0 คน</h3>
-            <span class="text-[11px] font-bold text-rose-600">ไม่มีขาดงาน</span>
-          </div>
-          <div class="w-12 h-12 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center text-xl shrink-0">
-            <i class="fa-solid fa-user-xmark"></i>
-          </div>
+        <!-- Year -->
+        <div class="col-span-2 sm:col-span-2 lg:col-span-2">
+          <label class="block text-xs font-bold text-slate-700 mb-1">
+            <i class="fa-solid fa-calendar text-slate-500 mr-1"></i> ปี (พ.ศ.)
+          </label>
+          <select id="filter-year" onchange="applyFilters()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-orange-500 focus:outline-none">
+            <option value="2024">2567</option>
+            <option value="2025">2568</option>
+            <option value="2026" selected>2569</option>
+            <option value="2027">2570</option>
+          </select>
         </div>
 
-      </div>
-
-      <!-- Main Operators Roster Grid by Machine Section -->
-      <div id="roster-container" class="space-y-6">
-        <!-- Machine cards dynamically populated via JS -->
-      </div>
-
-      <!-- Shift Handover & Operational Note Card -->
-      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-          <div class="flex items-center gap-2">
-            <span class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-sm font-bold">
-              <i class="fa-solid fa-pen-to-square"></i>
-            </span>
-            <h3 class="text-base font-extrabold text-slate-900">บันทึกส่งมอบกะ & สรุปเหตุการณ์สำคัญ</h3>
-          </div>
-          <button onclick="saveShiftNote()" class="text-xs font-bold text-teal-700 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-xl border border-teal-200 transition cursor-pointer" data-html2canvas-ignore="true">
-            <i class="fa-solid fa-floppy-disk mr-1"></i> บันทึกข้อความ
+        <!-- Actions -->
+        <div class="col-span-2 sm:col-span-4 lg:col-span-2 flex gap-1.5">
+          <button type="button" onclick="applyFilters()" class="w-full bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white rounded-xl py-2 px-3 text-xs font-black shadow-xs transition">
+            <i class="fa-solid fa-filter mr-1"></i> กรอง
+          </button>
+          <button type="button" onclick="resetFilters()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl p-2 text-xs border border-slate-300 transition" title="ล้างตัวกรอง">
+            <i class="fa-solid fa-undo"></i>
           </button>
         </div>
-        <textarea id="shift-note-input" rows="3" placeholder="ระบุเหตุการณ์สำคัญระหว่างกะ เช่น ปัญหาเครื่องจักร, คุณภาพกระดาษ, สั่งการพิเศษจากผู้จัดการ..." class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl p-3 focus:ring-2 focus:ring-teal-500 focus:outline-none"></textarea>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-bold text-slate-600 pt-2 border-t border-slate-100">
-          <div>ผู้ส่งมอบเวร: <span id="note-handover-by" class="text-slate-900 font-extrabold">-</span></div>
-          <div>ผู้รับมอบเวร: <span id="note-received-by" class="text-slate-900 font-extrabold">-</span></div>
+      </div>
+    </div>
+
+    <!-- Legend Bar (Full Words & Colors) -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs p-3">
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
+        <span class="text-slate-500 font-bold text-[11px] uppercase tracking-wider mr-1">
+          <i class="fa-solid fa-tags text-orange-500"></i> สัญลักษณ์:
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <span class="legend-box" style="background:#d4edda"></span>
+          <span style="color:#155724;font-weight:700;">มา (ทำงาน)</span>
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <span class="legend-box" style="background:#f8d7da"></span>
+          <span style="color:#721c24;font-weight:700;">ขาด (ขาดงาน)</span>
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <span class="legend-box" style="background:#fff3cd"></span>
+          <span style="color:#856404;font-weight:700;">ลาป่วย</span>
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <span class="legend-box" style="background:#cce5ff"></span>
+          <span style="color:#004085;font-weight:700;">พักร้อน</span>
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <span class="legend-box" style="background:#d1ecf1"></span>
+          <span style="color:#0c5460;font-weight:700;">ลากิจ</span>
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <span class="legend-box" style="background:#ffe082"></span>
+          <span style="color:#5d4037;font-weight:700;">มาสาย</span>
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <span class="legend-box" style="background:#fff1f2"></span>
+          <span style="color:#e11d48;font-weight:700;">วันหยุด (อาทิตย์)</span>
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <span class="legend-box" style="background:#fef08a; border-top:3px solid #eab308;"></span>
+          <span style="color:#854d0e;font-weight:700;">☀️ กะเช้า</span>
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <span class="legend-box" style="background:#2563eb; border-top:3px solid #93c5fd;"></span>
+          <span style="color:#1e40af;font-weight:700;">🌙 กะดึก</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Attendance Shift Tables Container -->
+    <div id="attendance-tables-container" class="space-y-6">
+      <!-- Tables injected by JavaScript -->
+    </div>
+
+    <!-- Analytics & Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 mt-6">
+      <!-- Doughnut Chart: สัดส่วนประเภทการลา -->
+      <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex flex-col justify-between">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div>
+            <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-chart-pie text-orange-500"></i> สัดส่วนประเภทการลาเดือนนี้
+            </h3>
+            <p class="text-[11px] text-slate-500" id="chart-sub-text">รวมสถิติทุกประเภทการลา</p>
+          </div>
+          <span id="chart-total-leaves-badge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">0 วัน</span>
+        </div>
+        <div class="py-4 relative flex items-center justify-center min-h-[220px]">
+          <canvas id="leaveDoughnutChart" style="max-height: 220px;"></canvas>
+        </div>
+        <div id="chart-legend-badges" class="flex flex-wrap gap-2 justify-center pt-3 border-t border-slate-100">
+          <!-- Badges injected by JS -->
         </div>
       </div>
 
+      <!-- Top Present & Leaver Rankings -->
+      <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+          <h3 class="text-sm font-black text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-trophy text-amber-500"></i> สรุปอันดับการมาปฏิบัติงาน & วันลา
+          </h3>
+          <span class="text-xs text-slate-400">ประจำเดือนปัจจุบัน</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Top Present -->
+          <div class="bg-emerald-50/50 rounded-xl p-3 border border-emerald-100">
+            <h4 class="text-xs font-bold text-emerald-900 flex items-center gap-1.5 mb-2.5">
+              <i class="fa-solid fa-award text-emerald-600"></i> พนักงานมาทำงานสูงสุด (Top Present)
+            </h4>
+            <div id="top-present-list" class="space-y-2 text-xs">
+              <!-- Injected by JS -->
+            </div>
+          </div>
+
+          <!-- Top Leavers -->
+          <div class="bg-amber-50/50 rounded-xl p-3 border border-amber-100">
+            <h4 class="text-xs font-bold text-amber-900 flex items-center gap-1.5 mb-2.5">
+              <i class="fa-solid fa-user-clock text-amber-600"></i> สรุปจำนวนวันลาแต่ละประเภท
+            </h4>
+            <div id="top-leavers-list" class="space-y-2 text-xs">
+              <!-- Injected by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
   </main>
 
   <!-- ========================================== -->
-  <!-- Modal: Add / Edit Operator                 -->
+  <!-- Floating Bulk Bar                          -->
   <!-- ========================================== -->
-  <div id="modal-operator" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
-      <div class="bg-slate-900 text-white p-4 flex justify-between items-center">
-        <h3 id="modal-title" class="font-extrabold text-base flex items-center gap-2">
-          <i class="fa-solid fa-user-plus text-teal-400"></i> เพิ่มรายชื่อผู้ปฏิบัติงาน
-        </h3>
-        <button onclick="closeOperatorModal()" class="text-slate-400 hover:text-white transition">
-          <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
-      </div>
-      <form id="operator-form" onsubmit="saveOperator(event)" class="p-5 space-y-4">
-        <input type="hidden" id="op-id">
-        
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">เครื่องจักร</label>
-          <select id="op-machine" required class="w-full text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none">
-            <option value="BHS">เครื่อง BHS</option>
-            <option value="YUELI">เครื่อง YUELI</option>
-            <option value="ISOWA">เครื่อง ISOWA</option>
-          </select>
-        </div>
+  <div id="floating-bulk-bar" class="floating-bulk-bar">
+    <span class="text-xs font-black text-slate-800">
+      เลือกพนักงาน <strong id="selected-emp-count" class="text-orange-600 font-num">0</strong> คน
+    </span>
+    <button type="button" onclick="openBulkCheckSelectedModal()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-xs font-bold shadow-xs transition">
+      <i class="fa-solid fa-check mr-1"></i> เช็คมาทำงาน
+    </button>
+    <button type="button" onclick="clearSelectedStatusModal()" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-full text-xs font-bold transition">
+      <i class="fa-solid fa-xmark mr-1"></i> ล้างสถานะ
+    </button>
+    <button type="button" onclick="deselectAllEmployees()" class="text-slate-400 hover:text-slate-600 text-xs px-2">
+      ยกเลิก
+    </button>
+  </div>
 
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">กะทำงาน</label>
-          <select id="op-shift" required class="w-full text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none">
-            <option value="A">กะ A (เช้า)</option>
-            <option value="B">กะ B (ดึก)</option>
-            <option value="C">กะ C (ปกติ)</option>
-          </select>
-        </div>
+  <!-- ========================================== -->
+  <!-- MODALS                                     -->
+  <!-- ========================================== -->
 
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">ตำแหน่งหน้าที่</label>
-          <select id="op-role" required class="w-full text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none">
-            <option value="หัวหน้ากะ / ช่างคุมเครื่อง">1. หัวหน้ากะ / ช่างคุมเครื่อง (Chief Operator)</option>
-            <option value="พนักงานคุมหัวเครื่อง (Wet End)">2. พนักงานคุมหัวเครื่อง (Wet End)</option>
-            <option value="พนักงานคุมท้ายเครื่อง (Dry End)">3. พนักงานคุมท้ายเครื่อง (Dry End)</option>
-            <option value="พนักงานเตรียมกระดาษ (Reel Feeder)">4. พนักงานเตรียมกระดาษ (Reel Feeder)</option>
-            <option value="พนักงานทำกาว & สารเคมี (Glue Kitchen)">5. พนักงานทำกาว & สารเคมี (Glue Kitchen)</option>
-            <option value="พนักงานช่วยหน้างาน / QC">6. พนักงานช่วยหน้างาน / QC (Line Assistant)</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">ชื่อ - นามสกุล</label>
-          <input type="text" id="op-name" required placeholder="เช่น นายสมชาย ใจดี" class="w-full text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none">
-        </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">รหัสพนักงาน</label>
-            <input type="text" id="op-code" placeholder="เช่น PD-042" class="w-full text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none">
+  <!-- Modal 1: Edit Single Day Status -->
+  <div id="cellEditModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-md overflow-hidden animate-scaleIn">
+      <div class="bg-gradient-to-r from-orange-500 to-amber-600 p-4 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-sm">
+            <i class="fa-solid fa-user-pen"></i>
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">สถานะ</label>
-            <select id="op-status" class="w-full text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-bold focus:ring-2 focus:ring-teal-500 focus:outline-none">
-              <option value="present">มาทำงาน (Present)</option>
-              <option value="ot">ทำ OT (Overtime)</option>
-              <option value="leave">ลางาน (Leave)</option>
+            <h4 class="text-sm font-black" id="modal-emp-name">นายคะนอง ศิริวรรณ</h4>
+            <p class="text-[11px] text-white/80" id="modal-date-text">วันที่ 1 พ.ย. 2569</p>
+          </div>
+        </div>
+        <button onclick="closeCellModal()" class="text-white/80 hover:text-white p-1 text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <input type="hidden" id="edit-emp-id">
+        <input type="hidden" id="edit-date-str">
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-2">เลือกสถานะการปฏิบัติงาน / การลา:</label>
+          <div class="grid grid-cols-2 gap-2 text-xs font-bold" id="status-button-group">
+            <button type="button" onclick="selectStatusInModal('present')" data-status="present" class="p-2.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 text-left flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-emerald-500"></span> มาทำงานปกติ
+            </button>
+            <button type="button" onclick="selectStatusInModal('sick_leave')" data-status="sick_leave" class="p-2.5 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 text-left flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-amber-500"></span> ลาป่วย
+            </button>
+            <button type="button" onclick="selectStatusInModal('annual_leave')" data-status="annual_leave" class="p-2.5 rounded-xl border border-blue-300 bg-blue-50 text-blue-800 text-left flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-blue-500"></span> ลาพักร้อน
+            </button>
+            <button type="button" onclick="selectStatusInModal('business_leave')" data-status="business_leave" class="p-2.5 rounded-xl border border-cyan-300 bg-cyan-50 text-cyan-800 text-left flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-cyan-500"></span> ลากิจ
+            </button>
+            <button type="button" onclick="selectStatusInModal('absent')" data-status="absent" class="p-2.5 rounded-xl border border-rose-300 bg-rose-50 text-rose-800 text-left flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-rose-500"></span> ขาดงาน
+            </button>
+            <button type="button" onclick="selectStatusInModal('late')" data-status="late" class="p-2.5 rounded-xl border border-slate-300 bg-slate-50 text-slate-800 text-left flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-slate-500"></span> มาสาย
+            </button>
+            <button type="button" onclick="selectStatusInModal('holiday')" data-status="holiday" class="p-2.5 rounded-xl border border-pink-300 bg-pink-50 text-pink-800 text-left flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-pink-500"></span> วันหยุด
+            </button>
+            <button type="button" onclick="selectStatusInModal('other_leave')" data-status="other_leave" class="p-2.5 rounded-xl border border-purple-300 bg-purple-50 text-purple-800 text-left flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full bg-purple-500"></span> ลาอื่นๆ
+            </button>
+          </div>
+          <input type="hidden" id="edit-selected-status" value="present">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">จำนวนวัน (Days Count):</label>
+          <select id="edit-days-count" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none">
+            <option value="1.0">1.0 วัน (เต็มวัน)</option>
+            <option value="0.5">0.5 วัน (ครึ่งวัน)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">หมายเหตุ / เหตุผลการลา:</label>
+          <input type="text" id="edit-remarks" placeholder="ระบุเหตุผล (ถ้ามี)" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none">
+        </div>
+
+        <div class="flex items-center justify-between pt-2">
+          <button type="button" onclick="deleteCurrentCellRecord()" class="text-rose-600 hover:text-rose-800 text-xs font-bold px-2 py-1">
+            <i class="fa-solid fa-trash mr-1"></i> ลบรายการ
+          </button>
+          <div class="flex gap-2">
+            <button type="button" onclick="closeCellModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-50">
+              ยกเลิก
+            </button>
+            <button type="button" onclick="saveCellModal()" class="px-5 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-black shadow-sm">
+              บันทึก
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Bulk Attendance -->
+  <div id="bulkAttendanceModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-lg overflow-hidden animate-scaleIn">
+      <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white flex items-center justify-between">
+        <h4 class="text-sm font-black flex items-center gap-2">
+          <i class="fa-solid fa-user-check"></i> เช็คชื่อมาทำงานหลายคน (Bulk Attendance)
+        </h4>
+        <button onclick="closeBulkModal()" class="text-white/80 hover:text-white p-1 text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">วันที่เช็คชื่อ:</label>
+            <input type="date" id="bulk-date-input" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-900">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">สถานะ:</label>
+            <select id="bulk-status-select" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-900">
+              <option value="present">มาทำงานปกติ (Present)</option>
+              <option value="holiday">วันหยุด (Holiday)</option>
               <option value="absent">ขาดงาน (Absent)</option>
             </select>
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">หมายเหตุ / งานที่มอบหมาย</label>
-          <input type="text" id="op-note" placeholder="เช่น ดูแลลอน B และ C เป็นพิเศษ" class="w-full text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 font-medium focus:ring-2 focus:ring-teal-500 focus:outline-none">
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-xs font-bold text-slate-700">เลือกกลุ่มเป้าหมาย:</label>
+            <div class="flex gap-2">
+              <button type="button" onclick="bulkSelectAll(true)" class="text-[11px] font-bold text-blue-600 hover:underline">เลือกทั้งหมด</button>
+              <span class="text-slate-300">|</span>
+              <button type="button" onclick="bulkSelectAll(false)" class="text-[11px] font-bold text-slate-500 hover:underline">ยกเลิก</button>
+            </div>
+          </div>
+          <div id="bulk-emp-checkbox-list" class="max-h-56 overflow-y-auto space-y-1.5 p-2 bg-slate-50 rounded-2xl border border-slate-200 text-xs">
+            <!-- Injected by JS -->
+          </div>
         </div>
 
-        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-          <button type="button" onclick="closeOperatorModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition">
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+          <button type="button" onclick="closeBulkModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-50">
             ยกเลิก
           </button>
-          <button type="submit" class="px-5 py-2 text-xs font-black text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-sm transition">
-            บันทึกข้อมูล
+          <button type="button" onclick="applyBulkAttendance()" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black shadow-sm">
+            บันทึกการเช็คชื่อ
           </button>
         </div>
-      </form>
+      </div>
     </div>
   </div>
 
-  <!-- Footer -->
-  <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
-    ระบบลงรายชื่อและจัดผังผู้ปฏิบัติงานประจำกะ &bull; แผนกผลิต PD &bull; NewdataPD System 2026
-  </footer>
+  <!-- Modal 3: Employee Avatar & Profile Preview -->
+  <div id="avatarPreviewModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-sm overflow-hidden text-center p-6 space-y-4">
+      <div class="relative inline-block mx-auto">
+        <img id="preview-avatar-img" src="" alt="" class="w-36 h-36 rounded-full object-cover border-4 border-orange-500 shadow-xl mx-auto">
+        <span id="preview-leader-crown" class="absolute top-1 right-1 w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center shadow hidden">
+          <i class="fa-solid fa-crown text-sm"></i>
+        </span>
+      </div>
 
+      <div>
+        <h3 class="text-lg font-black text-slate-900" id="preview-emp-name">นายคะนอง ศิริวรรณ</h3>
+        <p class="text-sm font-extrabold text-orange-600" id="preview-emp-nickname">(นอง)</p>
+      </div>
+
+      <div class="bg-slate-50 rounded-2xl p-3 border border-slate-200 text-xs space-y-1.5 text-left">
+        <div class="flex justify-between">
+          <span class="text-slate-500 font-semibold">รหัสพนักงาน:</span>
+          <span class="font-bold text-slate-800 font-mono" id="preview-emp-code">24520003</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500 font-semibold">เครื่องจักร / กะ:</span>
+          <span class="font-bold text-slate-800" id="preview-emp-machine-shift">BHS / กะ A</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500 font-semibold">จุดประจำการ (Station):</span>
+          <span class="font-bold text-blue-700" id="preview-emp-station">Stacker</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500 font-semibold">ตำแหน่งงาน:</span>
+          <span class="font-bold text-slate-800" id="preview-emp-position">ผู้ปฏิบัติงาน Dry End</span>
+        </div>
+      </div>
+
+      <button type="button" onclick="closeAvatarModal()" class="w-full py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition">
+        ปิดหน้าต่าง
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- JavaScript Application Logic               -->
+  <!-- ========================================== -->
   <script>
-    // ==========================================
-    // INITIAL SAMPLE ROSTER DATA
-    // ==========================================
-    const DEFAULT_ROSTER = [
-      // BHS Shift A
-      { id: '1', machine: 'BHS', shift: 'A', role: 'หัวหน้ากะ / ช่างคุมเครื่อง', name: 'นายเกรียงไกร ชัยมงคล', code: 'PD-101', status: 'present', note: 'หัวหน้ากะ A คุมเครื่อง BHS' },
-      { id: '2', machine: 'BHS', shift: 'A', role: 'พนักงานคุมหัวเครื่อง (Wet End)', name: 'นายสมพร พันธุ์ดี', code: 'PD-102', status: 'present', note: 'คุมหัวเครื่อง / ความร้อน' },
-      { id: '3', machine: 'BHS', shift: 'A', role: 'พนักงานคุมท้ายเครื่อง (Dry End)', name: 'นายอนุชา แสนสุข', code: 'PD-103', status: 'ot', note: 'คุม Stacker + ทำ OT 4 ชม.' },
-      { id: '4', machine: 'BHS', shift: 'A', role: 'พนักงานเตรียมกระดาษ (Reel Feeder)', name: 'นายวีระ วงศ์ษา', code: 'PD-104', status: 'present', note: 'เปลี่ยนม้วนกระดาษ ขา 1-2' },
-      { id: '5', machine: 'BHS', shift: 'A', role: 'พนักงานทำกาว & สารเคมี (Glue Kitchen)', name: 'นายธีระพล มารวย', code: 'PD-105', status: 'present', note: 'ต้มกาวสูตรแป้งข้าวโพด' },
-      { id: '6', machine: 'BHS', shift: 'A', role: 'พนักงานช่วยหน้างาน / QC', name: 'นายมานพ กลิ่นแก้ว', code: 'PD-106', status: 'ot', note: 'ตรวจขนาดกระดาษและลอน' },
-      
-      // BHS Shift B
-      { id: '7', machine: 'BHS', shift: 'B', role: 'หัวหน้ากะ / ช่างคุมเครื่อง', name: 'นายประสิทธิ์ สุขเกษม', code: 'PD-107', status: 'present', note: 'หัวหน้ากะ B' },
-      { id: '8', machine: 'BHS', shift: 'B', role: 'พนักงานคุมหัวเครื่อง (Wet End)', name: 'นายเฉลิม ลาภมาก', code: 'PD-108', status: 'present', note: 'คุมหัวเครื่องรอบดึก' },
-      { id: '9', machine: 'BHS', shift: 'B', role: 'พนักงานคุมท้ายเครื่อง (Dry End)', name: 'นายชูศักดิ์ รุ่งเรือง', code: 'PD-109', status: 'present', note: 'คุมท้ายเครื่อง' },
-      { id: '10', machine: 'BHS', shift: 'B', role: 'พนักงานเตรียมกระดาษ (Reel Feeder)', name: 'นายสมบูรณ์ ขันทอง', code: 'PD-110', status: 'leave', note: 'ลากิจ (มีคนแทน)' },
-
-      // YUELI Shift A
-      { id: '11', machine: 'YUELI', shift: 'A', role: 'หัวหน้ากะ / ช่างคุมเครื่อง', name: 'นายสมบัติ ทวีลาภ', code: 'PD-201', status: 'present', note: 'คุมเครื่อง YUELI' },
-      { id: '12', machine: 'YUELI', shift: 'A', role: 'พนักงานคุมหัวเครื่อง (Wet End)', name: 'นายกิตติศักดิ์ บุญชู', code: 'PD-202', status: 'ot', note: 'คุมหัวลอน E/B' },
-      { id: '13', machine: 'YUELI', shift: 'A', role: 'พนักงานคุมท้ายเครื่อง (Dry End)', name: 'นายธวัชชัย รัตนชัย', code: 'PD-203', status: 'present', note: 'คุมเก็บแผ่น' },
-      { id: '14', machine: 'YUELI', shift: 'A', role: 'พนักงานเตรียมกระดาษ (Reel Feeder)', name: 'นายศราวุธ ดีใจ', code: 'PD-204', status: 'present', note: 'จัดม้วนกระดาษ' },
-
-      // ISOWA Shift A
-      { id: '15', machine: 'ISOWA', shift: 'A', role: 'หัวหน้ากะ / ช่างคุมเครื่อง', name: 'นายศักดิ์ดา มงคลกุล', code: 'PD-301', status: 'present', note: 'คุมเครื่อง ISOWA' },
-      { id: '16', machine: 'ISOWA', shift: 'A', role: 'พนักงานคุมหัวเครื่อง (Wet End)', name: 'นายปรีชา คุ้มภัย', code: 'PD-302', status: 'present', note: 'คุมอุณหภูมิ' },
-      { id: '17', machine: 'ISOWA', shift: 'A', role: 'พนักงานคุมท้ายเครื่อง (Dry End)', name: 'นายอดิศักดิ์ ดวงแก้ว', code: 'PD-303', status: 'ot', note: 'คุมสายพานส่งแผ่น' }
+    // 1. Constants & Status Maps matching datamanbhs
+    const THAI_MONTHS = [
+      '', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน',
+      'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม',
+      'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
     ];
+    const THAI_DAYS = ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'];
 
-    let currentMachine = 'BHS';
-    let currentShift = 'A';
-    let currentDate = '';
-    let rosterData = [];
+    const STATUS_MAP = {
+      'present':        { label: 'มา', bg: '#d4edda', text: '#155724', border: '#c3e6cb' },
+      'absent':         { label: 'ขาด', bg: '#f8d7da', text: '#721c24', border: '#f5c6cb' },
+      'sick_leave':     { label: 'ลาป่วย', bg: '#fff3cd', text: '#856404', border: '#ffeeba' },
+      'annual_leave':   { label: 'พักร้อน', bg: '#cce5ff', text: '#004085', border: '#b8daff' },
+      'business_leave': { label: 'ลากิจ', bg: '#d1ecf1', text: '#0c5460', border: '#bee5eb' },
+      'personal_leave': { label: 'ลากิจ', bg: '#d1ecf1', text: '#0c5460', border: '#bee5eb' },
+      'ordination_leave': { label: 'ลาบวช', bg: '#fff3cd', text: '#856404', border: '#ffeeba' },
+      'caregiver_leave': { label: 'เฝ้าไข้', bg: '#e2d9f3', text: '#432874', border: '#d5c7ee' },
+      'maternity_leave': { label: 'ลาคลอด', bg: '#fce4ec', text: '#880e4f', border: '#f8bbd0' },
+      'late':           { label: 'มาสาย', bg: '#ffe082', text: '#5d4037', border: '#ffd54f' },
+      'holiday':        { label: 'วันหยุด', bg: '#fff1f2', text: '#e11d48', border: '#fecdd3' },
+      'other_leave':    { label: 'ลาอื่นๆ', bg: '#e0e0e0', text: '#424242', border: '#cccccc' }
+    };
 
-    // Initialize Page
-    document.addEventListener('DOMContentLoaded', () => {
-      // Set default date to today YYYY-MM-DD
-      const today = new Date();
-      currentDate = today.toISOString().split('T')[0];
-      const dateInput = document.getElementById('select-date');
-      if (dateInput) dateInput.value = currentDate;
+    const SHIFT_THEMES = {
+      'A': {
+        name: 'กะ A',
+        bg: '#eff6ff',
+        border: '6px solid #2563eb',
+        text: '#1e40af',
+        badge: 'bg-blue-600 text-white'
+      },
+      'B': {
+        name: 'กะ B',
+        bg: '#fef2f2',
+        border: '6px solid #dc2626',
+        text: '#991b1b',
+        badge: 'bg-rose-600 text-white'
+      },
+      'Normal': {
+        name: 'กะกลาง (Normal)',
+        bg: '#f8fafc',
+        border: '6px solid #64748b',
+        text: '#334155',
+        badge: 'bg-slate-700 text-white'
+      },
+      'AB': {
+        name: 'กะ AB (สำนักงาน / ประจำ)',
+        bg: '#f8fafc',
+        border: '6px solid #475569',
+        text: '#1e293b',
+        badge: 'bg-slate-800 text-white'
+      }
+    };
 
-      loadRosterData();
-      renderRoster();
-    });
+    // 2. Data Store with LocalStorage Persistence
+    const STORAGE_KEY = 'datamanbhs_attendance_v1';
+    let appData = {
+      employees: [],
+      attendance: {},   // key: `${empId}_${dateStr}` => record
+      dailyShifts: {}   // key: `${machine}_${shiftGroup}_${dateStr}` => 'เช้า' | 'ดึก' | 'PM'
+    };
 
-    function setTodayDate() {
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('select-date').value = today;
-      onFilterChange();
-    }
+    let doughnutChart = null;
+    let selectedEmpIds = new Set();
 
-    function loadRosterData() {
-      try {
-        const stored = localStorage.getItem('pd_attendance_roster_v1');
-        if (stored) {
-          rosterData = JSON.parse(stored);
-        } else {
-          rosterData = [...DEFAULT_ROSTER];
-          saveRosterToStorage();
+    // 3. Initialize Data
+    function initData() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          appData = JSON.parse(saved);
+        } catch (e) {
+          loadFromDatamanbhsInitial();
         }
-      } catch (e) {
-        rosterData = [...DEFAULT_ROSTER];
-      }
-    }
-
-    function saveRosterToStorage() {
-      try {
-        localStorage.setItem('pd_attendance_roster_v1', JSON.stringify(rosterData));
-      } catch(e) {}
-    }
-
-    function onFilterChange() {
-      currentMachine = document.getElementById('select-machine').value;
-      currentShift = document.getElementById('select-shift').value;
-      currentDate = document.getElementById('select-date').value;
-      renderRoster();
-    }
-
-    function renderRoster() {
-      // Update Banner Info
-      const machName = currentMachine === 'ALL' ? 'รวมทุกเครื่อง (TOTAL)' : `เครื่อง ${currentMachine}`;
-      document.getElementById('banner-machine-label').textContent = machName;
-      
-      const shiftNames = { A: 'กะ A (เช้า 08:00 - 20:00)', B: 'กะ B (ดึก 20:00 - 08:00)', C: 'กะ C (เสริม)' };
-      document.getElementById('banner-shift-badge').textContent = shiftNames[currentShift] || `กะ ${currentShift}`;
-      
-      if (currentDate) {
-        const [y, m, d] = currentDate.split('-');
-        const thMonths = ['', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
-        const thYear = parseInt(y) + 543;
-        document.getElementById('banner-date-label').textContent = `${parseInt(d)} ${thMonths[parseInt(m)]} ${thYear}`;
+      } else {
+        loadFromDatamanbhsInitial();
       }
 
-      // Filter Data
-      let filtered = rosterData.filter(r => r.shift === currentShift);
-      if (currentMachine !== 'ALL') {
-        filtered = filtered.filter(r => r.machine === currentMachine);
+      // Set default date input in bulk modal
+      const today = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const todayStr = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+      const bulkInput = document.getElementById('bulk-date-input');
+      if (bulkInput) bulkInput.value = todayStr;
+    }
+
+    function loadFromDatamanbhsInitial() {
+      const src = window.DATAMANBHS_INITIAL || { employees: [], attendance: [], daily_shifts: [] };
+      appData.employees = src.employees || [];
+      appData.attendance = {};
+      appData.dailyShifts = {};
+
+      if (Array.isArray(src.attendance)) {
+        src.attendance.forEach(r => {
+          const key = `${r.employee_id}_${r.work_date}`;
+          appData.attendance[key] = {
+            id: r.id,
+            employee_id: r.employee_id,
+            work_date: r.work_date,
+            status: r.status,
+            days_count: parseFloat(r.days_count || 1.0),
+            remarks: r.remarks || ''
+          };
+        });
       }
 
-      // Compute KPIs
-      const totalStaff = filtered.length;
-      const presentCount = filtered.filter(r => r.status === 'present' || r.status === 'ot').length;
-      const otCount = filtered.filter(r => r.status === 'ot').length;
-      const leaveCount = filtered.filter(r => r.status === 'leave' || r.status === 'absent').length;
-      const presentPct = totalStaff > 0 ? Math.round((presentCount / totalStaff) * 100) : 100;
+      if (Array.isArray(src.daily_shifts)) {
+        src.daily_shifts.forEach(s => {
+          const grp = (s.shift_group || 'A').toUpperCase();
+          const key = `${s.machine || 'BHS'}_${grp}_${s.work_date}`;
+          appData.dailyShifts[key] = s.shift_type;
+        });
+      }
 
-      document.getElementById('kpi-total-staff').textContent = `${totalStaff} คน`;
-      document.getElementById('kpi-present-staff').textContent = `${presentCount} คน`;
-      document.getElementById('kpi-present-pct').textContent = `${presentPct}% ของกะ`;
-      document.getElementById('kpi-ot-staff').textContent = `${otCount} คน`;
-      document.getElementById('kpi-leave-staff').textContent = `${leaveCount} คน`;
-      document.getElementById('banner-headcount-badge').textContent = `มาปฏิบัติงาน ${presentCount}/${totalStaff} คน`;
+      saveData();
+    }
 
-      // Render Machine Cards
-      const container = document.getElementById('roster-container');
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+    }
+
+    function resetToDefaultData() {
+      Swal.fire({
+        title: 'คืนค่าข้อมูลดั้งเดิม?',
+        text: 'ระบบจะคืนค่ารายชื่อพนักงานและประวัติการลงเวลาให้ตรงกับฐานข้อมูล datamanbhs ดั้งเดิม',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ea580c',
+        cancelButtonColor: '#94a3b8',
+        confirmButtonText: 'ใช่, คืนค่าดั้งเดิม',
+        cancelButtonText: 'ยกเลิก'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          localStorage.removeItem(STORAGE_KEY);
+          loadFromDatamanbhsInitial();
+          renderDashboard();
+          Swal.fire('สำเร็จ', 'คืนค่าข้อมูลดั้งเดิมเรียบร้อยแล้ว', 'success');
+        }
+      });
+    }
+
+    // 4. Render Engine
+    function applyFilters() {
+      renderDashboard();
+    }
+
+    function resetFilters() {
+      document.getElementById('filter-machine').value = 'BHS';
+      document.getElementById('filter-shift').value = '';
+      document.getElementById('filter-month').value = '11';
+      document.getElementById('filter-year').value = '2026';
+      renderDashboard();
+    }
+
+    function renderDashboard() {
+      const machine = document.getElementById('filter-machine').value;
+      const shift = document.getElementById('filter-shift').value;
+      const month = parseInt(document.getElementById('filter-month').value);
+      const year = parseInt(document.getElementById('filter-year').value);
+
+      // Update Header Text
+      document.getElementById('title-machine-badge').textContent = machine === 'ALL' ? 'ทุกเครื่องจักร (TOTAL)' : `เครื่อง ${machine}`;
+      document.getElementById('title-shift-badge').textContent = shift ? `กะ ${shift}` : 'ทุกกะ';
+      document.getElementById('title-month-text').textContent = `${THAI_MONTHS[month]} ${year + 543}`;
+
+      // Calculate days in month
+      const daysInMonth = new Date(year, month, 0).getDate();
+
+      // Filter Employees
+      let filteredEmps = appData.employees.filter(e => {
+        if (machine !== 'ALL' && e.machine !== machine) return false;
+        if (shift !== '' && e.shift !== shift) return false;
+        return true;
+      });
+
+      // Group by shift
+      const shiftGroups = {};
+      filteredEmps.forEach(emp => {
+        const s = emp.shift || 'A';
+        if (!shiftGroups[s]) shiftGroups[s] = [];
+        shiftGroups[s].push(emp);
+      });
+
+      const container = document.getElementById('attendance-tables-container');
       container.innerHTML = '';
 
-      const machinesToRender = currentMachine === 'ALL' ? ['BHS', 'YUELI', 'ISOWA'] : [currentMachine];
-
-      machinesToRender.forEach(mach => {
-        const machStaff = rosterData.filter(r => r.machine === mach && r.shift === currentShift);
-        
-        const card = document.createElement('div');
-        card.className = 'bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden';
-        
-        const machColor = mach === 'BHS' ? 'from-amber-600 to-amber-700' : (mach === 'YUELI' ? 'from-blue-600 to-indigo-700' : 'from-emerald-600 to-teal-700');
-        
-        let cardHtml = `
-          <div class="bg-gradient-to-r ${machColor} text-white px-5 py-3.5 flex justify-between items-center">
-            <div class="flex items-center gap-2.5">
-              <i class="fa-solid fa-industry text-lg"></i>
-              <h3 class="text-base sm:text-lg font-black tracking-wide">เครื่อง ${mach} — ประจำกะ ${currentShift}</h3>
-            </div>
-            <span class="text-xs font-bold px-3 py-1 bg-white/20 rounded-full border border-white/30 backdrop-blur-xs">
-              ประจำตำแหน่ง: ${machStaff.length} คน
-            </span>
+      if (filteredEmps.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white rounded-3xl p-10 text-center border border-slate-200 shadow-sm">
+            <i class="fa-solid fa-users-slash text-4xl text-slate-300 mb-3"></i>
+            <h4 class="font-bold text-slate-700">ไม่พบข้อมูลพนักงานสำหรับตัวกรองนี้</h4>
+            <p class="text-xs text-slate-400 mt-1">กรุณาเลือกเครื่องจักรหรือกะการทำงานอื่น</p>
           </div>
-          <div class="p-4 sm:p-5 overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs sm:text-sm">
-              <thead>
-                <tr class="border-b-2 border-slate-200 text-slate-500 font-extrabold uppercase tracking-wider text-[11px] sm:text-xs">
-                  <th class="py-2.5 px-3">ตำแหน่งหน้าที่</th>
-                  <th class="py-2.5 px-3">ชื่อ - นามสกุล</th>
-                  <th class="py-2.5 px-3 text-center">รหัส</th>
-                  <th class="py-2.5 px-3 text-center">สถานะ</th>
-                  <th class="py-2.5 px-3">หมายเหตุ</th>
-                  <th class="py-2.5 px-3 text-center" data-html2canvas-ignore="true">จัดการ</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 font-medium">
         `;
+        renderAnalytics([], month, year, daysInMonth);
+        return;
+      }
 
-        if (machStaff.length === 0) {
-          cardHtml += `
-            <tr>
-              <td colspan="6" class="py-8 text-center text-slate-400 font-bold">
-                <i class="fa-solid fa-user-slash text-2xl mb-2 block text-slate-300"></i>
-                ยังไม่มีข้อมูลผู้ปฏิบัติงานสำหรับเครื่องนี้ในกะ ${currentShift}
-              </td>
-            </tr>
-          `;
-        } else {
-          machStaff.forEach(st => {
-            const statusBadges = {
-              present: '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200"><i class="fa-solid fa-circle-check text-[10px]"></i> มาทำงาน</span>',
-              ot: '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800 border border-purple-200"><i class="fa-solid fa-clock text-[10px]"></i> ทำ OT</span>',
-              leave: '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200"><i class="fa-solid fa-user-clock text-[10px]"></i> ลางาน</span>',
-              absent: '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-200"><i class="fa-solid fa-circle-xmark text-[10px]"></i> ขาดงาน</span>'
-            };
+      // Render Table per Shift (A, B, Normal)
+      const order = ['A', 'B', 'AB', 'Normal'];
+      order.forEach(sKey => {
+        if (!shiftGroups[sKey] || shiftGroups[sKey].length === 0) return;
+        const emps = shiftGroups[sKey];
+        const tableHtml = createShiftTableHtml(sKey, emps, machine, month, year, daysInMonth);
+        container.insertAdjacentHTML('beforeend', tableHtml);
+      });
 
-            cardHtml += `
-              <tr class="hover:bg-slate-50 transition">
-                <td class="py-3 px-3 font-bold text-slate-800 flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full ${st.status === 'present' || st.status === 'ot' ? 'bg-emerald-500' : 'bg-rose-500'}"></span>
-                  ${st.role}
-                </td>
-                <td class="py-3 px-3 font-extrabold text-slate-900">${st.name}</td>
-                <td class="py-3 px-3 text-center text-slate-500 font-mono text-xs">${st.code || '-'}</td>
-                <td class="py-3 px-3 text-center">${statusBadges[st.status] || st.status}</td>
-                <td class="py-3 px-3 text-slate-600 text-xs">${st.note || '-'}</td>
-                <td class="py-3 px-3 text-center" data-html2canvas-ignore="true">
-                  <div class="inline-flex items-center gap-1">
-                    <button onclick="editOperator('${st.id}')" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="แก้ไข">
-                      <i class="fa-solid fa-pen-to-square"></i>
-                    </button>
-                    <button onclick="deleteOperator('${st.id}')" class="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition" title="ลบ">
-                      <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            `;
-          });
+      // Render Charts & Analytics
+      renderAnalytics(filteredEmps, month, year, daysInMonth);
+      updateFloatingBulkBar();
+    }
+
+    function createShiftTableHtml(shiftKey, emps, currentMachine, month, year, daysInMonth) {
+      const theme = SHIFT_THEMES[shiftKey] || {
+        name: `กะ ${shiftKey}`,
+        bg: '#f8fafc',
+        border: '6px solid #64748b',
+        text: '#334155',
+        badge: 'bg-slate-700 text-white'
+      };
+
+      const tableCardId = `card-shift-${shiftKey}`;
+      const pad = n => String(n).padStart(2, '0');
+
+      let headersDays = '';
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateObj = new Date(year, month - 1, d);
+        const dow = dateObj.getDay();
+        const isSunday = dow === 0;
+        const dateStr = `${year}-${pad(month)}-${pad(d)}`;
+
+        // Check daily shift assignment (เช้า / ดึก / PM)
+        const shiftMapMachine = currentMachine === 'ALL' ? 'BHS' : currentMachine;
+        const dsKey = `${shiftMapMachine}_${shiftKey}_${dateStr}`;
+        const shiftType = appData.dailyShifts[dsKey] || null;
+
+        let colClass = isSunday ? 'col-sunday' : '';
+        let shiftBadge = '';
+
+        if (shiftType === 'เช้า') {
+          colClass = 'col-shift-morning';
+          shiftBadge = '☀️ เช้า';
+        } else if (shiftType === 'ดึก') {
+          colClass = 'col-shift-night';
+          shiftBadge = '🌙 ดึก';
+        } else if (shiftType === 'PM') {
+          colClass = 'col-shift-pm';
+          shiftBadge = '🌆 PM';
         }
 
-        cardHtml += `
+        headersDays += `
+          <th class="col-day ${colClass}" title="${THAI_DAYS[dow]} ${d}/${month}/${year+543} ${shiftBadge ? `[${shiftBadge}]` : ''}">
+            <span class="day-num font-mono text-[11px] block">${d}</span>
+            <span class="day-name text-[9px] block opacity-80">${THAI_DAYS[dow]}</span>
+            <div class="mt-0.5">
+              <button type="button" onclick="cycleShiftType('${shiftMapMachine}', '${shiftKey}', '${dateStr}', event)" 
+                      class="text-[9px] font-bold px-1 py-0 rounded-full border shadow-2xs ${shiftType ? 'bg-white/90 text-slate-900 border-slate-300' : 'bg-slate-200/80 text-slate-700 border-transparent hover:bg-slate-300'}"
+                      title="คลิกเพื่อสลับกะ: เช้า -> ดึก -> PM -> ค่าปกติ">
+                ${shiftBadge || '+ กะ'}
+              </button>
+            </div>
+          </th>
+        `;
+      }
+
+      // Generate Employee Rows
+      let rowsHtml = '';
+      const shiftColTotals = { present: 0, holiday: 0, annual: 0, sick: 0, business: 0, other: 0, total_leave: 0, absent: 0 };
+      const dayTotals = Array.from({ length: daysInMonth + 1 }, () => ({ present: 0, absent: 0, leave: 0 }));
+
+      emps.forEach(emp => {
+        const eid = emp.id;
+        const isLeader = (emp.station === 'Host' || (emp.position && emp.position.includes('หัวหน้า')));
+        const leaderTitle = isLeader ? 'หัวหน้ากะ' : '';
+        const avatarSrc = emp.avatar ? `assets/uploads/employees/${emp.avatar}` : '';
+        const isChecked = selectedEmpIds.has(eid);
+
+        // Employee Totals
+        const empSum = { present: 0, holiday: 0, annual: 0, sick: 0, business: 0, other: 0, total_leave: 0, absent: 0 };
+
+        let cellsHtml = '';
+        for (let d = 1; d <= daysInMonth; d++) {
+          const dateObj = new Date(year, month - 1, d);
+          const isSunday = dateObj.getDay() === 0;
+          const dateStr = `${year}-${pad(month)}-${pad(d)}`;
+          const recKey = `${eid}_${dateStr}`;
+          const rec = appData.attendance[recKey];
+
+          let st = rec ? rec.status : null;
+          let daysCount = rec ? rec.days_count : 1.0;
+          let cellStyle = '';
+          let cellLabel = '';
+
+          if (st && STATUS_MAP[st]) {
+            const info = STATUS_MAP[st];
+            cellStyle = `background:${info.bg}; color:${info.text}; border-color:${info.border}; font-weight:700;`;
+            cellLabel = info.label;
+
+            // Count for summary
+            if (st === 'present') {
+              empSum.present += daysCount;
+              dayTotals[d].present += 1;
+            } else if (st === 'absent') {
+              empSum.absent += daysCount;
+              dayTotals[d].absent += 1;
+            } else if (st === 'sick_leave') {
+              empSum.sick += daysCount;
+              empSum.total_leave += daysCount;
+              dayTotals[d].leave += 1;
+            } else if (st === 'annual_leave') {
+              empSum.annual += daysCount;
+              empSum.total_leave += daysCount;
+              dayTotals[d].leave += 1;
+            } else if (st === 'business_leave' || st === 'personal_leave') {
+              empSum.business += daysCount;
+              empSum.total_leave += daysCount;
+              dayTotals[d].leave += 1;
+            } else if (st === 'holiday') {
+              empSum.holiday += daysCount;
+            } else {
+              empSum.other += daysCount;
+              empSum.total_leave += daysCount;
+              dayTotals[d].leave += 1;
+            }
+          } else if (isSunday) {
+            cellStyle = 'background:#fff1f2; color:#e11d48;';
+            cellLabel = '<span style="color:#e11d48;font-size:0.62rem;font-weight:700;">วันหยุด</span>';
+            empSum.holiday += 1;
+          } else {
+            cellLabel = '<span style="opacity:0.25;font-size:0.9rem;">·</span>';
+          }
+
+          cellsHtml += `
+            <td class="col-day ${isSunday ? 'cell-sunday' : ''}" style="${cellStyle}" 
+                onclick="openCellModal(${eid}, '${dateStr}', '${st || (isSunday ? 'holiday' : 'present')}', '${escapeHtml(emp.first_name)} (${escapeHtml(emp.nickname||'')})', '${escapeHtml(emp.station||'')}')">
+              <span class="cell-badge-full">${cellLabel}</span>
+            </td>
+          `;
+        }
+
+        // Add to shift totals
+        shiftColTotals.present += empSum.present;
+        shiftColTotals.holiday += empSum.holiday;
+        shiftColTotals.annual += empSum.annual;
+        shiftColTotals.sick += empSum.sick;
+        shiftColTotals.business += empSum.business;
+        shiftColTotals.other += empSum.other;
+        shiftColTotals.total_leave += empSum.total_leave;
+        shiftColTotals.absent += empSum.absent;
+
+        rowsHtml += `
+          <tr class="hover:bg-amber-50/30 transition">
+            <td class="col-emp">
+              <div class="flex items-center gap-2">
+                <input type="checkbox" class="rounded text-orange-600 focus:ring-0 shrink-0" ${isChecked ? 'checked' : ''} onchange="toggleEmpCheck(${eid}, this.checked)">
+                <div class="relative shrink-0 cursor-pointer" onclick="openAvatarPreview(${eid})">
+                  ${avatarSrc ? `
+                    <img src="${avatarSrc}" class="emp-avatar-lg" alt="" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'emp-avatar-lg bg-orange-100 text-orange-800 font-bold flex items-center justify-center\\'>${escapeHtml(emp.nickname || emp.first_name[0])}</div>'">
+                  ` : `
+                    <div class="emp-avatar-lg bg-orange-100 text-orange-800 font-black text-xs flex items-center justify-center">
+                      ${escapeHtml(emp.nickname || emp.first_name[0])}
+                    </div>
+                  `}
+                  ${isLeader ? `
+                    <span class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-[10px] shadow" title="หัวหน้ากะ">
+                      <i class="fa-solid fa-crown"></i>
+                    </span>
+                  ` : ''}
+                </div>
+                <div class="min-w-0 overflow-hidden leading-tight">
+                  <div class="flex items-center gap-1 flex-wrap">
+                    <span class="font-bold text-slate-900 text-xs truncate">${escapeHtml(emp.first_name)}</span>
+                    ${emp.nickname ? `<span class="text-orange-600 font-black text-xs">(${escapeHtml(emp.nickname)})</span>` : ''}
+                    ${isLeader ? `<span class="px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-300 font-bold text-[9px]"><i class="fa-solid fa-crown text-[8px] mr-0.5"></i>กะ</span>` : ''}
+                  </div>
+                  <div class="flex items-center gap-1 text-[11px] text-slate-500 mt-0.5">
+                    <span class="px-1 py-0 rounded bg-slate-100 text-slate-700 font-bold text-[10px] border border-slate-200">${escapeHtml(emp.station || '-')}</span>
+                    <span class="font-mono text-[10px] text-slate-400">${escapeHtml(emp.employee_code)}</span>
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td class="col-shift">
+              <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold ${emp.shift==='A' ? 'bg-blue-100 text-blue-800' : (emp.shift==='B' ? 'bg-rose-100 text-rose-800' : 'bg-slate-100 text-slate-800')}">${emp.shift}</span>
+            </td>
+            ${cellsHtml}
+            <td class="col-sum sum-present col-sum-start">${fmtNumber(empSum.present)}</td>
+            <td class="col-sum sum-holiday">${fmtNumber(empSum.holiday)}</td>
+            <td class="col-sum sum-annual">${fmtNumber(empSum.annual)}</td>
+            <td class="col-sum sum-sick">${fmtNumber(empSum.sick)}</td>
+            <td class="col-sum sum-business">${fmtNumber(empSum.business)}</td>
+            <td class="col-sum sum-other">${fmtNumber(empSum.other)}</td>
+            <td class="col-sum sum-total-leave">${fmtNumber(empSum.total_leave)}</td>
+            <td class="col-sum sum-absent">${fmtNumber(empSum.absent)}</td>
+          </tr>
+        `;
+      });
+
+      // Daily summary bottom row
+      let daySumCells = '';
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dt = dayTotals[d];
+        const dateObj = new Date(year, month - 1, d);
+        const isSunday = dateObj.getDay() === 0;
+        if (dt.present || dt.absent || dt.leave) {
+          daySumCells += `
+            <td style="font-size:0.6rem; line-height:1.2; padding:2px 1px; ${isSunday?'background:#fff1f2;':''}">
+              ${dt.present ? `<span class="text-emerald-700 font-bold block">มา ${dt.present}</span>` : ''}
+              ${dt.absent ? `<span class="text-rose-700 font-bold block">ขาด ${dt.absent}</span>` : ''}
+              ${dt.leave ? `<span class="text-blue-700 font-bold block">ลา ${dt.leave}</span>` : ''}
+            </td>
+          `;
+        } else if (isSunday) {
+          daySumCells += `<td style="background:#fff1f2; color:#e11d48; font-size:0.6rem; font-weight:700;">หยุด</td>`;
+        } else {
+          daySumCells += `<td class="text-slate-300">-</td>`;
+        }
+      }
+
+      return `
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden" id="${tableCardId}">
+          <!-- Shift Card Header -->
+          <div class="p-3.5 px-5 border-b border-slate-200 flex items-center justify-between flex-wrap gap-2" style="background:${theme.bg}; border-left:${theme.border};">
+            <div class="flex items-center gap-2.5 flex-wrap">
+              <span class="px-2.5 py-1 rounded-full text-xs font-black ${theme.badge}">
+                <i class="fa-solid fa-people-group mr-1"></i> ${theme.name}
+              </span>
+              <span class="font-black text-base sm:text-lg" style="color:${theme.text};">
+                ตารางบันทึกเวลาทำงาน & ประวัติการลา &mdash; เครื่อง ${currentMachine} (${theme.name})
+              </span>
+              <span class="px-2 py-0.5 rounded-full bg-white text-slate-700 border border-slate-200 text-xs font-bold">
+                ${emps.length} คน
+              </span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="scrollToRightSummary('${tableCardId}')" class="px-3 py-1.5 rounded-xl border border-blue-200 bg-white hover:bg-blue-50 text-blue-700 text-xs font-bold transition shadow-2xs">
+                <i class="fa-solid fa-arrow-right mr-1"></i> ดูผลรวมขวาสุด
+              </button>
+              <button type="button" onclick="downloadSingleTableImage('${tableCardId}', '${theme.name}')" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-2xs">
+                <i class="fa-solid fa-camera mr-1"></i> แคปรูป${theme.name} (HD)
+              </button>
+            </div>
+          </div>
+
+          <!-- Table Container with Scroll -->
+          <div class="overflow-x-auto max-h-[75vh]" id="${tableCardId}-scroll">
+            <table class="att-table">
+              <thead>
+                <tr>
+                  <th class="col-emp">
+                    <div class="flex items-center gap-2">
+                      <input type="checkbox" onchange="toggleSelectShiftGroup('${shiftKey}', this.checked)" class="rounded text-orange-600 focus:ring-0">
+                      <span>พนักงาน (รูป / ชื่อ / จุดประจำการ)</span>
+                    </div>
+                  </th>
+                  <th class="col-shift">กะ</th>
+                  ${headersDays}
+                  <th class="col-sum sum-present col-sum-start" title="รวมมาทำงาน (วัน)"><span class="text-[9px] text-emerald-800 block">รวม</span>มา</th>
+                  <th class="col-sum sum-holiday" title="วันหยุดรวม (วัน)"><span class="text-[9px] text-rose-800 block">รวม</span>หยุด</th>
+                  <th class="col-sum sum-annual" title="ลาพักร้อนรวม (วัน)"><span class="text-[9px] text-sky-800 block">รวม</span>พักร้อน</th>
+                  <th class="col-sum sum-sick" title="ลาป่วยรวม (วัน)"><span class="text-[9px] text-amber-800 block">ลา</span>ป่วย</th>
+                  <th class="col-sum sum-business" title="ลากิจรวม (วัน)"><span class="text-[9px] text-cyan-800 block">ลา</span>กิจ</th>
+                  <th class="col-sum sum-other" title="ลาอื่นๆรวม (วัน)"><span class="text-[9px] text-purple-800 block">ลา</span>อื่นๆ</th>
+                  <th class="col-sum sum-total-leave" title="รวมวันลาทุกประเภท"><span class="text-[9px] text-blue-800 block">ทั้งหมด</span>รวมลา</th>
+                  <th class="col-sum sum-absent" title="ขาดงานรวม (วัน)"><span class="text-[9px] text-rose-800 block">รวม</span>ขาด</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHtml}
+                <!-- Bottom Shift Summary Row -->
+                <tr class="bg-slate-50 font-bold border-t-2 border-slate-300">
+                  <td class="col-emp bg-slate-100 font-black text-xs text-slate-800">รวมต่อวัน (${theme.name})</td>
+                  <td class="col-shift"></td>
+                  ${daySumCells}
+                  <td class="col-sum sum-present col-sum-start">${fmtNumber(shiftColTotals.present)}</td>
+                  <td class="col-sum sum-holiday">${fmtNumber(shiftColTotals.holiday)}</td>
+                  <td class="col-sum sum-annual">${fmtNumber(shiftColTotals.annual)}</td>
+                  <td class="col-sum sum-sick">${fmtNumber(shiftColTotals.sick)}</td>
+                  <td class="col-sum sum-business">${fmtNumber(shiftColTotals.business)}</td>
+                  <td class="col-sum sum-other">${fmtNumber(shiftColTotals.other)}</td>
+                  <td class="col-sum sum-total-leave">${fmtNumber(shiftColTotals.total_leave)}</td>
+                  <td class="col-sum sum-absent">${fmtNumber(shiftColTotals.absent)}</td>
+                </tr>
               </tbody>
             </table>
           </div>
-        `;
+        </div>
+      `;
+    }
 
-        card.innerHTML = cardHtml;
-        container.appendChild(card);
+    // 5. Scroll Table Helper
+    function scrollToRightSummary(cardId) {
+      const el = document.getElementById(`${cardId}-scroll`);
+      if (el) {
+        if (el.scrollLeft < 100) {
+          el.scrollTo({ left: el.scrollWidth, behavior: 'smooth' });
+        } else {
+          el.scrollTo({ left: 0, behavior: 'smooth' });
+        }
+      }
+    }
+
+    // 6. Shift Cycle Toggle (+ กะ on date header)
+    function cycleShiftType(machine, shiftGroup, dateStr, event) {
+      event.stopPropagation();
+      const key = `${machine}_${shiftGroup}_${dateStr}`;
+      const current = appData.dailyShifts[key];
+      let next = null;
+
+      if (!current) next = 'เช้า';
+      else if (current === 'เช้า') next = 'ดึก';
+      else if (current === 'ดึก') next = 'PM';
+      else next = null;
+
+      if (next) {
+        appData.dailyShifts[key] = next;
+      } else {
+        delete appData.dailyShifts[key];
+      }
+
+      saveData();
+      renderDashboard();
+    }
+
+    // 7. Modals: Edit Cell Status
+    function openCellModal(empId, dateStr, currentStatus, empName, station) {
+      document.getElementById('edit-emp-id').value = empId;
+      document.getElementById('edit-date-str').value = dateStr;
+      document.getElementById('modal-emp-name').textContent = empName;
+      
+      const parts = dateStr.split('-');
+      const d = parseInt(parts[2]);
+      const m = parseInt(parts[1]);
+      const y = parseInt(parts[0]) + 543;
+      document.getElementById('modal-date-text').textContent = `วันที่ ${d} ${THAI_MONTHS[m]} ${y} (จุดประจำการ: ${station || '-'})`;
+
+      const recKey = `${empId}_${dateStr}`;
+      const rec = appData.attendance[recKey];
+      const st = rec ? rec.status : currentStatus;
+      const daysCount = rec ? rec.days_count : 1.0;
+      const remarks = rec ? (rec.remarks || '') : '';
+
+      selectStatusInModal(st || 'present');
+      document.getElementById('edit-days-count').value = String(daysCount);
+      document.getElementById('edit-remarks').value = remarks;
+
+      document.getElementById('cellEditModal').classList.remove('hidden');
+    }
+
+    function selectStatusInModal(st) {
+      document.getElementById('edit-selected-status').value = st;
+      const btns = document.querySelectorAll('#status-button-group button');
+      btns.forEach(b => {
+        if (b.getAttribute('data-status') === st) {
+          b.classList.add('ring-2', 'ring-orange-500', 'shadow-sm');
+        } else {
+          b.classList.remove('ring-2', 'ring-orange-500', 'shadow-sm');
+        }
+      });
+    }
+
+    function closeCellModal() {
+      document.getElementById('cellEditModal').classList.add('hidden');
+    }
+
+    function saveCellModal() {
+      const empId = parseInt(document.getElementById('edit-emp-id').value);
+      const dateStr = document.getElementById('edit-date-str').value;
+      const st = document.getElementById('edit-selected-status').value;
+      const daysCount = parseFloat(document.getElementById('edit-days-count').value) || 1.0;
+      const remarks = document.getElementById('edit-remarks').value.trim();
+
+      const recKey = `${empId}_${dateStr}`;
+      appData.attendance[recKey] = {
+        employee_id: empId,
+        work_date: dateStr,
+        status: st,
+        days_count: daysCount,
+        remarks: remarks
+      };
+
+      saveData();
+      closeCellModal();
+      renderDashboard();
+    }
+
+    function deleteCurrentCellRecord() {
+      const empId = parseInt(document.getElementById('edit-emp-id').value);
+      const dateStr = document.getElementById('edit-date-str').value;
+      const recKey = `${empId}_${dateStr}`;
+      delete appData.attendance[recKey];
+
+      saveData();
+      closeCellModal();
+      renderDashboard();
+    }
+
+    // 8. Bulk Check Modal
+    function openBulkAttendanceModal() {
+      const list = document.getElementById('bulk-emp-checkbox-list');
+      list.innerHTML = '';
+
+      const machine = document.getElementById('filter-machine').value;
+      const emps = appData.employees.filter(e => machine === 'ALL' || e.machine === machine);
+
+      emps.forEach(e => {
+        list.insertAdjacentHTML('beforeend', `
+          <label class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">
+            <input type="checkbox" class="bulk-item-check rounded text-blue-600" value="${e.id}" checked>
+            <span class="font-bold text-slate-800">${escapeHtml(e.first_name)} ${e.nickname ? `(${escapeHtml(e.nickname)})` : ''}</span>
+            <span class="text-slate-400 font-mono text-[10px]">${e.employee_code}</span>
+            <span class="ml-auto text-[10px] font-bold px-1.5 py-0.2 rounded bg-slate-200 text-slate-700">${e.machine} ${e.shift}</span>
+          </label>
+        `);
       });
 
-      // Update Handover names if available
-      const chief = filtered.find(r => r.role.includes('หัวหน้า'));
-      if (chief) {
-        document.getElementById('note-handover-by').textContent = `${chief.name} (${chief.role})`;
+      document.getElementById('bulkAttendanceModal').classList.remove('hidden');
+    }
+
+    function closeBulkModal() {
+      document.getElementById('bulkAttendanceModal').classList.add('hidden');
+    }
+
+    function bulkSelectAll(flag) {
+      document.querySelectorAll('.bulk-item-check').forEach(cb => cb.checked = flag);
+    }
+
+    function applyBulkAttendance() {
+      const dateStr = document.getElementById('bulk-date-input').value;
+      const st = document.getElementById('bulk-status-select').value;
+      if (!dateStr) {
+        Swal.fire('ข้อผิดพลาด', 'กรุณาระบุวันที่', 'error');
+        return;
+      }
+
+      const checkedIds = Array.from(document.querySelectorAll('.bulk-item-check:checked')).map(cb => parseInt(cb.value));
+      if (checkedIds.length === 0) {
+        Swal.fire('ข้อผิดพลาด', 'กรุณาเลือกพนักงานอย่างน้อย 1 คน', 'warning');
+        return;
+      }
+
+      checkedIds.forEach(eid => {
+        const key = `${eid}_${dateStr}`;
+        appData.attendance[key] = {
+          employee_id: eid,
+          work_date: dateStr,
+          status: st,
+          days_count: 1.0,
+          remarks: 'บันทึกแบบกลุ่ม'
+        };
+      });
+
+      saveData();
+      closeBulkModal();
+      renderDashboard();
+      Swal.fire('สำเร็จ', `เช็คชื่อพนักงานจำนวน ${checkedIds.length} คน เรียบร้อยแล้ว`, 'success');
+    }
+
+    // 9. Floating Bulk Bar & Selection Logic
+    function toggleEmpCheck(empId, isChecked) {
+      if (isChecked) selectedEmpIds.add(empId);
+      else selectedEmpIds.delete(empId);
+      updateFloatingBulkBar();
+    }
+
+    function toggleSelectShiftGroup(shiftKey, isChecked) {
+      const emps = appData.employees.filter(e => e.shift === shiftKey);
+      emps.forEach(e => {
+        if (isChecked) selectedEmpIds.add(e.id);
+        else selectedEmpIds.delete(e.id);
+      });
+      renderDashboard();
+    }
+
+    function deselectAllEmployees() {
+      selectedEmpIds.clear();
+      renderDashboard();
+    }
+
+    function updateFloatingBulkBar() {
+      const bar = document.getElementById('floating-bulk-bar');
+      const countEl = document.getElementById('selected-emp-count');
+      if (selectedEmpIds.size > 0) {
+        countEl.textContent = selectedEmpIds.size;
+        bar.style.display = 'flex';
       } else {
-        document.getElementById('note-handover-by').textContent = '-';
+        bar.style.display = 'none';
       }
     }
 
-    // Modal Operations
-    function openAddOperatorModal() {
-      document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-user-plus text-teal-400"></i> เพิ่มรายชื่อผู้ปฏิบัติงาน';
-      document.getElementById('op-id').value = '';
-      document.getElementById('op-machine').value = currentMachine === 'ALL' ? 'BHS' : currentMachine;
-      document.getElementById('op-shift').value = currentShift;
-      document.getElementById('op-name').value = '';
-      document.getElementById('op-code').value = '';
-      document.getElementById('op-status').value = 'present';
-      document.getElementById('op-note').value = '';
-      document.getElementById('modal-operator').classList.remove('hidden');
-    }
+    function openBulkCheckSelectedModal() {
+      const today = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const dateStr = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
 
-    function editOperator(id) {
-      const st = rosterData.find(r => r.id === id);
-      if (!st) return;
-
-      document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-user-pen text-blue-400"></i> แก้ไขข้อมูลผู้ปฏิบัติงาน';
-      document.getElementById('op-id').value = st.id;
-      document.getElementById('op-machine').value = st.machine;
-      document.getElementById('op-shift').value = st.shift;
-      document.getElementById('op-role').value = st.role;
-      document.getElementById('op-name').value = st.name;
-      document.getElementById('op-code').value = st.code || '';
-      document.getElementById('op-status').value = st.status;
-      document.getElementById('op-note').value = st.note || '';
-      document.getElementById('modal-operator').classList.remove('hidden');
-    }
-
-    function closeOperatorModal() {
-      document.getElementById('modal-operator').classList.add('hidden');
-    }
-
-    function saveOperator(e) {
-      e.preventDefault();
-      const id = document.getElementById('op-id').value;
-      const machine = document.getElementById('op-machine').value;
-      const shift = document.getElementById('op-shift').value;
-      const role = document.getElementById('op-role').value;
-      const name = document.getElementById('op-name').value.trim();
-      const code = document.getElementById('op-code').value.trim();
-      const status = document.getElementById('op-status').value;
-      const note = document.getElementById('op-note').value.trim();
-
-      if (!name) return;
-
-      if (id) {
-        // Edit existing
-        const idx = rosterData.findIndex(r => r.id === id);
-        if (idx !== -1) {
-          rosterData[idx] = { id, machine, shift, role, name, code, status, note };
+      Swal.fire({
+        title: `เช็คชื่อพนักงาน ${selectedEmpIds.size} คน`,
+        html: `ต้องการบันทึกสถานะ <strong>มาทำงานปกติ</strong> สำหรับวันที่ <strong>${dateStr}</strong> ใช่หรือไม่?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#10b981',
+        cancelButtonColor: '#94a3b8',
+        confirmButtonText: 'บันทึกมาทำงาน',
+        cancelButtonText: 'ยกเลิก'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          selectedEmpIds.forEach(eid => {
+            const key = `${eid}_${dateStr}`;
+            appData.attendance[key] = {
+              employee_id: eid,
+              work_date: dateStr,
+              status: 'present',
+              days_count: 1.0,
+              remarks: 'เช็คชื่อด่วน'
+            };
+          });
+          saveData();
+          selectedEmpIds.clear();
+          renderDashboard();
+          Swal.fire('สำเร็จ', 'บันทึกข้อมูลเรียบร้อยแล้ว', 'success');
         }
+      });
+    }
+
+    function clearSelectedStatusModal() {
+      const today = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const dateStr = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+
+      Swal.fire({
+        title: `ล้างสถานะวันที่ ${dateStr}?`,
+        text: `ล้างบันทึกการลงเวลาของพนักงานที่เลือกทั้ง ${selectedEmpIds.size} คน`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#f43f5e',
+        cancelButtonColor: '#94a3b8',
+        confirmButtonText: 'ล้างข้อมูล',
+        cancelButtonText: 'ยกเลิก'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          selectedEmpIds.forEach(eid => {
+            const key = `${eid}_${dateStr}`;
+            delete appData.attendance[key];
+          });
+          saveData();
+          selectedEmpIds.clear();
+          renderDashboard();
+          Swal.fire('ลบสำเร็จ', 'ล้างข้อมูลเรียบร้อยแล้ว', 'success');
+        }
+      });
+    }
+
+    // 10. Avatar Profile Preview Modal
+    function openAvatarPreview(empId) {
+      const emp = appData.employees.find(e => e.id === empId);
+      if (!emp) return;
+
+      const isLeader = (emp.station === 'Host' || (emp.position && emp.position.includes('หัวหน้า')));
+      const avatarSrc = emp.avatar ? `assets/uploads/employees/${emp.avatar}` : '';
+
+      const imgEl = document.getElementById('preview-avatar-img');
+      if (avatarSrc) {
+        imgEl.src = avatarSrc;
+        imgEl.onerror = () => { imgEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(emp.first_name) + '&background=ff7900&color=fff&size=256'; };
       } else {
-        // New
-        const newId = String(Date.now());
-        rosterData.push({ id: newId, machine, shift, role, name, code, status, note });
+        imgEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(emp.first_name) + '&background=ff7900&color=fff&size=256';
       }
 
-      saveRosterToStorage();
-      closeOperatorModal();
-      renderRoster();
+      document.getElementById('preview-emp-name').textContent = `${emp.title || ''} ${emp.first_name} ${emp.last_name || ''}`;
+      document.getElementById('preview-emp-nickname').textContent = emp.nickname ? `(${emp.nickname})` : '';
+      document.getElementById('preview-emp-code').textContent = emp.employee_code || '-';
+      document.getElementById('preview-emp-machine-shift').textContent = `${emp.machine || '-'} / กะ ${emp.shift || '-'}`;
+      document.getElementById('preview-emp-station').textContent = emp.station || '-';
+      document.getElementById('preview-emp-position').textContent = emp.position || '-';
+
+      const crownEl = document.getElementById('preview-leader-crown');
+      if (isLeader) crownEl.classList.remove('hidden');
+      else crownEl.classList.add('hidden');
+
+      document.getElementById('avatarPreviewModal').classList.remove('hidden');
     }
 
-    function deleteOperator(id) {
-      if (!confirm('ต้องการลบรายชื่อผู้ปฏิบัติงานท่านนี้ใช่หรือไม่?')) return;
-      rosterData = rosterData.filter(r => r.id !== id);
-      saveRosterToStorage();
-      renderRoster();
+    function closeAvatarModal() {
+      document.getElementById('avatarPreviewModal').classList.add('hidden');
     }
 
-    function saveShiftNote() {
-      const text = document.getElementById('shift-note-input').value;
-      try {
-        localStorage.setItem(`pd_shift_note_${currentDate}_${currentShift}`, text);
-        alert('บันทึกส่งมอบกะเรียบร้อยแล้ว!');
-      } catch(e) {}
-    }
+    // 11. Analytics & Charts
+    function renderAnalytics(employees, month, year, daysInMonth) {
+      const pad = n => String(n).padStart(2, '0');
+      const leaveCounts = {
+        sick_leave: 0,
+        annual_leave: 0,
+        business_leave: 0,
+        absent: 0,
+        late: 0,
+        other_leave: 0
+      };
 
-    // ==========================================
-    // 4K HIGH-RES IMAGE EXPORT
-    // ==========================================
-    async function exportAttendanceReportImage() {
-      const area = document.getElementById('attendance-printable-area');
-      const btn = document.getElementById('btn-save-image');
-      const icon = document.getElementById('save-image-icon');
-      const text = document.getElementById('save-image-text');
+      const presentRank = [];
 
-      if (!area || typeof html2canvas === 'undefined') return;
-
-      if (btn) {
-        btn.disabled = true;
-        btn.classList.add('opacity-75');
-      }
-      if (icon) icon.className = 'fa-solid fa-circle-notch fa-spin text-white';
-      if (text) text.textContent = 'กำลังเรนเดอร์ภาพ 4K...';
-
-      try {
-        if (document.fonts) await document.fonts.ready;
-
-        const canvas = await html2canvas(area, {
-          scale: 2.5,
-          useCORS: true,
-          allowTaint: false,
-          backgroundColor: '#f8fafc',
-          logging: false,
-          ignoreElements: el => el.getAttribute('data-html2canvas-ignore') === 'true',
-          onclone: (clonedDoc) => {
-            const fixStyle = clonedDoc.createElement('style');
-            fixStyle.innerHTML = `
-              * {
-                font-family: 'Prompt', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-                text-rendering: auto !important;
-              }
-            `;
-            clonedDoc.head.appendChild(fixStyle);
+      employees.forEach(emp => {
+        let pDays = 0;
+        let lDays = 0;
+        for (let d = 1; d <= daysInMonth; d++) {
+          const dateStr = `${year}-${pad(month)}-${pad(d)}`;
+          const rec = appData.attendance[`${emp.id}_${dateStr}`];
+          if (rec) {
+            const st = rec.status;
+            const cnt = rec.days_count || 1.0;
+            if (st === 'present') pDays += cnt;
+            else if (st === 'sick_leave') { leaveCounts.sick_leave += cnt; lDays += cnt; }
+            else if (st === 'annual_leave') { leaveCounts.annual_leave += cnt; lDays += cnt; }
+            else if (st === 'business_leave' || st === 'personal_leave') { leaveCounts.business_leave += cnt; lDays += cnt; }
+            else if (st === 'absent') { leaveCounts.absent += cnt; lDays += cnt; }
+            else if (st === 'late') { leaveCounts.late += cnt; }
+            else if (st !== 'holiday') { leaveCounts.other_leave += cnt; lDays += cnt; }
           }
-        });
+        }
+        presentRank.push({ emp, pDays, lDays });
+      });
 
+      // Sort Top Present
+      presentRank.sort((a, b) => b.pDays - a.pDays);
+
+      // Render Top Present List
+      const topListEl = document.getElementById('top-present-list');
+      topListEl.innerHTML = '';
+      presentRank.slice(0, 5).forEach((item, idx) => {
+        topListEl.insertAdjacentHTML('beforeend', `
+          <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-emerald-100 shadow-2xs">
+            <div class="flex items-center gap-2">
+              <span class="w-5 h-5 rounded-full ${idx===0?'bg-amber-400 text-slate-900 font-black':'bg-slate-100 text-slate-600 font-bold'} text-[10px] flex items-center justify-center">
+                ${idx + 1}
+              </span>
+              <span class="font-bold text-slate-800">${escapeHtml(item.emp.first_name)} ${item.emp.nickname ? `(${escapeHtml(item.emp.nickname)})` : ''}</span>
+              <span class="text-[10px] text-slate-400 font-mono">${item.emp.machine} กะ ${item.emp.shift}</span>
+            </div>
+            <span class="font-extrabold text-emerald-700 font-num">${fmtNumber(item.pDays)} วัน</span>
+          </div>
+        `);
+      });
+
+      // Render Top Leavers List
+      const leaverListEl = document.getElementById('top-leavers-list');
+      leaverListEl.innerHTML = `
+        <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-amber-100 shadow-2xs">
+          <span class="flex items-center gap-2 font-bold text-slate-700">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> ลาป่วย (Sick Leave)
+          </span>
+          <span class="font-black text-amber-700 font-num">${fmtNumber(leaveCounts.sick_leave)} วัน</span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-sky-100 shadow-2xs">
+          <span class="flex items-center gap-2 font-bold text-slate-700">
+            <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span> พักร้อน (Annual Leave)
+          </span>
+          <span class="font-black text-sky-700 font-num">${fmtNumber(leaveCounts.annual_leave)} วัน</span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-cyan-100 shadow-2xs">
+          <span class="flex items-center gap-2 font-bold text-slate-700">
+            <span class="w-2.5 h-2.5 rounded-full bg-cyan-500"></span> ลากิจ (Business Leave)
+          </span>
+          <span class="font-black text-cyan-700 font-num">${fmtNumber(leaveCounts.business_leave)} วัน</span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-rose-100 shadow-2xs">
+          <span class="flex items-center gap-2 font-bold text-slate-700">
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> ขาดงาน (Absent)
+          </span>
+          <span class="font-black text-rose-700 font-num">${fmtNumber(leaveCounts.absent)} วัน</span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded-xl bg-white border border-slate-100 shadow-2xs">
+          <span class="flex items-center gap-2 font-bold text-slate-700">
+            <span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span> มาสาย (Late)
+          </span>
+          <span class="font-black text-slate-700 font-num">${fmtNumber(leaveCounts.late)} ครั้ง</span>
+        </div>
+      `;
+
+      // Total Leaves & Subtitle
+      const totalLeaves = leaveCounts.sick_leave + leaveCounts.annual_leave + leaveCounts.business_leave + leaveCounts.absent + leaveCounts.other_leave;
+      document.getElementById('chart-total-leaves-badge').textContent = `รวม ${fmtNumber(totalLeaves)} วัน`;
+
+      // Doughnut Chart
+      const chartCtx = document.getElementById('leaveDoughnutChart').getContext('2d');
+      if (doughnutChart) doughnutChart.destroy();
+
+      const labels = ['ลาป่วย', 'พักร้อน', 'ลากิจ', 'ขาดงาน', 'ลาอื่นๆ'];
+      const dataValues = [
+        leaveCounts.sick_leave,
+        leaveCounts.annual_leave,
+        leaveCounts.business_leave,
+        leaveCounts.absent,
+        leaveCounts.other_leave
+      ];
+      const colors = ['#f59e0b', '#38bdf8', '#06b6d4', '#f43f5e', '#a855f7'];
+
+      doughnutChart = new Chart(chartCtx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: totalLeaves === 0 ? [1] : dataValues,
+            backgroundColor: totalLeaves === 0 ? ['#e2e8f0'] : colors,
+            borderWidth: 2,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          cutout: '65%'
+        }
+      });
+
+      // Badges
+      const badgesEl = document.getElementById('chart-legend-badges');
+      badgesEl.innerHTML = '';
+      labels.forEach((lbl, i) => {
+        badgesEl.insertAdjacentHTML('beforeend', `
+          <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold border border-slate-200 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full" style="background:${colors[i]}"></span>
+            ${lbl}: <strong>${fmtNumber(dataValues[i])}</strong>
+          </span>
+        `);
+      });
+    }
+
+    // 12. HD Image Export Functions
+    function downloadSingleTableImage(cardId, shiftName) {
+      const el = document.getElementById(cardId);
+      if (!el) return;
+
+      Swal.fire({
+        title: `กำลังสร้างรูปภาพ HD สำหรับ ${shiftName}...`,
+        text: 'กรุณารอสักครู่ ระบบกำลังเรนเดอร์ภาพความละเอียดสูง',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+
+      html2canvas(el, {
+        scale: 2.2,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      }).then(canvas => {
         const link = document.createElement('a');
-        const now = new Date();
-        const dateStr = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}`;
-        link.download = `PD_Attendance_${currentMachine}_Shift${currentShift}_${dateStr}_4K.png`;
-        link.href = canvas.toDataURL('image/png', 1.0);
+        link.download = `ตารางบันทึกเวลาทำงาน_${shiftName}_${new Date().toISOString().slice(0,10)}.png`;
+        link.href = canvas.toDataURL('image/png');
         link.click();
-
-        if (text) text.textContent = 'บันทึกสำเร็จ!';
-        if (icon) icon.className = 'fa-solid fa-circle-check text-white';
-      } catch (err) {
-        console.error('Export attendance image error:', err);
-        alert('เกิดข้อผิดพลาดในการบันทึกภาพ');
-      } finally {
-        setTimeout(() => {
-          if (btn) {
-            btn.disabled = false;
-            btn.classList.remove('opacity-75');
-          }
-          if (icon) icon.className = 'fa-solid fa-camera text-white';
-          if (text) text.textContent = 'บันทึกภาพ (4K UHD)';
-        }, 2000);
-      }
+        Swal.close();
+      }).catch(err => {
+        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกภาพได้: ' + err.message, 'error');
+      });
     }
+
+    function downloadAllTablesImage() {
+      const el = document.getElementById('attendance-tables-container');
+      if (!el) return;
+
+      Swal.fire({
+        title: 'กำลังสร้างรูปภาพรายงาน HD รวม...',
+        text: 'กรุณารอสักครู่ ระบบกำลังเรนเดอร์ภาพความละเอียดสูง',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+
+      html2canvas(el, {
+        scale: 2.0,
+        useCORS: true,
+        backgroundColor: '#f8fafc'
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `รายงานบันทึกเวลาทำงานฝ่ายผลิต_TOTAL_${new Date().toISOString().slice(0,10)}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        Swal.close();
+      }).catch(err => {
+        Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกภาพได้: ' + err.message, 'error');
+      });
+    }
+
+    // 13. Helpers
+    function fmtNumber(val) {
+      const n = parseFloat(val) || 0;
+      return (n === Math.floor(n)) ? String(Math.floor(n)) : n.toFixed(1);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // 14. Kickoff
+    document.addEventListener('DOMContentLoaded', () => {
+      initData();
+      renderDashboard();
+    });
   </script>
 </body>
 </html>
