@@ -283,39 +283,43 @@
         </div>
       </div>
 
-      <!-- ========================================== -->
-      <!-- NEW Cost Comparison Chart: บาท/kg (Target vs Actual) -->
+            <!-- ========================================== -->
+      <!-- กราฟแยกเดือน กำไรสุทธิ (Net Profit 12 Months) -->
       <!-- ========================================== -->
       <div class="bg-white rounded-2xl shadow-md border border-slate-300 p-4 sm:p-6 space-y-4">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-200">
           <div class="flex items-center gap-3">
-            <span class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 text-lg">
-              <i class="fa-solid fa-chart-column"></i>
+            <span class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-purple-500/20 text-lg">
+              <i class="fa-solid fa-sack-dollar"></i>
             </span>
             <div>
               <h3 class="font-extrabold text-base sm:text-lg text-slate-900 tracking-tight flex items-center gap-2">
-                <span>กราฟเปรียบเทียบต้นทุนจริง vs เป้าหมาย (บาท/kg)</span>
-                <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200 font-bold">
-                  เดือน <span id="cost-chart-month-badge">11</span>
+                <span>กราฟแยกเดือน กำไรสุทธิ (Net Operating Profit)</span>
+                <span class="text-xs px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700 border border-purple-200 font-bold">
+                  12 เดือน (ม.ค. - ธ.ค.)
                 </span>
               </h3>
-              <p class="text-xs text-slate-500 font-medium">
-                ต้นทุน 8 หมวดหมู่หลัก (บาท/kg) จากตาราง Cost Target &amp; Actual &bull; 
-                <span class="text-emerald-700 font-bold"><i class="fa-solid fa-square text-emerald-500"></i> แท่งเขียว = ได้เป้า</span> &bull; 
-                <span class="text-red-700 font-bold"><i class="fa-solid fa-square text-red-500"></i> แท่งแดง = เกินเป้า</span> &bull; 
-                <span class="text-blue-700 font-bold"><i class="fa-solid fa-chart-line text-blue-600"></i> เส้นน้ำเงิน = Target</span>
+              <p class="text-xs text-slate-500 font-medium mt-0.5">
+                ผลการดำเนินงานกำไรสุทธิรายเดือน (หน่วย: บาท) &bull; 
+                <span class="text-emerald-700 font-bold"><i class="fa-solid fa-square text-emerald-500"></i> แท่งเขียว = กำไร</span> &bull; 
+                <span class="text-red-700 font-bold"><i class="fa-solid fa-square text-red-500"></i> แท่งแดง = ขาดทุน</span> &bull; 
+                <span class="text-amber-700 font-bold"><i class="fa-solid fa-square text-amber-500"></i> กรอบทอง = เดือนที่เลือก (<span id="netprofit-selected-month">11</span>)</span>
               </p>
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-xs font-bold px-3 py-1 bg-slate-100 text-slate-700 rounded-lg border border-slate-200">
-              หน่วย: บาท/kg
+            <span id="netprofit-month-stat" class="text-xs font-bold px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg border border-slate-200 shadow-2xs">
+              เดือน 11: 0 บาท
             </span>
+            <button onclick="exportSingleChart('chart-net-profit', 'กราฟกำไรสุทธิ_12เดือน')" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer">
+              <i class="fa-solid fa-camera"></i>
+              <span>บันทึกภาพคมชัด (HD)</span>
+            </button>
           </div>
         </div>
 
-        <div class="relative w-full h-[360px] sm:h-[420px]">
-          <canvas id="costComparisonChart"></canvas>
+        <div class="relative w-full h-[320px] sm:h-[380px]">
+          <canvas id="chart-net-profit"></canvas>
         </div>
       </div>
 
@@ -482,193 +486,240 @@
       <!-- กราฟวิเคราะห์แนวโน้มต้นทุน 8 หมวดหลัก (บาท/kg)             -->
       <!-- ดึงจาก 2 ตาราง Cost Target & Actual                     -->
       <!-- ======================================================== -->
+      <!-- ======================================================== -->
+      <!-- กราฟวิเคราะห์แนวโน้มต้นทุน 8 หมวดหลัก (บาท/kg)             -->
+      <!-- แยกใหญ่เรียงกันลงมา (Full Width) พร้อมปุ่มบันทึกภาพคมชัด   -->
+      <!-- ======================================================== -->
       <div class="mt-8 space-y-6" id="cost-trend-charts-section">
         <!-- Section Header -->
-        <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white rounded-2xl p-4 shadow-md flex flex-wrap items-center justify-between gap-3">
+        <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white rounded-2xl p-4 sm:p-5 shadow-md flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-3">
-            <span class="w-10 h-10 rounded-xl bg-blue-600/30 border border-blue-400/30 flex items-center justify-center text-blue-400 text-lg shadow-inner">
+            <span class="w-11 h-11 rounded-xl bg-blue-600/30 border border-blue-400/30 flex items-center justify-center text-blue-400 text-xl shadow-inner">
               <i class="fa-solid fa-chart-line"></i>
             </span>
             <div>
-              <h2 class="text-base font-extrabold tracking-wide flex items-center gap-2">
+              <h2 class="text-base sm:text-lg font-extrabold tracking-wide flex items-center gap-2">
                 <span>กราฟวิเคราะห์แนวโน้มต้นทุน 8 หมวดหลัก (บาท/kg)</span>
                 <span class="text-xs px-2.5 py-0.5 rounded-md bg-blue-500/20 text-blue-300 border border-blue-400/30 font-semibold">12 เดือน (ม.ค. - ธ.ค.)</span>
               </h2>
-              <p class="text-xs text-slate-300 mt-0.5">
-                <span class="inline-flex items-center gap-1 text-blue-300 font-bold"><i class="fa-solid fa-chart-line"></i> เส้นน้ำเงิน = Target เป้าหมาย</span> &bull; 
-                <span class="inline-flex items-center gap-1 text-emerald-400 font-bold"><i class="fa-solid fa-square"></i> แท่งเขียว = Actual ได้เป้า</span> &bull; 
-                <span class="inline-flex items-center gap-1 text-red-400 font-bold"><i class="fa-solid fa-square"></i> แท่งแดง = Actual เกินเป้า</span>
+              <p class="text-xs text-slate-300 mt-1">
+                <span class="inline-flex items-center gap-1 text-blue-300 font-bold"><i class="fa-solid fa-chart-line"></i> เส้นสีน้ำเงิน = Target เป้าหมาย</span> &bull; 
+                <span class="inline-flex items-center gap-1 text-emerald-400 font-bold"><i class="fa-solid fa-square"></i> แท่งสีเขียว = Actual ได้เป้า</span> &bull; 
+                <span class="inline-flex items-center gap-1 text-red-400 font-bold"><i class="fa-solid fa-square"></i> แท่งสีแดง = Actual เกินเป้า</span>
               </p>
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <span class="px-3 py-1 rounded-full text-xs font-black bg-blue-500/30 text-blue-200 border border-blue-400/40 shadow-xs">
+            <span class="px-3.5 py-1.5 rounded-full text-xs font-black bg-blue-500/30 text-blue-200 border border-blue-400/40 shadow-xs">
               หน่วย: บาท/kg
             </span>
-            <span id="trend-month-badge" class="px-3 py-1 rounded-full text-xs font-black bg-amber-500/30 text-amber-200 border border-amber-400/40 shadow-xs">
+            <span id="trend-month-badge" class="px-3.5 py-1.5 rounded-full text-xs font-black bg-amber-500/30 text-amber-200 border border-amber-400/40 shadow-xs">
               เดือน: 11
             </span>
           </div>
         </div>
 
-        <!-- 8 Charts Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- 8 Large Full-Width Charts Stacked Vertically -->
+        <div class="space-y-6 w-full">
 
-        <!-- Chart: ถ่านหิน -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 transition hover:shadow-md">
-          <div class="flex flex-wrap items-center justify-between mb-3 border-b border-slate-100 pb-2.5 gap-2">
-            <div class="flex items-center gap-2">
-              <span class="w-8 h-8 rounded-lg bg-amber-600 flex items-center justify-center text-white text-xs shadow-xs">
+        <!-- Large Chart Card: ถ่านหิน -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 transition hover:shadow-md space-y-3">
+          <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3 gap-2">
+            <div class="flex items-center gap-3">
+              <span class="w-9 h-9 rounded-xl bg-amber-600 flex items-center justify-center text-white text-sm shadow-xs">
                 <i class="fa-solid fa-fire"></i>
               </span>
               <div>
-                <h3 class="text-sm font-extrabold text-slate-900">1. ถ่านหิน</h3>
-                <span class="text-[11px] text-slate-500 font-medium">(หน่วย: บาท/kg &bull; เส้นน้ำเงิน = Target, แท่งเขียว/แดง = Actual)</span>
+                <h3 class="text-base font-extrabold text-slate-900">1. ถ่านหิน (บาท/kg)</h3>
+                <span class="text-xs text-slate-500 font-medium">&bull; เส้นสีน้ำเงิน = Target เป้าหมาย &bull; แท่งเขียว = ได้เป้า &bull; แท่งแดง = เกินเป้าหมาย</span>
               </div>
             </div>
-            <div id="stat-coal" class="text-xs font-bold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs"></div>
+            <div class="flex items-center gap-2">
+              <div id="stat-coal" class="text-xs font-bold text-slate-700 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs"></div>
+              <button onclick="exportSingleChart('chart-cost-coal', 'กราฟต้นทุน_ถ่านหิน')" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 text-xs font-bold rounded-xl border border-slate-200 transition shadow-2xs cursor-pointer">
+                <i class="fa-solid fa-camera text-emerald-600"></i>
+                <span>บันทึกภาพคมชัด</span>
+              </button>
+            </div>
           </div>
-          <div class="h-64 sm:h-72 relative">
+          <div class="h-80 sm:h-96 relative w-full">
             <canvas id="chart-cost-coal"></canvas>
           </div>
         </div>
-        <!-- Chart: กาว -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 transition hover:shadow-md">
-          <div class="flex flex-wrap items-center justify-between mb-3 border-b border-slate-100 pb-2.5 gap-2">
-            <div class="flex items-center gap-2">
-              <span class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-xs shadow-xs">
+        <!-- Large Chart Card: กาว -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 transition hover:shadow-md space-y-3">
+          <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3 gap-2">
+            <div class="flex items-center gap-3">
+              <span class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white text-sm shadow-xs">
                 <i class="fa-solid fa-flask"></i>
               </span>
               <div>
-                <h3 class="text-sm font-extrabold text-slate-900">2. กาว</h3>
-                <span class="text-[11px] text-slate-500 font-medium">(หน่วย: บาท/kg &bull; เส้นน้ำเงิน = Target, แท่งเขียว/แดง = Actual)</span>
+                <h3 class="text-base font-extrabold text-slate-900">2. กาว (บาท/kg)</h3>
+                <span class="text-xs text-slate-500 font-medium">&bull; เส้นสีน้ำเงิน = Target เป้าหมาย &bull; แท่งเขียว = ได้เป้า &bull; แท่งแดง = เกินเป้าหมาย</span>
               </div>
             </div>
-            <div id="stat-glue" class="text-xs font-bold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs"></div>
+            <div class="flex items-center gap-2">
+              <div id="stat-glue" class="text-xs font-bold text-slate-700 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs"></div>
+              <button onclick="exportSingleChart('chart-cost-glue', 'กราฟต้นทุน_กาว')" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 text-xs font-bold rounded-xl border border-slate-200 transition shadow-2xs cursor-pointer">
+                <i class="fa-solid fa-camera text-emerald-600"></i>
+                <span>บันทึกภาพคมชัด</span>
+              </button>
+            </div>
           </div>
-          <div class="h-64 sm:h-72 relative">
+          <div class="h-80 sm:h-96 relative w-full">
             <canvas id="chart-cost-glue"></canvas>
           </div>
         </div>
-        <!-- Chart: ค่าน้ำประปา -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 transition hover:shadow-md">
-          <div class="flex flex-wrap items-center justify-between mb-3 border-b border-slate-100 pb-2.5 gap-2">
-            <div class="flex items-center gap-2">
-              <span class="w-8 h-8 rounded-lg bg-cyan-600 flex items-center justify-center text-white text-xs shadow-xs">
+        <!-- Large Chart Card: ค่าน้ำประปา -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 transition hover:shadow-md space-y-3">
+          <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3 gap-2">
+            <div class="flex items-center gap-3">
+              <span class="w-9 h-9 rounded-xl bg-cyan-600 flex items-center justify-center text-white text-sm shadow-xs">
                 <i class="fa-solid fa-droplet"></i>
               </span>
               <div>
-                <h3 class="text-sm font-extrabold text-slate-900">3. ค่าน้ำประปา</h3>
-                <span class="text-[11px] text-slate-500 font-medium">(หน่วย: บาท/kg &bull; เส้นน้ำเงิน = Target, แท่งเขียว/แดง = Actual)</span>
+                <h3 class="text-base font-extrabold text-slate-900">3. ค่าน้ำประปา (บาท/kg)</h3>
+                <span class="text-xs text-slate-500 font-medium">&bull; เส้นสีน้ำเงิน = Target เป้าหมาย &bull; แท่งเขียว = ได้เป้า &bull; แท่งแดง = เกินเป้าหมาย</span>
               </div>
             </div>
-            <div id="stat-water" class="text-xs font-bold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs"></div>
+            <div class="flex items-center gap-2">
+              <div id="stat-water" class="text-xs font-bold text-slate-700 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs"></div>
+              <button onclick="exportSingleChart('chart-cost-water', 'กราฟต้นทุน_ค่าน้ำประปา')" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 text-xs font-bold rounded-xl border border-slate-200 transition shadow-2xs cursor-pointer">
+                <i class="fa-solid fa-camera text-emerald-600"></i>
+                <span>บันทึกภาพคมชัด</span>
+              </button>
+            </div>
           </div>
-          <div class="h-64 sm:h-72 relative">
+          <div class="h-80 sm:h-96 relative w-full">
             <canvas id="chart-cost-water"></canvas>
           </div>
         </div>
-        <!-- Chart: ค่าลม -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 transition hover:shadow-md">
-          <div class="flex flex-wrap items-center justify-between mb-3 border-b border-slate-100 pb-2.5 gap-2">
-            <div class="flex items-center gap-2">
-              <span class="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center text-white text-xs shadow-xs">
+        <!-- Large Chart Card: ค่าลม -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 transition hover:shadow-md space-y-3">
+          <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3 gap-2">
+            <div class="flex items-center gap-3">
+              <span class="w-9 h-9 rounded-xl bg-purple-600 flex items-center justify-center text-white text-sm shadow-xs">
                 <i class="fa-solid fa-wind"></i>
               </span>
               <div>
-                <h3 class="text-sm font-extrabold text-slate-900">4. ค่าลม</h3>
-                <span class="text-[11px] text-slate-500 font-medium">(หน่วย: บาท/kg &bull; เส้นน้ำเงิน = Target, แท่งเขียว/แดง = Actual)</span>
+                <h3 class="text-base font-extrabold text-slate-900">4. ค่าลม (บาท/kg)</h3>
+                <span class="text-xs text-slate-500 font-medium">&bull; เส้นสีน้ำเงิน = Target เป้าหมาย &bull; แท่งเขียว = ได้เป้า &bull; แท่งแดง = เกินเป้าหมาย</span>
               </div>
             </div>
-            <div id="stat-air" class="text-xs font-bold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs"></div>
+            <div class="flex items-center gap-2">
+              <div id="stat-air" class="text-xs font-bold text-slate-700 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs"></div>
+              <button onclick="exportSingleChart('chart-cost-air', 'กราฟต้นทุน_ค่าลม')" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 text-xs font-bold rounded-xl border border-slate-200 transition shadow-2xs cursor-pointer">
+                <i class="fa-solid fa-camera text-emerald-600"></i>
+                <span>บันทึกภาพคมชัด</span>
+              </button>
+            </div>
           </div>
-          <div class="h-64 sm:h-72 relative">
+          <div class="h-80 sm:h-96 relative w-full">
             <canvas id="chart-cost-air"></canvas>
           </div>
         </div>
-        <!-- Chart: ค่าไฟฟ้า -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 transition hover:shadow-md">
-          <div class="flex flex-wrap items-center justify-between mb-3 border-b border-slate-100 pb-2.5 gap-2">
-            <div class="flex items-center gap-2">
-              <span class="w-8 h-8 rounded-lg bg-yellow-500 flex items-center justify-center text-white text-xs shadow-xs">
+        <!-- Large Chart Card: ค่าไฟฟ้า -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 transition hover:shadow-md space-y-3">
+          <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3 gap-2">
+            <div class="flex items-center gap-3">
+              <span class="w-9 h-9 rounded-xl bg-yellow-500 flex items-center justify-center text-white text-sm shadow-xs">
                 <i class="fa-solid fa-bolt"></i>
               </span>
               <div>
-                <h3 class="text-sm font-extrabold text-slate-900">5. ค่าไฟฟ้า</h3>
-                <span class="text-[11px] text-slate-500 font-medium">(หน่วย: บาท/kg &bull; เส้นน้ำเงิน = Target, แท่งเขียว/แดง = Actual)</span>
+                <h3 class="text-base font-extrabold text-slate-900">5. ค่าไฟฟ้า (บาท/kg)</h3>
+                <span class="text-xs text-slate-500 font-medium">&bull; เส้นสีน้ำเงิน = Target เป้าหมาย &bull; แท่งเขียว = ได้เป้า &bull; แท่งแดง = เกินเป้าหมาย</span>
               </div>
             </div>
-            <div id="stat-elec" class="text-xs font-bold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs"></div>
+            <div class="flex items-center gap-2">
+              <div id="stat-elec" class="text-xs font-bold text-slate-700 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs"></div>
+              <button onclick="exportSingleChart('chart-cost-elec', 'กราฟต้นทุน_ค่าไฟฟ้า')" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 text-xs font-bold rounded-xl border border-slate-200 transition shadow-2xs cursor-pointer">
+                <i class="fa-solid fa-camera text-emerald-600"></i>
+                <span>บันทึกภาพคมชัด</span>
+              </button>
+            </div>
           </div>
-          <div class="h-64 sm:h-72 relative">
+          <div class="h-80 sm:h-96 relative w-full">
             <canvas id="chart-cost-elec"></canvas>
           </div>
         </div>
-        <!-- Chart: ค่าซ่อมแซมเครื่องจักร -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 transition hover:shadow-md">
-          <div class="flex flex-wrap items-center justify-between mb-3 border-b border-slate-100 pb-2.5 gap-2">
-            <div class="flex items-center gap-2">
-              <span class="w-8 h-8 rounded-lg bg-orange-600 flex items-center justify-center text-white text-xs shadow-xs">
+        <!-- Large Chart Card: ค่าซ่อมแซมเครื่องจักร -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 transition hover:shadow-md space-y-3">
+          <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3 gap-2">
+            <div class="flex items-center gap-3">
+              <span class="w-9 h-9 rounded-xl bg-orange-600 flex items-center justify-center text-white text-sm shadow-xs">
                 <i class="fa-solid fa-wrench"></i>
               </span>
               <div>
-                <h3 class="text-sm font-extrabold text-slate-900">6. ค่าซ่อมแซมเครื่องจักร</h3>
-                <span class="text-[11px] text-slate-500 font-medium">(หน่วย: บาท/kg &bull; เส้นน้ำเงิน = Target, แท่งเขียว/แดง = Actual)</span>
+                <h3 class="text-base font-extrabold text-slate-900">6. ค่าซ่อมแซมเครื่องจักร (บาท/kg)</h3>
+                <span class="text-xs text-slate-500 font-medium">&bull; เส้นสีน้ำเงิน = Target เป้าหมาย &bull; แท่งเขียว = ได้เป้า &bull; แท่งแดง = เกินเป้าหมาย</span>
               </div>
             </div>
-            <div id="stat-repair" class="text-xs font-bold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs"></div>
+            <div class="flex items-center gap-2">
+              <div id="stat-repair" class="text-xs font-bold text-slate-700 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs"></div>
+              <button onclick="exportSingleChart('chart-cost-repair', 'กราฟต้นทุน_ค่าซ่อมแซมเครื่องจักร')" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 text-xs font-bold rounded-xl border border-slate-200 transition shadow-2xs cursor-pointer">
+                <i class="fa-solid fa-camera text-emerald-600"></i>
+                <span>บันทึกภาพคมชัด</span>
+              </button>
+            </div>
           </div>
-          <div class="h-64 sm:h-72 relative">
+          <div class="h-80 sm:h-96 relative w-full">
             <canvas id="chart-cost-repair"></canvas>
           </div>
         </div>
-        <!-- Chart: ค่าล่วงเวลา -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 transition hover:shadow-md">
-          <div class="flex flex-wrap items-center justify-between mb-3 border-b border-slate-100 pb-2.5 gap-2">
-            <div class="flex items-center gap-2">
-              <span class="w-8 h-8 rounded-lg bg-pink-600 flex items-center justify-center text-white text-xs shadow-xs">
+        <!-- Large Chart Card: ค่าล่วงเวลา -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 transition hover:shadow-md space-y-3">
+          <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3 gap-2">
+            <div class="flex items-center gap-3">
+              <span class="w-9 h-9 rounded-xl bg-pink-600 flex items-center justify-center text-white text-sm shadow-xs">
                 <i class="fa-solid fa-clock"></i>
               </span>
               <div>
-                <h3 class="text-sm font-extrabold text-slate-900">7. ค่าล่วงเวลา</h3>
-                <span class="text-[11px] text-slate-500 font-medium">(หน่วย: บาท/kg &bull; เส้นน้ำเงิน = Target, แท่งเขียว/แดง = Actual)</span>
+                <h3 class="text-base font-extrabold text-slate-900">7. ค่าล่วงเวลา (บาท/kg)</h3>
+                <span class="text-xs text-slate-500 font-medium">&bull; เส้นสีน้ำเงิน = Target เป้าหมาย &bull; แท่งเขียว = ได้เป้า &bull; แท่งแดง = เกินเป้าหมาย</span>
               </div>
             </div>
-            <div id="stat-ot" class="text-xs font-bold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs"></div>
+            <div class="flex items-center gap-2">
+              <div id="stat-ot" class="text-xs font-bold text-slate-700 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs"></div>
+              <button onclick="exportSingleChart('chart-cost-ot', 'กราฟต้นทุน_ค่าล่วงเวลา')" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 text-xs font-bold rounded-xl border border-slate-200 transition shadow-2xs cursor-pointer">
+                <i class="fa-solid fa-camera text-emerald-600"></i>
+                <span>บันทึกภาพคมชัด</span>
+              </button>
+            </div>
           </div>
-          <div class="h-64 sm:h-72 relative">
+          <div class="h-80 sm:h-96 relative w-full">
             <canvas id="chart-cost-ot"></canvas>
           </div>
         </div>
-        <!-- Chart: ค่าแรง -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 transition hover:shadow-md">
-          <div class="flex flex-wrap items-center justify-between mb-3 border-b border-slate-100 pb-2.5 gap-2">
-            <div class="flex items-center gap-2">
-              <span class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white text-xs shadow-xs">
+        <!-- Large Chart Card: ค่าแรง -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 transition hover:shadow-md space-y-3">
+          <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3 gap-2">
+            <div class="flex items-center gap-3">
+              <span class="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white text-sm shadow-xs">
                 <i class="fa-solid fa-users"></i>
               </span>
               <div>
-                <h3 class="text-sm font-extrabold text-slate-900">8. ค่าแรง</h3>
-                <span class="text-[11px] text-slate-500 font-medium">(หน่วย: บาท/kg &bull; เส้นน้ำเงิน = Target, แท่งเขียว/แดง = Actual)</span>
+                <h3 class="text-base font-extrabold text-slate-900">8. ค่าแรง (บาท/kg)</h3>
+                <span class="text-xs text-slate-500 font-medium">&bull; เส้นสีน้ำเงิน = Target เป้าหมาย &bull; แท่งเขียว = ได้เป้า &bull; แท่งแดง = เกินเป้าหมาย</span>
               </div>
             </div>
-            <div id="stat-labor" class="text-xs font-bold text-slate-700 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs"></div>
+            <div class="flex items-center gap-2">
+              <div id="stat-labor" class="text-xs font-bold text-slate-700 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs"></div>
+              <button onclick="exportSingleChart('chart-cost-labor', 'กราฟต้นทุน_ค่าแรง')" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 text-xs font-bold rounded-xl border border-slate-200 transition shadow-2xs cursor-pointer">
+                <i class="fa-solid fa-camera text-emerald-600"></i>
+                <span>บันทึกภาพคมชัด</span>
+              </button>
+            </div>
           </div>
-          <div class="h-64 sm:h-72 relative">
+          <div class="h-80 sm:h-96 relative w-full">
             <canvas id="chart-cost-labor"></canvas>
           </div>
         </div>
         </div>
       </div>
 
-
       </div>
 
-      </div>
-
-  </main>
-
-  <!-- ========================================== -->
+<!-- ========================================== -->
   <!-- Footer                                     -->
   <!-- ========================================== -->
   <footer class="bg-white border-t border-slate-200 py-4 mt-8">
@@ -745,7 +796,8 @@
       if (typeof INITIAL_BUDGET_DATA !== 'undefined' && INITIAL_BUDGET_DATA[currentMachine]) {
         monthlyData = INITIAL_BUDGET_DATA[currentMachine];
         renderMonthlySummary(monthlyData);
-        renderMonthlyCostTrendCharts();
+        renderNetProfitChart();
+      renderMonthlyCostTrendCharts();
         syncTopTableFromData();
       }
       loadBudgetData();
@@ -754,6 +806,7 @@
         costDetailData = INITIAL_COST_DETAIL_DATA;
         renderCostDetail(costDetailData);
       }
+      renderNetProfitChart();
       renderMonthlyCostTrendCharts();
       loadCostDetail();
     });
@@ -796,9 +849,11 @@
       loadBudgetData();
       if (monthlyData) {
         renderMonthlySummary(monthlyData);
-        renderMonthlyCostTrendCharts();
+        renderNetProfitChart();
+      renderMonthlyCostTrendCharts();
       }
       if (costDetailData) renderCostDetail(costDetailData);
+      renderNetProfitChart();
       renderMonthlyCostTrendCharts();
     }
 
@@ -819,7 +874,8 @@
       if (typeof INITIAL_BUDGET_DATA !== 'undefined' && INITIAL_BUDGET_DATA[currentMachine]) {
         monthlyData = INITIAL_BUDGET_DATA[currentMachine];
         renderMonthlySummary(monthlyData);
-        renderMonthlyCostTrendCharts();
+        renderNetProfitChart();
+      renderMonthlyCostTrendCharts();
         syncTopTableFromData();
       }
       loadBudgetData();
@@ -828,6 +884,7 @@
         costDetailData = INITIAL_COST_DETAIL_DATA;
         renderCostDetail(costDetailData);
       }
+      renderNetProfitChart();
       renderMonthlyCostTrendCharts();
       loadCostDetail();
     }
@@ -1315,7 +1372,8 @@
           costDetailData = cached;
           renderCostDetail(cached);
           syncTopTableFromData();
-          renderMonthlyCostTrendCharts();
+          renderNetProfitChart();
+      renderMonthlyCostTrendCharts();
           return;
         } else {
           lsClear(cacheKey);
@@ -1331,7 +1389,8 @@
         monthlyData = json.data || json;
         lsSet(cacheKey, monthlyData);
         renderMonthlySummary(monthlyData);
-        renderMonthlyCostTrendCharts();
+        renderNetProfitChart();
+      renderMonthlyCostTrendCharts();
         syncTopTableFromData();
       } catch (e) {
         console.error(e);
@@ -1487,7 +1546,8 @@
           costDetailData = cached;
           renderCostDetail(cached);
           syncTopTableFromData();
-          renderMonthlyCostTrendCharts();
+          renderNetProfitChart();
+      renderMonthlyCostTrendCharts();
           return;
         } else {
           lsClear(cacheKey);
@@ -1569,7 +1629,9 @@
         aHtml += row;
       });
       actualBody.innerHTML = aHtml;
+      renderNetProfitChart();
       renderMonthlyCostTrendCharts();
+      renderNetProfitChart();
       renderMonthlyCostTrendCharts();
     }
 
@@ -1599,10 +1661,208 @@
     }
     
 
+    
+
+    // =====================================================
+    // EXPORT HIGH-RES CHART (ปุ่มบันทึกภาพคมชัด HD)
+    // =====================================================
+    function exportSingleChart(canvasId, title) {
+      try {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+
+        const padding = 28;
+        const headerHeight = 65;
+        const exportCanvas = document.createElement("canvas");
+        exportCanvas.width = canvas.width + (padding * 2);
+        exportCanvas.height = canvas.height + headerHeight + (padding * 2);
+
+        const ctx = exportCanvas.getContext("2d");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+        // Header Title
+        ctx.fillStyle = "#0f172a";
+        ctx.font = "bold 20px Prompt, sans-serif";
+        ctx.fillText(title.replace(/_/g, " ") + ` (เครื่อง: ${currentMachine})`, padding, padding + 26);
+
+        ctx.fillStyle = "#64748b";
+        ctx.font = "12px Prompt, sans-serif";
+        ctx.fillText("Budget Control Profermanas PD | วันที่บันทึก: " + new Date().toLocaleString("th-TH"), padding, padding + 48);
+
+        // Draw Chart
+        ctx.drawImage(canvas, padding, padding + headerHeight);
+
+        // Download PNG
+        const link = document.createElement("a");
+        link.download = `${title}_${currentMachine}_Month_${currentMonth}_HD.png`;
+        link.href = exportCanvas.toDataURL("image/png", 1.0);
+        link.click();
+      } catch (err) {
+        console.error("Export chart error:", err);
+        const canvas = document.getElementById(canvasId);
+        if (canvas) {
+          const link = document.createElement("a");
+          link.download = `${title}.png`;
+          link.href = canvas.toDataURL("image/png");
+          link.click();
+        }
+      }
+    }
+
+    // =====================================================
+    // กราฟแยกเดือน กำไรสุทธิ (Net Operating Profit 12 เดือน)
+    // =====================================================
+    let netProfitChartInstance = null;
+
+    function renderNetProfitChart() {
+      try {
+        const canvas = document.getElementById("chart-net-profit");
+        if (!canvas || typeof Chart === "undefined") return;
+
+        const fin = monthlyData?.financials || (typeof INITIAL_BUDGET_DATA !== "undefined" ? INITIAL_BUDGET_DATA[currentMachine]?.financials : {});
+        const netProfitData = fin?.profit_net || {};
+
+        const monthLabels = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
+        const curIdx = (currentMonth || 11) - 1;
+
+        const selMonthBadge = document.getElementById("netprofit-selected-month");
+        if (selMonthBadge) selMonthBadge.textContent = currentMonth;
+
+        const values = [];
+        const bgColors = [];
+        const borderColors = [];
+        const borderWidths = [];
+
+        for (let m = 1; m <= 12; m++) {
+          const v = netProfitData.actual?.[m] ?? netProfitData["m" + m]?.actual ?? 0;
+          values.push(v);
+
+          const isCurrentMonth = (m === currentMonth);
+
+          if (v > 0) {
+            bgColors.push("rgba(16, 185, 129, 0.85)"); // green
+            borderColors.push(isCurrentMonth ? "#f59e0b" : "#059669");
+            borderWidths.push(isCurrentMonth ? 2.5 : 1);
+          } else if (v < 0) {
+            bgColors.push("rgba(239, 68, 68, 0.85)"); // red
+            borderColors.push(isCurrentMonth ? "#f59e0b" : "#dc2626");
+            borderWidths.push(isCurrentMonth ? 2.5 : 1);
+          } else {
+            bgColors.push("rgba(203, 213, 225, 0.4)");
+            borderColors.push(isCurrentMonth ? "#f59e0b" : "#cbd5e1");
+            borderWidths.push(isCurrentMonth ? 2.5 : 1);
+          }
+        }
+
+        // Update month stat badge
+        const curVal = values[curIdx] || 0;
+        const statEl = document.getElementById("netprofit-month-stat");
+        if (statEl) {
+          const sign = curVal > 0 ? "+" : "";
+          const formatted = sign + Number(curVal).toLocaleString("th-TH") + " บาท";
+          const badgeCls = curVal > 0 ? "bg-emerald-100 text-emerald-800 border-emerald-200" : (curVal < 0 ? "bg-rose-100 text-rose-800 border-rose-200" : "bg-slate-100 text-slate-700 border-slate-200");
+          statEl.className = "text-xs font-bold px-3 py-1.5 rounded-lg border shadow-2xs " + badgeCls;
+          statEl.innerHTML = `เดือน ${currentMonth}: ${formatted} (${curVal >= 0 ? "กำไร" : "ขาดทุน"})`;
+        }
+
+        if (netProfitChartInstance) {
+          netProfitChartInstance.destroy();
+        }
+
+        const ctx = canvas.getContext("2d");
+        netProfitChartInstance = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: monthLabels,
+            datasets: [{
+              label: "กำไรสุทธิ (บาท)",
+              data: values,
+              backgroundColor: bgColors,
+              borderColor: borderColors,
+              borderWidth: borderWidths,
+              borderRadius: 6,
+              maxBarThickness: 44,
+              datalabels: {
+                align: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? "top" : "bottom",
+                anchor: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? "end" : "end",
+                offset: 4,
+                color: (ctx) => {
+                  const v = ctx.dataset.data[ctx.dataIndex];
+                  return v > 0 ? "#047857" : (v < 0 ? "#b91c1c" : "#64748b");
+                },
+                font: { family: "Prompt", weight: "bold", size: 11 },
+                formatter: (v) => {
+                  if (v === 0 || v === null || v === undefined) return "0";
+                  const abs = Math.abs(v);
+                  const sign = v < 0 ? "-" : "+";
+                  if (abs >= 1000000) return sign + (abs / 1000000).toFixed(2) + "M";
+                  if (abs >= 1000) return sign + (abs / 1000).toFixed(1) + "k";
+                  return sign + Number(abs).toLocaleString("th-TH");
+                }
+              }
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: "rgba(15, 23, 42, 0.95)",
+                titleFont: { family: "Prompt", size: 12, weight: "bold" },
+                bodyFont: { family: "Prompt", size: 11 },
+                padding: 10,
+                cornerRadius: 8,
+                callbacks: {
+                  title: (items) => `เดือน ${items[0].label}`,
+                  label: (ctx) => {
+                    const v = ctx.raw;
+                    const sign = v > 0 ? "+" : "";
+                    return ` กำไรสุทธิ: ${sign}${Number(v).toLocaleString("th-TH")} บาท`;
+                  }
+                }
+              }
+            },
+            scales: {
+              y: {
+                grid: {
+                  color: (c) => c.tick.value === 0 ? "#1e293b" : "#f1f5f9",
+                  lineWidth: (c) => c.tick.value === 0 ? 2 : 1
+                },
+                ticks: {
+                  callback: (v) => {
+                    const abs = Math.abs(v);
+                    const sign = v < 0 ? "-" : "";
+                    if (abs >= 1000000) return sign + (abs / 1000000).toFixed(1) + "M";
+                    if (abs >= 1000) return sign + (abs / 1000).toFixed(0) + "k";
+                    return sign + v;
+                  },
+                  font: { family: "Prompt", size: 10, weight: "500" },
+                  color: "#64748b"
+                }
+              },
+              x: {
+                grid: { display: false },
+                ticks: {
+                  font: { family: "Prompt", size: 11, weight: "bold" },
+                  color: (c) => c.index === curIdx ? "#1d4ed8" : "#334155"
+                }
+              }
+            }
+          },
+          plugins: (typeof ChartDataLabels !== "undefined") ? [ChartDataLabels] : []
+        });
+      } catch (err) {
+        console.error("Error rendering net profit chart:", err);
+      }
+    }
+
     // =====================================================
     // 8 SEPARATE MONTHLY COST TREND CHARTS (บาท/kg)
     // 8 หมวด: ถ่านหิน, กาว, ค่าน้ำประปา, ค่าลม, ค่าไฟฟ้า, ค่าซ่อมแซมเครื่องจักร, ค่าล่วงเวลา, ค่าแรง
     // Actual = แท่ง 12 เดือน (ได้เป้า=เขียว, เกินเป้า=แดง), Target = เส้นน้ำเงิน
+    // ไม่ทับกัน: Target อยู่บนเส้นในกล่อง Pill, Actual อยู่กลางแท่งสีขาว
     // =====================================================
     let costTrendCharts = {};
 
@@ -1667,7 +1927,7 @@
               borderColors.push(isCurrentMonth ? "#f59e0b" : "#059669");
               borderWidths.push(isCurrentMonth ? 2.5 : 1);
             } else {
-              barColors.push("rgba(203, 213, 225, 0.25)");
+              barColors.push("rgba(203, 213, 225, 0.2)");
               borderColors.push(isCurrentMonth ? "#f59e0b" : "#cbd5e1");
               borderWidths.push(isCurrentMonth ? 2 : 0);
             }
@@ -1682,10 +1942,10 @@
               const isPass = curA <= curT;
               const statusText = isPass ? "ได้เป้า" : "เกินเป้า";
               const badgeClass = isPass ? "bg-emerald-100 text-emerald-800 border-emerald-200" : "bg-rose-100 text-rose-800 border-rose-200";
-              statEl.className = "text-xs font-bold px-2.5 py-1 rounded-lg border shadow-2xs " + badgeClass;
+              statEl.className = "text-xs font-bold px-3 py-1.5 rounded-xl border shadow-2xs " + badgeClass;
               statEl.innerHTML = `เดือน ${currentMonth}: Target ${curT.toFixed(3)} | Actual ${curA.toFixed(3)} (${statusText})`;
             } else if (curT != null) {
-              statEl.className = "text-xs font-bold px-2.5 py-1 rounded-lg border shadow-2xs bg-slate-100 text-slate-700 border-slate-200";
+              statEl.className = "text-xs font-bold px-3 py-1.5 rounded-xl border shadow-2xs bg-slate-100 text-slate-700 border-slate-200";
               statEl.innerHTML = `เดือน ${currentMonth}: Target ${curT.toFixed(3)} | Actual -`;
             }
           }
@@ -1706,18 +1966,23 @@
                   borderColor: "#2563eb",
                   backgroundColor: "#2563eb",
                   borderWidth: 2.5,
-                  pointRadius: 4.5,
-                  pointHoverRadius: 7,
+                  pointRadius: 5,
+                  pointHoverRadius: 8,
                   pointBackgroundColor: "#ffffff",
                   pointBorderColor: "#2563eb",
-                  pointBorderWidth: 2,
+                  pointBorderWidth: 2.5,
                   tension: 0.15,
                   order: 1,
                   datalabels: {
                     align: "top",
                     anchor: "end",
-                    offset: 3,
-                    color: "#1d4ed8",
+                    offset: 6,
+                    color: "#1e40af",
+                    backgroundColor: "rgba(239, 246, 255, 0.95)",
+                    borderColor: "#93c5fd",
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    padding: { top: 2, bottom: 2, left: 4, right: 4 },
                     font: { family: "Prompt", weight: "bold", size: 10 },
                     formatter: (v) => (v != null && !isNaN(v) && v > 0) ? v.toFixed(3) : ""
                   }
@@ -1729,15 +1994,14 @@
                   backgroundColor: barColors,
                   borderColor: borderColors,
                   borderWidth: borderWidths,
-                  borderRadius: 4,
-                  maxBarThickness: 34,
+                  borderRadius: 6,
+                  maxBarThickness: 46,
                   order: 2,
                   datalabels: {
-                    align: "end",
-                    anchor: "end",
-                    offset: 1,
-                    color: "#0f172a",
-                    font: { family: "Prompt", weight: "bold", size: 10 },
+                    align: "center",
+                    anchor: "center",
+                    color: "#ffffff",
+                    font: { family: "Prompt", weight: "bold", size: 11 },
                     formatter: (v) => (v != null && !isNaN(v) && v > 0) ? v.toFixed(3) : ""
                   }
                 }
@@ -1755,18 +2019,18 @@
                   position: "top",
                   align: "end",
                   labels: {
-                    boxWidth: 10,
-                    boxHeight: 10,
+                    boxWidth: 12,
+                    boxHeight: 12,
                     usePointStyle: true,
-                    font: { family: "Prompt", size: 11, weight: "bold" },
+                    font: { family: "Prompt", size: 12, weight: "bold" },
                     color: "#334155"
                   }
                 },
                 tooltip: {
                   backgroundColor: "rgba(15, 23, 42, 0.95)",
-                  titleFont: { family: "Prompt", size: 12, weight: "bold" },
-                  bodyFont: { family: "Prompt", size: 11 },
-                  padding: 9,
+                  titleFont: { family: "Prompt", size: 13, weight: "bold" },
+                  bodyFont: { family: "Prompt", size: 12 },
+                  padding: 10,
                   cornerRadius: 8,
                   callbacks: {
                     title: (items) => `เดือน ${items[0].label}`,
@@ -1800,14 +2064,14 @@
                   },
                   ticks: {
                     callback: (v) => Number(v).toFixed(3),
-                    font: { family: "Prompt", size: 10, weight: "500" },
+                    font: { family: "Prompt", size: 11, weight: "500" },
                     color: "#64748b"
                   }
                 },
                 x: {
                   grid: { display: false },
                   ticks: {
-                    font: { family: "Prompt", size: 11, weight: "bold" },
+                    font: { family: "Prompt", size: 12, weight: "bold" },
                     color: (c) => c.index === curIdx ? "#1d4ed8" : "#334155"
                   }
                 }
