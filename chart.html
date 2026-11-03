@@ -227,6 +227,48 @@
 
   </main>
 
+  <!-- ========================================== -->
+  <!-- Modal: รูปขยายพนักงาน (Avatar Preview)     -->
+  <!-- ========================================== -->
+  <div id="avatarPreviewModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeAvatarModal()">
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-sm overflow-hidden text-center p-6 space-y-4 animate-scaleIn">
+      <div class="relative inline-block mx-auto">
+        <img id="preview-avatar-img" src="" alt="" class="w-40 h-40 rounded-full object-cover border-4 border-orange-500 shadow-xl mx-auto">
+        <span id="preview-leader-crown" class="absolute top-1 right-1 w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center shadow hidden" title="หัวหน้ากะ">
+          <i class="fa-solid fa-crown text-sm"></i>
+        </span>
+      </div>
+
+      <div>
+        <h3 class="text-lg font-black text-slate-900" id="preview-emp-name">นายคะนอง ศิริวรรณ</h3>
+        <p class="text-sm font-extrabold text-orange-600" id="preview-emp-nickname">(นอง)</p>
+      </div>
+
+      <div class="bg-slate-50 rounded-2xl p-3 border border-slate-200 text-xs space-y-1.5 text-left">
+        <div class="flex justify-between">
+          <span class="text-slate-500 font-semibold">รหัสพนักงาน:</span>
+          <span class="font-bold text-slate-800 font-mono" id="preview-emp-code">24520003</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500 font-semibold">เครื่องจักร / กะ:</span>
+          <span class="font-bold text-slate-800" id="preview-emp-machine-shift">BHS / กะ A</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500 font-semibold">จุดประจำการ (Station):</span>
+          <span class="font-bold text-blue-700" id="preview-emp-station">Stacker</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500 font-semibold">ตำแหน่งงาน:</span>
+          <span class="font-bold text-slate-800" id="preview-emp-position">ผู้ปฏิบัติงาน Dry End</span>
+        </div>
+      </div>
+
+      <button type="button" onclick="closeAvatarModal()" class="w-full py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition">
+        ปิดหน้าต่าง
+      </button>
+    </div>
+  </div>
+
   <!-- JavaScript Chart Renderer -->
   <script>
     const TIERS_CONFIG = [
@@ -311,13 +353,15 @@
         cardsHtml += `
           <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-3xl p-4 shadow-lg flex items-center justify-between border-2 border-amber-400">
             <div class="flex items-center gap-3">
-              ${avatarSrc ? `
-                <img src="${avatarSrc}" class="w-14 h-14 rounded-2xl object-cover border-2 border-amber-400 shadow" alt="">
-              ` : `
-                <div class="w-14 h-14 rounded-2xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xl">
-                  ${h.nickname || h.first_name[0]}
-                </div>
-              `}
+              <div class="relative shrink-0 cursor-pointer" onclick="openAvatarPreview(${h.id})" title="คลิกดูรูปขยาย">
+                ${avatarSrc ? `
+                  <img src="${avatarSrc}" class="w-14 h-14 rounded-2xl object-cover border-2 border-amber-400 shadow hover:scale-105 transition" alt="">
+                ` : `
+                  <div class="w-14 h-14 rounded-2xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xl hover:scale-105 transition">
+                    ${h.nickname || h.first_name[0]}
+                  </div>
+                `}
+              </div>
               <div>
                 <div class="flex items-center gap-1.5">
                   <span class="font-black text-sm">${h.first_name} ${h.last_name || ''}</span>
@@ -359,13 +403,15 @@
                 </div>
 
                 <div class="flex items-center gap-2.5">
-                  ${avatarSrc ? `
-                    <img src="${avatarSrc}" class="w-11 h-11 rounded-full object-cover border-2 ${isLeader ? 'border-amber-500' : 'border-orange-400'}" alt="">
-                  ` : `
-                    <div class="w-11 h-11 rounded-full bg-orange-100 text-orange-800 font-black flex items-center justify-center text-xs">
-                      ${emp.nickname || emp.first_name[0]}
-                    </div>
-                  `}
+                  <div class="relative shrink-0 cursor-pointer" onclick="openAvatarPreview(${emp.id})" title="คลิกดูรูปขยาย">
+                    ${avatarSrc ? `
+                      <img src="${avatarSrc}" class="w-11 h-11 rounded-full object-cover border-2 ${isLeader ? 'border-amber-500' : 'border-orange-400'} hover:scale-110 transition shadow-2xs" alt="">
+                    ` : `
+                      <div class="w-11 h-11 rounded-full bg-orange-100 text-orange-800 font-black flex items-center justify-center text-xs hover:scale-110 transition">
+                        ${emp.nickname || emp.first_name[0]}
+                      </div>
+                    `}
+                  </div>
                   <div class="min-w-0">
                     <div class="font-bold text-xs text-slate-900 truncate">
                       ${emp.first_name}
@@ -422,6 +468,45 @@
       }).catch(err => {
         Swal.fire('ข้อผิดพลาด', err.message, 'error');
       });
+    }
+
+    function openAvatarPreview(empId) {
+      if (!empId) return;
+      const store = getStoreData();
+      const emp = (store.employees || []).find(e => e.id === empId);
+      if (!emp) return;
+
+      const isLeader = (emp.station === 'Host' || (emp.position && emp.position.includes('หัวหน้า')));
+      const avatarSrc = emp.avatar ? `assets/uploads/employees/${emp.avatar}` : '';
+
+      const imgEl = document.getElementById('preview-avatar-img');
+      if (avatarSrc) {
+        imgEl.src = avatarSrc;
+        imgEl.onerror = () => {
+          imgEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(emp.first_name) + '&background=ff7900&color=fff&size=256';
+        };
+      } else {
+        imgEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(emp.first_name) + '&background=ff7900&color=fff&size=256';
+      }
+
+      document.getElementById('preview-emp-name').textContent = `${emp.title || ''} ${emp.first_name} ${emp.last_name || ''}`;
+      document.getElementById('preview-emp-nickname').textContent = emp.nickname ? `(${emp.nickname})` : '';
+      document.getElementById('preview-emp-code').textContent = emp.employee_code || '-';
+      document.getElementById('preview-emp-machine-shift').textContent = `${emp.machine || '-'} / กะ ${emp.shift || '-'}`;
+      document.getElementById('preview-emp-station').textContent = emp.station || '-';
+      document.getElementById('preview-emp-position').textContent = emp.position || '-';
+
+      const crown = document.getElementById('preview-leader-crown');
+      if (crown) {
+        crown.classList.toggle('hidden', !isLeader);
+      }
+
+      document.getElementById('avatarPreviewModal').classList.remove('hidden');
+    }
+
+    function closeAvatarModal() {
+      const modal = document.getElementById('avatarPreviewModal');
+      if (modal) modal.classList.add('hidden');
     }
 
     document.addEventListener('DOMContentLoaded', () => {
