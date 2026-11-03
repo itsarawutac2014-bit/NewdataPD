@@ -97,7 +97,7 @@
           <label for="username" class="form-label fw-semibold text-secondary small">ชื่อผู้ใช้งาน (Username)</label>
           <div class="input-group">
             <span class="input-group-text border-end-0"><i class="fas fa-user text-muted"></i></span>
-            <input type="text" class="form-control border-start-0 ps-0" id="username" name="username" placeholder="ระบุชื่อผู้ใช้" value="Admin" required autofocus>
+            <input type="text" class="form-control border-start-0 ps-0" id="username" name="username" placeholder="ระบุชื่อผู้ใช้" required autofocus autocomplete="username">
           </div>
         </div>
 
@@ -105,23 +105,17 @@
           <label for="password" class="form-label fw-semibold text-secondary small">รหัสผ่าน (Password)</label>
           <div class="input-group">
             <span class="input-group-text border-end-0"><i class="fas fa-lock text-muted"></i></span>
-            <input type="password" class="form-control border-start-0 ps-0" id="password" name="password" placeholder="ระบุรหัสผ่าน" value="12345" required>
+            <input type="password" class="form-control border-start-0 ps-0" id="password" name="password" placeholder="ระบุรหัสผ่าน" required autocomplete="current-password">
             <button class="btn btn-outline-secondary border-start-0" type="button" onclick="togglePasswordVisibility()">
               <i class="fas fa-eye text-muted" id="eye-icon"></i>
             </button>
           </div>
         </div>
 
-        <div class="d-grid mb-3">
+        <div class="d-grid mb-0">
           <button type="submit" class="btn btn-orange py-2.5 rounded-3 fw-bold">
             <i class="fas fa-sign-in-alt me-1"></i> เข้าสู่ระบบ
           </button>
-        </div>
-
-        <!-- Master Account Hint Box -->
-        <div class="p-3 bg-light rounded-3 border text-center small text-muted">
-          <div class="fw-bold text-dark mb-1"><i class="fas fa-key text-warning me-1"></i> บัญชีผู้ดูแลระบบตั้งต้น (Master Admin)</div>
-          <div>ชื่อผู้ใช้งาน: <strong class="text-primary font-monospace">Admin</strong> | รหัสผ่าน: <strong class="text-danger font-monospace">12345</strong></div>
         </div>
       </form>
     </div>
