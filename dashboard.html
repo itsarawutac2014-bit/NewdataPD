@@ -33,6 +33,9 @@
   <script src="assets/js/auth.js"></script>
   <script>Auth.requireAuth('dashboard');</script>
 
+  <!-- Google Sheet Sync Module -->
+  <script src="assets/js/google_sheet_sync.js"></script>
+
   <style>
     * {
       font-family: 'Prompt', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -220,6 +223,9 @@
 
         <button type="button" onclick="resetFilters()" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs border border-slate-300 transition" title="ล้างตัวกรอง">
           <i class="fa-solid fa-undo"></i>
+        </button>
+        <button type="button" onclick="GoogleSheetSync.openSettingsModal()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition" title="ตั้งค่าเชื่อมต่อ Google Sheet">
+          <i class="fa-solid fa-file-excel mr-1"></i> ซิงค์ Google Sheet
         </button>
       </div>
     </div>

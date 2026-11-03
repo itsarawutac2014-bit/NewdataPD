@@ -36,6 +36,9 @@
   <script src="assets/js/auth.js"></script>
   <script>Auth.requireAuth('attendance');</script>
 
+  <!-- Google Sheet Sync Module -->
+  <script src="assets/js/google_sheet_sync.js"></script>
+
   <style>
     * {
       font-family: 'Prompt', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -316,6 +319,10 @@
 
       <!-- Action Buttons -->
       <div class="flex items-center gap-2 flex-wrap">
+        <div class="gs-sync-badge-target"></div>
+        <button type="button" onclick="GoogleSheetSync.openSettingsModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition">
+          <i class="fa-solid fa-file-excel"></i> ซิงค์ Google Sheet
+        </button>
         <button type="button" onclick="openBulkAttendanceModal()" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition">
           <i class="fa-solid fa-user-check"></i> เช็คชื่อมาทำงานหลายคน
         </button>
@@ -1285,17 +1292,36 @@
       const remarks = document.getElementById('edit-remarks').value.trim();
 
       const recKey = `${empId}_${dateStr}`;
-      appData.attendance[recKey] = {
+      const rec = {
         employee_id: empId,
         work_date: dateStr,
         status: st,
         days_count: daysCount,
         remarks: remarks
       };
+      appData.attendance[recKey] = rec;
 
       saveData();
       closeCellModal();
       renderDashboard();
+
+      // ซิงค์ไปยัง Google Sheet อัตโนมัติ (ถ้าเชื่อมต่อไว้)
+      const emp = appData.employees.find(e => e.id === empId);
+      if (typeof GoogleSheetSync !== 'undefined' && GoogleSheetSync.hasWebhook() && emp) {
+        GoogleSheetSync.syncAttendance({
+          work_date: dateStr,
+          employee_code: emp.employee_code,
+          full_name: `${emp.first_name || ''} ${emp.last_name || ''}`.trim(),
+          nickname: emp.nickname || '',
+          machine: emp.machine || '',
+          shift: emp.shift || '',
+          station: emp.station || '',
+          status: st,
+          status_label: STATUS_MAP[st]?.label || st,
+          days_count: daysCount,
+          remarks: remarks
+        });
+      }
     }
 
     function deleteCurrentCellRecord() {
@@ -1367,6 +1393,28 @@
       saveData();
       closeBulkModal();
       renderDashboard();
+
+      // ซิงค์การเช็คชื่อแบบกลุ่มไปยัง Google Sheet อัตโนมัติ (ถ้าเชื่อมต่อไว้)
+      if (typeof GoogleSheetSync !== 'undefined' && GoogleSheetSync.hasWebhook()) {
+        const bulkRecords = checkedIds.map(eid => {
+          const emp = appData.employees.find(e => e.id === eid);
+          return {
+            work_date: dateStr,
+            employee_code: emp ? emp.employee_code : String(eid),
+            full_name: emp ? `${emp.first_name || ''} ${emp.last_name || ''}`.trim() : '',
+            nickname: emp ? emp.nickname || '' : '',
+            machine: emp ? emp.machine || '' : '',
+            shift: emp ? emp.shift || '' : '',
+            station: emp ? emp.station || '' : '',
+            status: st,
+            status_label: STATUS_MAP[st]?.label || st,
+            days_count: 1.0,
+            remarks: 'บันทึกแบบกลุ่ม'
+          };
+        });
+        GoogleSheetSync.syncBulkAttendance(bulkRecords);
+      }
+
       Swal.fire('สำเร็จ', `เช็คชื่อพนักงานจำนวน ${checkedIds.length} คน เรียบร้อยแล้ว`, 'success');
     }
 

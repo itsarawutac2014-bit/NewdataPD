@@ -1,0 +1,280 @@
+/**
+ * =========================================================================
+ * Google Apps Script: ระบบเชื่อมโยง ระเบียนพนักงาน & บันทึกการทำงาน ฝ่ายผลิต PD
+ * =========================================================================
+ * 
+ * วิธีการติดตั้งลงใน Google Sheet ของคุณ:
+ * 1. เปิดไฟล์ Google Sheet ของคุณที่ต้องการใช้
+ * 2. ไปที่เมนู "ส่วนขยาย" (Extensions) > "Apps Script"
+ * 3. ลบโค้ดเดิมทั้งหมดในหน้าต่าง แล้ววางโค้ดชุดนี้ลงไปทั้งหมด
+ * 4. กดปุ่ม "บันทึก" (รูปแผ่นดิสก์)
+ * 5. เลือกรันฟังก์ชัน "setupSheetAndSeedEmployees" แล้วกดปุ่ม "เรียกใช้" (Run)
+ *    -> ระบบจะสร้างแท็บ "Employees" (ระเบียนพนักงาน) และ "Attendance" (บันทึกการทำงาน)
+ *    -> และจะนำข้อมูลพนักงานทั้ง 41 คน ลงใน Google Sheet ให้อัตโนมัติทันที!
+ * 6. กดปุ่มสีน้ำเงินด้านขวาบน "การทำให้ใช้งานได้" (Deploy) > "การทำให้ใช้งานได้รายการใหม่" (New deployment)
+ * 7. เลือกประเภทเป็น "เว็บแอปพลิเคชัน" (Web app)
+ * 8. ตั้งค่า:
+ *    - คำอธิบาย: PD Workforce & Attendance Webhook
+ *    - ปฏิบัติการในฐานะ: ตัวฉัน (Me)
+ *    - ผู้ที่มีสิทธิ์เข้าถึง: ทุกคน (Anyone)  <-- สำคัญมาก! เพื่อให้หน้าเว็บส่งข้อมูลเข้ามาได้
+ * 9. กดปุ่ม "ทำให้ใช้งานได้" (Deploy) แล้วคัดลอก "URL เว็บแอป" (Web App URL)
+ * 10. นำ URL ไปใส่ในหน้าเว็บ เพื่อให้ซิงค์ข้อมูลอัตโนมัติ
+ * =========================================================================
+ */
+
+// ข้อมูลพนักงานตั้งต้นทั้ง 41 คน
+var SEED_EMPLOYEES = [{"id":1,"employee_code":"24520003","title":"นาย","first_name":"คะนอง","last_name":"ศิริวรรณ","nickname":"นอง","avatar":"emp_24520003_1787893802.jpg","department":"BHS","machine":"BHS","position":"ผู้ปฏิบัติงาน Dry End","shift":"A","station":"Stacker","start_date":"2009-01-06","probation_status":"passed","probation_pass_date":"2009-05-06","probation_notes":"ผ่านการทดลองงานระดับดีเยี่ยม","birth_date":"1992-02-01","phone":"","status":"active","notes":"","created_by":null,"created_at":"2026-08-28 11:45:56","updated_at":"2026-09-22 16:44:58","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":2,"employee_code":"24560128","title":"นาย","first_name":"ภูธร","last_name":"กะรัมย์","nickname":"ธร","avatar":"emp_24560128_1787895520.jpg","department":"BHS","machine":"BHS","position":"ผู้ปฏิบัติงาน Wet End","shift":"A","station":"M1","start_date":"2013-05-10","probation_status":"passed","probation_pass_date":"2013-09-10","probation_notes":"ผ่านการทดลองงาน","birth_date":"1979-05-15","phone":"","status":"active","notes":"","created_by":null,"created_at":"2026-08-28 11:45:56","updated_at":"2026-08-28 12:45:51","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":3,"employee_code":"24580206","title":"นาย","first_name":"บุญใสย์","last_name":"จันทร์ลี","nickname":"เขียด","avatar":"emp_24580206_1787893846.jpg","department":"BHS","machine":"BHS","position":"หัวหน้ากะ","shift":"A","station":"Host","start_date":"2015-06-02","probation_status":"passed","probation_pass_date":"2015-10-02","probation_notes":"ผ่านการทดลองงาน","birth_date":"1988-03-20","phone":"","status":"active","notes":"","created_by":null,"created_at":"2026-08-28 11:45:56","updated_at":"2026-09-22 16:44:58","skill_level":4,"m1":100,"m2":100,"m3":100,"m4":100,"m5":100,"df":100,"single_b":100,"single_c":100,"control_room":100,"stacker":100,"penalty_count":0},{"id":5,"employee_code":"24610062","title":"นาย","first_name":"สาทร","last_name":"วาที","nickname":"ทร","avatar":"emp_24610062_1787895536.jpg","department":"BHS","machine":"BHS","position":"ผู้ปฏิบัติงาน Wet End","shift":"A","station":"DOUBLE","start_date":"2018-02-05","probation_status":"passed","probation_pass_date":"2018-06-05","probation_notes":"ผ่านการทดลองงาน","birth_date":"1981-01-10","phone":"","status":"active","notes":"","created_by":null,"created_at":"2026-08-28 11:45:56","updated_at":"2026-08-28 12:45:51","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":7,"employee_code":"24620035","title":"นาย","first_name":"ภานุเมศ","last_name":"โสสุด","nickname":"เลน","avatar":"emp_24620035_1787895583.jpg","department":"BHS","machine":"BHS","position":"ผู้ปฏิบัติงาน Wet End","shift":"A","station":"SF-C","start_date":"2019-01-11","probation_status":"passed","probation_pass_date":"2019-05-11","probation_notes":"ผ่านการทดลองงาน","birth_date":"1995-05-20","phone":"","status":"active","notes":"","created_by":null,"created_at":"2026-08-28 11:45:56","updated_at":"2026-08-28 12:45:51","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":10,"employee_code":"24620283","title":"นาย","first_name":"อภิรักษ์","last_name":"ศรุติปกรณ์","nickname":"บอล","avatar":"emp_24620283_1787902588.jpg","department":"BHS","machine":"BHS","position":"ผู้ปฏิบัติงาน Wet End","shift":"A","station":"SF-B","start_date":"2019-07-05","probation_status":"passed","probation_pass_date":"2019-11-05","probation_notes":"ผ่านการทดลองงาน","birth_date":"1992-05-08","phone":"","status":"active","notes":"","created_by":null,"created_at":"2026-08-28 11:45:56","updated_at":"2026-08-28 14:56:15","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":13,"employee_code":"24630152","title":"นาย","first_name":"วันชัย","last_name":"สอนโพนงาม","nickname":"เล็ก","avatar":"emp_24630152_1787902324.jpg","department":"BHS","machine":"BHS","position":"ผู้ปฏิบัติงาน Wet End","shift":"A","station":"Control","start_date":"2020-09-14","probation_status":"passed","probation_pass_date":"2021-01-14","probation_notes":"ผ่านการทดลองงาน","birth_date":"1995-02-18","phone":"","status":"active","notes":"","created_by":null,"created_at":"2026-08-28 11:45:56","updated_at":"2026-08-28 14:56:15","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":17,"employee_code":"24650104","title":"นาย","first_name":"ชยังกูร","last_name":"ดอนตะโก","nickname":"นิว","avatar":"emp_24650104_1787902649.jpg","department":"BHS","machine":"BHS","position":"ผู้ปฏิบัติงาน Wet End","shift":"A","station":"M3","start_date":"2022-09-07","probation_status":"passed","probation_pass_date":"2023-01-07","probation_notes":"ผ่านการทดลองงาน","birth_date":"1997-03-18","phone":"","status":"active","notes":"","created_by":null,"created_at":"2026-08-28 11:45:56","updated_at":"2026-08-28 14:49:18","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":19,"employee_code":"24660114","title":"นาย","first_name":"สมพงษ์","last_name":"จันทร์ลี","nickname":"เอ๋","avatar":"emp_24660114_1787902664.jpg","department":"BHS","machine":"BHS","position":"ผู้ปฏิบัติงาน Wet End","shift":"A","station":"M5","start_date":"2023-06-01","probation_status":"passed","probation_pass_date":"2023-10-01","probation_notes":"ผ่านการทดลองงาน","birth_date":"1994-02-25","phone":"","status":"active","notes":"","created_by":null,"created_at":"2026-08-28 11:45:56","updated_at":"2026-08-28 14:50:03","skill_level":2,"m1":100,"m2":100,"m3":80,"m4":100,"m5":100,"df":40,"single_b":20,"single_c":20,"control_room":0,"stacker":0,"penalty_count":0},{"id":18,"employee_code":"24690023","title":"นาย","first_name":"จุทาวัธร","last_name":"บรรพแก้ว","nickname":"จุทา","avatar":"","department":"BHS","machine":"BHS","position":"ผู้ปฏิบัติงาน Wet End","shift":"A","station":"M2","start_date":"2026-01-01","probation_status":"passed","probation_pass_date":"2026-05-01","probation_notes":"อยู่ระหว่างการทดลองงาน","birth_date":"2002-06-10","phone":"","status":"active","notes":"","created_by":null,"created_at":"2026-08-28 11:45:56","updated_at":"2026-08-28 14:49:49","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":6,"employee_code":"24620017","title":"นาย","first_name":"อิสระ","last_name":"สัจบาล","nickname":"อิส","avatar":"emp_24620017_1787895560.jpg","department":"BHS","machine":"BHS","position":"ผู้ปฏิบัติงาน Wet End","shift":"B","station":"M1","start_date":"2019-01-11","probation_status":"passed","probation_pass_date":"2019-05-11","probation_notes":"ผ่านการทดลองงาน","birth_date":"1992-03-15","phone":"","status":"active","notes":"","created_by":null,"created_at":"2026-08-28 11:45:56","updated_at":"2026-08-28 12:45:51","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":8,"employee_code":"24620086","title":"นาย","first_name":"อดิเรก","last_name":"หาญกล้า","nickname":"โอ","avatar":"emp_24620086_1787895626.jpg","department":"BHS","machine":"BHS","position":"ผู้ปฏิบัติงาน Wet End","shift":"B","station":"SF-B","start_date":"2019-02-20","probation_status":"passed","probation_pass_date":"2019-06-20","probation_notes":"ผ่านการทดลองงาน","birth_date":"1995-07-10","phone":"","status":"active","notes":"","created_by":null,"created_at":"2026-08-28 11:45:56","updated_at":"2026-08-28 14:56:15","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":9,"employee_code":"24620217","title":"นาย","first_name":"สุธานนท์","last_name":"คนเพียร","nickname":"ทิศโก้","avatar":"emp_24620217_1787902577.jpg","department":"BHS","machine":"BHS","position":"ผู้ปฏิบัติงาน Wet End","shift":"B","station":"DOUBLE","start_date":"2019-06-04","probation_status":"passed","probation_pass_date":"2019-10-04","probation_notes":"ผ่านการทดลองงาน","birth_date":"1999-03-12","phone":"","status":"active","notes":"","created_by":null,"created_at":"2026-08-28 11:45:56","updated_at":"2026-08-28 14:36:17","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":11,"employee_code":"24620291","title":"นาย","first_name":"ภาคภูมิ","last_name":"ดีสม","nickname":"ไนท์","avatar":"emp_24620291_1789016559.jpg","department":"ฝ่ายผลิต","machine":"BHS","position":"หัวหน้ากะ","shift":"B","station":"Host","start_date":"2019-07-08","probation_status":"passed","probation_pass_date":"2019-11-08","probation_notes":"ผ่านการทดลองงาน","birth_date":"1999-08-22","phone":"","status":"active","notes":"","created_by":null,"created_at":"2026-08-28 11:45:56","updated_at":"2026-09-10 12:02:39","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":14,"employee_code":"24640005","title":"นาย","first_name":"อุเทน","last_name":"พรมวงค์","nickname":"เท่","avatar":"emp_24640005_1787902628.jpg","department":"BHS","machine":"BHS","position":"ผู้ปฏิบัติงาน Wet End","shift":"B","station":"SF-C","start_date":"2021-01-28","probation_status":"passed","probation_pass_date":"2021-05-28","probation_notes":"ผ่านการทดลองงาน","birth_date":"1994-11-05","phone":"","status":"active","notes":"","created_by":null,"created_at":"2026-08-28 11:45:56","updated_at":"2026-08-28 14:49:32","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":15,"employee_code":"24640067","title":"นาย","first_name":"วันชนะ","last_name":"หีบแก้ว","nickname":"เซียงโก้","avatar":"emp_24640067_1787902637.jpg","department":"BHS","machine":"BHS","position":"ผู้ปฏิบัติงาน Wet End","shift":"B","station":"Stacker","start_date":"2021-07-19","probation_status":"passed","probation_pass_date":"2021-11-19","probation_notes":"ผ่านการทดลองงาน","birth_date":"2001-07-12","phone":"","status":"active","notes":"","created_by":null,"created_at":"2026-08-28 11:45:56","updated_at":"2026-08-29 10:13:34","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":12,"employee_code":"24680046","title":"นาย","first_name":"สายนธี","last_name":"พิมน์ทรัพน์","nickname":"บิ๊ก","avatar":"emp_24680046_1787902675.png","department":"BHS","machine":"BHS","position":"ผู้ปฏิบัติงาน Wet End","shift":"B","station":"M3","start_date":"2025-06-01","probation_status":"passed","probation_pass_date":"2025-10-01","probation_notes":"ผ่านการทดลองงาน","birth_date":"2004-04-10","phone":"","status":"active","notes":"","created_by":null,"created_at":"2026-08-28 11:45:56","updated_at":"2026-08-28 14:51:06","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":16,"employee_code":"24680048","title":"นาย","first_name":"ธนากร","last_name":"ทิพย์ชัย","nickname":"เก้า","avatar":"emp_24680048_1787902690.png","department":"BHS","machine":"BHS","position":"ผู้ปฏิบัติงาน Wet End","shift":"B","station":"M5","start_date":"2025-06-01","probation_status":"passed","probation_pass_date":"2025-10-01","probation_notes":"ผ่านการทดลองงาน","birth_date":"2003-09-15","phone":"","status":"active","notes":"","created_by":null,"created_at":"2026-08-28 11:45:56","updated_at":"2026-08-28 14:51:28","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":20,"employee_code":"24690063","title":"นาย","first_name":"ทักษ์ดนัย","last_name":"เพชรประไพ","nickname":"บอส","avatar":"emp_24690063_1789008109.jpg","department":"ฝ่ายผลิต","machine":"BHS","position":"ผู้ปฏิบัติงาน Wet End","shift":"B","station":"M2","start_date":"2026-06-01","probation_status":"probation","probation_pass_date":"2026-10-01","probation_notes":"อยู่ระหว่างการทดลองงาน (เริ่ม มิ.ย. 2569)","birth_date":"2005-08-10","phone":"","status":"probation","notes":"","created_by":null,"created_at":"2026-08-28 11:45:56","updated_at":"2026-09-10 09:41:49","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":21,"employee_code":"24690065","title":"นาย","first_name":"ธนาธิป","last_name":"สระทองเงิน","nickname":"ต้น","avatar":"emp_24690065_1789016292.jpg","department":"ฝ่ายผลิต","machine":"BHS","position":"ผู้ปฏิบัติงาน Wet End","shift":"B","station":"Control","start_date":"2026-06-01","probation_status":"probation","probation_pass_date":"2026-10-01","probation_notes":"อยู่ระหว่างการทดลองงาน (เริ่ม มิ.ย. 2569)","birth_date":"2004-10-15","phone":"","status":"probation","notes":"","created_by":null,"created_at":"2026-08-28 11:45:56","updated_at":"2026-09-10 11:58:12","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":4,"employee_code":"24610007","title":"นาย","first_name":"อิศราวุธ","last_name":"คงเจริญ","nickname":"อาร์ท","avatar":"emp_24610007_1787893825.jpg","department":"ฝ่ายผลิต","machine":"BHS","position":"หัวหน้าแผนก","shift":"AB","station":"สำนักงาน BHS","start_date":"2018-01-06","probation_status":"passed","probation_pass_date":"2018-05-06","probation_notes":"ผ่านการทดลองงาน","birth_date":"1997-10-22","phone":"","status":"active","notes":"","created_by":null,"created_at":"2026-08-28 11:45:56","updated_at":"2026-09-11 17:24:38","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":41,"employee_code":"24600010","title":"นาย","first_name":"วิทยา","last_name":"เสียงหวาน","nickname":"เค","avatar":"emp_24600010_1788573848.jpg","department":"ฝ่ายผลิต","machine":"YUELI","position":"ผู้ปฏิบัติงาน Wet End","shift":"A","station":"SF-C","start_date":"2017-02-01","probation_status":"passed","probation_pass_date":"2017-06-01","probation_notes":"","birth_date":"1993-06-02","phone":"097-1684557","status":"active","notes":"Single-C","created_by":1,"created_at":"2026-09-05 08:54:43","updated_at":"2026-09-05 09:04:08","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":39,"employee_code":"24610139","title":"นาย","first_name":"KYAW PAYING PHYO","last_name":"-","nickname":"ไป๋","avatar":"emp_24610139_1788573873.jpg","department":"ฝ่ายผลิต","machine":"YUELI","position":"ผู้ปฏิบัติงาน Wet End","shift":"A","station":"SF-B","start_date":"2018-03-16","probation_status":"passed","probation_pass_date":"2018-07-16","probation_notes":"","birth_date":"1992-04-02","phone":"098-8900100","status":"active","notes":"Single-B+M4","created_by":1,"created_at":"2026-09-05 08:54:43","updated_at":"2026-09-05 09:04:33","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":34,"employee_code":"24620057","title":"นาย","first_name":"นันทวุฒิ","last_name":"จุลทัศน์","nickname":"นิ๊ก","avatar":"emp_24620057_1788574269.jpg","department":"ฝ่ายผลิต","machine":"YUELI","position":"หัวหน้ากะ","shift":"A","station":"Host","start_date":"2019-01-18","probation_status":"passed","probation_pass_date":"2019-05-18","probation_notes":"","birth_date":"1996-09-09","phone":"095-7176279","status":"active","notes":"หัวหน้ากะ A (Host)","created_by":1,"created_at":"2026-09-05 08:54:43","updated_at":"2026-09-24 12:40:45","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":37,"employee_code":"24680098","title":"นาย","first_name":"สมชาย","last_name":"เกษตรไพร","nickname":"ปุ๊","avatar":"emp_24680098_1788576488.jpg","department":"ฝ่ายผลิต","machine":"YUELI","position":"ผู้ปฏิบัติงาน Wet End","shift":"A","station":"DOUBLE","start_date":"2025-11-30","probation_status":"passed","probation_pass_date":"2026-03-30","probation_notes":"","birth_date":"1998-10-30","phone":"065-4949408","status":"active","notes":"Double Facer","created_by":1,"created_at":"2026-09-05 08:54:43","updated_at":"2026-09-05 09:48:08","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":44,"employee_code":"24690099","title":"นาย","first_name":"Phone Nyat Ou","last_name":"-","nickname":"อู","avatar":"emp_24690099_1788576597.jpg","department":"ฝ่ายผลิต","machine":"YUELI","position":"ผู้ปฏิบัติงาน Dry End","shift":"A","station":"Stacker","start_date":"2026-01-01","probation_status":"passed","probation_pass_date":"2026-05-01","probation_notes":"","birth_date":"1985-03-11","phone":"083-1140447","status":"active","notes":"Sup","created_by":1,"created_at":"2026-09-05 08:54:43","updated_at":"2026-09-19 09:37:05","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":43,"employee_code":"24690005","title":"นาย","first_name":"วาทิตย์","last_name":"มุ่งรายกลาง","nickname":"นาย","avatar":"emp_24690005_1788576524.jpg","department":"ฝ่ายผลิต","machine":"YUELI","position":"ผู้ปฏิบัติงาน Wet End","shift":"A","station":"M1","start_date":"2026-01-11","probation_status":"passed","probation_pass_date":"2026-05-11","probation_notes":"","birth_date":"2001-10-21","phone":"062-5713815","status":"active","notes":"M1","created_by":1,"created_at":"2026-09-05 08:54:43","updated_at":"2026-09-05 09:48:44","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":40,"employee_code":"24690009","title":"นาย","first_name":"กิตติวุฒิ","last_name":"ณ บางช้าง","nickname":"เพิร์ท","avatar":"emp_24690009_1788576615.jpg","department":"ฝ่ายผลิต","machine":"YUELI","position":"ผู้ปฏิบัติงาน Wet End","shift":"A","station":"M3","start_date":"2026-01-19","probation_status":"passed","probation_pass_date":"2026-05-19","probation_notes":"","birth_date":"2003-11-29","phone":"085-5160110","status":"active","notes":"M3","created_by":1,"created_at":"2026-09-05 08:54:43","updated_at":"2026-09-05 09:50:15","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":35,"employee_code":"24690013","title":"นาย","first_name":"ธนพงษ์","last_name":"โพธิ์ผาง","nickname":"บอส","avatar":"emp_24690013_1788576717.jpg","department":"ฝ่ายผลิต","machine":"YUELI","position":"ผู้ปฏิบัติงาน Control","shift":"A","station":"Control","start_date":"2026-01-26","probation_status":"passed","probation_pass_date":"2026-05-26","probation_notes":"","birth_date":"1995-01-04","phone":"061-2485230","status":"active","notes":"Control Room","created_by":1,"created_at":"2026-09-05 08:54:43","updated_at":"2026-09-05 09:51:57","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":42,"employee_code":"24690011","title":"นาย","first_name":"รุ่งตะวัน","last_name":"แดงขาว","nickname":"ไนท์","avatar":"emp_24690011_1788576729.jpg","department":"ฝ่ายผลิต","machine":"YUELI","position":"ผู้ปฏิบัติงาน Wet End","shift":"A","station":"M2","start_date":"2026-01-26","probation_status":"passed","probation_pass_date":"2026-05-26","probation_notes":"","birth_date":"2005-09-14","phone":"095-8254840","status":"active","notes":"M2","created_by":1,"created_at":"2026-09-05 08:54:43","updated_at":"2026-09-05 09:52:09","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":36,"employee_code":"24690029","title":"นาย","first_name":"ทรงเกียรติ","last_name":"วารีคีรี","nickname":"กบ","avatar":"emp_24690029_1788576774.jpg","department":"ฝ่ายผลิต","machine":"YUELI","position":"ผู้ปฏิบัติงาน Dry End","shift":"A","station":"Stacker","start_date":"2026-05-04","probation_status":"passed","probation_pass_date":"2026-09-04","probation_notes":"","birth_date":"1995-02-24","phone":"097-9689866","status":"active","notes":"STACKER","created_by":1,"created_at":"2026-09-05 08:54:43","updated_at":"2026-09-05 09:52:54","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":38,"employee_code":"24690047","title":"นาย","first_name":"ภานุวัฒน์","last_name":"พุ่มฉัตร","nickname":"บีม","avatar":"emp_24690047_1788576784.jpg","department":"ฝ่ายผลิต","machine":"YUELI","position":"ผู้ปฏิบัติงาน Wet End","shift":"A","station":"M5","start_date":"2026-07-01","probation_status":"probation","probation_pass_date":"2026-11-01","probation_notes":"","birth_date":"2005-12-27","phone":"062-4547024","status":"active","notes":"M5","created_by":1,"created_at":"2026-09-05 08:54:43","updated_at":"2026-09-05 09:53:04","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":45,"employee_code":"24620289","title":"นาย","first_name":"วุฒิชัย","last_name":"โสภากุ","nickname":"เจ","avatar":"emp_24620289_1788949456.jpg","department":"ฝ่ายผลิต","machine":"YUELI","position":"ผู้ปฏิบัติงาน Wet End","shift":"B","station":"Host","start_date":"2019-07-08","probation_status":"passed","probation_pass_date":"2019-11-08","probation_notes":"","birth_date":"1996-01-14","phone":"080-7294362","status":"active","notes":"","created_by":1,"created_at":"2026-09-09 14:34:23","updated_at":"2026-09-09 17:24:16","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":53,"employee_code":"24640081","title":"นาย","first_name":"กิจจา","last_name":"เคลือบยิ้ม","nickname":"แจ็ค","avatar":"emp_24640081_1788949248.jpg","department":"ฝ่ายผลิต","machine":"YUELI","position":"ผู้ปฏิบัติงาน Wet End","shift":"B","station":"DOUBLE","start_date":"2021-08-25","probation_status":"passed","probation_pass_date":"2021-12-25","probation_notes":"","birth_date":"1982-02-22","phone":"098-8870436","status":"active","notes":"","created_by":1,"created_at":"2026-09-09 14:34:23","updated_at":"2026-09-09 17:20:48","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":49,"employee_code":"24640029","title":"นาย","first_name":"นุพล","last_name":"อุปพงษ์","nickname":"ออฟ","avatar":"emp_24640029_1788950246.jpg","department":"ฝ่ายผลิต","machine":"YUELI","position":"ผู้ปฏิบัติงาน Wet End","shift":"B","station":"SF-C","start_date":"2022-01-11","probation_status":"passed","probation_pass_date":"2022-05-11","probation_notes":"","birth_date":"2000-07-31","phone":"096-1788120","status":"active","notes":"","created_by":1,"created_at":"2026-09-09 14:34:23","updated_at":"2026-09-09 17:37:26","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":51,"employee_code":"24670027","title":"นาย","first_name":"วันชัย","last_name":"พรมเสน","nickname":"เปา","avatar":"emp_24670027_1788949435.jpg","department":"ฝ่ายผลิต","machine":"YUELI","position":"ผู้ปฏิบัติงาน Dry End","shift":"B","station":"Stacker","start_date":"2024-03-07","probation_status":"passed","probation_pass_date":"2024-07-07","probation_notes":"","birth_date":"1994-05-10","phone":"098-5913702","status":"active","notes":"","created_by":1,"created_at":"2026-09-09 14:34:23","updated_at":"2026-09-09 17:23:55","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":50,"employee_code":"24680060","title":"นาย","first_name":"สรศักดิ์","last_name":"ขันชะลี","nickname":"เวฟ","avatar":"emp_24680060_1788949532.jpg","department":"ฝ่ายผลิต","machine":"YUELI","position":"ผู้ปฏิบัติงาน Wet End","shift":"B","station":"SF-B","start_date":"2025-06-18","probation_status":"passed","probation_pass_date":"2025-10-18","probation_notes":"","birth_date":"2005-05-13","phone":"094-7356157","status":"active","notes":"","created_by":1,"created_at":"2026-09-09 14:34:23","updated_at":"2026-09-09 17:25:32","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":46,"employee_code":"24680090","title":"นาย","first_name":"อติชาต","last_name":"เปรียบนาน","nickname":"แอ๊ะ","avatar":"emp_24680090_1788949418.jpg","department":"ฝ่ายผลิต","machine":"YUELI","position":"ผู้ปฏิบัติงาน Control","shift":"B","station":"Control","start_date":"2025-09-23","probation_status":"passed","probation_pass_date":"2026-01-23","probation_notes":"","birth_date":"2005-09-18","phone":"099-4419729","status":"active","notes":"","created_by":1,"created_at":"2026-09-09 14:34:23","updated_at":"2026-09-09 17:23:38","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":47,"employee_code":"24680089","title":"นาย","first_name":"สรรค์ชัย","last_name":"ชูสุวรรณ","nickname":"แต้ม","avatar":"emp_24680089_1788949730.jpg","department":"ฝ่ายผลิต","machine":"YUELI","position":"ผู้ปฏิบัติงาน Wet End","shift":"B","station":"M1","start_date":"2025-10-23","probation_status":"passed","probation_pass_date":"2026-02-23","probation_notes":"","birth_date":"1988-12-28","phone":"062-2718028","status":"active","notes":"","created_by":1,"created_at":"2026-09-09 14:34:23","updated_at":"2026-09-09 17:28:50","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":52,"employee_code":"24690018","title":"นาย","first_name":"จักรพงษ์","last_name":"หงษ์คำเมือง","nickname":"โอ๊ต","avatar":"emp_24690018_1788949752.jpg","department":"ฝ่ายผลิต","machine":"YUELI","position":"ผู้ปฏิบัติงาน Wet End","shift":"B","station":"M5","start_date":"2026-02-23","probation_status":"passed","probation_pass_date":"2026-06-23","probation_notes":"","birth_date":"1998-04-09","phone":"083-7150553","status":"active","notes":"","created_by":1,"created_at":"2026-09-09 14:34:23","updated_at":"2026-09-09 17:29:12","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0},{"id":48,"employee_code":"24690027","title":"นาย","first_name":"ประพันธ์","last_name":"สุนิกร","nickname":"ตั้ง","avatar":"emp_24690027_1788949686.jpg","department":"ฝ่ายผลิต","machine":"YUELI","position":"ผู้ปฏิบัติงาน Wet End","shift":"B","station":"M2","start_date":"2026-04-20","probation_status":"passed","probation_pass_date":"2026-08-20","probation_notes":"","birth_date":"1991-09-04","phone":"094-4285121","status":"active","notes":"","created_by":1,"created_at":"2026-09-09 14:34:23","updated_at":"2026-09-09 17:28:06","skill_level":null,"m1":null,"m2":null,"m3":null,"m4":null,"m5":null,"df":null,"single_b":null,"single_c":null,"control_room":null,"stacker":null,"penalty_count":0}];
+
+/**
+ * ฟังก์ชันสร้างชีตและลงข้อมูลพนักงาน 41 คนอัตโนมัติ (กดรันครั้งเดียว)
+ */
+function setupSheetAndSeedEmployees() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  // 1. สร้าง/เตรียมแท็บ Employees (ระเบียนพนักงาน)
+  var empSheet = ss.getSheetByName('Employees');
+  if (!empSheet) {
+    empSheet = ss.insertSheet('Employees');
+  }
+  empSheet.clear();
+
+  // Header ระเบียนพนักงาน
+  var empHeaders = [
+    'รหัสพนักงาน', 'คำนำหน้า', 'ชื่อ', 'นามสกุล', 'ชื่อเล่น', 
+    'เครื่องจักร', 'กะการทำงาน', 'จุดประจำการ (Station)', 'ตำแหน่ง', 
+    'วันเริ่มงาน', 'วันเกิด', 'เบอร์โทรศัพท์', 'สถานะทดลองงาน', 'สถานะการทำงาน'
+  ];
+  empSheet.getRange(1, 1, 1, empHeaders.length).setValues([empHeaders]);
+  empSheet.getRange(1, 1, 1, empHeaders.length)
+    .setFontWeight('bold')
+    .setBackground('#ff7900')
+    .setFontColor('#ffffff')
+    .setHorizontalAlignment('center');
+  empSheet.setFrozenRows(1);
+
+  // ลงข้อมูลพนักงาน 41 คน
+  var empRows = [];
+  for (var i = 0; i < SEED_EMPLOYEES.length; i++) {
+    var e = SEED_EMPLOYEES[i];
+    empRows.push([
+      String(e.employee_code || ''),
+      e.title || '',
+      e.first_name || '',
+      e.last_name || '',
+      e.nickname || '',
+      e.machine || '',
+      e.shift || '',
+      e.station || '',
+      e.position || '',
+      e.start_date || '',
+      e.birth_date || '',
+      e.phone || '',
+      e.probation_status || 'passed',
+      e.status || 'active'
+    ]);
+  }
+  if (empRows.length > 0) {
+    empSheet.getRange(2, 1, empRows.length, empHeaders.length).setValues(empRows);
+  }
+  empSheet.autoResizeColumns(1, empHeaders.length);
+
+  // 2. สร้าง/เตรียมแท็บ Attendance (บันทึกการทำงาน)
+  var attSheet = ss.getSheetByName('Attendance');
+  if (!attSheet) {
+    attSheet = ss.insertSheet('Attendance');
+  }
+  if (attSheet.getLastRow() === 0) {
+    var attHeaders = [
+      'วันที่', 'รหัสพนักงาน', 'ชื่อ-นามสกุล', 'ชื่อเล่น', 
+      'เครื่องจักร', 'กะ', 'จุดประจำการ', 'สถานะการปฏิบัติงาน', 
+      'จำนวนวัน', 'หมายเหตุ', 'เวลาที่บันทึก'
+    ];
+    attSheet.getRange(1, 1, 1, attHeaders.length).setValues([attHeaders]);
+    attSheet.getRange(1, 1, 1, attHeaders.length)
+      .setFontWeight('bold')
+      .setBackground('#10b981')
+      .setFontColor('#ffffff')
+      .setHorizontalAlignment('center');
+    attSheet.setFrozenRows(1);
+    attSheet.autoResizeColumns(1, attHeaders.length);
+  }
+
+  Logger.log('สร้างชีตและลงข้อมูลพนักงาน 41 คนเรียบร้อยแล้ว!');
+}
+
+/**
+ * รับคำขอ POST จากหน้าเว็บเมื่อมีการเพิ่มพนักงาน หรือบันทึกเวลาทำงาน
+ */
+function doPost(e) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000); // รอคิวเขียน 30 วินาที ป้องกันข้อมูลชนกัน
+
+  try {
+    if (!e || !e.postData || !e.postData.contents) {
+      return ContentService.createTextOutput(JSON.stringify({ success: false, error: 'No payload received' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var payload = JSON.parse(e.postData.contents);
+    var action = payload.action;
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var result = { success: true };
+
+    // 1. เพิ่มพนักงานใหม่ลงชีต Employees
+    if (action === 'add_employee') {
+      var sheet = ss.getSheetByName('Employees') || ss.insertSheet('Employees');
+      var emp = payload.employee || payload;
+      var newRow = [
+        String(emp.employee_code || ''),
+        emp.title || '',
+        emp.first_name || '',
+        emp.last_name || '',
+        emp.nickname || '',
+        emp.machine || 'BHS',
+        emp.shift || 'A',
+        emp.station || '',
+        emp.position || '',
+        emp.start_date || '',
+        emp.birth_date || '',
+        emp.phone || '',
+        emp.probation_status || 'passed',
+        emp.status || 'active'
+      ];
+      sheet.appendRow(newRow);
+      result.message = 'บันทึกพนักงานใหม่ ' + (emp.first_name || '') + ' ลง Google Sheet สำเร็จ';
+    }
+
+    // 2. บันทึกการลงเวลาทำงาน / วันลา ลงชีต Attendance
+    else if (action === 'save_attendance') {
+      var sheet = ss.getSheetByName('Attendance') || ss.insertSheet('Attendance');
+      var rec = payload.record || payload;
+      var timestamp = Utilities.formatDate(new Date(), 'Asia/Bangkok', 'yyyy-MM-dd HH:mm:ss');
+      
+      // ตรวจสอบว่ามีข้อมูลของวันและพนักงานคนนี้อยู่แล้วหรือไม่ เพื่อทำการอัปเดตแทนการเขียนซ้ำ
+      var dateStr = String(rec.work_date || '');
+      var codeStr = String(rec.employee_code || '');
+      var lastRow = sheet.getLastRow();
+      var foundRow = -1;
+
+      if (lastRow > 1) {
+        var dataRange = sheet.getRange(2, 1, lastRow - 1, 2).getValues();
+        for (var i = 0; i < dataRange.length; i++) {
+          var rDate = String(dataRange[i][0]);
+          var rCode = String(dataRange[i][1]);
+          if (rDate === dateStr && rCode === codeStr) {
+            foundRow = i + 2;
+            break;
+          }
+        }
+      }
+
+      var rowData = [
+        dateStr,
+        codeStr,
+        rec.full_name || '',
+        rec.nickname || '',
+        rec.machine || '',
+        rec.shift || '',
+        rec.station || '',
+        rec.status_label || rec.status || 'มาทำงานปกติ',
+        Number(rec.days_count || 1.0),
+        rec.remarks || '',
+        timestamp
+      ];
+
+      if (foundRow > 0) {
+        sheet.getRange(foundRow, 1, 1, rowData.length).setValues([rowData]);
+        result.message = 'อัปเดตบันทึกการทำงานวันที่ ' + dateStr + ' สำเร็จ';
+      } else {
+        sheet.appendRow(rowData);
+        result.message = 'บันทึกการทำงานวันที่ ' + dateStr + ' สำเร็จ';
+      }
+    }
+
+    // 3. บันทึกการลงเวลาแบบกลุ่ม (Bulk Attendance)
+    else if (action === 'bulk_attendance') {
+      var sheet = ss.getSheetByName('Attendance') || ss.insertSheet('Attendance');
+      var records = payload.records || [];
+      var timestamp = Utilities.formatDate(new Date(), 'Asia/Bangkok', 'yyyy-MM-dd HH:mm:ss');
+
+      for (var k = 0; k < records.length; k++) {
+        var r = records[k];
+        sheet.appendRow([
+          String(r.work_date || ''),
+          String(r.employee_code || ''),
+          r.full_name || '',
+          r.nickname || '',
+          r.machine || '',
+          r.shift || '',
+          r.station || '',
+          r.status_label || r.status || 'มาทำงานปกติ',
+          Number(r.days_count || 1.0),
+          r.remarks || 'บันทึกแบบกลุ่ม',
+          timestamp
+        ]);
+      }
+      result.message = 'บันทึกการทำงานแบบกลุ่มจำนวน ' + records.length + ' รายการสำเร็จ';
+    }
+
+    return ContentService.createTextOutput(JSON.stringify(result))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ success: false, error: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/**
+ * ดึงข้อมูลพนักงานและการลงเวลาไปแสดงผลที่หน้าเว็บ (GET)
+ */
+function doGet(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var empSheet = ss.getSheetByName('Employees');
+  var attSheet = ss.getSheetByName('Attendance');
+
+  var employees = [];
+  if (empSheet && empSheet.getLastRow() > 1) {
+    var data = empSheet.getRange(2, 1, empSheet.getLastRow() - 1, 14).getValues();
+    for (var i = 0; i < data.length; i++) {
+      employees.push({
+        employee_code: String(data[i][0]),
+        title: data[i][1],
+        first_name: data[i][2],
+        last_name: data[i][3],
+        nickname: data[i][4],
+        machine: data[i][5],
+        shift: data[i][6],
+        station: data[i][7],
+        position: data[i][8],
+        start_date: data[i][9],
+        birth_date: data[i][10],
+        phone: data[i][11],
+        probation_status: data[i][12],
+        status: data[i][13]
+      });
+    }
+  }
+
+  var attendance = [];
+  if (attSheet && attSheet.getLastRow() > 1) {
+    var aData = attSheet.getRange(2, 1, attSheet.getLastRow() - 1, 10).getValues();
+    for (var j = 0; j < aData.length; j++) {
+      attendance.push({
+        work_date: String(aData[j][0]),
+        employee_code: String(aData[j][1]),
+        status: aData[j][7],
+        days_count: aData[j][8],
+        remarks: aData[j][9]
+      });
+    }
+  }
+
+  return ContentService.createTextOutput(JSON.stringify({
+    success: true,
+    employees: employees,
+    attendance: attendance
+  })).setMimeType(ContentService.MimeType.JSON);
+}

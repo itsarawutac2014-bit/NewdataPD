@@ -30,6 +30,9 @@
   <script src="assets/js/auth.js"></script>
   <script>Auth.requireAuth('employees');</script>
 
+  <!-- Google Sheet Sync Module -->
+  <script src="assets/js/google_sheet_sync.js"></script>
+
   <style>
     * {
       font-family: 'Prompt', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -157,8 +160,15 @@
           <p class="text-xs text-slate-500 mt-1">ประวัติส่วนตัว, จุดประจำการ, อายุงาน, และทักษะความเชี่ยวชาญเครื่องจักร</p>
         </div>
 
-        <!-- View Mode Switch -->
-        <div class="flex items-center gap-2">
+        <!-- Action Buttons & View Mode Switch -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <div class="gs-sync-badge-target"></div>
+          <button type="button" onclick="GoogleSheetSync.openSettingsModal()" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition cursor-pointer">
+            <i class="fa-solid fa-file-excel mr-1"></i> ซิงค์ Google Sheet
+          </button>
+          <button type="button" onclick="openAddEmployeeModal()" class="px-3.5 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold shadow-xs transition cursor-pointer">
+            <i class="fa-solid fa-user-plus mr-1"></i> เพิ่มพนักงานใหม่
+          </button>
           <div class="bg-slate-100 p-1 rounded-2xl border border-slate-200 flex items-center gap-1 text-xs font-bold">
             <button type="button" onclick="setViewMode('grid')" id="btn-view-grid" class="px-3 py-1.5 rounded-xl bg-white text-orange-600 shadow-2xs">
               <i class="fa-solid fa-table-cells-large mr-1"></i> การ์ด (Grid)
@@ -307,6 +317,117 @@
           ปิดหน้าต่าง
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- Modal: เพิ่มพนักงานใหม่                     -->
+  <!-- ========================================== -->
+  <div id="addEmployeeModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-xl overflow-hidden animate-scaleIn max-h-[90vh] flex flex-col">
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-orange-600 to-amber-600 p-5 text-white flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-user-plus"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-black">เพิ่มพนักงานฝ่ายผลิตใหม่</h3>
+            <p class="text-xs text-orange-100">บันทึกลงระบบและเชื่อมซิงค์ Google Sheet อัตโนมัติ</p>
+          </div>
+        </div>
+        <button onclick="closeAddEmployeeModal()" class="text-white/80 hover:text-white p-1 text-xl">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Form Body -->
+      <form id="add-employee-form" onsubmit="saveNewEmployee(event)" class="p-6 overflow-y-auto space-y-4 flex-1 text-xs">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <!-- รหัสพนักงาน -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">รหัสพนักงาน <span class="text-rose-600">*</span></label>
+            <input type="text" id="add-emp-code" required placeholder="เช่น 24650042" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-orange-500">
+          </div>
+          <!-- คำนำหน้า -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">คำนำหน้าชื่อ</label>
+            <select id="add-emp-title" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-orange-500">
+              <option value="นาย">นาย</option>
+              <option value="นาง">นาง</option>
+              <option value="นางสาว">นางสาว</option>
+            </select>
+          </div>
+          <!-- ชื่อ -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">ชื่อ <span class="text-rose-600">*</span></label>
+            <input type="text" id="add-emp-firstname" required placeholder="ชื่อจริง" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-orange-500">
+          </div>
+          <!-- นามสกุล -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">นามสกุล <span class="text-rose-600">*</span></label>
+            <input type="text" id="add-emp-lastname" required placeholder="นามสกุล" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-orange-500">
+          </div>
+          <!-- ชื่อเล่น -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">ชื่อเล่น</label>
+            <input type="text" id="add-emp-nickname" placeholder="เช่น บอย, ตั้ม" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-orange-500">
+          </div>
+          <!-- เบอร์โทร -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">เบอร์โทรศัพท์</label>
+            <input type="tel" id="add-emp-phone" placeholder="08x-xxx-xxxx" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500">
+          </div>
+          <!-- เครื่องจักร -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">ประจำเครื่องจักร <span class="text-rose-600">*</span></label>
+            <select id="add-emp-machine" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-orange-500">
+              <option value="BHS" selected>BHS</option>
+              <option value="YUELI">YUELI</option>
+              <option value="ISOWA">ISOWA</option>
+            </select>
+          </div>
+          <!-- กะ -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">กะการทำงาน <span class="text-rose-600">*</span></label>
+            <select id="add-emp-shift" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-orange-500">
+              <option value="A" selected>กะ A</option>
+              <option value="B">กะ B</option>
+              <option value="C">กะ C</option>
+            </select>
+          </div>
+          <!-- จุดประจำการ (Station) -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">จุดประจำการ (Station)</label>
+            <input type="text" id="add-emp-station" placeholder="เช่น Single Facer, Stacker, QC" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500">
+          </div>
+          <!-- ตำแหน่ง -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">ตำแหน่ง</label>
+            <input type="text" id="add-emp-position" placeholder="เช่น พนักงานฝ่ายผลิต, หัวหน้ากะ" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500">
+          </div>
+          <!-- วันเริ่มงาน -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">วันเริ่มงาน (Start Date)</label>
+            <input type="date" id="add-emp-startdate" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500">
+          </div>
+          <!-- วันเกิด -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">วันเกิด (Birth Date)</label>
+            <input type="date" id="add-emp-birthdate" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500">
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="pt-4 border-t border-slate-200 flex justify-end gap-2">
+          <button type="button" onclick="closeAddEmployeeModal()" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-bold">
+            ยกเลิก
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-black shadow-xs flex items-center gap-1.5">
+            <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูล
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -627,6 +748,75 @@
 
     function closeProfileModal() {
       document.getElementById('profileModal').classList.add('hidden');
+    }
+
+    function openAddEmployeeModal() {
+      document.getElementById('add-employee-form').reset();
+      document.getElementById('addEmployeeModal').classList.remove('hidden');
+    }
+
+    function closeAddEmployeeModal() {
+      document.getElementById('addEmployeeModal').classList.add('hidden');
+    }
+
+    function saveNewEmployee(event) {
+      event.preventDefault();
+      const code = document.getElementById('add-emp-code').value.trim();
+      const title = document.getElementById('add-emp-title').value;
+      const firstName = document.getElementById('add-emp-firstname').value.trim();
+      const lastName = document.getElementById('add-emp-lastname').value.trim();
+      const nickname = document.getElementById('add-emp-nickname').value.trim();
+      const phone = document.getElementById('add-emp-phone').value.trim();
+      const machine = document.getElementById('add-emp-machine').value;
+      const shift = document.getElementById('add-emp-shift').value;
+      const station = document.getElementById('add-emp-station').value.trim() || 'ฝ่ายผลิต';
+      const position = document.getElementById('add-emp-position').value.trim() || 'พนักงานฝ่ายผลิต';
+      const startDate = document.getElementById('add-emp-startdate').value || new Date().toISOString().split('T')[0];
+      const birthDate = document.getElementById('add-emp-birthdate').value || '';
+
+      const store = getStoreData();
+      const existing = store.employees.find(e => String(e.employee_code) === code);
+      if (existing) {
+        Swal.fire('รหัสพนักงานซ้ำ', `รหัสพนักงาน ${code} มีอยู่ในระบบแล้ว (${existing.first_name} ${existing.last_name})`, 'warning');
+        return;
+      }
+
+      const nextId = store.employees.reduce((max, e) => Math.max(max, e.id || 0), 0) + 1;
+      const newEmp = {
+        id: nextId,
+        employee_code: code,
+        title: title,
+        first_name: firstName,
+        last_name: lastName,
+        nickname: nickname,
+        machine: machine,
+        shift: shift,
+        station: station,
+        position: position,
+        start_date: startDate,
+        birth_date: birthDate,
+        phone: phone,
+        probation_status: 'passed',
+        status: 'active'
+      };
+
+      store.employees.push(newEmp);
+      localStorage.setItem('datamanbhs_attendance_v1', JSON.stringify(store));
+
+      closeAddEmployeeModal();
+      renderEmployees();
+
+      // ซิงค์ไปยัง Google Sheet อัตโนมัติ (ถ้าเชื่อมต่อไว้)
+      if (typeof GoogleSheetSync !== 'undefined' && GoogleSheetSync.hasWebhook()) {
+        GoogleSheetSync.syncEmployee(newEmp);
+      }
+
+      Swal.fire({
+        icon: 'success',
+        title: 'เพิ่มพนักงานสำเร็จ',
+        text: `บันทึกคุณ ${firstName} ${lastName} (${code}) เรียบร้อยแล้ว`,
+        confirmButtonColor: '#ea580c'
+      });
     }
 
     function escapeHtml(str) {
