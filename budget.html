@@ -629,6 +629,14 @@
         }
       }
 
+      // Clear legacy localStorage cache keys so user immediately gets fresh data
+      ['TOTAL','BHS','ISOWA','YUELI'].forEach(mach => {
+        lsClear(`budget_monthly_${mach}`);
+        lsClear(`budget_monthly_v2_${mach}`);
+        lsClear(`budget_monthly_v3_${mach}`);
+        lsClear(`budget_monthly_v4_${mach}`);
+      });
+
       loadBudgetData();
       loadMonthlySummary();
       loadCostDetail();
@@ -681,6 +689,14 @@
       currentMachine = m;
       const trendMachBadge = document.getElementById('trend-machine-badge');
       if (trendMachBadge) trendMachBadge.textContent = 'เครื่อง: ' + currentMachine;
+      // Clear legacy localStorage cache keys so user immediately gets fresh data
+      ['TOTAL','BHS','ISOWA','YUELI'].forEach(mach => {
+        lsClear(`budget_monthly_${mach}`);
+        lsClear(`budget_monthly_v2_${mach}`);
+        lsClear(`budget_monthly_v3_${mach}`);
+        lsClear(`budget_monthly_v4_${mach}`);
+      });
+
       loadBudgetData();
       loadMonthlySummary();
       loadCostDetail();
@@ -1240,7 +1256,7 @@
       const tbody = document.getElementById('monthly-summary-body');
       const loading = document.getElementById('monthly-loading');
 
-      const cacheKey = `budget_monthly_v3_${currentMachine}`;
+      const cacheKey = `budget_monthly_v5_${currentMachine}`;
       if (!force) {
         const cached = lsGet(cacheKey);
         if (cached) {

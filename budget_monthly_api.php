@@ -208,6 +208,13 @@ $fullDatabase = [
     'machines'   => [],
 ];
 
+$pdWasteMonthlyKg = [
+    'TOTAL' => [1 => 484474, 2 => 483724, 3 => 468505, 4 => 405690, 5 => 402522, 6 => 288802, 7 => 385780, 8 => 342766, 9 => 348752, 10 => 324808, 11 => 11841, 12 => 0],
+    'BHS'   => [1 => 214584, 2 => 198166, 3 => 222742, 4 => 189167, 5 => 171718, 6 => 138341, 7 => 181834, 8 => 180906, 9 => 170811, 10 => 155404, 11 => 5421, 12 => 0],
+    'YUELI' => [1 => 217613, 2 => 216929, 3 => 196626, 4 => 125595, 5 => 201906, 6 => 145081, 7 => 148243, 8 => 153256, 9 => 174193, 10 => 162408, 11 => 5907, 12 => 0],
+    'ISOWA' => [1 => 0, 2 => 1445, 3 => 0, 4 => 0, 5 => 0, 6 => 0, 7 => 0, 8 => 0, 9 => 0, 10 => 6478, 11 => 500, 12 => 0],
+];
+
 foreach (['TOTAL', 'BHS', 'ISOWA', 'YUELI'] as $mach) {
     $prod = [];
     $allConT = 0; $allOutT = 0; $allConA = 0; $allOutA = 0; $allWallA = 0; $allWpdA = 0;
@@ -218,7 +225,7 @@ foreach (['TOTAL', 'BHS', 'ISOWA', 'YUELI'] as $mach) {
         $cA = $actuals[$mach][$m]['consum'] ?? 0;
         $oA = $actuals[$mach][$m]['output'] ?? 0;
         $wallA = $actuals[$mach][$m]['waste_all'] ?? 0;
-        $wpdA  = $actuals[$mach][$m]['waste_pd'] ?? 0;
+        $wpdA  = $pdWasteMonthlyKg[$mach][$m] ?? 0;
 
         $allConT += $cT;
         $allOutT += $oT;
