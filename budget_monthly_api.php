@@ -2,7 +2,9 @@
 /**
  * budget_monthly_api.php - Unified Multi-Machine Budget Control API
  * 
- * Sources data from 3 Google Sheet tabs:
+ * Sources data from 5 Google Sheet tabs:
+ *   - Target Out-put      (gid=1028178886)
+ *   - con out             (gid=0)
  *   - Budget controlBHS   (gid=1882565873)
  *   - Budget controlISOWA (gid=1941831190)
  *   - Budget controlYUELI (gid=898712953)
@@ -16,6 +18,7 @@ header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
+header('Cache-Control: no-cache, no-store, must-revalidate');
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
     http_response_code(200);
@@ -24,10 +27,6 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
 
 $cacheFile = __DIR__ . '/data/budget_database_v2.json';
 $force = isset($_GET['refresh']) && $_GET['refresh'] === '1';
-
-if (!$force) {
-    header('Cache-Control: public, max-age=1800');
-}
 
 $reqMachine = strtoupper(trim($_GET['machine'] ?? 'TOTAL'));
 if (!in_array($reqMachine, ['TOTAL', 'BHS', 'ISOWA', 'YUELI'])) {
@@ -40,34 +39,22 @@ function cleanNum($v) {
     return is_numeric($s) ? floatval($s) : 0;
 }
 
-// 12-Month Production Baseline (Total / Combined production targets and actuals)
-$productionData = [
-    'ALL' => ['consumption_target' => 10775493.89, 'consumption_actual' => 5204441, 'output_target' => 9497623.40, 'output_actual' => 4561301.15, 'waste_pct_target' => 1277870.49, 'waste_pct_actual' => 643139.85, 'waste_pd_actual' => 641612.41, 'output_pd_actual' => 4562826.59],
-    'm1'  => ['consumption_target' => 8522022.31,  'consumption_actual' => 8540953, 'output_target' => 7570481.68, 'output_actual' => 7570481.68, 'waste_pct_target' => 951540.63,  'waste_pct_actual' => 970471.32, 'waste_pd_actual' => 963997.40, 'output_pd_actual' => 7576955.60],
-    'm2'  => ['consumption_target' => 7344825.60,  'consumption_actual' => 7467014, 'output_target' => 6523260.33, 'output_actual' => 6523260.33, 'waste_pct_target' => 821565.27,  'waste_pct_actual' => 943753.67, 'waste_pd_actual' => 935516.41, 'output_pd_actual' => 6531497.59],
-    'm3'  => ['consumption_target' => 9031057.95,  'consumption_actual' => 9031612, 'output_target' => 8017928.58, 'output_actual' => 8017928.58, 'waste_pct_target' => 1013129.37, 'waste_pct_actual' => 1013683.42,'waste_pd_actual' => 1009869.69,'output_pd_actual' => 8021742.31],
-    'm4'  => ['consumption_target' => 7701120.13,  'consumption_actual' => 7674332, 'output_target' => 6822837.13, 'output_actual' => 6822837.13, 'waste_pct_target' => 878283.00,  'waste_pct_actual' => 851494.87, 'waste_pd_actual' => 848821.23, 'output_pd_actual' => 6825510.77],
-    'm5'  => ['consumption_target' => 8139263.05,  'consumption_actual' => 8096330, 'output_target' => 7231052.44, 'output_actual' => 7231052.44, 'waste_pct_target' => 908210.60,  'waste_pct_actual' => 865277.56, 'waste_pd_actual' => 862441.84, 'output_pd_actual' => 7233888.16],
-    'm6'  => ['consumption_target' => 5856687.28,  'consumption_actual' => 5816754, 'output_target' => 5211402.59, 'output_actual' => 5211402.59, 'waste_pct_target' => 645284.69,  'waste_pct_actual' => 605351.41, 'waste_pd_actual' => 605903.32, 'output_pd_actual' => 5210850.68],
-    'm7'  => ['consumption_target' => 8530285.97,  'consumption_actual' => 6437220, 'output_target' => 7591954.52, 'output_actual' => 5689409.63, 'waste_pct_target' => 938331.45,  'waste_pct_actual' => 747810.37, 'waste_pd_actual' => 745719.03, 'output_pd_actual' => 5691500.97],
-    'm8'  => ['consumption_target' => 8214349.46,  'consumption_actual' => 6614259, 'output_target' => 7310771.02, 'output_actual' => 5896704.74, 'waste_pct_target' => 903578.44,  'waste_pct_actual' => 717554.26, 'waste_pd_actual' => 719181.96, 'output_pd_actual' => 5895077.04],
-    'm9'  => ['consumption_target' => 8530285.97,  'consumption_actual' => 6211776, 'output_target' => 7591954.52, 'output_actual' => 5516370.99, 'waste_pct_target' => 938331.45,  'waste_pct_actual' => 695405.01, 'waste_pd_actual' => 694720.40, 'output_pd_actual' => 5517055.60],
-    'm10' => ['consumption_target' => 8530285.97,  'consumption_actual' => 7571110, 'output_target' => 7591954.52, 'output_actual' => 6770906.00, 'waste_pct_target' => 938331.45,  'waste_pct_actual' => 800266.00, 'waste_pd_actual' => 800266.00, 'output_pd_actual' => 6770906.00],
-    'm11' => ['consumption_target' => 8214349.46,  'consumption_actual' => 8188675, 'output_target' => 7310771.02, 'output_actual' => 7274966.00, 'waste_pct_target' => 903578.44,  'waste_pct_actual' => 913856.00, 'waste_pd_actual' => 913856.00, 'output_pd_actual' => 7274966.00],
-    'm12' => ['consumption_target' => 7582476.42,  'consumption_actual' => 7257540, 'output_target' => 6748404.01, 'output_actual' => 6430414.00, 'waste_pct_target' => 834072.41,  'waste_pct_actual' => 827359.00, 'waste_pd_actual' => 827359.00, 'output_pd_actual' => 6430414.00],
-];
+// If cache file exists and fresh (or not force), serve from cache
+$cacheValid = false;
+if (file_exists($cacheFile)) {
+    $mtime = filemtime($cacheFile);
+    if (!$force && (time() - $mtime < 1800)) { // 30 mins
+        $cacheValid = true;
+    }
+}
 
-// Check cache
-if (!$force && file_exists($cacheFile)) {
-    $rawCached = @file_get_contents($cacheFile);
-    $cached = json_decode($rawCached, true);
+if ($cacheValid) {
+    $cached = json_decode(@file_get_contents($cacheFile), true);
     if (!empty($cached['machines'][$reqMachine])) {
-        $machData = $cached['machines'][$reqMachine];
-        $machData['production'] = $productionData;
         echo json_encode([
             'success'     => true,
             'machine'     => $reqMachine,
-            'data'        => $machData,
+            'data'        => $cached['machines'][$reqMachine],
             'machines'    => ['TOTAL', 'BHS', 'ISOWA', 'YUELI'],
             'updated_at'  => $cached['updated_at'] ?? date('Y-m-d H:i:s'),
             'cached'      => true
@@ -76,53 +63,105 @@ if (!$force && file_exists($cacheFile)) {
     }
 }
 
-// Fetch from Google Sheets
+// Fetch from Google Sheets if force or cache missing
 $sheetId = '1viioRJ5I3BmqiD7KLwSG9_uNQ_9u_a8LYR-4GaPGuYI';
 $ctx = stream_context_create(['http' => ['timeout' => 25]]);
-$gids = [
-    'BHS'   => 1882565873,
-    'ISOWA' => 1941831190,
-    'YUELI' => 898712953,
-];
 
-$rawSheets = [];
-foreach ($gids as $mach => $gid) {
+function fetchCsvData($sheetId, $gid, $ctx) {
     $url = "https://docs.google.com/spreadsheets/d/{$sheetId}/export?format=csv&gid={$gid}";
     $csv = @file_get_contents($url, false, $ctx);
-    if (!$csv) {
-        if (file_exists($cacheFile)) {
-            $rawCached = @file_get_contents($cacheFile);
-            $cached = json_decode($rawCached, true);
-            $machData = $cached['machines'][$reqMachine] ?? [];
-            $machData['production'] = $productionData;
-            echo json_encode([
-                'success'     => true,
-                'machine'     => $reqMachine,
-                'data'        => $machData,
-                'cached'      => true
-            ]);
-            exit;
-        }
-        echo json_encode(['success' => false, 'error' => "Failed to fetch sheet for {$mach}"]);
-        exit;
-    }
+    if (!$csv) return [];
     $lines = explode("\n", $csv);
     $rows = [];
     foreach ($lines as $line) {
         $rows[] = str_getcsv($line);
     }
-    $rawSheets[$mach] = $rows;
+    return $rows;
 }
 
-$finKeys = ['revenue', 'paper_cost', 'sell_fg', 'profit_paper', 'running_cost', 'profit_net'];
-$finLabels = [
-    'revenue'      => 'รายได้',
-    'paper_cost'   => 'รวมต้นทุน',
-    'sell_fg'      => 'ขาย FG',
-    'profit_paper' => 'กำไรค่ากระดาษ',
-    'running_cost' => 'Running cost',
-    'profit_net'   => 'กำไรสุทธิ',
+// 1. Target Out-put
+$targetRows = fetchCsvData($sheetId, 1028178886, $ctx);
+$targets = ['TOTAL' => [], 'BHS' => [], 'ISOWA' => [], 'YUELI' => []];
+for ($m = 1; $m <= 12; $m++) {
+    $r = $targetRows[$m + 1] ?? [];
+    $isoTon = cleanNum($r[1] ?? 0);
+    $bhsTon = cleanNum($r[2] ?? 0);
+    $yueTon = cleanNum($r[3] ?? 0);
+    $totTon = $isoTon + $bhsTon + $yueTon;
+
+    $isoOut = $isoTon * 1000;
+    $bhsOut = $bhsTon * 1000;
+    $yueOut = $yueTon * 1000;
+    $totOut = $totTon * 1000;
+
+    $targets['ISOWA'][$m] = ['output' => $isoOut, 'consum' => round($isoOut / 0.89, 2)];
+    $targets['BHS'][$m]   = ['output' => $bhsOut, 'consum' => round($bhsOut / 0.89, 2)];
+    $targets['YUELI'][$m] = ['output' => $yueOut, 'consum' => round($yueOut / 0.89, 2)];
+    $targets['TOTAL'][$m] = ['output' => $totOut, 'consum' => round($totOut / 0.89, 2)];
+}
+
+// 2. con out
+$conOutRows = fetchCsvData($sheetId, 0, $ctx);
+$actuals = ['TOTAL' => [], 'BHS' => [], 'ISOWA' => [], 'YUELI' => []];
+for ($m = 1; $m <= 12; $m++) {
+    foreach (['TOTAL', 'BHS', 'ISOWA', 'YUELI'] as $mach) {
+        $actuals[$mach][$m] = ['consum' => 0, 'output' => 0, 'waste_all' => 0, 'waste_pd' => 0];
+    }
+}
+
+for ($i = 1; $i < count($conOutRows); $i++) {
+    $row = $conOutRows[$i];
+    if (empty($row[0])) continue;
+    $dateStr = trim($row[0]);
+    if (preg_match('/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/', $dateStr, $dm)) {
+        $month = intval($dm[2]);
+        if ($month < 1 || $month > 12) continue;
+
+        $c_iso = cleanNum($row[1] ?? 0);
+        $o_iso = cleanNum($row[2] ?? 0);
+        $wall_iso = cleanNum($row[3] ?? 0);
+        $wpd_iso  = cleanNum($row[5] ?? 0);
+
+        $c_bhs = cleanNum($row[7] ?? 0);
+        $o_bhs = cleanNum($row[8] ?? 0);
+        $wall_bhs = cleanNum($row[9] ?? 0);
+        $wpd_bhs  = cleanNum($row[11] ?? 0);
+
+        $c_yue = cleanNum($row[13] ?? 0);
+        $o_yue = cleanNum($row[14] ?? 0);
+        $wall_yue = cleanNum($row[15] ?? 0);
+        $wpd_yue  = cleanNum($row[17] ?? 0);
+
+        $actuals['ISOWA'][$month]['consum'] += $c_iso;
+        $actuals['ISOWA'][$month]['output'] += $o_iso;
+        $actuals['ISOWA'][$month]['waste_all'] += $wall_iso;
+        $actuals['ISOWA'][$month]['waste_pd'] += $wpd_iso;
+
+        $actuals['BHS'][$month]['consum'] += $c_bhs;
+        $actuals['BHS'][$month]['output'] += $o_bhs;
+        $actuals['BHS'][$month]['waste_all'] += $wall_bhs;
+        $actuals['BHS'][$month]['waste_pd'] += $wpd_bhs;
+
+        $actuals['YUELI'][$month]['consum'] += $c_yue;
+        $actuals['YUELI'][$month]['output'] += $o_yue;
+        $actuals['YUELI'][$month]['waste_all'] += $wall_yue;
+        $actuals['YUELI'][$month]['waste_pd'] += $wpd_yue;
+
+        $actuals['TOTAL'][$month]['consum'] += ($c_iso + $c_bhs + $c_yue);
+        $actuals['TOTAL'][$month]['output'] += ($o_iso + $o_bhs + $o_yue);
+        $actuals['TOTAL'][$month]['waste_all'] += ($wall_iso + $wall_bhs + $wall_yue);
+        $actuals['TOTAL'][$month]['waste_pd'] += ($wpd_iso + $wpd_bhs + $wpd_yue);
+    }
+}
+
+// 3. Financials
+$finSheets = [
+    'BHS'   => fetchCsvData($sheetId, 1882565873, $ctx),
+    'ISOWA' => fetchCsvData($sheetId, 1941831190, $ctx),
+    'YUELI' => fetchCsvData($sheetId, 898712953, $ctx),
 ];
+
+$finKeys = ['revenue', 'paper_cost', 'sell_fg', 'profit_paper', 'running_cost', 'profit_net'];
 $finRowMap = [
     'revenue'      => 1,
     'paper_cost'   => 2,
@@ -132,230 +171,104 @@ $finRowMap = [
     'profit_net'   => 6,
 ];
 
-$machinesData = [];
+$financials = ['TOTAL' => [], 'BHS' => [], 'ISOWA' => [], 'YUELI' => []];
 
 foreach (['BHS', 'ISOWA', 'YUELI'] as $mach) {
-    $rows = $rawSheets[$mach];
-    $fin = [];
-
+    $rows = $finSheets[$mach];
     foreach ($finKeys as $key) {
         $rIdx = $finRowMap[$key];
-        $row = $rows[$rIdx] ?? [];
-        $tCol1 = cleanNum($row[1] ?? 0);
-        $mActual = [];
-        for ($m = 1; $m <= 12; $m++) {
-            $cIdx = $m + 1; // Col C is index 2 = Month 1
-            $mActual[$m] = cleanNum($row[$cIdx] ?? 0);
-        }
-        $allVal = cleanNum($row[14] ?? 0); // Col O = ALL
-
-        $fin[$key] = [
-            'label'       => $finLabels[$key],
-            'actual'      => $mActual,
-            'all'         => $allVal,
-            'target_col1' => $tCol1,
+        $r = $rows[$rIdx] ?? [];
+        $financials[$mach][$key] = [
+            'actual' => [],
+            'all'    => cleanNum($r[14] ?? 0),
         ];
-    }
-
-    // Cost target table (Rows 11-22)
-    // Cost actual table (Rows 27-38)
-    $catOffsets = [
-        'coal'   => 1,
-        'glue'   => 5,
-        'water'  => 9,
-        'air'    => 13,
-        'elec'   => 17,
-        'repair' => 21,
-        'ot'     => 25,
-        'labor'  => 29,
-        'total'  => 33,
-    ];
-
-    $costTarget = [];
-    $costActual = [];
-
-    for ($m = 1; $m <= 12; $m++) {
-        $rTarget = 10 + $m;
-        $rActual = 26 + $m;
-
-        $targetRow = $rows[$rTarget] ?? [];
-        $actualRow = $rows[$rActual] ?? [];
-
-        $costTarget[$m] = [];
-        $costActual[$m] = [];
-
-        foreach ($catOffsets as $cat => $colBase) {
-            $costTarget[$m][$cat] = [
-                'val' => cleanNum($targetRow[$colBase] ?? 0),
-                'qty' => cleanNum($targetRow[$colBase + 1] ?? 0),
-                'bkg' => cleanNum($targetRow[$colBase + 2] ?? 0),
-            ];
-            $costActual[$m][$cat] = [
-                'val' => cleanNum($actualRow[$colBase] ?? 0),
-                'qty' => cleanNum($actualRow[$colBase + 1] ?? 0),
-                'bkg' => cleanNum($actualRow[$colBase + 2] ?? 0),
-            ];
+        for ($m = 1; $m <= 12; $m++) {
+            $val = cleanNum($r[$m + 1] ?? 0);
+            $financials[$mach][$key]['actual'][$m] = $val;
+            $financials[$mach][$key]['m' . $m] = ['actual' => $val];
         }
     }
-
-    $machinesData[$mach] = [
-        'financials'  => $fin,
-        'cost_target' => $costTarget,
-        'cost_actual' => $costActual,
-    ];
 }
 
-// Compute TOTAL (BHS + ISOWA + YUELI)
-$totalFin = [];
 foreach ($finKeys as $key) {
-    $tActual = [];
+    $financials['TOTAL'][$key] = [
+        'actual' => [],
+        'all'    => ($financials['BHS'][$key]['all'] ?? 0) + ($financials['ISOWA'][$key]['all'] ?? 0) + ($financials['YUELI'][$key]['all'] ?? 0),
+    ];
     for ($m = 1; $m <= 12; $m++) {
-        $tActual[$m] = $machinesData['BHS']['financials'][$key]['actual'][$m]
-                     + $machinesData['ISOWA']['financials'][$key]['actual'][$m]
-                     + $machinesData['YUELI']['financials'][$key]['actual'][$m];
+        $totVal = ($financials['BHS'][$key]['actual'][$m] ?? 0) + ($financials['ISOWA'][$key]['actual'][$m] ?? 0) + ($financials['YUELI'][$key]['actual'][$m] ?? 0);
+        $financials['TOTAL'][$key]['actual'][$m] = $totVal;
+        $financials['TOTAL'][$key]['m' . $m] = ['actual' => $totVal];
     }
-    $totalFin[$key] = [
-        'label'       => $finLabels[$key],
-        'actual'      => $tActual,
-        'all'         => $machinesData['BHS']['financials'][$key]['all']
-                       + $machinesData['ISOWA']['financials'][$key]['all']
-                       + $machinesData['YUELI']['financials'][$key]['all'],
-        'target_col1' => $machinesData['BHS']['financials'][$key]['target_col1']
-                       + $machinesData['ISOWA']['financials'][$key]['target_col1']
-                       + $machinesData['YUELI']['financials'][$key]['target_col1'],
+}
+
+// Build database
+$fullDatabase = [
+    'updated_at' => date('Y-m-d H:i:s'),
+    'machines'   => [],
+];
+
+foreach (['TOTAL', 'BHS', 'ISOWA', 'YUELI'] as $mach) {
+    $prod = [];
+    $allConT = 0; $allOutT = 0; $allConA = 0; $allOutA = 0; $allWallA = 0; $allWpdA = 0;
+
+    for ($m = 1; $m <= 12; $m++) {
+        $cT = $targets[$mach][$m]['consum'] ?? 0;
+        $oT = $targets[$mach][$m]['output'] ?? 0;
+        $cA = $actuals[$mach][$m]['consum'] ?? 0;
+        $oA = $actuals[$mach][$m]['output'] ?? 0;
+        $wallA = $actuals[$mach][$m]['waste_all'] ?? 0;
+        $wpdA  = $actuals[$mach][$m]['waste_pd'] ?? 0;
+
+        $allConT += $cT;
+        $allOutT += $oT;
+        $allConA += $cA;
+        $allOutA += $oA;
+        $allWallA += $wallA;
+        $allWpdA += $wpdA;
+
+        $prod['m' . $m] = [
+            'consumption_target' => $cT,
+            'output_target'      => $oT,
+            'consumption_actual' => $cA,
+            'output_actual'      => $oA,
+            'waste_all_actual'   => $wallA,
+            'waste_pd_actual'    => $wpdA,
+            'waste_all_pct'      => $cA > 0 ? round(($wallA / $cA) * 100, 2) : 0,
+            'waste_pd_pct'       => $cA > 0 ? round(($wpdA / $cA) * 100, 2) : 0,
+            // Backwards compatibility aliases
+            'waste_pct_actual'   => $wallA,
+            'output_pd_actual'   => $oA,
+        ];
+    }
+
+    $prod['ALL'] = [
+        'consumption_target' => $allConT,
+        'output_target'      => $allOutT,
+        'consumption_actual' => $allConA,
+        'output_actual'      => $allOutA,
+        'waste_all_actual'   => $allWallA,
+        'waste_pd_actual'    => $allWpdA,
+        'waste_all_pct'      => $allConA > 0 ? round(($allWallA / $allConA) * 100, 2) : 0,
+        'waste_pd_pct'       => $allConA > 0 ? round(($allWpdA / $allConA) * 100, 2) : 0,
+        'waste_pct_actual'   => $allWallA,
+        'output_pd_actual'   => $allOutA,
+    ];
+
+    $fullDatabase['machines'][$mach] = [
+        'machine'    => $mach,
+        'production' => $prod,
+        'financials' => $financials[$mach] ?? [],
     ];
 }
 
-$cats = ['coal', 'glue', 'water', 'air', 'elec', 'repair', 'ot', 'labor', 'total'];
-$totalCostTarget = [];
-$totalCostActual = [];
-for ($m = 1; $m <= 12; $m++) {
-    $totalCostTarget[$m] = [];
-    $totalCostActual[$m] = [];
-    foreach ($cats as $cat) {
-        $tv = 0; $tq = 0; $av = 0; $aq = 0;
-        foreach (['BHS', 'ISOWA', 'YUELI'] as $mach) {
-            $tv += $machinesData[$mach]['cost_target'][$m][$cat]['val'];
-            $tq += $machinesData[$mach]['cost_target'][$m][$cat]['qty'];
-            $av += $machinesData[$mach]['cost_actual'][$m][$cat]['val'];
-            $aq += $machinesData[$mach]['cost_actual'][$m][$cat]['qty'];
-        }
-        $totalCostTarget[$m][$cat] = [
-            'val' => $tv,
-            'qty' => $tq,
-            'bkg' => $tq > 0 ? round($tv / $tq, 4) : 0,
-        ];
-        $totalCostActual[$m][$cat] = [
-            'val' => $av,
-            'qty' => $aq,
-            'bkg' => $aq > 0 ? round($av / $aq, 4) : 0,
-        ];
-    }
-}
-
-$machinesData['TOTAL'] = [
-    'financials'  => $totalFin,
-    'cost_target' => $totalCostTarget,
-    'cost_actual' => $totalCostActual,
-];
-
-// Target Lines Calculation & Month structure enrichment for each machine
-foreach (['TOTAL', 'BHS', 'ISOWA', 'YUELI'] as $mach) {
-    $fin = &$machinesData[$mach]['financials'];
-    $cTarget = $machinesData[$mach]['cost_target'];
-    
-    // 1. revenue Target (break-even against paper_cost or annual avg)
-    $revTargets = [];
-    $avgRev = $fin['revenue']['all'] > 0 ? round($fin['revenue']['all'] / 12) : 0;
-    for ($m = 1; $m <= 12; $m++) {
-        $col1 = $fin['revenue']['target_col1'];
-        $revTargets[$m] = $col1 > 0 ? $col1 : ($fin['paper_cost']['actual'][$m] > 0 ? $fin['paper_cost']['actual'][$m] : $avgRev);
-    }
-    $fin['revenue']['targets'] = $revTargets;
-
-    // 2. paper_cost Target
-    $costTargets = [];
-    $avgCost = $fin['paper_cost']['all'] > 0 ? round($fin['paper_cost']['all'] / 12) : 0;
-    for ($m = 1; $m <= 12; $m++) {
-        $col1 = $fin['paper_cost']['target_col1'];
-        $costTargets[$m] = $col1 > 0 ? $col1 : ($fin['revenue']['actual'][$m] > 0 ? $fin['revenue']['actual'][$m] : $avgCost);
-    }
-    $fin['paper_cost']['targets'] = $costTargets;
-
-    // 3. sell_fg Target
-    $fgTargets = [];
-    $avgFg = $fin['sell_fg']['all'] > 0 ? round($fin['sell_fg']['all'] / 12) : 0;
-    for ($m = 1; $m <= 12; $m++) {
-        $col1 = $fin['sell_fg']['target_col1'];
-        $fgTargets[$m] = $col1 > 0 ? $col1 : $avgFg;
-    }
-    $fin['sell_fg']['targets'] = $fgTargets;
-
-    // 4. profit_paper Target (0 break-even)
-    $ppTargets = [];
-    for ($m = 1; $m <= 12; $m++) {
-        $col1 = $fin['profit_paper']['target_col1'];
-        $ppTargets[$m] = $col1 != 0 ? $col1 : 0;
-    }
-    $fin['profit_paper']['targets'] = $ppTargets;
-
-    // 5. running_cost Target (from cost_target total val)
-    $rcTargets = [];
-    for ($m = 1; $m <= 12; $m++) {
-        $tVal = $cTarget[$m]['total']['val'] ?? 0;
-        $rcTargets[$m] = $tVal > 0 ? $tVal : ($fin['running_cost']['target_col1'] > 0 ? $fin['running_cost']['target_col1'] : 0);
-    }
-    $fin['running_cost']['targets'] = $rcTargets;
-
-    // 6. profit_net Target (0 break-even)
-    $pnTargets = [];
-    for ($m = 1; $m <= 12; $m++) {
-        $col1 = $fin['profit_net']['target_col1'];
-        $pnTargets[$m] = $col1 != 0 ? $col1 : 0;
-    }
-    $fin['profit_net']['targets'] = $pnTargets;
-
-    // Also enrich each key with 'm1'..'m12' and 'ALL' objects for table compatibility
-    foreach ($finKeys as $k) {
-        for ($m = 1; $m <= 12; $m++) {
-            $fin[$k]['m' . $m] = [
-                'target' => $fin[$k]['targets'][$m] ?? 0,
-                'actual' => $fin[$k]['actual'][$m] ?? 0,
-            ];
-        }
-        $fin[$k]['ALL'] = [
-            'target' => $fin[$k]['all'] ?? 0,
-            'actual' => $fin[$k]['all'] ?? 0,
-        ];
-    }
-}
-
-// Save unified cache file
-$fullData = [
-    'machines'   => $machinesData,
-    'production' => $productionData,
-    'updated_at' => date('Y-m-d H:i:s'),
-];
-if (!is_dir(__DIR__ . '/data')) mkdir(__DIR__ . '/data', 0777, true);
-file_put_contents($cacheFile, json_encode($fullData, JSON_UNESCAPED_UNICODE));
-
-// Also write legacy budget_monthly.json
-$legacyFin = $machinesData['TOTAL']['financials'];
-$legacyOutput = [
-    'production' => $productionData,
-    'financials' => $legacyFin,
-    'updated_at' => date('Y-m-d H:i:s'),
-];
-file_put_contents(__DIR__ . '/data/budget_monthly.json', json_encode($legacyOutput, JSON_UNESCAPED_UNICODE));
-
-$respData = $machinesData[$reqMachine];
-$respData['production'] = $productionData;
+@file_put_contents($cacheFile, json_encode($fullDatabase, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
 echo json_encode([
     'success'     => true,
     'machine'     => $reqMachine,
-    'data'        => $respData,
+    'data'        => $fullDatabase['machines'][$reqMachine],
     'machines'    => ['TOTAL', 'BHS', 'ISOWA', 'YUELI'],
-    'updated_at'  => date('Y-m-d H:i:s'),
+    'updated_at'  => $fullDatabase['updated_at'],
     'cached'      => false
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
