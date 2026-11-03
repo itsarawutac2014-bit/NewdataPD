@@ -1,7 +1,8 @@
 FROM php:8.2-apache
 
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
+# Enable Apache mod_rewrite & mod_headers
+RUN a2enmod rewrite headers \
+    && sed -ri -e 's!AllowOverride None!AllowOverride All!g' /etc/apache2/apache2.conf
 
 # Copy all project files to web root
 COPY . /var/www/html/
