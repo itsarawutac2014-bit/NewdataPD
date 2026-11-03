@@ -14,8 +14,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
     exit;
 }
 
-$selectedMonth = intval($_GET['month'] ?? 1);
-if ($selectedMonth < 1 || $selectedMonth > 12) $selectedMonth = 1;
+$selectedMonth = intval($_GET['month'] ?? date('n'));
+if ($selectedMonth < 1 || $selectedMonth > 12) $selectedMonth = intval(date('n'));
 
 $selectedMachine = strtoupper(trim($_GET['machine'] ?? 'TOTAL'));
 if (!in_array($selectedMachine, ['TOTAL', 'BHS', 'YUELI', 'ISOWA'])) {
@@ -88,22 +88,41 @@ $financialMonths = [
     12 => ['paper' => 0,        'running' => -34879,   'net' => 0],
 ];
 
-// If data/budget_monthly.json exists, load dynamically
-$monthlyJsonPath = __DIR__ . '/data/budget_monthly.json';
-if (file_exists($monthlyJsonPath)) {
-    $monthlyData = json_decode(file_get_contents($monthlyJsonPath), true);
-    if (!empty($monthlyData['financials'])) {
-        for ($i = 1; $i <= 12; $i++) {
-            $k = 'm' . $i;
-            $p = $monthlyData['financials']['profit_paper'][$k]['actual'] ?? null;
-            $r = $monthlyData['financials']['running_cost'][$k]['actual'] ?? null;
-            $n = $monthlyData['financials']['profit_net'][$k]['actual'] ?? null;
-            if ($p !== null || $r !== null || $n !== null) {
+// If data/budget_database_v2.json exists, load dynamically for the selected machine
+$v2Path = __DIR__ . '/data/budget_database_v2.json';
+if ($force || !file_exists($v2Path)) {
+    $_GET_BACK = $_GET;
+    $_GET['refresh'] = '1';
+    ob_start();
+    @include __DIR__ . '/budget_monthly_api.php';
+    ob_end_clean();
+    $_GET = $_GET_BACK;
+}
+if (file_exists($v2Path)) {
+    $db = json_decode(file_get_contents($v2Path), true);
+    $mMach = $db['machines'][$selectedMachine] ?? ($db['machines']['TOTAL'] ?? null);
+    if ($mMach) {
+        $mFin = $mMach['financials'] ?? null;
+        $mCt  = $mMach['cost_target'] ?? null;
+        $mCa  = $mMach['cost_actual'] ?? null;
+        if ($mFin) {
+            for ($i = 1; $i <= 12; $i++) {
                 $financialMonths[$i] = [
-                    'paper'   => $p !== null ? round($p) : 0,
-                    'running' => $r !== null ? round($r) : 0,
-                    'net'     => $n !== null ? round($n) : 0,
+                    'paper'   => round($mFin['profit_paper']['actual'][$i] ?? 0),
+                    'running' => round($mFin['running_cost']['actual'][$i] ?? 0),
+                    'net'     => round($mFin['profit_net']['actual'][$i] ?? 0),
                 ];
+            }
+        }
+        if ($mCt && $mCa && !empty($mCa[$selectedMonth])) {
+            $catMap = ['coal'=>'coal', 'glue'=>'glue', 'water'=>'water', 'air'=>'air', 'elec'=>'elec', 'repair'=>'repair', 'ot'=>'ot', 'labor'=>'labor'];
+            foreach ($catMap as $ck => $sheetKey) {
+                if (isset($mCt[$selectedMonth][$sheetKey]['bkg']) && $mCt[$selectedMonth][$sheetKey]['bkg'] > 0) {
+                    $costTargets[$ck] = $mCt[$selectedMonth][$sheetKey]['bkg'];
+                }
+                if (isset($mCa[$selectedMonth][$sheetKey]['bkg']) && $mCa[$selectedMonth][$sheetKey]['bkg'] > 0) {
+                    $costActuals[$selectedMonth][$ck] = $mCa[$selectedMonth][$sheetKey]['bkg'];
+                }
             }
         }
     }
