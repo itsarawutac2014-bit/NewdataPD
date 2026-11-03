@@ -580,6 +580,133 @@
         </div>
       </section>
 
+
+      <!-- ========================================== -->
+      <!-- Section: ตารางเปรียบเทียบ Target vs Actual Output รายเดือน 12 เดือน (Month / Target Out Put / Actual Out Put / % Out Put) -->
+      <!-- ========================================== -->
+      <section id="section-monthly-output-table" class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 overflow-hidden">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-slate-100">
+          <div class="flex items-center gap-2.5">
+            <span class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-base shadow-xs">
+              <i class="fa-solid fa-table-list"></i>
+            </span>
+            <div>
+              <h2 class="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <span>ตารางเปรียบเทียบ Target vs Actual Output รายเดือน 12 เดือน</span>
+                <span id="output-summary-table-machine-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-indigo-100 text-indigo-800 border border-indigo-200">BHS</span>
+              </h2>
+              <p class="text-xs text-slate-500 font-medium">
+                เปรียบเทียบเป้าหมายการผลิต (Target Out Put) และยอดผลิตจริง (Actual Out Put) แยกรายเดือน ม.ค. - ธ.ค.
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2" data-html2canvas-ignore="true">
+            <button onclick="exportChartCardWithHeader('section-monthly-output-table', 'Monthly_Output_Summary_Table', this)" type="button" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-2xs transition cursor-pointer">
+              <i class="fa-solid fa-camera"></i>
+              <span>บันทึกภาพตาราง</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Table Display: Faithful representation of user Excel format -->
+        <div class="mt-4 flex justify-center overflow-x-auto">
+          <div class="inline-block min-w-[500px] max-w-2xl w-full bg-white p-3 sm:p-6 rounded-xl border border-slate-200 shadow-xs">
+            <table class="w-full text-center border-collapse text-sm sm:text-base font-bold">
+              <thead>
+                <tr class="text-base sm:text-lg font-black">
+                  <th scope="col" class="py-2.5 px-3 text-center text-red-600 underline decoration-red-600 decoration-2 underline-offset-4">Month</th>
+                  <th scope="col" class="py-2.5 px-4 text-right text-red-600 underline decoration-red-600 decoration-2 underline-offset-4">Target Out Put</th>
+                  <th scope="col" class="py-2.5 px-4 text-right text-blue-900 underline decoration-blue-900 decoration-2 underline-offset-4">Actual Out Put</th>
+                  <th scope="col" class="py-2.5 px-4 text-right text-emerald-600 underline decoration-emerald-600 decoration-2 underline-offset-4">% Out Put</th>
+                </tr>
+              </thead>
+              <tbody id="monthly-output-summary-tbody" class="divide-y-0">
+                <tr class="border-b border-dashed border-blue-400/80 hover:bg-slate-50/80 transition">
+                  <td class="py-2 px-3 text-center text-slate-900 font-bold">1</td>
+                  <td class="py-2 px-4 text-right text-slate-900 font-bold">3,301,416</td>
+                  <td class="py-2 px-4 text-right text-emerald-600 font-bold">3,274,406</td>
+                  <td class="py-2 px-4 text-right text-emerald-600 font-bold">99%</td>
+                </tr>
+                <tr class="border-b border-dashed border-blue-400/80 hover:bg-slate-50/80 transition">
+                  <td class="py-2 px-3 text-center text-slate-900 font-bold">2</td>
+                  <td class="py-2 px-4 text-right text-slate-900 font-bold">3,047,461</td>
+                  <td class="py-2 px-4 text-right text-slate-900 font-black">2,698,173</td>
+                  <td class="py-2 px-4 text-right text-rose-600 font-black">89%</td>
+                </tr>
+                <tr class="border-b border-dashed border-blue-400/80 hover:bg-slate-50/80 transition">
+                  <td class="py-2 px-3 text-center text-slate-900 font-bold">3</td>
+                  <td class="py-2 px-4 text-right text-slate-900 font-bold">3,301,416</td>
+                  <td class="py-2 px-4 text-right text-emerald-600 font-bold">3,288,949</td>
+                  <td class="py-2 px-4 text-right text-emerald-600 font-bold">100%</td>
+                </tr>
+                <tr class="border-b border-dashed border-blue-400/80 hover:bg-slate-50/80 transition">
+                  <td class="py-2 px-3 text-center text-slate-900 font-bold">4</td>
+                  <td class="py-2 px-4 text-right text-slate-900 font-bold">2,920,483</td>
+                  <td class="py-2 px-4 text-right text-emerald-600 font-bold">3,049,964</td>
+                  <td class="py-2 px-4 text-right text-emerald-600 font-bold">104%</td>
+                </tr>
+                <tr class="border-b border-dashed border-blue-400/80 hover:bg-slate-50/80 transition">
+                  <td class="py-2 px-3 text-center text-slate-900 font-bold">5</td>
+                  <td class="py-2 px-4 text-right text-slate-900 font-bold">3,301,416</td>
+                  <td class="py-2 px-4 text-right text-emerald-600 font-bold">3,934,476</td>
+                  <td class="py-2 px-4 text-right text-emerald-600 font-bold">119%</td>
+                </tr>
+                <tr class="border-b border-dashed border-blue-400/80 hover:bg-slate-50/80 transition">
+                  <td class="py-2 px-3 text-center text-slate-900 font-bold">6</td>
+                  <td class="py-2 px-4 text-right text-slate-900 font-bold">3,047,461</td>
+                  <td class="py-2 px-4 text-right text-emerald-600 font-bold">3,424,973</td>
+                  <td class="py-2 px-4 text-right text-emerald-600 font-bold">112%</td>
+                </tr>
+                <tr class="border-b border-dashed border-blue-400/80 hover:bg-slate-50/80 transition">
+                  <td class="py-2 px-3 text-center text-slate-900 font-bold">7</td>
+                  <td class="py-2 px-4 text-right text-slate-900 font-bold">3,301,416</td>
+                  <td class="py-2 px-4 text-right text-emerald-600 font-bold">3,834,412</td>
+                  <td class="py-2 px-4 text-right text-emerald-600 font-bold">116%</td>
+                </tr>
+                <tr class="border-b border-dashed border-blue-400/80 hover:bg-slate-50/80 transition">
+                  <td class="py-2 px-3 text-center text-slate-900 font-bold">8</td>
+                  <td class="py-2 px-4 text-right text-slate-900 font-bold">3,174,438</td>
+                  <td class="py-2 px-4 text-right text-emerald-600 font-bold">3,348,363</td>
+                  <td class="py-2 px-4 text-right text-emerald-600 font-bold">105%</td>
+                </tr>
+                <tr class="border-b border-dashed border-blue-400/80 hover:bg-slate-50/80 transition">
+                  <td class="py-2 px-3 text-center text-slate-900 font-bold">9</td>
+                  <td class="py-2 px-4 text-right text-slate-900 font-bold">3,301,416</td>
+                  <td class="py-2 px-4 text-right text-slate-900 font-black">3,061,962</td>
+                  <td class="py-2 px-4 text-right text-slate-900 font-bold">93%</td>
+                </tr>
+                <tr class="border-b border-dashed border-blue-400/80 hover:bg-slate-50/80 transition">
+                  <td class="py-2 px-3 text-center text-slate-900 font-bold">10</td>
+                  <td class="py-2 px-4 text-right text-slate-900 font-bold">3,301,416</td>
+                  <td class="py-2 px-4 text-right text-slate-900 font-black">3,481,032</td>
+                  <td class="py-2 px-4 text-right text-slate-900 font-bold">105%</td>
+                </tr>
+                <tr class="border-b border-dashed border-blue-400/80 hover:bg-slate-50/80 transition">
+                  <td class="py-2 px-3 text-center text-slate-900 font-bold">11</td>
+                  <td class="py-2 px-4 text-right text-slate-900 font-bold">3,174,438</td>
+                  <td class="py-2 px-4 text-right text-emerald-600 font-bold">3,695,303</td>
+                  <td class="py-2 px-4 text-right text-emerald-600 font-bold">116%</td>
+                </tr>
+                <tr class="border-b border-dashed border-blue-400/80 hover:bg-slate-50/80 transition">
+                  <td class="py-2 px-3 text-center text-slate-900 font-bold">12</td>
+                  <td class="py-2 px-4 text-right text-slate-900 font-bold">2,920,483</td>
+                  <td class="py-2 px-4 text-right text-emerald-600 font-bold">3,287,599</td>
+                  <td class="py-2 px-4 text-right text-emerald-600 font-bold">113%</td>
+                </tr>
+              </tbody>
+              <tfoot class="border-t-2 border-blue-900 font-black text-base sm:text-lg">
+                <tr class="hover:bg-slate-50/80 transition">
+                  <td class="py-2.5 px-3 text-center text-slate-900">ALL</td>
+                  <td id="monthly-summary-all-target" class="py-2.5 px-4 text-right text-slate-900">38,093,257</td>
+                  <td id="monthly-summary-all-actual" class="py-2.5 px-4 text-right text-slate-900">40,379,611</td>
+                  <td id="monthly-summary-all-pct" class="py-2.5 px-4 text-right text-emerald-600 font-black">106%</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <!-- ========================================== -->
       <!-- Chart 1: Output vs Target Chart (Bar / Line / Combo) -->
       <!-- ========================================== -->
@@ -2010,6 +2137,7 @@
       // 3. เรนเดอร์กราฟแนวโน้มผลผลิตรายเดือน 12 เดือน (Monthly Output Trend)
       try {
         renderMonthlyTrendChart();
+        renderMonthlyOutputSummaryTable();
       } catch (err) {
         console.error('Error rendering monthly trend chart:', err);
       }
@@ -2644,6 +2772,101 @@
     // ==========================================
     // กราฟแนวโน้มผลผลิตรายเดือน 12 เดือน (Monthly Output Trend)
     // ==========================================
+
+    // ==========================================
+    // ตารางเปรียบเทียบ Target vs Actual Output รายเดือน 12 เดือน (Month, Target Out Put, Actual Out Put, % Out Put)
+    // ==========================================
+    const STATIC_BHS_MONTHLY_SUMMARY = [
+      { month: 1,  target: 3301416, actual: 3274406, pct: 99,  actColor: "text-emerald-600 font-bold",  pctColor: "text-emerald-600 font-bold" },
+      { month: 2,  target: 3047461, actual: 2698173, pct: 89,  actColor: "text-slate-900 font-black",   pctColor: "text-rose-600 font-black" },
+      { month: 3,  target: 3301416, actual: 3288949, pct: 100, actColor: "text-emerald-600 font-bold",  pctColor: "text-emerald-600 font-bold" },
+      { month: 4,  target: 2920483, actual: 3049964, pct: 104, actColor: "text-emerald-600 font-bold",  pctColor: "text-emerald-600 font-bold" },
+      { month: 5,  target: 3301416, actual: 3934476, pct: 119, actColor: "text-emerald-600 font-bold",  pctColor: "text-emerald-600 font-bold" },
+      { month: 6,  target: 3047461, actual: 3424973, pct: 112, actColor: "text-emerald-600 font-bold",  pctColor: "text-emerald-600 font-bold" },
+      { month: 7,  target: 3301416, actual: 3834412, pct: 116, actColor: "text-emerald-600 font-bold",  pctColor: "text-emerald-600 font-bold" },
+      { month: 8,  target: 3174438, actual: 3348363, pct: 105, actColor: "text-emerald-600 font-bold",  pctColor: "text-emerald-600 font-bold" },
+      { month: 9,  target: 3301416, actual: 3061962, pct: 93,  actColor: "text-slate-900 font-black",   pctColor: "text-slate-900 font-bold" },
+      { month: 10, target: 3301416, actual: 3481032, pct: 105, actColor: "text-slate-900 font-black",   pctColor: "text-slate-900 font-bold" },
+      { month: 11, target: 3174438, actual: 3695303, pct: 116, actColor: "text-emerald-600 font-bold",  pctColor: "text-emerald-600 font-bold" },
+      { month: 12, target: 2920483, actual: 3287599, pct: 113, actColor: "text-emerald-600 font-bold",  pctColor: "text-emerald-600 font-bold" }
+    ];
+
+    function renderMonthlyOutputSummaryTable() {
+      const tbody = document.getElementById("monthly-output-summary-tbody");
+      const badge = document.getElementById("output-summary-table-machine-badge");
+      if (badge) badge.textContent = currentMachine;
+      if (!tbody) return;
+
+      let rowsData = [];
+      if (currentMachine === "BHS") {
+        rowsData = STATIC_BHS_MONTHLY_SUMMARY;
+      } else {
+        // คำนวณแบบยืดหยุ่นตามเครื่องที่เลือกจาก OUTPUT_TARGETS และ currentYearlyTrend
+        for (let m = 1; m <= 12; m++) {
+          const mStr = String(m).padStart(2, "0");
+          const monthKey = `${currentYear}-${mStr}`;
+          let tVal = 0;
+          if (OUTPUT_TARGETS.monthlyTargets && OUTPUT_TARGETS.monthlyTargets[monthKey] && typeof OUTPUT_TARGETS.monthlyTargets[monthKey][currentMachine] === "number") {
+            tVal = OUTPUT_TARGETS.monthlyTargets[monthKey][currentMachine];
+          } else {
+            tVal = OUTPUT_TARGETS.machines?.[currentMachine]?.monthlyTarget || 2200000;
+          }
+
+          const yearItem = (currentYearlyTrend || []).find(y => Number(y.month) === m);
+          let aVal = 0;
+          if (m === currentMonth && currentApiSummary && currentApiSummary.output > 0) {
+            aVal = currentApiSummary.output;
+          } else if (yearItem && typeof yearItem.output === "number") {
+            aVal = Math.max(0, yearItem.output);
+          }
+
+          const pct = tVal > 0 ? Math.round((aVal / tVal) * 100) : 0;
+          let actCls = "text-slate-900 font-bold";
+          let pctCls = "text-slate-900 font-bold";
+          if (pct >= 100) {
+            actCls = "text-emerald-600 font-bold";
+            pctCls = "text-emerald-600 font-bold";
+          } else if (pct < 90 && aVal > 0) {
+            pctCls = "text-rose-600 font-black";
+          }
+
+          rowsData.push({
+            month: m,
+            target: tVal,
+            actual: aVal,
+            pct: pct,
+            actColor: actCls,
+            pctColor: pctCls
+          });
+        }
+      }
+
+      let totalTarget = 0;
+      let totalActual = 0;
+
+      tbody.innerHTML = rowsData.map(r => {
+        totalTarget += (Number(r.target) || 0);
+        totalActual += (Number(r.actual) || 0);
+        return `
+          <tr class="border-b border-dashed border-blue-400/80 hover:bg-slate-50/80 transition">
+            <td class="py-2 px-3 text-center text-slate-900 font-bold">${r.month}</td>
+            <td class="py-2 px-4 text-right text-slate-900 font-bold">${Number(r.target).toLocaleString("th-TH")}</td>
+            <td class="py-2 px-4 text-right ${r.actColor}">${Number(r.actual).toLocaleString("th-TH")}</td>
+            <td class="py-2 px-4 text-right ${r.pctColor}">${r.pct}%</td>
+          </tr>
+        `;
+      }).join("");
+
+      const totalPct = totalTarget > 0 ? Math.round((totalActual / totalTarget) * 100) : 0;
+      safeSetText("monthly-summary-all-target", Number(totalTarget).toLocaleString("th-TH"));
+      safeSetText("monthly-summary-all-actual", Number(totalActual).toLocaleString("th-TH"));
+      safeSetText("monthly-summary-all-pct", `${totalPct}%`);
+      const pctEl = document.getElementById("monthly-summary-all-pct");
+      if (pctEl) {
+        pctEl.className = `py-2.5 px-4 text-right ${totalPct >= 100 ? "text-emerald-600" : "text-rose-600"} font-black`;
+      }
+    }
+
     function renderMonthlyTrendChart() {
       const chartEl = document.getElementById('monthlyTrendChart');
       if (!chartEl || typeof Chart === 'undefined') return;
