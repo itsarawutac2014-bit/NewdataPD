@@ -39,16 +39,8 @@ function cleanNum($v) {
     return is_numeric($s) ? floatval($s) : 0;
 }
 
-// If cache file exists and fresh (or not force), serve from cache
-$cacheValid = false;
-if (file_exists($cacheFile)) {
-    $mtime = filemtime($cacheFile);
-    if (!$force && (time() - $mtime < 1800)) { // 30 mins
-        $cacheValid = true;
-    }
-}
-
-if ($cacheValid) {
+// If not force refresh and cache file exists, serve immediately from budget_database_v2.json
+if (!$force && file_exists($cacheFile)) {
     $cached = json_decode(@file_get_contents($cacheFile), true);
     if (!empty($cached['machines'][$reqMachine])) {
         echo json_encode([
