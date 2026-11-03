@@ -672,42 +672,241 @@
     }
     function lsClear(key) { try { localStorage.removeItem(key); } catch(e) {} }
 
-    async function loadBudgetData(force = false) {
-      const btn = document.getElementById('btn-refresh');
-      if (btn && force) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-rose-500"></i> กำลังซิงค์...';
+    // ========================================================
+    // ดึงข้อมูลเข้าตารางบนโดยตรงจากฐานข้อมูลตารางด้านล่าง (Instant 0ms)
+    // ========================================================
+    function syncTopTableFromData() {
+      const m = currentMonth || 11;
+      const mKey = 'm' + m;
+      const prod = monthlyData?.production?.[mKey] || {};
+      const fin = monthlyData?.financials || {};
+      const costs = costDetailData?.costs || {};
 
-      const cacheKey = `budget_api_m${currentMonth}_${currentMachine}`;
-      const cached = lsGet(cacheKey);
-      if (cached && cached.success) {
-        budgetApiData = cached;
-        renderBudgetTable(cached);
-        renderDiffChart(cached.chart || []);
-        if (!force) return;
-      } else if (!budgetApiData) {
-        // แสดงข้อมูลเดือนปัจจุบันทันทีใน 0ms ป้องกันหน้าจอค้างหมุน
-        renderFallback();
-      }
+      // 1. Consumption & Output
+      const conTarget = prod.consumption_target ?? 7133569;
+      const conActual = prod.consumption_actual ?? 8188675;
+      const conDiff = conActual - conTarget;
+      const conPct = conTarget > 0 ? Math.round((conActual / conTarget) * 100) : 100;
 
-      try {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 6000);
-        const url = `budget_api.php?month=${currentMonth}&machine=${encodeURIComponent(currentMachine)}${force ? '&refresh=1' : ''}`;
-        const res = await fetch(url, { signal: controller.signal });
-        clearTimeout(timer);
-        const data = await res.json();
-        
-        if (data && data.success) {
-          budgetApiData = data;
-          lsSet(cacheKey, data);
-          renderBudgetTable(data);
-          renderDiffChart(data.chart || []);
+      const outTarget = prod.output_target ?? 6348876;
+      const outActual = prod.output_pd_actual ?? prod.output_actual ?? 7274966;
+      const outDiff = outActual - outTarget;
+      const outPct = outTarget > 0 ? Math.round((outActual / outTarget) * 100) : 100;
+
+      // 2. Waste
+      const wasteRatio = (prod.waste_pct_actual && conActual > 0) ? (prod.waste_pct_actual / conActual) * 100 : 11.16;
+      const w11Diff = Number((11.00 - wasteRatio).toFixed(2));
+      const w11Pass = wasteRatio <= 11.00;
+      const w11Pct = wasteRatio > 0 ? Math.round((11.00 / wasteRatio) * 100) : 100;
+
+      const waste485Ratio = (prod.waste_pd_actual && conActual > 0) ? (prod.waste_pd_actual / conActual) * 100 : 5.74;
+      const w485Diff = Number((4.85 - waste485Ratio).toFixed(2));
+      const w485Pass = waste485Ratio <= 4.85;
+      const w485Pct = waste485Ratio > 0 ? Math.round((4.85 / waste485Ratio) * 100) : 100;
+
+      // 3. 8 Cost items (บาท/kg) จากตารางด้านล่าง
+      const defaultCostTargets = {
+        'ถ่านหิน': 0.282, 'กาว': 0.376, 'ค่าน้ำประปา': 0.005, 'ค่าลม': 0.025,
+        'ค่าไฟฟ้า': 0.227, 'ค่าซ่อมแซม': 0.150, 'ค่าล่วงเวลา': 0.051, 'ค่าแรง': 0.112
+      };
+      const defaultCostActuals = {
+        'ถ่านหิน': 0.227, 'กาว': 0.421, 'ค่าน้ำประปา': 0.004, 'ค่าลม': 0.020,
+        'ค่าไฟฟ้า': 0.209, 'ค่าซ่อมแซม': 0.191, 'ค่าล่วงเวลา': 0.049, 'ค่าแรง': 0.096
+      };
+
+      const costMap = {
+        cost_coal: 'ถ่านหิน',
+        cost_glue: 'กาว',
+        cost_water: 'ค่าน้ำประปา',
+        cost_air: 'ค่าลม',
+        cost_elec: 'ค่าไฟฟ้า',
+        cost_repair: 'ค่าซ่อมแซม',
+        cost_ot: 'ค่าล่วงเวลา',
+        cost_labor: 'ค่าแรง'
+      };
+
+      const costItemsBuilt = {};
+      let sumTargetBkg = 0;
+      let sumActualBkg = 0;
+
+      Object.entries(costMap).forEach(([k, name]) => {
+        const cData = costs[name]?.[mKey] || {};
+        let tVal = cData.target_bahtkg;
+        let aVal = cData.actual_bahtkg;
+
+        if (tVal === null || tVal === undefined || isNaN(tVal) || tVal === 0) {
+          tVal = defaultCostTargets[name] || 0;
         }
-      } catch (err) {
-        console.warn('Fetch budget data timeout or error, rendered view is preserved:', err);
-        if (!budgetApiData) renderFallback();
-      } finally {
-        if (btn) btn.innerHTML = '<i class="fa-solid fa-rotate text-slate-600"></i> ซิงค์ Google Sheet';
-      }
+        if (aVal === null || aVal === undefined || isNaN(aVal)) {
+          aVal = defaultCostActuals[name] || 0;
+        }
+
+        tVal = Number(tVal);
+        aVal = Number(aVal);
+        sumTargetBkg += tVal;
+        sumActualBkg += aVal;
+
+        const diff = Number((tVal - aVal).toFixed(3));
+        const pass = diff >= 0;
+        const pct = aVal > 0 ? Number(((tVal / aVal) * 100).toFixed(1)) : 100;
+
+        costItemsBuilt[k] = {
+          title: name,
+          target: tVal,
+          actual: aVal,
+          unit: 'บาท/kg',
+          status: pass ? 'ได้เป้า' : 'เกินเป้า',
+          achievedPct: pct,
+          diff: diff,
+          pass: pass,
+          isCurrency: true
+        };
+      });
+
+      // Total VC+FC / Budjet B/kg
+      const totData = costs['Total VC+FC']?.[mKey] || {};
+      let totalTargetBkg = totData.target_bahtkg || Number(sumTargetBkg.toFixed(3)) || 1.228;
+      let totalActualBkg = totData.actual_bahtkg || Number(sumActualBkg.toFixed(3)) || 1.207;
+      const totalDiff = Number((totalTargetBkg - totalActualBkg).toFixed(3));
+      const totalPass = totalDiff >= 0;
+
+      // 4. Financial items จากตารางด้านล่าง
+      const paperAct = fin.profit_paper?.actual?.[m] ?? fin.profit_paper?.[mKey]?.actual ?? 0;
+      const runningAct = fin.running_cost?.actual?.[m] ?? fin.running_cost?.[mKey]?.actual ?? 0;
+      const netAct = fin.profit_net?.actual?.[m] ?? fin.profit_net?.[mKey]?.actual ?? 0;
+
+      const items = {
+        consum: {
+          title: 'Consumtion',
+          target: conTarget,
+          actual: conActual,
+          unit: 'กก.',
+          status: conActual >= conTarget ? 'ได้เป้า' : 'ผลิตได้',
+          achievedPct: conPct,
+          diff: conDiff,
+          pass: true
+        },
+        output: {
+          title: 'Out Put',
+          target: outTarget,
+          actual: outActual,
+          unit: 'กก.',
+          status: outActual >= outTarget ? 'ได้เป้า' : 'ผลิตได้',
+          achievedPct: outPct,
+          diff: outDiff,
+          pass: true
+        },
+        waste11: {
+          title: 'Waste 11.00%',
+          target: 11.00,
+          actual: Number(wasteRatio.toFixed(2)),
+          unit: '%',
+          status: w11Pass ? 'ได้เป้า' : 'เกินเป้า',
+          achievedPct: w11Pct,
+          diff: w11Diff,
+          pass: w11Pass
+        },
+        waste485: {
+          title: 'Waste 4.85%',
+          target: 4.85,
+          actual: Number(waste485Ratio.toFixed(2)),
+          unit: '%',
+          status: w485Pass ? 'ได้เป้า' : 'เกินเป้า',
+          achievedPct: w485Pct,
+          diff: w485Diff,
+          pass: w485Pass
+        },
+        ...costItemsBuilt,
+        budget_b_kg: {
+          title: 'Budjet B/kg',
+          target: Number(Number(totalTargetBkg).toFixed(3)),
+          actual: Number(Number(totalActualBkg).toFixed(3)),
+          unit: 'บาท/kg.',
+          status: totalPass ? 'ได้เป้า' : 'เกินเป้า',
+          achievedPct: totalActualBkg > 0 ? Number(((totalTargetBkg / totalActualBkg) * 100).toFixed(1)) : 100,
+          diff: totalDiff,
+          pass: totalPass,
+          isCurrency: true
+        },
+        profit_paper: {
+          title: 'กำไรค่ากระดาษ',
+          target: null,
+          actual: paperAct,
+          unit: 'บาท',
+          status: paperAct < 0 ? 'ติดลบ' : 'ได้กำไร',
+          note: paperAct < 0 ? 'คุมของเสียเกินเป้าหมาย' : 'ตามเป้าหมาย',
+          diff: null,
+          pass: paperAct >= 0
+        },
+        running_cost: {
+          title: 'Runing cost',
+          target: null,
+          actual: runningAct,
+          unit: 'บาท',
+          status: runningAct < 0 ? 'ติดลบ' : 'ได้กำไร',
+          note: runningAct < 0 ? 'รวมรายได้หักค่าใช้จ่าย' : 'ตามเป้าหมาย',
+          diff: null,
+          pass: runningAct >= 0
+        },
+        net_profit: {
+          title: 'กำไรสุทธิ',
+          target: null,
+          actual: netAct,
+          unit: 'บาท',
+          status: netAct < 0 ? 'ติดลบ' : 'ได้กำไร',
+          note: netAct < 0 ? 'รวมค่าต้นทุนกระดาษหัก...' : 'ตามเป้าหมาย',
+          diff: null,
+          pass: netAct >= 0
+        }
+      };
+
+      const evaluatedKeys = [
+        'consum', 'output', 'waste11', 'waste485',
+        'cost_coal', 'cost_glue', 'cost_water', 'cost_air',
+        'cost_elec', 'cost_repair', 'cost_ot', 'cost_labor',
+        'budget_b_kg'
+      ];
+      let passCount = 0;
+      evaluatedKeys.forEach(k => {
+        if (items[k]?.pass) passCount++;
+      });
+      const totalCount = evaluatedKeys.length; // 13 รายการ
+      const failCount = totalCount - passCount;
+      const overallPct = Math.round((passCount / totalCount) * 100);
+
+      const chartData = [
+        { name: 'ถ่านหิน', diff: items.cost_coal.diff },
+        { name: 'กาว', diff: items.cost_glue.diff },
+        { name: 'ค่าน้ำประปา', diff: items.cost_water.diff },
+        { name: 'ค่าลม', diff: items.cost_air.diff },
+        { name: 'ค่าไฟฟ้า', diff: items.cost_elec.diff },
+        { name: 'ค่าซ่อมแซม', diff: items.cost_repair.diff },
+        { name: 'ค่าล่วงเวลา', diff: items.cost_ot.diff },
+        { name: 'ค่าแรง', diff: items.cost_labor.diff }
+      ];
+
+      const fullData = {
+        month: m,
+        machine: currentMachine,
+        summary: {
+          passCount: passCount,
+          failCount: failCount,
+          overallPct: overallPct,
+          scoreText: `${overallPct}%`,
+          resultText: `ผลลัพธ์ ${passCount} / ${totalCount}`
+        },
+        items: items,
+        chart: chartData
+      };
+
+      budgetApiData = fullData;
+      renderBudgetTable(fullData);
+      renderDiffChart(chartData);
+    }
+
+    async function loadBudgetData(force = false) {
+      // ดึงข้อมูลเข้าตารางบนทันทีจากตารางด้านล่าง
+      syncTopTableFromData();
     }
 
     function refreshData() {
@@ -721,7 +920,6 @@
       });
       lsClear('budget_monthly_data');
       lsClear('budget_cost_detail_data');
-      loadBudgetData(true);
       loadMonthlySummary(true);
       loadCostDetail(true);
     }
@@ -996,6 +1194,7 @@
           monthlyData = cached;
           renderMonthlySummary(cached);
           renderFinancialTrendCharts(cached);
+          syncTopTableFromData();
           if (loading) loading.style.display = 'none';
           return;
         }
@@ -1011,6 +1210,7 @@
         lsSet(cacheKey, monthlyData);
         renderMonthlySummary(monthlyData);
         renderFinancialTrendCharts(monthlyData);
+        syncTopTableFromData();
       } catch (e) {
         console.error(e);
         if (tbody) tbody.innerHTML = `<tr><td colspan="14" class="text-center py-6 text-rose-500 font-bold">ไม่สามารถโหลดข้อมูลสรุป 12 เดือนได้</td></tr>`;
@@ -1160,6 +1360,7 @@
         if (cached) {
           costDetailData = cached;
           renderCostDetail(cached);
+          syncTopTableFromData();
           return;
         }
       }
@@ -1170,6 +1371,7 @@
         costDetailData = await resp.json();
         lsSet(cacheKey, costDetailData);
         renderCostDetail(costDetailData);
+        syncTopTableFromData();
       } catch (e) {
         console.error(e);
         if (tbody) tbody.innerHTML = `<tr><td colspan="40" class="text-center py-4 text-rose-500 font-bold">ไม่สามารถโหลดข้อมูล Cost Detail ได้</td></tr>`;
