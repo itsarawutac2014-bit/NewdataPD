@@ -4,8 +4,8 @@ header('Access-Control-Allow-Origin: *');
 
 $sheetId = $_GET['sheetId'] ?? '1viioRJ5I3BmqiD7KLwSG9_uNQ_9u_a8LYR-4GaPGuYI';
 $machine = strtoupper(trim($_GET['machine'] ?? 'BHS'));
-$month = intval($_GET['month'] ?? 10);
-if ($month < 1 || $month > 12) $month = 10;
+$month = intval($_GET['month'] ?? date('n'));
+if ($month < 1 || $month > 12) $month = intval(date('n'));
 $monthPad = str_pad($month, 2, '0', STR_PAD_LEFT);
 
 $monthNamesTh = [

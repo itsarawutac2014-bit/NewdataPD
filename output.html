@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Output Dashboard - เปรียบเทียบ Target Output รายวัน vs เดินจริง | แผนกผลิต PD</title>
   
   <!-- Tailwind CSS CDN -->
@@ -200,8 +203,8 @@
             <option value="7" class="bg-slate-900 text-white font-bold">กรกฎาคม (07)</option>
             <option value="8" class="bg-slate-900 text-white font-bold">สิงหาคม (08)</option>
             <option value="9" class="bg-slate-900 text-white font-bold">กันยายน (09)</option>
-            <option value="10" selected class="bg-slate-900 text-white font-bold">ตุลาคม (10)</option>
-            <option value="11" class="bg-slate-900 text-white font-bold">พฤศจิกายน (11)</option>
+            <option value="10" class="bg-slate-900 text-white font-bold">ตุลาคม (10)</option>
+            <option value="11" selected class="bg-slate-900 text-white font-bold">พฤศจิกายน (11)</option>
             <option value="12" class="bg-slate-900 text-white font-bold">ธันวาคม (12)</option>
           </select>
         </div>
@@ -1254,7 +1257,7 @@
 
     let currentMachine = 'BHS';
     let currentYear = 2026;
-    let currentMonth = 10;
+    let currentMonth = new Date().getMonth() + 1; // อัตโนมัติเป็นเดือนปัจจุบัน (เช่น เดือน 11)
     let currentRawData = [];
     let currentYearlyTrend = [];
     let currentApiSummary = null;
@@ -1300,10 +1303,12 @@
         if (selY) selY.value = String(currentYear);
       }
       if (moParam) {
-        currentMonth = parseInt(moParam) || 10;
-        const sel = document.getElementById('selectedMonth');
-        if (sel) sel.value = String(currentMonth);
+        currentMonth = parseInt(moParam) || (new Date().getMonth() + 1);
+      } else {
+        currentMonth = new Date().getMonth() + 1;
       }
+      const sel = document.getElementById('selectedMonth');
+      if (sel) sel.value = String(currentMonth);
       safeSetText('chart-machine-label', currentMachine);
       safeSetText('output-trend-machine-label', currentMachine);
 
@@ -1758,7 +1763,7 @@
     }
 
     function onMonthChange() {
-      currentMonth = parseInt(document.getElementById('selectedMonth').value) || 10;
+      currentMonth = parseInt(document.getElementById('selectedMonth').value) || (new Date().getMonth() + 1);
       currentApiSummary = null; // reset summary เมื่อเปลี่ยนเดือน
       loadOutputData();
     }

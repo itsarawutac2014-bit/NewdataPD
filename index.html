@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Waste รายวัน BHS Dashboard - ติดตาม % Waste ชั่งจริง</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -197,7 +200,7 @@
               </h1>
             </div>
             <p class="text-xs text-slate-500">
-              ระบบติดตาม % Waste ชั่งจริง ประจำเดือน <span id="header-month-name" class="font-semibold text-slate-700">ตุลาคม 2026</span> (เชื่อมต่อ Google Sheet)
+              ระบบติดตาม % Waste ชั่งจริง ประจำเดือน <span id="header-month-name" class="font-semibold text-slate-700">พฤศจิกายน 2026</span> (เชื่อมต่อ Google Sheet)
             </p>
           </div>
         </div>
@@ -222,7 +225,9 @@
             <i class="fa-solid fa-calendar-days text-sky-400 mr-2 text-xs"></i>
             <span class="text-xs text-slate-300 font-bold mr-1.5 whitespace-nowrap">เดือน:</span>
             <select id="selectedMonth" onchange="onFilterChange()" class="text-xs font-black text-white bg-slate-900 border-none focus:outline-none cursor-pointer">
-              <option value="10" selected class="bg-slate-900 text-white font-bold">ตุลาคม (10)</option>
+              <option value="11" selected class="bg-slate-900 text-white font-bold">พฤศจิกายน (11)</option>
+              <option value="12" class="bg-slate-900 text-white font-bold">ธันวาคม (12)</option>
+              <option value="10" class="bg-slate-900 text-white font-bold">ตุลาคม (10)</option>
               <option value="9" class="bg-slate-900 text-white font-bold">กันยายน (09)</option>
               <option value="8" class="bg-slate-900 text-white font-bold">สิงหาคม (08)</option>
               <option value="7" class="bg-slate-900 text-white font-bold">กรกฎาคม (07)</option>
@@ -232,8 +237,6 @@
               <option value="3" class="bg-slate-900 text-white font-bold">มีนาคม (03)</option>
               <option value="2" class="bg-slate-900 text-white font-bold">กุมภาพันธ์ (02)</option>
               <option value="1" class="bg-slate-900 text-white font-bold">มกราคม (01)</option>
-              <option value="11" class="bg-slate-900 text-white font-bold">พฤศจิกายน (11)</option>
-              <option value="12" class="bg-slate-900 text-white font-bold">ธันวาคม (12)</option>
             </select>
           </div>
 
@@ -1882,8 +1885,9 @@
     function onFilterChange() {
       const machineSelect = document.getElementById('selectedMachine');
       const monthSelect = document.getElementById('selectedMonth');
+      const defaultRealtimeMonth = String(new Date().getMonth() + 1);
       const machine = machineSelect ? machineSelect.value : 'BHS';
-      const month = monthSelect ? monthSelect.value : '10';
+      const month = monthSelect ? monthSelect.value : defaultRealtimeMonth;
 
       const monthNames = {
         '1': 'มกราคม', '2': 'กุมภาพันธ์', '3': 'มีนาคม', '4': 'เมษายน',
@@ -2024,8 +2028,9 @@
           document.getElementById('selectedMonth').value = urlMonth;
         }
       }
+      const defaultRealtimeMonth = String(new Date().getMonth() + 1);
       const machine = document.getElementById('selectedMachine')?.value || 'BHS';
-      const month = document.getElementById('selectedMonth')?.value || '10';
+      const month = document.getElementById('selectedMonth')?.value || defaultRealtimeMonth;
       fetchGoogleSheetData(savedUrl, machine, month);
     });
 
