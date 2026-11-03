@@ -152,6 +152,12 @@ function doPost(e) {
       result.message = 'บันทึกพนักงานใหม่ ' + (emp.first_name || '') + ' ลง Google Sheet สำเร็จ';
     }
 
+    // 1.1 ซิงค์พนักงานทั้งหมด 41 คนอัตโนมัติ (Force Sync All)
+    else if (action === 'sync_all_employees' || action === 'seed_employees') {
+      setupSheetAndSeedEmployees();
+      result.message = 'ซิงค์ข้อมูลพนักงานทั้งหมด 41 คนลงแท็บ ระเบียนพนักงาน เรียบร้อยแล้ว';
+    }
+
     // 2. แก้ไขข้อมูลพนักงานในชีต Employees / ระเบียนพนักงาน
     else if (action === 'edit_employee' || action === 'update_employee') {
       var sheet = getEmployeeSheet(ss);

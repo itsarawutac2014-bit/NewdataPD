@@ -114,6 +114,47 @@ const GoogleSheetSync = (function() {
   }
 
   /**
+   * ซิงค์พนักงานทั้งหมดเข้าแท็บ "ระเบียนพนักงาน" ใน Google Sheet
+   */
+  async function syncAllEmployees() {
+    if (!hasWebhook()) {
+      alert('กรุณาบันทึก Webhook URL ก่อนทำการซิงค์');
+      return false;
+    }
+    showToast('กำลังส่งข้อมูลพนักงานทั้งหมดเข้า Google Sheet...', 'info');
+    
+    let emps = [];
+    try {
+      const saved = localStorage.getItem('datamanbhs_attendance_v1');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        emps = parsed.employees || [];
+      }
+    } catch(e) {}
+    if (emps.length === 0 && window.DATAMANBHS_INITIAL) {
+      emps = window.DATAMANBHS_INITIAL.employees || [];
+    }
+
+    const res = await postToWebhook({
+      action: 'sync_all_employees',
+      count: emps.length
+    });
+
+    if (res.success) {
+      showToast('ซิงค์ข้อมูลพนักงานเข้า Google Sheet เรียบร้อยแล้ว ✅ (ดูที่แท็บ "ระเบียนพนักงาน")', 'success');
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'success',
+          title: 'ซิงค์ข้อมูลพนักงานสำเร็จ!',
+          html: 'ข้อมูลพนักงานทั้งหมดถูกส่งเข้า Google Sheet แล้ว<br><span class="text-xs text-slate-500 mt-2 block">ใน Google Sheet ให้คลิกดูที่แท็บด้านล่างชื่อ <b>"ระเบียนพนักงาน"</b> (อยู่ทางซ้ายมือของแท็บ "บันทึกการทำงาน")</span>',
+          confirmButtonColor: '#10b981'
+        });
+      }
+    }
+    return res.success;
+  }
+
+  /**
    * แสดง Toast Notification สวยงามที่มุมขวาล่าง
    */
   function showToast(message, type = 'info') {
@@ -193,13 +234,25 @@ const GoogleSheetSync = (function() {
           <!-- Status Banner -->
           <div class="flex items-center gap-3 p-3.5 rounded-xl border ${isConnected ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-amber-50 border-amber-200 text-amber-800'}">
             <i class="fa-solid ${isConnected ? 'fa-circle-check text-emerald-600' : 'fa-triangle-exclamation text-amber-600'} text-2xl"></i>
-            <div>
+            <div class="flex-1">
               <p class="font-black text-sm">${isConnected ? 'เชื่อมต่อ Google Sheet แล้ว ✅' : 'ยังไม่ได้เชื่อมต่อ Google Sheet'}</p>
               <p class="text-xs ${isConnected ? 'text-emerald-700' : 'text-amber-700'}">
                 ${isConnected ? `ซิงค์ล่าสุดเมื่อ: ${lastSyncText}` : 'ข้อมูลจะถูกบันทึกในเบราว์เซอร์เครื่องนี้เท่านั้น (LocalStorage)'}
               </p>
             </div>
           </div>
+
+          ${isConnected ? `
+            <div class="p-3 bg-emerald-50/70 border border-emerald-300 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+              <div>
+                <p class="text-xs text-emerald-950 font-bold"><i class="fa-solid fa-cloud-arrow-up text-emerald-600 mr-1"></i> ซิงค์พนักงานทั้งหมดเข้าชีตทันที:</p>
+                <p class="text-[11px] text-emerald-800">ส่งรายชื่อพนักงานทั้งหมด 41 คนลงแท็บ "ระเบียนพนักงาน"</p>
+              </div>
+              <button onclick="GoogleSheetSync.syncAllEmployees()" type="button" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer shrink-0">
+                <i class="fa-solid fa-bolt"></i> ซิงค์ 41 คนทันที
+              </button>
+            </div>
+          ` : ''}
 
           <!-- Input Webhook URL -->
           <div class="space-y-1.5">
@@ -311,6 +364,7 @@ const GoogleSheetSync = (function() {
     syncEditEmployee,
     syncAttendance,
     syncBulkAttendance,
+    syncAllEmployees,
     openSettingsModal,
     closeSettingsModal,
     saveModalSettings,
