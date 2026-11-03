@@ -731,113 +731,123 @@
       const tbody = document.getElementById('budget-table-body');
       if (!tbody || !data || !data.items) return;
 
-      // อัปเดตการ์ดสรุปคะแนน
-      const sum = data.summary || {};
-      document.getElementById('score-pct-badge').textContent = sum.scoreText || `${sum.overallPct}%`;
-      document.getElementById('score-result-badge').textContent = sum.resultText || `ผลลัพธ์ ${sum.passCount} / ${sum.failCount}`;
-      document.getElementById('header-month-num').textContent = data.month || currentMonth;
-      document.getElementById('chart-month-num').textContent = data.month || currentMonth;
+      try {
+        // อัปเดตการ์ดสรุปคะแนน
+        const sum = data.summary || {};
+        const scorePct = document.getElementById('score-pct-badge');
+        if (scorePct) scorePct.textContent = sum.scoreText || `${sum.overallPct}%`;
+        const scoreRes = document.getElementById('score-result-badge');
+        if (scoreRes) scoreRes.textContent = sum.resultText || `ผลลัพธ์ ${sum.passCount} / ${sum.failCount}`;
+        const hdrSel = document.getElementById('header-month-select');
+        if (hdrSel) hdrSel.value = data.month || currentMonth;
+        const hdrNum = document.getElementById('header-month-num');
+        if (hdrNum) hdrNum.textContent = data.month || currentMonth;
+        const chartMo = document.getElementById('chart-month-num');
+        if (chartMo) chartMo.textContent = data.month || currentMonth;
 
-      const items = data.items;
-      let html = '';
+        const items = data.items;
+        let html = '';
 
-      // ลำดับแถวตามรูปภาพ
-      const rowKeys = [
-        'consum', 'output', 'waste11', 'waste485',
-        'cost_coal', 'cost_glue', 'cost_water', 'cost_air',
-        'cost_elec', 'cost_repair', 'cost_ot', 'cost_labor',
-        'budget_b_kg', 'profit_paper', 'running_cost', 'net_profit'
-      ];
+        // ลำดับแถวตามรูปภาพ
+        const rowKeys = [
+          'consum', 'output', 'waste11', 'waste485',
+          'cost_coal', 'cost_glue', 'cost_water', 'cost_air',
+          'cost_elec', 'cost_repair', 'cost_ot', 'cost_labor',
+          'budget_b_kg', 'profit_paper', 'running_cost', 'net_profit'
+        ];
 
-      rowKeys.forEach(key => {
-        const item = items[key];
-        if (!item) return;
+        rowKeys.forEach(key => {
+          const item = items[key];
+          if (!item) return;
 
-        const isPass = item.pass === true;
-        const passIcon = isPass ? '/' : 'X';
-        const passBg = isPass ? 'bg-excel-light-green text-excel-dark-green' : 'bg-excel-light-pink text-excel-dark-red';
-        const actualBg = isPass ? 'bg-excel-light-green' : 'bg-excel-light-pink';
+          const isPass = item.pass === true;
+          const passIcon = isPass ? '/' : 'X';
+          const passBg = isPass ? 'bg-excel-light-green text-excel-dark-green' : 'bg-excel-light-pink text-excel-dark-red';
+          const actualBg = isPass ? 'bg-excel-light-green' : 'bg-excel-light-pink';
 
-        // จัดรูปแบบ Target
-        let targetText = '-';
-        if (item.target !== null && item.target !== undefined) {
-          if (item.unit === '%') {
-            targetText = `${Number(item.target).toFixed(2)}%`;
-          } else if (item.isCurrency && item.unit.indexOf('บาท/kg') !== -1) {
-            targetText = Number(item.target).toFixed(3);
-          } else {
-            targetText = Number(item.target).toLocaleString();
+          // จัดรูปแบบ Target
+          let targetText = '-';
+          if (item.target !== null && item.target !== undefined) {
+            if (item.unit === '%') {
+              targetText = `${Number(item.target).toFixed(2)}%`;
+            } else if (item.isCurrency && item.unit && String(item.unit).indexOf('บาท/kg') !== -1) {
+              targetText = Number(item.target).toFixed(3);
+            } else {
+              targetText = Number(item.target).toLocaleString();
+            }
           }
-        }
 
-        // จัดรูปแบบ Actual
-        let actualText = '-';
-        if (item.actual !== null && item.actual !== undefined) {
-          if (item.unit === '%') {
-            actualText = `${Number(item.actual).toFixed(2)}%`;
-          } else if (item.isCurrency && item.unit.indexOf('บาท/kg') !== -1) {
-            actualText = Number(item.actual).toFixed(3);
-          } else {
-            actualText = Number(item.actual).toLocaleString();
+          // จัดรูปแบบ Actual
+          let actualText = '-';
+          if (item.actual !== null && item.actual !== undefined) {
+            if (item.unit === '%') {
+              actualText = `${Number(item.actual).toFixed(2)}%`;
+            } else if (item.isCurrency && item.unit && String(item.unit).indexOf('บาท/kg') !== -1) {
+              actualText = Number(item.actual).toFixed(3);
+            } else {
+              actualText = Number(item.actual).toLocaleString();
+            }
           }
-        }
 
-        // จัดรูปแบบ Diff
-        let diffText = '';
-        if (item.diff !== null && item.diff !== undefined) {
-          if (item.unit === '%') {
-            diffText = `${Number(item.diff) > 0 ? '+' : ''}${Number(item.diff).toFixed(2)}%`;
-          } else if (item.isCurrency && item.unit.indexOf('บาท/kg') !== -1) {
-            diffText = `${Number(item.diff) > 0 ? '' : ''}${Number(item.diff).toFixed(3)}`;
-          } else {
-            diffText = Number(item.diff).toLocaleString();
+          // จัดรูปแบบ Diff
+          let diffText = '';
+          if (item.diff !== null && item.diff !== undefined) {
+            if (item.unit === '%') {
+              diffText = `${Number(item.diff) > 0 ? '+' : ''}${Number(item.diff).toFixed(2)}%`;
+            } else if (item.isCurrency && item.unit && String(item.unit).indexOf('บาท/kg') !== -1) {
+              diffText = `${Number(item.diff) > 0 ? '' : ''}${Number(item.diff).toFixed(3)}`;
+            } else {
+              diffText = Number(item.diff).toLocaleString();
+            }
           }
-        }
 
-        // ข้อความสถานะ
-        const statusText = item.status || '';
-        const noteText = item.note || '';
+          // ข้อความสถานะ
+          const statusText = item.status || '';
+          const noteText = item.note || '';
 
-        // หน่วย
-        const unitText = item.unit || '';
+          // หน่วย
+          const unitText = item.unit || '';
 
-        // สไตล์เฉพาะหัวข้อ เช่น Budjet B/kg มีแถบสีเขียว
-        let titleClass = 'px-4 py-2 font-bold';
-        let rowClass = 'hover:bg-slate-50 transition';
-        if (key === 'budget_b_kg') {
-          titleClass += ' bg-excel-light-green text-slate-900 font-extrabold';
-        } else if (['profit_paper', 'running_cost', 'net_profit'].includes(key)) {
-          titleClass += ' bg-excel-light-yellow text-slate-900';
-        }
+          // สไตล์เฉพาะหัวข้อ เช่น Budjet B/kg มีแถบสีเขียว
+          let titleClass = 'px-4 py-2 font-bold';
+          let rowClass = 'hover:bg-slate-50 transition';
+          if (key === 'budget_b_kg') {
+            titleClass += ' bg-excel-light-green text-slate-900 font-extrabold';
+          } else if (['profit_paper', 'running_cost', 'net_profit'].includes(key)) {
+            titleClass += ' bg-excel-light-yellow text-slate-900';
+          }
 
-        html += `
-          <tr class="${rowClass}">
-            <td class="${titleClass} border-r border-slate-400">
-              ${item.title}
-            </td>
-            <td class="bg-excel-target-cell text-right font-black px-4 py-2 border-r border-slate-400">
-              ${targetText}
-            </td>
-            <td class="${actualBg} text-right font-black px-4 py-2 border-r border-slate-400 ${item.actual < 0 ? 'text-red-700' : 'text-slate-900'}">
-              ${actualText}
-            </td>
-            <td class="px-3 py-2 text-center text-xs font-bold border-r border-slate-400 ${isPass ? 'text-emerald-700' : 'text-rose-700'}">
-              ${statusText}
-            </td>
-            <td class="px-3 py-2 text-center text-xs font-black border-r border-slate-400 ${isPass ? 'text-emerald-800' : 'text-rose-800'}">
-              ${item.achievedPct ? `${item.achievedPct}%` : (unitText ? unitText : '')}
-            </td>
-            <td class="px-4 py-2 text-right font-bold text-xs border-r border-slate-400 ${Number(item.diff) < 0 || String(item.diff).startsWith('-') ? 'text-red-600' : 'text-emerald-700'}">
-              ${diffText ? diffText : noteText}
-            </td>
-            <td class="${passBg} text-center font-black text-base px-2 py-2">
-              ${passIcon}
-            </td>
-          </tr>
-        `;
-      });
+          html += `
+            <tr class="${rowClass}">
+              <td class="${titleClass} border-r border-slate-400">
+                ${item.title}
+              </td>
+              <td class="bg-excel-target-cell text-right font-black px-4 py-2 border-r border-slate-400">
+                ${targetText}
+              </td>
+              <td class="${actualBg} text-right font-black px-4 py-2 border-r border-slate-400 ${item.actual < 0 ? 'text-red-700' : 'text-slate-900'}">
+                ${actualText}
+              </td>
+              <td class="px-3 py-2 text-center text-xs font-bold border-r border-slate-400 ${isPass ? 'text-emerald-700' : 'text-rose-700'}">
+                ${statusText}
+              </td>
+              <td class="px-3 py-2 text-center text-xs font-black border-r border-slate-400 ${isPass ? 'text-emerald-800' : 'text-rose-800'}">
+                ${item.achievedPct ? `${item.achievedPct}%` : (unitText ? unitText : '')}
+              </td>
+              <td class="px-4 py-2 text-right font-bold text-xs border-r border-slate-400 ${Number(item.diff) < 0 || String(item.diff).startsWith('-') ? 'text-red-600' : 'text-emerald-700'}">
+                ${diffText ? diffText : noteText}
+              </td>
+              <td class="${passBg} text-center font-black text-base px-2 py-2">
+                ${passIcon}
+              </td>
+            </tr>
+          `;
+        });
 
-      tbody.innerHTML = html;
+        tbody.innerHTML = html;
+      } catch (err) {
+        console.error('Error rendering budget table:', err);
+      }
     }
 
     // เรนเดอร์กราฟแท่ง Diff บาท/kg
