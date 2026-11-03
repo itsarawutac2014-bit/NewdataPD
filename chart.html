@@ -231,7 +231,7 @@
               <h2 class="text-lg font-black text-blue-900">ผังบุคลากร กะ A</h2>
               <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200" id="shift-a-count">10 คน</span>
             </div>
-            <button type="button" onclick="openAddStationModal('A')" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition flex items-center gap-1 cursor-pointer">
+            <button type="button" onclick="addNewStationSlot('A')" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition flex items-center gap-1 cursor-pointer">
               <i class="fa-solid fa-plus-circle"></i> เพิ่มตำแหน่ง (>10 คน)
             </button>
           </div>
@@ -251,7 +251,7 @@
               <h2 class="text-lg font-black text-rose-900">ผังบุคลากร กะ B</h2>
               <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200" id="shift-b-count">10 คน</span>
             </div>
-            <button type="button" onclick="openAddStationModal('B')" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs transition flex items-center gap-1 cursor-pointer">
+            <button type="button" onclick="addNewStationSlot('B')" class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs transition flex items-center gap-1 cursor-pointer">
               <i class="fa-solid fa-plus-circle"></i> เพิ่มตำแหน่ง (>10 คน)
             </button>
           </div>
@@ -320,7 +320,10 @@
             <i class="fa-solid fa-plus-circle"></i>
           </div>
           <div>
-            <h3 class="text-sm font-black">เพิ่มจุดประจำการใหม่</h3>
+            <div class="flex items-center gap-1.5">
+              <h3 class="text-sm font-black">เพิ่มจุดประจำการใหม่</h3>
+              <span id="add-station-machine-text" class="px-2 py-0.5 rounded-full text-[10px] font-black bg-white/20 text-white">BHS</span>
+            </div>
             <p class="text-[11px] text-blue-100" id="add-station-subtitle">ขยายตำแหน่งผังบุคลากรมากกว่า 10 คน</p>
           </div>
         </div>
@@ -728,7 +731,10 @@
                       ${stName}
                     </span>
                     ${isCustom ? `
-                      <button type="button" onclick="deleteCustomStation('${stName}', '${shiftKey}')" title="ลบจุดเพิ่มเติมนี้" class="text-slate-400 hover:text-rose-600 text-[10px] p-0.5 cursor-pointer">
+                      <button type="button" onclick="renameCustomStation('${stName}', '${shiftKey}')" title="เปลี่ยนชื่อจุดนี้" class="text-slate-400 hover:text-blue-600 text-[11px] p-0.5 cursor-pointer">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                      </button>
+                      <button type="button" onclick="deleteCustomStation('${stName}', '${shiftKey}')" title="ลบจุดเพิ่มเติมนี้" class="text-slate-400 hover:text-rose-600 text-[11px] p-0.5 cursor-pointer">
                         <i class="fa-solid fa-trash-can"></i>
                       </button>
                     ` : ''}
@@ -773,26 +779,34 @@
             // Empty station slot
             cards += `
               <div ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDropToStation(event, '${stName}', '${shiftKey}')"
-                   class="bg-slate-50/70 hover:bg-emerald-50/60 rounded-2xl border-2 border-dashed ${isCustom ? 'border-indigo-300' : 'border-slate-300 hover:border-emerald-400'} p-3 text-center transition flex flex-col justify-between min-h-[110px]">
+                   class="bg-slate-50/80 hover:bg-emerald-50/80 rounded-2xl border-2 border-dashed ${isCustom ? 'border-indigo-300 bg-indigo-50/20' : 'border-slate-300 hover:border-emerald-400'} p-3 text-center transition flex flex-col justify-between min-h-[115px]">
                 <div>
                   <div class="flex items-center justify-between mb-1">
                     <span class="px-2 py-0.5 rounded-lg text-[10px] font-black ${isCustom ? 'bg-indigo-100 text-indigo-700 border border-indigo-200' : 'bg-slate-200 text-slate-600'}">
                       ${stName}
                     </span>
                     ${isCustom ? `
-                      <button type="button" onclick="deleteCustomStation('${stName}', '${shiftKey}')" title="ลบจุดประจำการนี้" class="text-slate-400 hover:text-rose-600 text-[10px] p-0.5 cursor-pointer">
-                        <i class="fa-solid fa-trash-can"></i>
-                      </button>
+                      <div class="flex items-center gap-1">
+                        <button type="button" onclick="renameCustomStation('${stName}', '${shiftKey}')" title="เปลี่ยนชื่อจุดนี้" class="text-slate-400 hover:text-blue-600 text-[11px] p-0.5 cursor-pointer">
+                          <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button type="button" onclick="deleteCustomStation('${stName}', '${shiftKey}')" title="ลบจุดประจำการนี้" class="text-slate-400 hover:text-rose-600 text-[11px] p-0.5 cursor-pointer">
+                          <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                      </div>
                     ` : ''}
                   </div>
-                  <p class="text-[11px] text-slate-400 font-medium my-2">
-                    <i class="fa-regular fa-user mr-1 text-slate-300"></i> ยังไม่กำหนดพนักงาน (ว่าง)
+                  <p class="text-[11px] text-slate-500 font-medium my-1.5">
+                    <i class="fa-regular fa-user mr-1 text-slate-400"></i> ยังไม่กำหนดพนักงาน (ว่าง)
+                  </p>
+                  <p class="text-[9px] text-emerald-700 font-semibold bg-emerald-50 rounded-lg py-0.5 border border-emerald-100">
+                    <i class="fa-solid fa-arrow-down mr-0.5"></i> ลากพนักงานมาวางที่นี่ได้
                   </p>
                 </div>
 
-                <div class="flex items-center justify-center gap-1 pt-1">
+                <div class="flex items-center justify-center gap-1 pt-1.5">
                   <button type="button" onclick="openAssignModal('${stName}', '${shiftKey}')"
-                          class="px-2.5 py-1 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 font-black text-[10px] transition cursor-pointer flex items-center gap-1 shadow-2xs">
+                          class="px-2.5 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] transition cursor-pointer flex items-center gap-1 shadow-2xs">
                     <i class="fa-solid fa-user-plus text-[9px]"></i> + กำหนดพนักงาน
                   </button>
                 </div>
@@ -812,6 +826,119 @@
           </div>
         `);
       });
+
+      // Bottom quick-add slot button
+      container.insertAdjacentHTML('beforeend', `
+        <div class="pt-2">
+          <button type="button" onclick="addNewStationSlot('${shiftKey}')"
+                  class="w-full py-2.5 px-3 rounded-2xl border-2 border-dashed ${shiftKey === 'A' ? 'border-blue-300 hover:border-blue-500 bg-blue-50/40 hover:bg-blue-50 text-blue-700' : 'border-rose-300 hover:border-rose-500 bg-rose-50/40 hover:bg-rose-50 text-rose-700'} font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-2xs">
+            <i class="fa-solid fa-plus-circle"></i> + เพิ่มช่องตำแหน่งล่างสุด (>10 คน)
+          </button>
+        </div>
+      `);
+    }
+
+    // ========================================================
+    // Instant Add Station Slot at the Bottom
+    // ========================================================
+    function addNewStationSlot(shiftKey = 'A') {
+      const machine = document.getElementById('filter-chart-machine').value;
+      const customList = getCustomStations(machine);
+      
+      const existingForShift = customList.filter(c => c.shift === shiftKey || c.shift === 'BOTH');
+      let nextNum = existingForShift.length + 1;
+      let newName = `สแปร์ ${nextNum}`;
+
+      // Ensure unique name
+      while (BASE_STATIONS.includes(newName) || customList.some(c => c.name.toLowerCase() === newName.toLowerCase() && (c.shift === shiftKey || c.shift === 'BOTH'))) {
+        nextNum++;
+        newName = `สแปร์ ${nextNum}`;
+      }
+
+      customList.push({
+        name: newName,
+        shift: shiftKey,
+        createdAt: new Date().toISOString()
+      });
+      saveCustomStations(machine, customList);
+      renderChart();
+
+      // Smooth scroll to the bottom of the shift container
+      setTimeout(() => {
+        const container = document.getElementById(shiftKey === 'A' ? 'shift-a-tiers-container' : 'shift-b-tiers-container');
+        if (container && container.lastElementChild) {
+          container.lastElementChild.scrollIntoView({ behavior: 'smooth', block: 'end' });
+          container.lastElementChild.classList.add('ring-4', 'ring-emerald-400');
+          setTimeout(() => {
+            container.lastElementChild.classList.remove('ring-4', 'ring-emerald-400');
+          }, 1500);
+        }
+      }, 100);
+
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: `เพิ่มช่อง "${newName}" ที่ล่างสุดของกะ ${shiftKey} สำเร็จ`,
+        text: 'สามารถลากพนักงานมาวางในช่องนี้ได้ทันที หรือกดไอคอนดินสอเพื่อเปลี่ยนชื่อ',
+        showConfirmButton: false,
+        timer: 3200
+      });
+    }
+
+    // Rename Custom Station
+    async function renameCustomStation(oldName, shiftKey) {
+      const machine = document.getElementById('filter-chart-machine').value;
+      const { value: newName } = await Swal.fire({
+        title: 'เปลี่ยนชื่อจุดประจำการ',
+        input: 'text',
+        inputValue: oldName,
+        inputLabel: 'ระบุชื่อใหม่สำหรับจุดนี้:',
+        inputPlaceholder: 'เช่น QC, โฟล์คลิฟต์, ผู้ช่วย Wet End',
+        showCancelButton: true,
+        confirmButtonText: 'บันทึกชื่อใหม่',
+        cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: '#2563eb',
+        inputValidator: (val) => {
+          if (!val || !val.trim()) return 'กรุณาระบุชื่อจุดประจำการ';
+          const trimmed = val.trim();
+          if (trimmed !== oldName && (BASE_STATIONS.includes(trimmed) || getActiveStationsForShift(machine, shiftKey).includes(trimmed))) {
+            return `ชื่อ "${trimmed}" มีอยู่ในระบบแล้ว`;
+          }
+        }
+      });
+
+      if (newName && newName.trim() && newName.trim() !== oldName) {
+        const trimmed = newName.trim();
+        let customList = getCustomStations(machine);
+        const item = customList.find(c => c.name === oldName && (c.shift === shiftKey || c.shift === 'BOTH'));
+        if (item) {
+          item.name = trimmed;
+          saveCustomStations(machine, customList);
+
+          // Update any employee currently in this station
+          const store = getStoreData();
+          (store.employees || []).forEach(e => {
+            if (e.machine === machine && e.shift === shiftKey && e.station === oldName) {
+              e.station = trimmed;
+              if (typeof GoogleSheetSync !== 'undefined' && GoogleSheetSync.hasWebhook()) {
+                GoogleSheetSync.syncEditEmployee(e);
+              }
+            }
+          });
+          saveStoreData(store);
+          renderChart();
+
+          Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: `เปลี่ยนชื่อเป็น "${trimmed}" เรียบร้อยแล้ว`,
+            showConfirmButton: false,
+            timer: 2000
+          });
+        }
+      }
     }
 
     // ========================================================
@@ -822,33 +949,39 @@
       e.dataTransfer.setData('text/plain', String(empId));
       e.dataTransfer.effectAllowed = 'move';
       if (e.currentTarget) {
-        e.currentTarget.classList.add('opacity-40');
+        e.currentTarget.classList.add('opacity-40', 'scale-95');
       }
     }
 
     function handleDragEnd(e) {
       if (e.currentTarget) {
-        e.currentTarget.classList.remove('opacity-40');
+        e.currentTarget.classList.remove('opacity-40', 'scale-95');
       }
       currentDragEmpId = null;
-      document.querySelectorAll('.border-emerald-500, .bg-emerald-100').forEach(el => {
-        el.classList.remove('border-emerald-500', 'bg-emerald-100');
+      document.querySelectorAll('.border-emerald-500, .bg-emerald-50, .ring-2, .ring-emerald-500').forEach(el => {
+        el.classList.remove('border-emerald-500', 'bg-emerald-50', 'ring-2', 'ring-emerald-500');
       });
     }
 
     function handleDragOver(e) {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
-      e.currentTarget.classList.add('border-emerald-500', 'bg-emerald-50');
+      if (e.currentTarget) {
+        e.currentTarget.classList.add('ring-2', 'ring-emerald-500', 'bg-emerald-50');
+      }
     }
 
     function handleDragLeave(e) {
-      e.currentTarget.classList.remove('border-emerald-500', 'bg-emerald-50');
+      if (e.currentTarget && (!e.relatedTarget || !e.currentTarget.contains(e.relatedTarget))) {
+        e.currentTarget.classList.remove('ring-2', 'ring-emerald-500', 'bg-emerald-50');
+      }
     }
 
     function handleDropToStation(e, targetStation, targetShift) {
       e.preventDefault();
-      e.currentTarget.classList.remove('border-emerald-500', 'bg-emerald-50');
+      if (e.currentTarget) {
+        e.currentTarget.classList.remove('ring-2', 'ring-emerald-500', 'bg-emerald-50', 'border-emerald-500');
+      }
 
       const empIdStr = e.dataTransfer.getData('text/plain') || currentDragEmpId;
       if (!empIdStr) return;
@@ -918,7 +1051,9 @@
 
     function handleDropToUnassigned(e) {
       e.preventDefault();
-      e.currentTarget.classList.remove('border-emerald-500', 'bg-emerald-50');
+      if (e.currentTarget) {
+        e.currentTarget.classList.remove('ring-2', 'ring-emerald-500', 'bg-emerald-50', 'border-emerald-500');
+      }
 
       const empIdStr = e.dataTransfer.getData('text/plain') || currentDragEmpId;
       if (!empIdStr) return;
