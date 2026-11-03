@@ -608,16 +608,15 @@
           </div>
         </div>
 
-        <!-- Table Display: Faithful representation of user Excel format -->
-        <div class="mt-4 flex justify-center overflow-x-auto">
-          <div class="inline-block min-w-[500px] max-w-2xl w-full bg-white p-3 sm:p-6 rounded-xl border border-slate-200 shadow-xs">
-            <table class="w-full text-center border-collapse text-sm sm:text-base font-bold">
+        <!-- Table Display: Full-width Excel layout -->
+        <div class="mt-4 overflow-x-auto w-full">
+          <table class="w-full text-center border-collapse text-base sm:text-lg font-bold" style="min-width: 600px;">
               <thead>
-                <tr class="text-base sm:text-lg font-black">
-                  <th scope="col" class="py-2.5 px-3 text-center text-red-600 underline decoration-red-600 decoration-2 underline-offset-4">Month</th>
-                  <th scope="col" class="py-2.5 px-4 text-right text-red-600 underline decoration-red-600 decoration-2 underline-offset-4">Target Out Put</th>
-                  <th scope="col" class="py-2.5 px-4 text-right text-blue-900 underline decoration-blue-900 decoration-2 underline-offset-4">Actual Out Put</th>
-                  <th scope="col" class="py-2.5 px-4 text-right text-emerald-600 underline decoration-emerald-600 decoration-2 underline-offset-4">% Out Put</th>
+                <tr class="text-base sm:text-lg md:text-xl font-black">
+                  <th scope="col" class="py-3 px-4 text-center text-red-600 underline decoration-red-600 decoration-2 underline-offset-4 w-1/6">Month</th>
+                  <th scope="col" class="py-3 px-6 text-right text-red-600 underline decoration-red-600 decoration-2 underline-offset-4 w-1/3">Target Out Put</th>
+                  <th scope="col" class="py-3 px-6 text-right text-blue-900 underline decoration-blue-900 decoration-2 underline-offset-4 w-1/3">Actual Out Put</th>
+                  <th scope="col" class="py-3 px-6 text-right text-emerald-600 underline decoration-emerald-600 decoration-2 underline-offset-4 w-1/6">% Out Put</th>
                 </tr>
               </thead>
               <tbody id="monthly-output-summary-tbody" class="divide-y-0">
@@ -694,16 +693,15 @@
                   <td class="py-2 px-4 text-right text-emerald-600 font-bold">113%</td>
                 </tr>
               </tbody>
-              <tfoot class="border-t-2 border-blue-900 font-black text-base sm:text-lg">
+              <tfoot class="border-t-2 border-blue-900 font-black text-lg sm:text-xl">
                 <tr class="hover:bg-slate-50/80 transition">
-                  <td class="py-2.5 px-3 text-center text-slate-900">ALL</td>
-                  <td id="monthly-summary-all-target" class="py-2.5 px-4 text-right text-slate-900">38,093,257</td>
-                  <td id="monthly-summary-all-actual" class="py-2.5 px-4 text-right text-slate-900">40,379,611</td>
-                  <td id="monthly-summary-all-pct" class="py-2.5 px-4 text-right text-emerald-600 font-black">106%</td>
+                  <td class="py-3 px-4 text-center text-slate-900">ALL</td>
+                  <td id="monthly-summary-all-target" class="py-3 px-6 text-right text-slate-900">-</td>
+                  <td id="monthly-summary-all-actual" class="py-3 px-6 text-right text-slate-900">-</td>
+                  <td id="monthly-summary-all-pct" class="py-3 px-6 text-right text-emerald-600 font-black">-</td>
                 </tr>
               </tfoot>
             </table>
-          </div>
         </div>
       </section>
 
@@ -2774,88 +2772,69 @@
     // ==========================================
 
     // ==========================================
-    // ตารางเปรียบเทียบ Target vs Actual Output รายเดือน 12 เดือน (Month, Target Out Put, Actual Out Put, % Out Put)
+    // ตารางเปรียบเทียบ Target vs Actual Output รายเดือน 12 เดือน (ดึงข้อมูลจริงตามระบบ)
     // ==========================================
-    const STATIC_BHS_MONTHLY_SUMMARY = [
-      { month: 1,  target: 3301416, actual: 3274406, pct: 99,  actColor: "text-emerald-600 font-bold",  pctColor: "text-emerald-600 font-bold" },
-      { month: 2,  target: 3047461, actual: 2698173, pct: 89,  actColor: "text-slate-900 font-black",   pctColor: "text-rose-600 font-black" },
-      { month: 3,  target: 3301416, actual: 3288949, pct: 100, actColor: "text-emerald-600 font-bold",  pctColor: "text-emerald-600 font-bold" },
-      { month: 4,  target: 2920483, actual: 3049964, pct: 104, actColor: "text-emerald-600 font-bold",  pctColor: "text-emerald-600 font-bold" },
-      { month: 5,  target: 3301416, actual: 3934476, pct: 119, actColor: "text-emerald-600 font-bold",  pctColor: "text-emerald-600 font-bold" },
-      { month: 6,  target: 3047461, actual: 3424973, pct: 112, actColor: "text-emerald-600 font-bold",  pctColor: "text-emerald-600 font-bold" },
-      { month: 7,  target: 3301416, actual: 3834412, pct: 116, actColor: "text-emerald-600 font-bold",  pctColor: "text-emerald-600 font-bold" },
-      { month: 8,  target: 3174438, actual: 3348363, pct: 105, actColor: "text-emerald-600 font-bold",  pctColor: "text-emerald-600 font-bold" },
-      { month: 9,  target: 3301416, actual: 3061962, pct: 93,  actColor: "text-slate-900 font-black",   pctColor: "text-slate-900 font-bold" },
-      { month: 10, target: 3301416, actual: 3481032, pct: 105, actColor: "text-slate-900 font-black",   pctColor: "text-slate-900 font-bold" },
-      { month: 11, target: 3174438, actual: 3695303, pct: 116, actColor: "text-emerald-600 font-bold",  pctColor: "text-emerald-600 font-bold" },
-      { month: 12, target: 2920483, actual: 3287599, pct: 113, actColor: "text-emerald-600 font-bold",  pctColor: "text-emerald-600 font-bold" }
-    ];
-
     function renderMonthlyOutputSummaryTable() {
       const tbody = document.getElementById("monthly-output-summary-tbody");
       const badge = document.getElementById("output-summary-table-machine-badge");
       if (badge) badge.textContent = currentMachine;
       if (!tbody) return;
 
-      let rowsData = [];
-      if (currentMachine === "BHS") {
-        rowsData = STATIC_BHS_MONTHLY_SUMMARY;
-      } else {
-        // คำนวณแบบยืดหยุ่นตามเครื่องที่เลือกจาก OUTPUT_TARGETS และ currentYearlyTrend
-        for (let m = 1; m <= 12; m++) {
-          const mStr = String(m).padStart(2, "0");
-          const monthKey = `${currentYear}-${mStr}`;
-          let tVal = 0;
-          if (OUTPUT_TARGETS.monthlyTargets && OUTPUT_TARGETS.monthlyTargets[monthKey] && typeof OUTPUT_TARGETS.monthlyTargets[monthKey][currentMachine] === "number") {
-            tVal = OUTPUT_TARGETS.monthlyTargets[monthKey][currentMachine];
-          } else {
-            tVal = OUTPUT_TARGETS.machines?.[currentMachine]?.monthlyTarget || 2200000;
-          }
-
-          const yearItem = (currentYearlyTrend || []).find(y => Number(y.month) === m);
-          let aVal = 0;
-          if (m === currentMonth && currentApiSummary && currentApiSummary.output > 0) {
-            aVal = currentApiSummary.output;
-          } else if (yearItem && typeof yearItem.output === "number") {
-            aVal = Math.max(0, yearItem.output);
-          }
-
-          const pct = tVal > 0 ? Math.round((aVal / tVal) * 100) : 0;
-          let actCls = "text-slate-900 font-bold";
-          let pctCls = "text-slate-900 font-bold";
-          if (pct >= 100) {
-            actCls = "text-emerald-600 font-bold";
-            pctCls = "text-emerald-600 font-bold";
-          } else if (pct < 90 && aVal > 0) {
-            pctCls = "text-rose-600 font-black";
-          }
-
-          rowsData.push({
-            month: m,
-            target: tVal,
-            actual: aVal,
-            pct: pct,
-            actColor: actCls,
-            pctColor: pctCls
-          });
-        }
-      }
-
       let totalTarget = 0;
       let totalActual = 0;
+      const rowsHtml = [];
 
-      tbody.innerHTML = rowsData.map(r => {
-        totalTarget += (Number(r.target) || 0);
-        totalActual += (Number(r.actual) || 0);
-        return `
-          <tr class="border-b border-dashed border-blue-400/80 hover:bg-slate-50/80 transition">
-            <td class="py-2 px-3 text-center text-slate-900 font-bold">${r.month}</td>
-            <td class="py-2 px-4 text-right text-slate-900 font-bold">${Number(r.target).toLocaleString("th-TH")}</td>
-            <td class="py-2 px-4 text-right ${r.actColor}">${Number(r.actual).toLocaleString("th-TH")}</td>
-            <td class="py-2 px-4 text-right ${r.pctColor}">${r.pct}%</td>
+      for (let m = 1; m <= 12; m++) {
+        const mStr = String(m).padStart(2, "0");
+        const monthKey = `${currentYear}-${mStr}`;
+        
+        let tVal = 0;
+        if (OUTPUT_TARGETS.monthlyTargets && OUTPUT_TARGETS.monthlyTargets[monthKey] && typeof OUTPUT_TARGETS.monthlyTargets[monthKey][currentMachine] === "number") {
+          tVal = OUTPUT_TARGETS.monthlyTargets[monthKey][currentMachine];
+        } else {
+          tVal = OUTPUT_TARGETS.machines?.[currentMachine]?.monthlyTarget || 2200000;
+        }
+
+        const yearItem = (currentYearlyTrend || []).find(y => Number(y.month) === m);
+        let aVal = 0;
+        if (m === currentMonth && currentApiSummary && currentApiSummary.output > 0) {
+          aVal = currentApiSummary.output;
+        } else if (yearItem && typeof yearItem.output === "number") {
+          aVal = Math.max(0, yearItem.output);
+        }
+
+        totalTarget += tVal;
+        totalActual += aVal;
+
+        const pct = tVal > 0 && aVal > 0 ? Math.round((aVal / tVal) * 100) : (aVal === 0 ? 0 : 0);
+
+        let actCls = "text-slate-900 font-bold";
+        let pctCls = "text-slate-900 font-bold";
+        if (aVal === 0) {
+          actCls = "text-slate-400 font-medium";
+          pctCls = "text-slate-400 font-medium";
+        } else if (pct >= 100) {
+          actCls = "text-emerald-600 font-bold";
+          pctCls = "text-emerald-600 font-bold";
+        } else if (pct < 90) {
+          actCls = "text-slate-900 font-black";
+          pctCls = "text-rose-600 font-black";
+        } else {
+          actCls = "text-slate-900 font-black";
+          pctCls = "text-slate-900 font-bold";
+        }
+
+        rowsHtml.push(`
+          <tr class="border-b border-dashed border-blue-400/80 hover:bg-slate-50/80 transition text-base sm:text-lg">
+            <td class="py-2.5 sm:py-3 px-4 text-center text-slate-900 font-bold">${m}</td>
+            <td class="py-2.5 sm:py-3 px-6 text-right text-slate-900 font-bold">${Number(tVal).toLocaleString("th-TH")}</td>
+            <td class="py-2.5 sm:py-3 px-6 text-right ${actCls}">${Number(aVal).toLocaleString("th-TH")}</td>
+            <td class="py-2.5 sm:py-3 px-6 text-right ${pctCls}">${pct}%</td>
           </tr>
-        `;
-      }).join("");
+        `);
+      }
+
+      tbody.innerHTML = rowsHtml.join("");
 
       const totalPct = totalTarget > 0 ? Math.round((totalActual / totalTarget) * 100) : 0;
       safeSetText("monthly-summary-all-target", Number(totalTarget).toLocaleString("th-TH"));
@@ -2863,9 +2842,10 @@
       safeSetText("monthly-summary-all-pct", `${totalPct}%`);
       const pctEl = document.getElementById("monthly-summary-all-pct");
       if (pctEl) {
-        pctEl.className = `py-2.5 px-4 text-right ${totalPct >= 100 ? "text-emerald-600" : "text-rose-600"} font-black`;
+        pctEl.className = `py-3 px-6 text-right ${totalPct >= 100 ? "text-emerald-600" : "text-slate-900"} font-black`;
       }
     }
+
 
     function renderMonthlyTrendChart() {
       const chartEl = document.getElementById('monthlyTrendChart');
