@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ทะเบียนพนักงาน & ประวัติอายุงาน | datamanbhs</title>
+
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Prompt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome 6 -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- Embedded Datamanbhs Data -->
+  <script src="assets/data/datamanbhs_data.js"></script>
+
+  <style>
+    * {
+      font-family: 'Prompt', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased">
+
+  <!-- Top Navigation Bar -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-xs">
+    <div class="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Brand & Title -->
+        <a href="dashboard.html" class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white flex items-center justify-center text-xl shadow-md shrink-0">
+            <i class="fa-solid fa-industry"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-black text-slate-900 text-lg sm:text-xl tracking-tight">ระบบบันทึกประวัติและอายุงาน</span>
+              <strong class="text-orange-600 text-xs px-2 py-0.5 rounded-full bg-orange-100 border border-orange-200">ฝ่ายผลิต</strong>
+            </div>
+            <p class="text-xs text-slate-500 hidden sm:block">ทะเบียนพนักงาน & ประวัติอายุงานรายบุคคล</p>
+          </div>
+        </a>
+
+        <!-- Main Navigation Links -->
+        <nav class="flex items-center gap-1 sm:gap-2 flex-wrap">
+          <a href="dashboard.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+            <i class="fa-solid fa-chart-pie text-orange-500"></i>
+            <span>แดชบอร์ด</span>
+          </a>
+          <a href="employees.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-xs">
+            <i class="fa-solid fa-users"></i>
+            <span>ทะเบียนพนักงาน</span>
+          </a>
+          <a href="chart.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+            <i class="fa-solid fa-sitemap text-indigo-600"></i>
+            <span>ผังประจำจุด</span>
+          </a>
+          <a href="attendance.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+            <i class="fa-solid fa-calendar-check text-emerald-600"></i>
+            <span>บันทึกเวลา & วันทำงาน</span>
+          </a>
+          <a href="kpi.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+            <i class="fa-solid fa-chart-line text-rose-600"></i>
+            <span>สรุป KPI</span>
+          </a>
+
+          <div class="h-5 w-px bg-slate-300 mx-1 hidden lg:block"></div>
+
+          <a href="login.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition">
+            <i class="fa-solid fa-right-to-bracket text-slate-500"></i>
+            <span>เข้าสู่ระบบ</span>
+          </a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-[1680px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Header & Controls -->
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 class="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-users text-orange-600"></i>
+            <span>ทะเบียนพนักงานฝ่ายผลิต (Employee Registry)</span>
+            <span class="text-xs px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-bold border border-slate-200" id="emp-count-badge">41 คน</span>
+          </h1>
+          <p class="text-xs text-slate-500 mt-1">ประวัติส่วนตัว, จุดประจำการ, อายุงาน, และทักษะความเชี่ยวชาญเครื่องจักร</p>
+        </div>
+
+        <!-- View Mode Switch -->
+        <div class="flex items-center gap-2">
+          <div class="bg-slate-100 p-1 rounded-2xl border border-slate-200 flex items-center gap-1 text-xs font-bold">
+            <button type="button" onclick="setViewMode('grid')" id="btn-view-grid" class="px-3 py-1.5 rounded-xl bg-white text-orange-600 shadow-2xs">
+              <i class="fa-solid fa-table-cells-large mr-1"></i> การ์ด (Grid)
+            </button>
+            <button type="button" onclick="setViewMode('table')" id="btn-view-table" class="px-3 py-1.5 rounded-xl text-slate-600 hover:text-slate-900">
+              <i class="fa-solid fa-list mr-1"></i> ตาราง (Table)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters & Search Bar -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end pt-2 border-t border-slate-100">
+        <!-- Search -->
+        <div class="lg:col-span-4">
+          <label class="block text-xs font-bold text-slate-700 mb-1">
+            <i class="fa-solid fa-magnifying-glass text-orange-500 mr-1"></i> ค้นหาพนักงาน
+          </label>
+          <input type="text" id="filter-search" oninput="renderEmployees()" placeholder="พิมพ์ชื่อ, ชื่อเล่น, รหัส หรือตำแหน่ง..." class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500">
+        </div>
+
+        <!-- Machine -->
+        <div class="lg:col-span-2">
+          <label class="block text-xs font-bold text-slate-700 mb-1">เครื่องจักร:</label>
+          <select id="filter-machine" onchange="renderEmployees()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500">
+            <option value="">ทั้งหมด (All)</option>
+            <option value="BHS">BHS</option>
+            <option value="YUELI">YUELI</option>
+            <option value="ISOWA">ISOWA</option>
+          </select>
+        </div>
+
+        <!-- Shift -->
+        <div class="lg:col-span-2">
+          <label class="block text-xs font-bold text-slate-700 mb-1">กะการทำงาน:</label>
+          <select id="filter-shift" onchange="renderEmployees()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500">
+            <option value="">ทุกกะ</option>
+            <option value="A">กะ A</option>
+            <option value="B">กะ B</option>
+            <option value="Normal">กลาง (Normal)</option>
+          </select>
+        </div>
+
+        <!-- Sort By -->
+        <div class="lg:col-span-3">
+          <label class="block text-xs font-bold text-slate-700 mb-1">เรียงลำดับ:</label>
+          <select id="filter-sort" onchange="renderEmployees()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500">
+            <option value="tenure_desc">อายุงานมาก &rarr; น้อย</option>
+            <option value="tenure_asc">อายุงานน้อย &rarr; มาก</option>
+            <option value="leader_first">หัวหน้างาน &rarr; ลูกน้อง</option>
+            <option value="age_desc">อายุตัวมาก &rarr; น้อย</option>
+            <option value="code_asc">รหัสพนักงาน</option>
+          </select>
+        </div>
+
+        <!-- Reset Button -->
+        <div class="lg:col-span-1">
+          <button type="button" onclick="resetFilters()" class="w-full p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold border border-slate-300 transition" title="ล้างตัวกรอง">
+            <i class="fa-solid fa-undo"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Employee List Container -->
+    <div id="employees-container">
+      <!-- Grid or Table injected by JS -->
+    </div>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- Profile & Skills Detail Modal              -->
+  <!-- ========================================== -->
+  <div id="profileModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-2xl overflow-hidden animate-scaleIn max-h-[90vh] flex flex-col">
+      <!-- Modal Header Banner -->
+      <div class="bg-gradient-to-r from-orange-500 to-amber-600 p-5 text-white flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-id-card"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-black" id="modal-emp-fullname">นายคะนอง ศิริวรรณ</h3>
+            <p class="text-xs text-white/90" id="modal-emp-sub">รหัส: 24520003 &bull; เครื่อง BHS กะ A</p>
+          </div>
+        </div>
+        <button onclick="closeProfileModal()" class="text-white/80 hover:text-white p-1 text-xl">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto space-y-5">
+        <!-- Personal Info Header -->
+        <div class="flex flex-col sm:flex-row items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+          <img id="modal-avatar-img" src="" alt="" class="w-24 h-24 rounded-full object-cover border-4 border-orange-400 shadow-md">
+          <div class="space-y-1 text-center sm:text-left flex-1">
+            <div class="flex items-center gap-2 justify-center sm:justify-start">
+              <span class="text-base font-bold text-slate-900" id="modal-name-text">คะนอง ศิริวรรณ</span>
+              <span class="text-orange-600 font-black text-sm" id="modal-nickname-text">(นอง)</span>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold" id="modal-probation-badge">พ้นทดลองงาน</span>
+            </div>
+            <p class="text-xs text-slate-600" id="modal-position-text">ผู้ปฏิบัติงาน Dry End (จุดประจำการ: Stacker)</p>
+            <div class="flex flex-wrap gap-2 justify-center sm:justify-start text-xs font-bold pt-1">
+              <span class="px-2.5 py-1 rounded-xl bg-amber-100 text-amber-900 border border-amber-200" id="modal-tenure-badge">อายุงาน: 12 ปี 4 เดือน</span>
+              <span class="px-2.5 py-1 rounded-xl bg-blue-100 text-blue-900 border border-blue-200" id="modal-age-badge">อายุ: 45 ปี</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Skills Matrix (Station Skills) -->
+        <div class="space-y-2">
+          <h4 class="text-xs font-black text-slate-900 flex items-center gap-1.5 uppercase tracking-wider">
+            <i class="fa-solid fa-screwdriver-wrench text-orange-500"></i> ทักษะความเชี่ยวชาญประจำจุดเครื่องจักร (Station Skills)
+          </h4>
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs" id="modal-skills-grid">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+
+        <!-- Details Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+            <span class="text-slate-400 font-semibold block">วันเริ่มงาน:</span>
+            <strong class="text-slate-800 text-sm" id="modal-start-date">-</strong>
+          </div>
+          <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+            <span class="text-slate-400 font-semibold block">วันเกิด:</span>
+            <strong class="text-slate-800 text-sm" id="modal-birth-date">-</strong>
+          </div>
+          <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+            <span class="text-slate-400 font-semibold block">เบอร์โทรศัพท์:</span>
+            <strong class="text-slate-800 text-sm" id="modal-phone">-</strong>
+          </div>
+          <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+            <span class="text-slate-400 font-semibold block">ประวัติการลงโทษทางวินัย:</span>
+            <strong class="text-emerald-700 text-sm" id="modal-penalty-count">0 ครั้ง (ปกติ)</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end shrink-0">
+        <button type="button" onclick="closeProfileModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition">
+          ปิดหน้าต่าง
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Engine -->
+  <script>
+    let viewMode = 'grid'; // 'grid' | 'table'
+
+    function getStoreData() {
+      const saved = localStorage.getItem('datamanbhs_attendance_v1');
+      if (saved) {
+        try { return JSON.parse(saved); } catch (e) {}
+      }
+      return window.DATAMANBHS_INITIAL || { employees: [] };
+    }
+
+    function calculateTenure(startDateStr) {
+      if (!startDateStr) return { years: 0, months: 0, days: 0, text: '-' };
+      const start = new Date(startDateStr);
+      const now = new Date();
+      let y = now.getFullYear() - start.getFullYear();
+      let m = now.getMonth() - start.getMonth();
+      let d = now.getDate() - start.getDate();
+      if (d < 0) {
+        m -= 1;
+        d += new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+      }
+      if (m < 0) {
+        y -= 1;
+        m += 12;
+      }
+      return { years: y, months: m, days: d, text: `${y} ปี ${m} เดือน` };
+    }
+
+    function calculateAge(birthDateStr) {
+      if (!birthDateStr) return { years: 0, text: '-' };
+      const birth = new Date(birthDateStr);
+      const now = new Date();
+      let age = now.getFullYear() - birth.getFullYear();
+      const m = now.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) {
+        age--;
+      }
+      return { years: age, text: `${age} ปี` };
+    }
+
+    function setViewMode(mode) {
+      viewMode = mode;
+      if (mode === 'grid') {
+        document.getElementById('btn-view-grid').className = 'px-3 py-1.5 rounded-xl bg-white text-orange-600 shadow-2xs font-bold';
+        document.getElementById('btn-view-table').className = 'px-3 py-1.5 rounded-xl text-slate-600 hover:text-slate-900 font-bold';
+      } else {
+        document.getElementById('btn-view-table').className = 'px-3 py-1.5 rounded-xl bg-white text-orange-600 shadow-2xs font-bold';
+        document.getElementById('btn-view-grid').className = 'px-3 py-1.5 rounded-xl text-slate-600 hover:text-slate-900 font-bold';
+      }
+      renderEmployees();
+    }
+
+    function resetFilters() {
+      document.getElementById('filter-search').value = '';
+      document.getElementById('filter-machine').value = '';
+      document.getElementById('filter-shift').value = '';
+      document.getElementById('filter-sort').value = 'tenure_desc';
+      renderEmployees();
+    }
+
+    function renderEmployees() {
+      const store = getStoreData();
+      let emps = store.employees || [];
+
+      const search = document.getElementById('filter-search').value.trim().toLowerCase();
+      const machine = document.getElementById('filter-machine').value;
+      const shift = document.getElementById('filter-shift').value;
+      const sortBy = document.getElementById('filter-sort').value;
+
+      // Filter
+      emps = emps.filter(e => {
+        if (machine && e.machine !== machine) return false;
+        if (shift && e.shift !== shift) return false;
+        if (search) {
+          const matchCode = (e.employee_code || '').toLowerCase().includes(search);
+          const matchName = (e.first_name || '').toLowerCase().includes(search);
+          const matchLast = (e.last_name || '').toLowerCase().includes(search);
+          const matchNick = (e.nickname || '').toLowerCase().includes(search);
+          const matchPos = (e.position || '').toLowerCase().includes(search);
+          const matchSt = (e.station || '').toLowerCase().includes(search);
+          if (!matchCode && !matchName && !matchLast && !matchNick && !matchPos && !matchSt) return false;
+        }
+        return true;
+      });
+
+      // Sort
+      emps.sort((a, b) => {
+        if (sortBy === 'tenure_desc') {
+          return new Date(a.start_date || '2099') - new Date(b.start_date || '2099');
+        } else if (sortBy === 'tenure_asc') {
+          return new Date(b.start_date || '1970') - new Date(a.start_date || '1970');
+        } else if (sortBy === 'leader_first') {
+          const isLeaderA = (a.station === 'Host' || (a.position && a.position.includes('หัวหน้า'))) ? 1 : 2;
+          const isLeaderB = (b.station === 'Host' || (b.position && b.position.includes('หัวหน้า'))) ? 1 : 2;
+          return isLeaderA - isLeaderB;
+        } else if (sortBy === 'age_desc') {
+          return new Date(a.birth_date || '2099') - new Date(b.birth_date || '2099');
+        } else if (sortBy === 'code_asc') {
+          return (a.employee_code || '').localeCompare(b.employee_code || '');
+        }
+        return 0;
+      });
+
+      document.getElementById('emp-count-badge').textContent = `${emps.length} คน`;
+      const container = document.getElementById('employees-container');
+
+      if (emps.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white rounded-3xl p-12 text-center border border-slate-200 shadow-sm">
+            <i class="fa-solid fa-users-slash text-5xl text-slate-300 mb-3"></i>
+            <h4 class="font-bold text-slate-700">ไม่พบรายชื่อพนักงานที่ตรงกับเงื่อนไข</h4>
+            <p class="text-xs text-slate-400 mt-1">ลองเปลี่ยนคำค้นหาหรือเลือกเครื่องจักรอื่น</p>
+          </div>
+        `;
+        return;
+      }
+
+      if (viewMode === 'grid') {
+        renderGridView(emps, container);
+      } else {
+        renderTableView(emps, container);
+      }
+    }
+
+    function renderGridView(emps, container) {
+      let html = '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">';
+      emps.forEach(e => {
+        const tenure = calculateTenure(e.start_date);
+        const age = calculateAge(e.birth_date);
+        const isLeader = (e.station === 'Host' || (e.position && e.position.includes('หัวหน้า')));
+        const avatarSrc = e.avatar ? `assets/uploads/employees/${e.avatar}` : '';
+
+        // Badge color for machine
+        const mBadge = e.machine === 'BHS' ? 'bg-orange-100 text-orange-800 border-orange-200' : (e.machine === 'YUELI' ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-emerald-100 text-emerald-800 border-emerald-200');
+
+        html += `
+          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition p-5 flex flex-col justify-between space-y-4">
+            <div class="flex items-start justify-between gap-3">
+              <div class="relative shrink-0">
+                ${avatarSrc ? `
+                  <img src="${avatarSrc}" class="w-16 h-16 rounded-2xl object-cover border-2 border-orange-400 shadow-sm" alt="" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'w-16 h-16 rounded-2xl bg-orange-100 text-orange-800 font-bold flex items-center justify-center text-lg\\'>${escapeHtml(e.nickname || e.first_name[0])}</div>'">
+                ` : `
+                  <div class="w-16 h-16 rounded-2xl bg-orange-100 text-orange-800 font-black flex items-center justify-center text-lg">
+                    ${escapeHtml(e.nickname || e.first_name[0])}
+                  </div>
+                `}
+                ${isLeader ? `
+                  <span class="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-xs shadow" title="หัวหน้ากะ">
+                    <i class="fa-solid fa-crown"></i>
+                  </span>
+                ` : ''}
+              </div>
+
+              <div class="text-right">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${mBadge}">${e.machine}</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 ml-1">กะ ${e.shift}</span>
+                <div class="mt-1 font-mono text-[11px] text-slate-400 font-semibold">${e.employee_code}</div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex items-baseline gap-1.5 flex-wrap">
+                <h3 class="font-black text-slate-900 text-sm">${escapeHtml(e.first_name)} ${escapeHtml(e.last_name || '')}</h3>
+                ${e.nickname ? `<span class="text-orange-600 font-black text-sm">(${escapeHtml(e.nickname)})</span>` : ''}
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">${escapeHtml(e.position || 'ผู้ปฏิบัติงาน')}</p>
+              <div class="mt-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-bold">
+                <i class="fa-solid fa-location-dot text-slate-400 text-[10px]"></i> ${escapeHtml(e.station || '-')}
+              </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+              <div>
+                <span class="text-[10px] text-slate-400 font-semibold block">อายุงาน:</span>
+                <strong class="text-amber-800 font-black font-num">${tenure.text}</strong>
+              </div>
+              <div class="text-right">
+                <span class="text-[10px] text-slate-400 font-semibold block">อายุตัว:</span>
+                <strong class="text-slate-700 font-black font-num">${age.text}</strong>
+              </div>
+            </div>
+
+            <button type="button" onclick="openProfileModal(${e.id})" class="w-full py-2 bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-200 text-slate-700 hover:text-orange-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-id-card"></i> ดูประวัติ & ทักษะ
+            </button>
+          </div>
+        `;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    function renderTableView(emps, container) {
+      let rows = '';
+      emps.forEach((e, idx) => {
+        const tenure = calculateTenure(e.start_date);
+        const age = calculateAge(e.birth_date);
+        const isLeader = (e.station === 'Host' || (e.position && e.position.includes('หัวหน้า')));
+        const avatarSrc = e.avatar ? `assets/uploads/employees/${e.avatar}` : '';
+
+        rows += `
+          <tr class="hover:bg-amber-50/30 transition text-xs border-b border-slate-100">
+            <td class="p-3 text-center text-slate-400 font-semibold">${idx+1}</td>
+            <td class="p-3">
+              <div class="flex items-center gap-3">
+                ${avatarSrc ? `
+                  <img src="${avatarSrc}" class="w-10 h-10 rounded-full object-cover border border-orange-400" alt="">
+                ` : `
+                  <div class="w-10 h-10 rounded-full bg-orange-100 text-orange-800 font-bold text-xs flex items-center justify-center">
+                    ${escapeHtml(e.nickname || e.first_name[0])}
+                  </div>
+                `}
+                <div>
+                  <div class="font-bold text-slate-900">${e.first_name} ${e.last_name || ''} <span class="text-orange-600 font-black">(${e.nickname || ''})</span></div>
+                  <div class="text-[10px] text-slate-400 font-mono">${e.employee_code}</div>
+                </div>
+              </div>
+            </td>
+            <td class="p-3 text-center font-bold text-slate-700">${e.machine}</td>
+            <td class="p-3 text-center">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${e.shift==='A'?'bg-blue-100 text-blue-800':(e.shift==='B'?'bg-rose-100 text-rose-800':'bg-slate-100 text-slate-800')}">${e.shift}</span>
+            </td>
+            <td class="p-3 font-semibold text-slate-800">${e.station || '-'}</td>
+            <td class="p-3 text-slate-600">${e.position || '-'}</td>
+            <td class="p-3 font-black text-amber-800 font-num">${tenure.text}</td>
+            <td class="p-3 text-center font-bold text-slate-700 font-num">${age.text}</td>
+            <td class="p-3 text-center">
+              <button type="button" onclick="openProfileModal(${e.id})" class="px-3 py-1 bg-white hover:bg-orange-50 border border-slate-200 hover:border-orange-300 text-orange-600 rounded-lg text-xs font-bold transition">
+                ดูประวัติ
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      container.innerHTML = `
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600">
+                  <th class="p-3 text-center w-12">#</th>
+                  <th class="p-3">พนักงาน</th>
+                  <th class="p-3 text-center">เครื่องจักร</th>
+                  <th class="p-3 text-center">กะ</th>
+                  <th class="p-3">จุดประจำการ</th>
+                  <th class="p-3">ตำแหน่ง</th>
+                  <th class="p-3">อายุงาน</th>
+                  <th class="p-3 text-center">อายุตัว</th>
+                  <th class="p-3 text-center">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    function openProfileModal(empId) {
+      const store = getStoreData();
+      const emp = (store.employees || []).find(e => e.id === empId);
+      if (!emp) return;
+
+      const tenure = calculateTenure(emp.start_date);
+      const age = calculateAge(emp.birth_date);
+      const avatarSrc = emp.avatar ? `assets/uploads/employees/${emp.avatar}` : '';
+
+      document.getElementById('modal-emp-fullname').textContent = `${emp.title || ''} ${emp.first_name} ${emp.last_name || ''}`;
+      document.getElementById('modal-emp-sub').textContent = `รหัส: ${emp.employee_code} • เครื่อง ${emp.machine} กะ ${emp.shift}`;
+      document.getElementById('modal-name-text').textContent = `${emp.first_name} ${emp.last_name || ''}`;
+      document.getElementById('modal-nickname-text').textContent = emp.nickname ? `(${emp.nickname})` : '';
+      document.getElementById('modal-position-text').textContent = `${emp.position || 'ผู้ปฏิบัติงาน'} (จุดประจำการ: ${emp.station || '-'})`;
+      document.getElementById('modal-tenure-badge').textContent = `อายุงาน: ${tenure.text}`;
+      document.getElementById('modal-age-badge').textContent = `อายุตัว: ${age.text}`;
+      document.getElementById('modal-start-date').textContent = emp.start_date || '-';
+      document.getElementById('modal-birth-date').textContent = emp.birth_date || '-';
+      document.getElementById('modal-phone').textContent = emp.phone || '-';
+      document.getElementById('modal-penalty-count').textContent = (emp.penalty_count > 0) ? `${emp.penalty_count} ครั้ง` : '0 ครั้ง (ปกติ)';
+
+      const imgEl = document.getElementById('modal-avatar-img');
+      imgEl.src = avatarSrc || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(emp.first_name) + '&background=ff7900&color=fff&size=256';
+
+      // Skills Grid
+      const skillsGrid = document.getElementById('modal-skills-grid');
+      skillsGrid.innerHTML = '';
+      const stations = [
+        { label: 'Control', val: emp.control_room },
+        { label: 'Stacker', val: emp.stacker },
+        { label: 'DOUBLE', val: emp.df },
+        { label: 'M5', val: emp.m5 },
+        { label: 'Single B', val: emp.single_b },
+        { label: 'M3', val: emp.m3 },
+        { label: 'Single C', val: emp.single_c },
+        { label: 'M2', val: emp.m2 },
+        { label: 'M1', val: emp.m1 }
+      ];
+
+      stations.forEach(s => {
+        const hasSkill = (s.val == 1 || s.val === true || s.val === '1');
+        skillsGrid.insertAdjacentHTML('beforeend', `
+          <div class="p-2 rounded-xl text-center border ${hasSkill ? 'bg-emerald-50 text-emerald-800 border-emerald-300 font-bold' : 'bg-slate-50 text-slate-400 border-slate-200'}">
+            <span class="block text-[11px]">${s.label}</span>
+            <span class="text-xs font-black">${hasSkill ? '✓ ชำนาญ' : '-'}</span>
+          </div>
+        `);
+      });
+
+      document.getElementById('profileModal').classList.remove('hidden');
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profileModal').classList.add('hidden');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderEmployees();
+    });
+  </script>
+</body>
+</html>

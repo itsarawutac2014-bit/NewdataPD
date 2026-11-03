@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ผังประจำจุดเครื่องจักร & กะการทำงาน | datamanbhs</title>
+
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Prompt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome 6 -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
+  <!-- html2canvas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- Embedded Datamanbhs Data -->
+  <script src="assets/data/datamanbhs_data.js"></script>
+
+  <style>
+    * {
+      font-family: 'Prompt', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased">
+
+  <!-- Top Global Navigation Bar -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-xs">
+    <div class="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Brand & Title -->
+        <a href="dashboard.html" class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-600 text-white flex items-center justify-center text-xl shadow-md shrink-0">
+            <i class="fa-solid fa-industry"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-black text-slate-900 text-lg sm:text-xl tracking-tight">ระบบบันทึกประวัติและอายุงาน</span>
+              <strong class="text-orange-600 text-xs px-2 py-0.5 rounded-full bg-orange-100 border border-orange-200">ฝ่ายผลิต</strong>
+            </div>
+            <p class="text-xs text-slate-500 hidden sm:block">ผังโครงสร้างประจำจุด & กะการทำงาน (Manning Chart)</p>
+          </div>
+        </a>
+
+        <!-- Main Navigation Links -->
+        <nav class="flex items-center gap-1 sm:gap-2 flex-wrap">
+          <a href="dashboard.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+            <i class="fa-solid fa-chart-pie text-orange-500"></i>
+            <span>แดชบอร์ด</span>
+          </a>
+          <a href="employees.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+            <i class="fa-solid fa-users text-blue-600"></i>
+            <span>ทะเบียนพนักงาน</span>
+          </a>
+          <a href="chart.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-xs">
+            <i class="fa-solid fa-sitemap"></i>
+            <span>ผังประจำจุด</span>
+          </a>
+          <a href="attendance.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+            <i class="fa-solid fa-calendar-check text-emerald-600"></i>
+            <span>บันทึกเวลา & วันทำงาน</span>
+          </a>
+          <a href="kpi.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+            <i class="fa-solid fa-chart-line text-rose-600"></i>
+            <span>สรุป KPI</span>
+          </a>
+
+          <div class="h-5 w-px bg-slate-300 mx-1 hidden lg:block"></div>
+
+          <a href="login.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition">
+            <i class="fa-solid fa-right-to-bracket text-slate-500"></i>
+            <span>เข้าสู่ระบบ</span>
+          </a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-[1680px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Header Action Bar -->
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-sitemap text-orange-600"></i>
+          <span>ผังประจำจุดเครื่องจักร & กะการทำงาน &mdash;</span>
+          <span id="chart-machine-badge" class="px-3 py-1 rounded-full text-xs font-black bg-orange-100 text-orange-800 border border-orange-200">เครื่อง BHS</span>
+        </h1>
+        <p class="text-xs text-slate-500 mt-1">โครงสร้างอัตรากำลังพลประจำแต่ละ Station แยกเปรียบเทียบ กะ A และ กะ B</p>
+      </div>
+
+      <!-- Controls -->
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-1.5">
+          <label class="text-xs font-bold text-slate-700">เลือกเครื่องจักร:</label>
+          <select id="filter-chart-machine" onchange="renderChart()" class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500">
+            <option value="BHS" selected>เครื่อง BHS</option>
+            <option value="YUELI">เครื่อง YUELI</option>
+            <option value="ISOWA">เครื่อง ISOWA</option>
+          </select>
+        </div>
+
+        <button type="button" onclick="captureChartImage()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5">
+          <i class="fa-solid fa-camera"></i> แคปรูปผัง (HD)
+        </button>
+      </div>
+    </div>
+
+    <!-- Printable Chart Area -->
+    <div id="chart-printable-area" class="space-y-6 bg-slate-100 p-2 sm:p-4 rounded-3xl">
+
+      <!-- Department Head / Office Row -->
+      <div id="dept-heads-container" class="max-w-xl mx-auto">
+        <!-- Injected by JS -->
+      </div>
+
+      <!-- Side-by-Side Shift Columns (กะ A vs กะ B) -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- Column 1: กะ A -->
+        <div class="bg-white rounded-3xl border-2 border-blue-200 shadow-sm p-5 space-y-5">
+          <div class="flex items-center justify-between pb-3 border-b-2 border-blue-500">
+            <div class="flex items-center gap-2">
+              <span class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center text-sm font-black shadow">
+                A
+              </span>
+              <h2 class="text-lg font-black text-blue-900">ผังบุคลากร กะ A</h2>
+            </div>
+            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200" id="shift-a-count">10 คน</span>
+          </div>
+
+          <div id="shift-a-tiers-container" class="space-y-4">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+
+        <!-- Column 2: กะ B -->
+        <div class="bg-white rounded-3xl border-2 border-rose-200 shadow-sm p-5 space-y-5">
+          <div class="flex items-center justify-between pb-3 border-b-2 border-rose-500">
+            <div class="flex items-center gap-2">
+              <span class="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center text-sm font-black shadow">
+                B
+              </span>
+              <h2 class="text-lg font-black text-rose-900">ผังบุคลากร กะ B</h2>
+            </div>
+            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200" id="shift-b-count">10 คน</span>
+          </div>
+
+          <div id="shift-b-tiers-container" class="space-y-4">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- JavaScript Chart Renderer -->
+  <script>
+    const TIERS_CONFIG = [
+      {
+        tier: 1,
+        title: 'ระดับที่ 1: หัวหน้ากะ (Shift Leader)',
+        icon: 'fa-crown',
+        stations: ['Host'],
+        grid: 'grid-cols-1'
+      },
+      {
+        tier: 2,
+        title: 'ระดับที่ 2: ห้องควบคุม & เครื่องเรียง (Control / Stacker)',
+        icon: 'fa-sliders',
+        stations: ['Control', 'Stacker'],
+        grid: 'grid-cols-1 sm:grid-cols-2'
+      },
+      {
+        tier: 3,
+        title: 'ระดับที่ 3: เครื่องกาว Double & จุด M5 (Double / M5)',
+        icon: 'fa-layer-group',
+        stations: ['DOUBLE', 'M5'],
+        grid: 'grid-cols-1 sm:grid-cols-2'
+      },
+      {
+        tier: 4,
+        title: 'ระดับที่ 4: เครื่อง SF-B & จุด M3 (SF-B / M3)',
+        icon: 'fa-gear',
+        stations: ['SF-B', 'M3'],
+        grid: 'grid-cols-1 sm:grid-cols-2'
+      },
+      {
+        tier: 5,
+        title: 'ระดับที่ 5: จุด M2 / SF-C / M1 (M2 / SF-C / M1)',
+        icon: 'fa-cogs',
+        stations: ['M2', 'SF-C', 'M1'],
+        grid: 'grid-cols-1 sm:grid-cols-3'
+      }
+    ];
+
+    function getStoreData() {
+      const saved = localStorage.getItem('datamanbhs_attendance_v1');
+      if (saved) {
+        try { return JSON.parse(saved); } catch (e) {}
+      }
+      return window.DATAMANBHS_INITIAL || { employees: [] };
+    }
+
+    function renderChart() {
+      const machine = document.getElementById('filter-chart-machine').value;
+      document.getElementById('chart-machine-badge').textContent = `เครื่อง ${machine}`;
+
+      const store = getStoreData();
+      const allEmps = store.employees || [];
+
+      // Filter by machine
+      const emps = allEmps.filter(e => e.machine === machine);
+
+      // Dept Heads / Office (shift AB / Normal or Office)
+      const deptHeads = emps.filter(e => e.shift === 'AB' || e.shift === 'Normal' || (e.station && e.station.includes('สำนักงาน')));
+      renderDeptHeads(deptHeads);
+
+      // Shift A & B
+      const shiftA = emps.filter(e => e.shift === 'A');
+      const shiftB = emps.filter(e => e.shift === 'B');
+
+      document.getElementById('shift-a-count').textContent = `${shiftA.length} คน`;
+      document.getElementById('shift-b-count').textContent = `${shiftB.length} คน`;
+
+      renderShiftTiers('A', shiftA, document.getElementById('shift-a-tiers-container'));
+      renderShiftTiers('B', shiftB, document.getElementById('shift-b-tiers-container'));
+    }
+
+    function renderDeptHeads(heads) {
+      const container = document.getElementById('dept-heads-container');
+      container.innerHTML = '';
+      if (heads.length === 0) return;
+
+      let cardsHtml = '';
+      heads.forEach(h => {
+        const avatarSrc = h.avatar ? `assets/uploads/employees/${h.avatar}` : '';
+        cardsHtml += `
+          <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-3xl p-4 shadow-lg flex items-center justify-between border-2 border-amber-400">
+            <div class="flex items-center gap-3">
+              ${avatarSrc ? `
+                <img src="${avatarSrc}" class="w-14 h-14 rounded-2xl object-cover border-2 border-amber-400 shadow" alt="">
+              ` : `
+                <div class="w-14 h-14 rounded-2xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xl">
+                  ${h.nickname || h.first_name[0]}
+                </div>
+              `}
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="font-black text-sm">${h.first_name} ${h.last_name || ''}</span>
+                  <span class="text-amber-400 font-black text-sm">(${h.nickname || ''})</span>
+                </div>
+                <p class="text-xs text-slate-300 font-semibold">${h.position || 'หัวหน้าแผนก / สำนักงาน'}</p>
+                <div class="mt-0.5 text-[10px] text-slate-400 font-mono">${h.employee_code} &bull; สำนักงาน ${h.machine}</div>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-black text-[10px] shadow">
+              <i class="fa-solid fa-crown mr-0.5"></i> สำนักงาน / ผู้นำ
+            </span>
+          </div>
+        `;
+      });
+      container.innerHTML = cardsHtml;
+    }
+
+    function renderShiftTiers(shiftKey, shiftEmps, container) {
+      container.innerHTML = '';
+
+      TIERS_CONFIG.forEach(cfg => {
+        const tierEmps = shiftEmps.filter(e => cfg.stations.includes(e.station));
+
+        let cards = '';
+        cfg.stations.forEach(stName => {
+          const emp = tierEmps.find(e => e.station === stName);
+          if (emp) {
+            const avatarSrc = emp.avatar ? `assets/uploads/employees/${emp.avatar}` : '';
+            const isLeader = cfg.tier === 1;
+
+            cards += `
+              <div class="bg-slate-50 hover:bg-orange-50/50 rounded-2xl border ${isLeader ? 'border-amber-300 bg-amber-50/30' : 'border-slate-200'} p-3 shadow-2xs transition">
+                <div class="flex items-center justify-between mb-2 pb-1.5 border-b border-slate-200">
+                  <span class="px-2 py-0.5 rounded-lg text-[10px] font-black ${isLeader ? 'bg-amber-400 text-slate-950' : 'bg-slate-200 text-slate-700'}">
+                    ${stName}
+                  </span>
+                  <span class="font-mono text-[10px] text-slate-400">${emp.employee_code}</span>
+                </div>
+
+                <div class="flex items-center gap-2.5">
+                  ${avatarSrc ? `
+                    <img src="${avatarSrc}" class="w-11 h-11 rounded-full object-cover border-2 ${isLeader ? 'border-amber-500' : 'border-orange-400'}" alt="">
+                  ` : `
+                    <div class="w-11 h-11 rounded-full bg-orange-100 text-orange-800 font-black flex items-center justify-center text-xs">
+                      ${emp.nickname || emp.first_name[0]}
+                    </div>
+                  `}
+                  <div class="min-w-0">
+                    <div class="font-bold text-xs text-slate-900 truncate">
+                      ${emp.first_name}
+                      <span class="text-orange-600 font-black">(${emp.nickname || ''})</span>
+                    </div>
+                    <div class="text-[10px] text-slate-500 truncate">${emp.position || 'ผู้ปฏิบัติงาน'}</div>
+                  </div>
+                </div>
+              </div>
+            `;
+          } else {
+            cards += `
+              <div class="bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 p-3 text-center">
+                <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-400 mb-1 inline-block">${stName}</span>
+                <p class="text-[10px] text-slate-400">ยังไม่กำหนดพนักงาน</p>
+              </div>
+            `;
+          }
+        });
+
+        container.insertAdjacentHTML('beforeend', `
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+              <i class="fa-solid ${cfg.icon} text-orange-500"></i> ${cfg.title}
+            </h4>
+            <div class="grid ${cfg.grid} gap-2.5">
+              ${cards}
+            </div>
+          </div>
+        `);
+      });
+    }
+
+    function captureChartImage() {
+      const el = document.getElementById('chart-printable-area');
+      if (!el) return;
+
+      Swal.fire({
+        title: 'กำลังสร้างรูปภาพผังบุคลากร HD...',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+
+      html2canvas(el, {
+        scale: 2.2,
+        useCORS: true,
+        backgroundColor: '#f1f5f9'
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = `ผังประจำจุดเครื่องจักร_${document.getElementById('filter-chart-machine').value}_${new Date().toISOString().slice(0,10)}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        Swal.close();
+      }).catch(err => {
+        Swal.fire('ข้อผิดพลาด', err.message, 'error');
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderChart();
+    });
+  </script>
+</body>
+</html>

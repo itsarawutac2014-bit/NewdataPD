@@ -202,29 +202,43 @@
           </div>
         </div>
 
-        <!-- Navigation Links -->
-        <nav class="flex items-center gap-1.5 sm:gap-2">
-          <a href="index.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
-            <i class="fa-solid fa-chart-pie text-emerald-600"></i>
-            <span>Waste</span>
+        <!-- Main Navigation Links -->
+        <nav class="flex items-center gap-1 sm:gap-2 flex-wrap">
+          <a href="dashboard.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+            <i class="fa-solid fa-chart-pie text-orange-500"></i>
+            <span>แดชบอร์ด</span>
           </a>
-          <a href="output.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
-            <i class="fa-solid fa-chart-line text-blue-600"></i>
-            <span>Output</span>
+          <a href="employees.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+            <i class="fa-solid fa-users text-blue-600"></i>
+            <span>ทะเบียนพนักงาน</span>
           </a>
-          <a href="budget.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
-            <i class="fa-solid fa-calculator text-rose-600"></i>
-            <span>Budget Control</span>
+          <a href="chart.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+            <i class="fa-solid fa-sitemap text-indigo-600"></i>
+            <span>ผังประจำจุด</span>
           </a>
           <a href="attendance.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-xs">
-            <i class="fa-solid fa-clipboard-user text-white"></i>
-            <span>ลงรายชื่อ</span>
+            <i class="fa-solid fa-calendar-check text-white"></i>
+            <span>บันทึกเวลา & วันทำงาน</span>
           </a>
-          <a href="targets.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
-            <i class="fa-solid fa-bullseye text-amber-600"></i>
-            <span class="hidden md:inline">ตั้งค่า</span>
+          <a href="kpi.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+            <i class="fa-solid fa-chart-line text-rose-600"></i>
+            <span>สรุป KPI</span>
           </a>
-          <a href="login.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition border border-slate-200">
+
+          <div class="h-5 w-px bg-slate-300 mx-1 hidden lg:block"></div>
+
+          <!-- Production Links -->
+          <a href="output.html" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-blue-700 hover:bg-blue-50 transition hidden md:inline-flex">
+            <i class="fa-solid fa-truck-ramp-box text-blue-500"></i> Output
+          </a>
+          <a href="index.html" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 transition hidden md:inline-flex">
+            <i class="fa-solid fa-recycle text-emerald-500"></i> Waste
+          </a>
+          <a href="budget.html" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-rose-700 hover:bg-rose-50 transition hidden md:inline-flex">
+            <i class="fa-solid fa-calculator text-rose-500"></i> Budget
+          </a>
+
+          <a href="login.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition">
             <i class="fa-solid fa-right-to-bracket text-slate-500"></i>
             <span>เข้าสู่ระบบ</span>
           </a>
