@@ -256,22 +256,50 @@
           <a href="upload.html" class="inline-flex items-center px-3 py-1.5 text-xs font-bold text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition shadow-sm">
             <i class="fa-solid fa-cloud-arrow-up mr-1.5 text-emerald-400"></i> โยนไฟล์ Excel
           </a>
-          <!-- ปุ่มเปรียบเทียบ Target Output รายวัน (หน้าใหม่) -->
-          <a href="output.html" class="inline-flex items-center px-3.5 py-1.5 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 border border-indigo-500 rounded-lg transition shadow-sm">
-            <i class="fa-solid fa-truck-ramp-box mr-1.5 text-indigo-200"></i> ติดตาม Output รายวัน
+          <!-- 1. Waste (หน้าหลัก) -->
+          <a href="index.html" class="inline-flex items-center px-3.5 py-1.5 text-xs font-black text-white bg-emerald-600 rounded-lg transition shadow-sm border border-emerald-500">
+            <i class="fa-solid fa-recycle mr-1.5 text-white"></i> Waste
           </a>
-          <!-- ปุ่ม Budget Control -->
-          <a href="budget.html" class="inline-flex items-center px-3.5 py-1.5 text-xs font-black text-white bg-rose-600 hover:bg-rose-700 border border-rose-500 rounded-lg transition shadow-sm">
-            <i class="fa-solid fa-calculator mr-1.5 text-rose-200"></i> Budget Control
+
+          <!-- 2. Out-put -->
+          <a href="output.html" class="inline-flex items-center px-3.5 py-1.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg transition shadow-sm">
+            <i class="fa-solid fa-truck-ramp-box mr-1.5 text-blue-600"></i> Out-put
           </a>
-          <!-- ปุ่ม Dashboard จัดการบุคลากร datamanbhs -->
-          <a href="dashboard.html" class="inline-flex items-center px-3.5 py-1.5 text-xs font-black text-white bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 border border-orange-400 rounded-lg transition shadow-sm">
-            <i class="fa-solid fa-industry mr-1.5 text-white"></i> จัดการบุคลากร PD
+
+          <!-- 3. Butget -->
+          <a href="budget.html" class="inline-flex items-center px-3.5 py-1.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg transition shadow-sm">
+            <i class="fa-solid fa-calculator mr-1.5 text-rose-600"></i> Butget
           </a>
-          <!-- ปุ่ม Dashboard ลงรายชื่อพนักงาน -->
-          <a href="attendance.html" class="inline-flex items-center px-3.5 py-1.5 text-xs font-black text-white bg-teal-600 hover:bg-teal-700 border border-teal-500 rounded-lg transition shadow-sm">
-            <i class="fa-solid fa-clipboard-user mr-1.5 text-teal-200"></i> ลงรายชื่อ
-          </a>
+
+          <!-- 4. ระเบียนพนักงานผลิต (รวมระบบพนักงานทั้งหมด) -->
+          <div class="relative group inline-block text-left">
+            <a href="dashboard.html" class="inline-flex items-center px-3.5 py-1.5 text-xs font-black text-white bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 border border-orange-400 rounded-lg transition shadow-sm">
+              <i class="fa-solid fa-id-card-clip mr-1.5 text-white"></i> ระเบียนพนักงานผลิต
+              <i class="fa-solid fa-chevron-down text-[10px] ml-1 opacity-80"></i>
+            </a>
+            <div class="absolute left-0 mt-1 w-52 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 hidden group-hover:block z-50 animate-scaleIn">
+              <a href="dashboard.html" class="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition">
+                <i class="fa-solid fa-chart-pie text-orange-500 w-4"></i> แดชบอร์ดภาพรวม
+              </a>
+              <a href="employees.html" class="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition">
+                <i class="fa-solid fa-users text-blue-500 w-4"></i> ทะเบียนพนักงาน & ประวัติ
+              </a>
+              <a href="chart.html" class="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition">
+                <i class="fa-solid fa-sitemap text-indigo-500 w-4"></i> ผังประจำจุด & กะ
+              </a>
+              <a href="attendance.html" class="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition">
+                <i class="fa-solid fa-calendar-check text-emerald-500 w-4"></i> บันทึกเวลาทำงาน
+              </a>
+              <a href="kpi.html" class="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition">
+                <i class="fa-solid fa-chart-line text-rose-500 w-4"></i> สรุป KPI ฝ่ายผลิต
+              </a>
+              <div class="border-t border-slate-100 my-1"></div>
+              <a href="users.html" class="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition">
+                <i class="fa-solid fa-user-gear text-slate-500 w-4"></i> จัดการผู้ใช้งาน
+              </a>
+            </div>
+          </div>
+
           <!-- ปุ่มจัดการเป้าหมาย Target 11 รายการ -->
           <a href="targets.html" class="inline-flex items-center px-3 py-1.5 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 border border-amber-500 rounded-lg transition shadow-sm">
             <i class="fa-solid fa-bullseye mr-1.5 text-amber-200"></i> ตั้งค่า Target (11 รายการ)

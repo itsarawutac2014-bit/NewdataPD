@@ -218,25 +218,49 @@
           <i class="fa-solid fa-sliders"></i> ตั้งค่า Target Output
         </button>
 
-        <!-- ลิงก์ไปหน้า Budget Control -->
-        <a href="budget.html" class="inline-flex items-center gap-1.5 px-3 py-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 hover:border-rose-300 text-rose-700 rounded-xl text-xs font-bold shadow-2xs transition">
-          <i class="fa-solid fa-calculator text-rose-600"></i> Budget Control
-        </a>
-
-        <!-- ลิงก์ไปหน้าแดชบอร์ดบุคลากร (datamanbhs) -->
-        <a href="dashboard.html" class="inline-flex items-center gap-1.5 px-3 py-2 bg-orange-50 hover:bg-orange-100 border border-orange-200 hover:border-orange-300 text-orange-700 rounded-xl text-xs font-bold shadow-2xs transition">
-          <i class="fa-solid fa-chart-pie text-orange-600"></i> แดชบอร์ดบุคลากร
-        </a>
-
-        <!-- ลิงก์ไปหน้าลงรายชื่อพนักงาน -->
-        <a href="attendance.html" class="inline-flex items-center gap-1.5 px-3 py-2 bg-teal-50 hover:bg-teal-100 border border-teal-200 hover:border-teal-300 text-teal-700 rounded-xl text-xs font-bold shadow-2xs transition">
-          <i class="fa-solid fa-clipboard-user text-teal-600"></i> ลงรายชื่อ
-        </a>
-
-        <!-- ลิงก์กลับหน้า Waste Dashboard -->
+        <!-- 1. Waste -->
         <a href="index.html" class="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-50 border border-slate-300 hover:border-slate-400 text-slate-700 rounded-xl text-xs font-bold shadow-2xs transition">
-          <i class="fa-solid fa-chart-pie text-emerald-600"></i> ไปหน้า Waste
+          <i class="fa-solid fa-recycle text-emerald-600"></i> Waste
         </a>
+
+        <!-- 2. Out-put (Active) -->
+        <a href="output.html" class="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white border border-blue-500 rounded-xl text-xs font-black shadow-sm transition">
+          <i class="fa-solid fa-truck-ramp-box text-white"></i> Out-put
+        </a>
+
+        <!-- 3. Butget -->
+        <a href="budget.html" class="inline-flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-50 border border-slate-300 hover:border-slate-400 text-slate-700 rounded-xl text-xs font-bold shadow-2xs transition">
+          <i class="fa-solid fa-calculator text-rose-600"></i> Butget
+        </a>
+
+        <!-- 4. ระเบียนพนักงานผลิต -->
+        <div class="relative group inline-block text-left">
+          <a href="dashboard.html" class="inline-flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white rounded-xl text-xs font-black shadow-sm transition">
+            <i class="fa-solid fa-id-card-clip text-white"></i> ระเบียนพนักงานผลิต
+            <i class="fa-solid fa-chevron-down text-[10px] ml-0.5 opacity-80"></i>
+          </a>
+          <div class="absolute right-0 mt-1 w-52 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 hidden group-hover:block z-50 animate-scaleIn">
+            <a href="dashboard.html" class="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition">
+              <i class="fa-solid fa-chart-pie text-orange-500 w-4"></i> แดชบอร์ดภาพรวม
+            </a>
+            <a href="employees.html" class="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition">
+              <i class="fa-solid fa-users text-blue-500 w-4"></i> ทะเบียนพนักงาน & ประวัติ
+            </a>
+            <a href="chart.html" class="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition">
+              <i class="fa-solid fa-sitemap text-indigo-500 w-4"></i> ผังประจำจุด & กะ
+            </a>
+            <a href="attendance.html" class="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition">
+              <i class="fa-solid fa-calendar-check text-emerald-500 w-4"></i> บันทึกเวลาทำงาน
+            </a>
+            <a href="kpi.html" class="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition">
+              <i class="fa-solid fa-chart-line text-rose-500 w-4"></i> สรุป KPI ฝ่ายผลิต
+            </a>
+            <div class="border-t border-slate-100 my-1"></div>
+            <a href="users.html" class="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition">
+              <i class="fa-solid fa-user-gear text-slate-500 w-4"></i> จัดการผู้ใช้งาน
+            </a>
+          </div>
+        </div>
 
         <!-- ปุ่มรีเฟรช -->
         <button onclick="loadOutputData()" class="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition cursor-pointer">

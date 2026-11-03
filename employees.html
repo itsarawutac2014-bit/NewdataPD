@@ -58,38 +58,89 @@
         </a>
 
         <!-- Main Navigation Links -->
-        <nav class="flex items-center gap-1 sm:gap-2 flex-wrap">
-          <a href="dashboard.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
-            <i class="fa-solid fa-chart-pie text-orange-500"></i>
-            <span>แดชบอร์ด</span>
-          </a>
-          <a href="employees.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-xs">
-            <i class="fa-solid fa-users"></i>
-            <span>ทะเบียนพนักงาน</span>
-          </a>
-          <a href="chart.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
-            <i class="fa-solid fa-sitemap text-indigo-600"></i>
-            <span>ผังประจำจุด</span>
-          </a>
-          <a href="attendance.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
-            <i class="fa-solid fa-calendar-check text-emerald-600"></i>
-            <span>บันทึกเวลา & วันทำงาน</span>
-          </a>
-          <a href="kpi.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
-            <i class="fa-solid fa-chart-line text-rose-600"></i>
-            <span>สรุป KPI</span>
+        
+        <!-- Main Top Navigation (Waste, Out-put, Butget, ระเบียนพนักงานผลิต) -->
+        <nav class="flex items-center gap-1.5 sm:gap-2 flex-wrap text-xs">
+          <!-- 1. Waste -->
+          <a href="index.html" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition bg-white text-slate-700 hover:bg-slate-50 border border-slate-300 font-bold">
+            <i class="fa-solid fa-recycle text-emerald-600"></i>
+            <span>Waste</span>
           </a>
 
-          <div class="h-5 w-px bg-slate-300 mx-1 hidden lg:block"></div>
-
-          <a href="login.html" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition">
-            <i class="fa-solid fa-right-to-bracket text-slate-500"></i>
-            <span>เข้าสู่ระบบ</span>
+          <!-- 2. Out-put -->
+          <a href="output.html" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition bg-white text-slate-700 hover:bg-slate-50 border border-slate-300 font-bold">
+            <i class="fa-solid fa-truck-ramp-box text-blue-600"></i>
+            <span>Out-put</span>
           </a>
+
+          <!-- 3. Butget -->
+          <a href="budget.html" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition bg-white text-slate-700 hover:bg-slate-50 border border-slate-300 font-bold">
+            <i class="fa-solid fa-calculator text-rose-600"></i>
+            <span>Butget</span>
+          </a>
+
+          <!-- 4. ระเบียนพนักงานผลิต (รวมระบบพนักงานทั้งหมด) -->
+          <div class="relative group inline-block text-left">
+            <a href="dashboard.html" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl transition bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-sm border border-orange-400 font-black">
+              <i class="fa-solid fa-id-card-clip text-white"></i>
+              <span>ระเบียนพนักงานผลิต</span>
+              <i class="fa-solid fa-chevron-down text-[10px] ml-0.5 opacity-75"></i>
+            </a>
+            <div class="absolute left-0 mt-1 w-52 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 hidden group-hover:block z-50 animate-scaleIn">
+              <a href="dashboard.html" class="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition">
+                <i class="fa-solid fa-chart-pie text-orange-500 w-4"></i> แดชบอร์ดภาพรวม
+              </a>
+              <a href="employees.html" class="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition">
+                <i class="fa-solid fa-users text-blue-500 w-4"></i> ทะเบียนพนักงาน & ประวัติ
+              </a>
+              <a href="chart.html" class="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition">
+                <i class="fa-solid fa-sitemap text-indigo-500 w-4"></i> ผังประจำจุด & กะ
+              </a>
+              <a href="attendance.html" class="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition">
+                <i class="fa-solid fa-calendar-check text-emerald-500 w-4"></i> บันทึกเวลาทำงาน
+              </a>
+              <a href="kpi.html" class="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition">
+                <i class="fa-solid fa-chart-line text-rose-500 w-4"></i> สรุป KPI ฝ่ายผลิต
+              </a>
+              <div class="border-t border-slate-100 my-1"></div>
+              <a href="users.html" class="flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600 transition">
+                <i class="fa-solid fa-user-gear text-slate-500 w-4"></i> จัดการผู้ใช้งาน
+              </a>
+            </div>
+          </div>
         </nav>
       </div>
     </div>
   </header>
+
+  <!-- Sub-Nav Pill Bar: เฉพาะเมื่อเข้ามาในระบบระเบียนพนักงานผลิต -->
+  <div class="bg-white border-b border-slate-200 py-2.5 px-4 sm:px-6 lg:px-8 shadow-2xs">
+    <div class="max-w-[1680px] mx-auto flex items-center justify-between gap-3 overflow-x-auto no-scrollbar">
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <span class="text-xs font-black text-slate-500 mr-2 flex items-center gap-1.5">
+          <i class="fa-solid fa-id-card-clip text-orange-500"></i> ระเบียนพนักงาน:
+        </span>
+        <a href="dashboard.html" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+          <i class="fa-solid fa-chart-pie mr-1"></i> แดชบอร์ดภาพรวม
+        </a>
+        <a href="employees.html" class="px-3 py-1.5 rounded-xl text-xs font-black bg-orange-600 text-white shadow-xs">
+          <i class="fa-solid fa-users mr-1"></i> ทะเบียนพนักงาน
+        </a>
+        <a href="chart.html" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+          <i class="fa-solid fa-sitemap mr-1"></i> ผังประจำจุด & กะ
+        </a>
+        <a href="attendance.html" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+          <i class="fa-solid fa-calendar-check mr-1"></i> บันทึกเวลาทำงาน
+        </a>
+        <a href="kpi.html" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+          <i class="fa-solid fa-chart-line mr-1"></i> สรุป KPI ฝ่ายผลิต
+        </a>
+        <a href="users.html" class="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
+          <i class="fa-solid fa-user-gear mr-1"></i> จัดการผู้ใช้งาน
+        </a>
+      </div>
+    </div>
+  </div>
 
   <!-- Main Content -->
   <main class="flex-1 max-w-[1680px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
