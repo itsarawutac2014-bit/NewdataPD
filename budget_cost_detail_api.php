@@ -5,23 +5,33 @@
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
+header('Cache-Control: no-cache, no-store, must-revalidate');
 
 $reqMachine = strtoupper(trim($_GET['machine'] ?? 'TOTAL'));
 if (!in_array($reqMachine, ['TOTAL', 'BHS', 'ISOWA', 'YUELI'])) {
     $reqMachine = 'TOTAL';
 }
 
-$v2File = __DIR__ . '/data/budget_database_v2.json';
-if (!file_exists($v2File) || (isset($_GET['refresh']) && $_GET['refresh'] === '1')) {
-    // Trigger refresh of v2
-    @file_get_contents('http://localhost/NewdataPD/budget_monthly_api.php?refresh=1');
+$costDetailFile = __DIR__ . '/data/budget_cost_detail.json';
+if (file_exists($costDetailFile)) {
+    $costData = json_decode(@file_get_contents($costDetailFile), true);
+    if (!empty($costData['costs'])) {
+        echo json_encode([
+            'success'    => true,
+            'machine'    => $reqMachine,
+            'costs'      => $costData['costs'],
+            'updated_at' => $costData['updated_at'] ?? date('Y-m-d H:i:s'),
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        exit;
+    }
 }
 
+$v2File = __DIR__ . '/data/budget_database_v2.json';
 if (file_exists($v2File)) {
-    $db = json_decode(file_get_contents($v2File), true);
+    $db = json_decode(@file_get_contents($v2File), true);
     $machData = $db['machines'][$reqMachine] ?? ($db['machines']['TOTAL'] ?? null);
-    if ($machData) {
-        $cTarget = $machData['cost_target'] ?? [];
+    if (!empty($machData['cost_target'])) {
+        $cTarget = $machData['cost_target'];
         $cActual = $machData['cost_actual'] ?? [];
 
         $catNames = [
@@ -77,13 +87,6 @@ if (file_exists($v2File)) {
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         exit;
     }
-}
-
-// Fallback to legacy file if exists
-$legacyFile = __DIR__ . '/data/budget_cost_detail.json';
-if (file_exists($legacyFile)) {
-    readfile($legacyFile);
-    exit;
 }
 
 echo json_encode(['success' => false, 'error' => 'No cost detail data']);
