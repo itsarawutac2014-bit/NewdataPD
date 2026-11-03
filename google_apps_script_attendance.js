@@ -152,7 +152,51 @@ function doPost(e) {
       result.message = 'บันทึกพนักงานใหม่ ' + (emp.first_name || '') + ' ลง Google Sheet สำเร็จ';
     }
 
-    // 2. บันทึกการลงเวลาทำงาน / วันลา ลงชีต Attendance / บันทึกการทำงาน
+    // 2. แก้ไขข้อมูลพนักงานในชีต Employees / ระเบียนพนักงาน
+    else if (action === 'edit_employee' || action === 'update_employee') {
+      var sheet = getEmployeeSheet(ss);
+      var emp = payload.employee || payload;
+      var codeStr = String(emp.employee_code || '');
+      var lastRow = sheet.getLastRow();
+      var foundRow = -1;
+
+      if (lastRow > 1) {
+        var dataRange = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+        for (var i = 0; i < dataRange.length; i++) {
+          if (String(dataRange[i][0]) === codeStr) {
+            foundRow = i + 2;
+            break;
+          }
+        }
+      }
+
+      var rowData = [
+        codeStr,
+        emp.title || '',
+        emp.first_name || '',
+        emp.last_name || '',
+        emp.nickname || '',
+        emp.machine || 'BHS',
+        emp.shift || 'A',
+        emp.station || '',
+        emp.position || '',
+        emp.start_date || '',
+        emp.birth_date || '',
+        emp.phone || '',
+        emp.probation_status || 'passed',
+        emp.status || 'active'
+      ];
+
+      if (foundRow > 0) {
+        sheet.getRange(foundRow, 1, 1, rowData.length).setValues([rowData]);
+        result.message = 'อัปเดตข้อมูลพนักงาน ' + (emp.first_name || '') + ' สำเร็จ';
+      } else {
+        sheet.appendRow(rowData);
+        result.message = 'บันทึกข้อมูลพนักงาน ' + (emp.first_name || '') + ' สำเร็จ';
+      }
+    }
+
+    // 3. บันทึกการลงเวลาทำงาน / วันลา ลงชีต Attendance / บันทึกการทำงาน
     else if (action === 'save_attendance') {
       var sheet = getAttendanceSheet(ss);
       var rec = payload.record || payload;

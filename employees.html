@@ -312,11 +312,192 @@
       </div>
 
       <!-- Modal Footer -->
-      <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end shrink-0">
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center shrink-0">
+        <button type="button" onclick="openEditFromProfile()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs">
+          <i class="fa-solid fa-pen-to-square"></i> แก้ไขข้อมูลพนักงาน
+        </button>
         <button type="button" onclick="closeProfileModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition">
           ปิดหน้าต่าง
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- Modal: แก้ไขข้อมูลพนักงาน                   -->
+  <!-- ========================================== -->
+  <div id="editEmployeeModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-xl overflow-hidden animate-scaleIn max-h-[90vh] flex flex-col">
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-blue-600 to-indigo-700 p-5 text-white flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-user-pen"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-black">แก้ไขข้อมูลพนักงาน</h3>
+            <p class="text-xs text-blue-100" id="edit-emp-subtitle">รหัสพนักงาน: -</p>
+          </div>
+        </div>
+        <button onclick="closeEditEmployeeModal()" class="text-white/80 hover:text-white p-1 text-xl">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Form Body -->
+      <form id="edit-employee-form" onsubmit="saveEditEmployee(event)" class="p-6 overflow-y-auto space-y-4 flex-1 text-xs">
+        <input type="hidden" id="edit-emp-id">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <!-- รหัสพนักงาน -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">รหัสพนักงาน <span class="text-rose-600">*</span></label>
+            <input type="text" id="edit-emp-code" required class="w-full bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-mono font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <!-- คำนำหน้า -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">คำนำหน้าชื่อ</label>
+            <select id="edit-emp-title" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="นาย">นาย</option>
+              <option value="นาง">นาง</option>
+              <option value="นางสาว">นางสาว</option>
+              <option value="">(ไม่ระบุ)</option>
+            </select>
+          </div>
+          <!-- ชื่อ -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">ชื่อจริง <span class="text-rose-600">*</span></label>
+            <input type="text" id="edit-emp-firstname" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <!-- นามสกุล -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">นามสกุล</label>
+            <input type="text" id="edit-emp-lastname" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <!-- ชื่อเล่น -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">ชื่อเล่น</label>
+            <input type="text" id="edit-emp-nickname" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <!-- เบอร์โทร -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">เบอร์โทรศัพท์</label>
+            <input type="tel" id="edit-emp-phone" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <!-- เครื่องจักร -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">ประจำเครื่องจักร <span class="text-rose-600">*</span></label>
+            <select id="edit-emp-machine" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="BHS">BHS</option>
+              <option value="YUELI">YUELI</option>
+              <option value="ISOWA">ISOWA</option>
+            </select>
+          </div>
+          <!-- กะ -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">กะการทำงาน <span class="text-rose-600">*</span></label>
+            <select id="edit-emp-shift" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="A">กะ A</option>
+              <option value="B">กะ B</option>
+              <option value="C">กะ C</option>
+              <option value="AB">กะ AB</option>
+              <option value="Normal">กลาง (Normal)</option>
+            </select>
+          </div>
+          <!-- จุดประจำการ (Station) -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">จุดประจำการ (Station)</label>
+            <input type="text" id="edit-emp-station" placeholder="เช่น Stacker, Single Facer, Host" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <!-- ตำแหน่ง -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">ตำแหน่ง</label>
+            <input type="text" id="edit-emp-position" placeholder="เช่น ผู้ปฏิบัติงาน Dry End, หัวหน้ากะ" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <!-- วันเริ่มงาน -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">วันเริ่มงาน (Start Date)</label>
+            <input type="date" id="edit-emp-startdate" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <!-- วันเกิด -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">วันเกิด (Birth Date)</label>
+            <input type="date" id="edit-emp-birthdate" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <!-- สถานะทดลองงาน -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">สถานะทดลองงาน</label>
+            <select id="edit-emp-probation" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="passed">พ้นทดลองงานแล้ว (Passed)</option>
+              <option value="probation">อยู่ระหว่างทดลองงาน (Probation)</option>
+            </select>
+          </div>
+          <!-- สถานะการทำงาน -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">สถานะการทำงาน</label>
+            <select id="edit-emp-status" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="active">ปกติ / ปฏิบัติงานอยู่ (Active)</option>
+              <option value="resigned">ลาออกแล้ว (Resigned)</option>
+              <option value="suspended">พักงาน (Suspended)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- ทักษะประจำจุดเครื่องจักร -->
+        <div class="pt-3 border-t border-slate-200">
+          <label class="block font-bold text-slate-700 mb-2">
+            <i class="fa-solid fa-screwdriver-wrench text-orange-500 mr-1"></i> ทักษะความเชี่ยวชาญประจำจุด (ติ๊กเลือกจุดที่ชำนาญ):
+          </label>
+          <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
+            <label class="flex items-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100">
+              <input type="checkbox" id="edit-skill-control" class="rounded text-blue-600">
+              <span class="font-bold text-[11px]">Control</span>
+            </label>
+            <label class="flex items-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100">
+              <input type="checkbox" id="edit-skill-stacker" class="rounded text-blue-600">
+              <span class="font-bold text-[11px]">Stacker</span>
+            </label>
+            <label class="flex items-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100">
+              <input type="checkbox" id="edit-skill-df" class="rounded text-blue-600">
+              <span class="font-bold text-[11px]">DOUBLE</span>
+            </label>
+            <label class="flex items-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100">
+              <input type="checkbox" id="edit-skill-m5" class="rounded text-blue-600">
+              <span class="font-bold text-[11px]">M5</span>
+            </label>
+            <label class="flex items-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100">
+              <input type="checkbox" id="edit-skill-single_b" class="rounded text-blue-600">
+              <span class="font-bold text-[11px]">Single B</span>
+            </label>
+            <label class="flex items-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100">
+              <input type="checkbox" id="edit-skill-m3" class="rounded text-blue-600">
+              <span class="font-bold text-[11px]">M3</span>
+            </label>
+            <label class="flex items-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100">
+              <input type="checkbox" id="edit-skill-single_c" class="rounded text-blue-600">
+              <span class="font-bold text-[11px]">Single C</span>
+            </label>
+            <label class="flex items-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100">
+              <input type="checkbox" id="edit-skill-m2" class="rounded text-blue-600">
+              <span class="font-bold text-[11px]">M2</span>
+            </label>
+            <label class="flex items-center gap-1.5 p-2 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100">
+              <input type="checkbox" id="edit-skill-m1" class="rounded text-blue-600">
+              <span class="font-bold text-[11px]">M1</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="pt-4 border-t border-slate-200 flex justify-end gap-2">
+          <button type="button" onclick="closeEditEmployeeModal()" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-bold">
+            ยกเลิก
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black shadow-xs flex items-center gap-1.5">
+            <i class="fa-solid fa-floppy-disk"></i> บันทึกการแก้ไข
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -615,9 +796,14 @@
               </div>
             </div>
 
-            <button type="button" onclick="openProfileModal(${e.id})" class="w-full py-2 bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-200 text-slate-700 hover:text-orange-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
-              <i class="fa-solid fa-id-card"></i> ดูประวัติ & ทักษะ
-            </button>
+            <div class="grid grid-cols-2 gap-2 mt-2">
+              <button type="button" onclick="openProfileModal(${e.id})" class="py-2 bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-200 text-slate-700 hover:text-orange-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1">
+                <i class="fa-solid fa-id-card"></i> ประวัติ
+              </button>
+              <button type="button" onclick="openEditEmployeeModal(${e.id})" class="py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1">
+                <i class="fa-solid fa-pen-to-square"></i> แก้ไข
+              </button>
+            </div>
           </div>
         `;
       });
@@ -660,9 +846,14 @@
             <td class="p-3 font-black text-amber-800 font-num">${tenure.text}</td>
             <td class="p-3 text-center font-bold text-slate-700 font-num">${age.text}</td>
             <td class="p-3 text-center">
-              <button type="button" onclick="openProfileModal(${e.id})" class="px-3 py-1 bg-white hover:bg-orange-50 border border-slate-200 hover:border-orange-300 text-orange-600 rounded-lg text-xs font-bold transition">
-                ดูประวัติ
-              </button>
+              <div class="inline-flex items-center gap-1.5">
+                <button type="button" onclick="openProfileModal(${e.id})" class="px-2.5 py-1 bg-white hover:bg-orange-50 border border-slate-200 hover:border-orange-300 text-orange-600 rounded-lg text-xs font-bold transition">
+                  ดูประวัติ
+                </button>
+                <button type="button" onclick="openEditEmployeeModal(${e.id})" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                  <i class="fa-solid fa-pen-to-square"></i> แก้ไข
+                </button>
+              </div>
             </td>
           </tr>
         `;
@@ -694,7 +885,10 @@
       `;
     }
 
+    let currentViewingEmpId = null;
+
     function openProfileModal(empId) {
+      currentViewingEmpId = empId;
       const store = getStoreData();
       const emp = (store.employees || []).find(e => e.id === empId);
       if (!emp) return;
@@ -816,6 +1010,139 @@
         title: 'เพิ่มพนักงานสำเร็จ',
         text: `บันทึกคุณ ${firstName} ${lastName} (${code}) เรียบร้อยแล้ว`,
         confirmButtonColor: '#ea580c'
+      });
+    }
+
+    function openEditFromProfile() {
+      if (currentViewingEmpId) {
+        closeProfileModal();
+        openEditEmployeeModal(currentViewingEmpId);
+      }
+    }
+
+    function openEditEmployeeModal(empId) {
+      const store = getStoreData();
+      const emp = (store.employees || []).find(e => e.id === empId);
+      if (!emp) {
+        Swal.fire('ข้อผิดพลาด', 'ไม่พบข้อมูลพนักงานในระบบ', 'error');
+        return;
+      }
+
+      document.getElementById('edit-emp-id').value = emp.id;
+      document.getElementById('edit-emp-code').value = emp.employee_code || '';
+      document.getElementById('edit-emp-title').value = emp.title || 'นาย';
+      document.getElementById('edit-emp-firstname').value = emp.first_name || '';
+      document.getElementById('edit-emp-lastname').value = emp.last_name || '';
+      document.getElementById('edit-emp-nickname').value = emp.nickname || '';
+      document.getElementById('edit-emp-phone').value = emp.phone || '';
+      document.getElementById('edit-emp-machine').value = emp.machine || 'BHS';
+      document.getElementById('edit-emp-shift').value = emp.shift || 'A';
+      document.getElementById('edit-emp-station').value = emp.station || '';
+      document.getElementById('edit-emp-position').value = emp.position || '';
+      document.getElementById('edit-emp-startdate').value = emp.start_date || '';
+      document.getElementById('edit-emp-birthdate').value = emp.birth_date || '';
+      document.getElementById('edit-emp-probation').value = emp.probation_status || 'passed';
+      document.getElementById('edit-emp-status').value = emp.status || 'active';
+      document.getElementById('edit-emp-subtitle').textContent = `รหัสพนักงาน: ${emp.employee_code} (${emp.first_name})`;
+
+      // Skills checkboxes
+      document.getElementById('edit-skill-control').checked = Boolean(emp.control_room == 1);
+      document.getElementById('edit-skill-stacker').checked = Boolean(emp.stacker == 1);
+      document.getElementById('edit-skill-df').checked = Boolean(emp.df == 1);
+      document.getElementById('edit-skill-m5').checked = Boolean(emp.m5 == 1);
+      document.getElementById('edit-skill-single_b').checked = Boolean(emp.single_b == 1);
+      document.getElementById('edit-skill-m3').checked = Boolean(emp.m3 == 1);
+      document.getElementById('edit-skill-single_c').checked = Boolean(emp.single_c == 1);
+      document.getElementById('edit-skill-m2').checked = Boolean(emp.m2 == 1);
+      document.getElementById('edit-skill-m1').checked = Boolean(emp.m1 == 1);
+
+      document.getElementById('editEmployeeModal').classList.remove('hidden');
+    }
+
+    function closeEditEmployeeModal() {
+      document.getElementById('editEmployeeModal').classList.add('hidden');
+    }
+
+    function saveEditEmployee(event) {
+      event.preventDefault();
+      const empId = parseInt(document.getElementById('edit-emp-id').value);
+      const code = document.getElementById('edit-emp-code').value.trim();
+      const title = document.getElementById('edit-emp-title').value;
+      const firstName = document.getElementById('edit-emp-firstname').value.trim();
+      const lastName = document.getElementById('edit-emp-lastname').value.trim();
+      const nickname = document.getElementById('edit-emp-nickname').value.trim();
+      const phone = document.getElementById('edit-emp-phone').value.trim();
+      const machine = document.getElementById('edit-emp-machine').value;
+      const shift = document.getElementById('edit-emp-shift').value;
+      const station = document.getElementById('edit-emp-station').value.trim() || 'ฝ่ายผลิต';
+      const position = document.getElementById('edit-emp-position').value.trim() || 'พนักงานฝ่ายผลิต';
+      const startDate = document.getElementById('edit-emp-startdate').value;
+      const birthDate = document.getElementById('edit-emp-birthdate').value;
+      const probationStatus = document.getElementById('edit-emp-probation').value;
+      const status = document.getElementById('edit-emp-status').value;
+
+      if (!code || !firstName) {
+        Swal.fire('ข้อผิดพลาด', 'กรุณาระบุรหัสพนักงาน และชื่อจริง', 'error');
+        return;
+      }
+
+      const store = getStoreData();
+      const empIdx = (store.employees || []).findIndex(e => e.id === empId);
+      if (empIdx === -1) {
+        Swal.fire('ข้อผิดพลาด', 'ไม่พบข้อมูลพนักงานที่จะแก้ไข', 'error');
+        return;
+      }
+
+      // ตรวจสอบรหัสพนักงานซ้ำกับคนอื่น
+      const dup = store.employees.find(e => String(e.employee_code) === code && e.id !== empId);
+      if (dup) {
+        Swal.fire('รหัสพนักงานซ้ำ', `รหัสพนักงาน ${code} ตรงกับคุณ ${dup.first_name} ${dup.last_name || ''}`, 'warning');
+        return;
+      }
+
+      const updatedEmp = {
+        ...store.employees[empIdx],
+        employee_code: code,
+        title: title,
+        first_name: firstName,
+        last_name: lastName,
+        nickname: nickname,
+        phone: phone,
+        machine: machine,
+        shift: shift,
+        station: station,
+        position: position,
+        start_date: startDate,
+        birth_date: birthDate,
+        probation_status: probationStatus,
+        status: status,
+        control_room: document.getElementById('edit-skill-control').checked ? 1 : 0,
+        stacker: document.getElementById('edit-skill-stacker').checked ? 1 : 0,
+        df: document.getElementById('edit-skill-df').checked ? 1 : 0,
+        m5: document.getElementById('edit-skill-m5').checked ? 1 : 0,
+        single_b: document.getElementById('edit-skill-single_b').checked ? 1 : 0,
+        m3: document.getElementById('edit-skill-m3').checked ? 1 : 0,
+        single_c: document.getElementById('edit-skill-single_c').checked ? 1 : 0,
+        m2: document.getElementById('edit-skill-m2').checked ? 1 : 0,
+        m1: document.getElementById('edit-skill-m1').checked ? 1 : 0
+      };
+
+      store.employees[empIdx] = updatedEmp;
+      localStorage.setItem('datamanbhs_attendance_v1', JSON.stringify(store));
+
+      closeEditEmployeeModal();
+      renderEmployees();
+
+      // ซิงค์การแก้ไขไปยัง Google Sheet อัตโนมัติ (ถ้าเชื่อมต่อไว้)
+      if (typeof GoogleSheetSync !== 'undefined' && GoogleSheetSync.hasWebhook()) {
+        GoogleSheetSync.syncEditEmployee(updatedEmp);
+      }
+
+      Swal.fire({
+        icon: 'success',
+        title: 'บันทึกการแก้ไขสำเร็จ',
+        text: `อัปเดตข้อมูลคุณ ${firstName} ${lastName} (${code}) เรียบร้อยแล้ว`,
+        confirmButtonColor: '#2563eb'
       });
     }
 

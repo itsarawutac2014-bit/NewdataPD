@@ -70,6 +70,22 @@ const GoogleSheetSync = (function() {
   }
 
   /**
+   * ซิงค์การแก้ไขข้อมูลพนักงานไปยัง Google Sheet
+   */
+  async function syncEditEmployee(employee) {
+    if (!hasWebhook()) return false;
+    showToast(`กำลังอัปเดตข้อมูล ${employee.first_name || ''} ใน Google Sheet...`, 'info');
+    const res = await postToWebhook({
+      action: 'edit_employee',
+      employee: employee
+    });
+    if (res.success) {
+      showToast(`อัปเดต ${employee.first_name || ''} ใน Google Sheet เรียบร้อย ✅`, 'success');
+    }
+    return res.success;
+  }
+
+  /**
    * ซิงค์การลงเวลาทำงาน 1 รายการไปยัง Google Sheet
    */
   async function syncAttendance(record) {
@@ -292,6 +308,7 @@ const GoogleSheetSync = (function() {
     setWebhookUrl,
     hasWebhook,
     syncEmployee,
+    syncEditEmployee,
     syncAttendance,
     syncBulkAttendance,
     openSettingsModal,
