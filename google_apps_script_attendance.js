@@ -22,8 +22,35 @@
  * =========================================================================
  */
 
-// Google Drive Folder สำหรับเก็บรูปพนักงานฝ่ายผลิต
+// ชื่อและรหัสโฟลเดอร์ Google Drive สำหรับเก็บรูปพนักงานฝ่ายผลิต
 var PHOTO_FOLDER_ID = '1u2byqrl5WZ-mByOcMenp2MGrc19XJDhC';
+var PHOTO_FOLDER_NAME = 'รูปภาพพนักงานฝ่ายผลิต';
+
+/**
+ * Helper: ดึงโฟลเดอร์ Google Drive สำหรับเก็บรูปพนักงานอย่างปลอดภัย
+ * - พยายามเปิดจาก PHOTO_FOLDER_ID ก่อน
+ * - หากบัญชีปัจจุบันไม่มีสิทธิ์เข้าถึง ID นั้น หรือหาไม่เจอ จะค้นหาจากชื่อโฟลเดอร์ "รูปภาพพนักงานฝ่ายผลิต"
+ * - หากยังไม่มีโฟลเดอร์ จะสร้างโฟลเดอร์ "รูปภาพพนักงานฝ่ายผลิต" ให้อัตโนมัติทันที!
+ */
+function getPhotoFolder() {
+  if (PHOTO_FOLDER_ID) {
+    try {
+      var folderById = DriveApp.getFolderById(PHOTO_FOLDER_ID);
+      if (folderById) return folderById;
+    } catch (e) {
+      Logger.log('ไม่สามารถเปิดโฟลเดอร์ด้วย ID เดิมได้ กำลังค้นหา/สร้างโฟลเดอร์ "' + PHOTO_FOLDER_NAME + '" แทน...');
+    }
+  }
+  var folders = DriveApp.getFoldersByName(PHOTO_FOLDER_NAME);
+  if (folders.hasNext()) {
+    return folders.next();
+  }
+  var newFolder = DriveApp.createFolder(PHOTO_FOLDER_NAME);
+  try {
+    newFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  } catch (e) {}
+  return newFolder;
+}
 
 /**
  * =========================================================================
@@ -120,7 +147,7 @@ function saveAvatarToDrive(base64Data, employeeCode) {
   if (base64Data.indexOf('data:image/') !== 0) return base64Data; // ถ้าเป็น URL หรือชื่อไฟล์อยู่แล้วให้คืนค่าเดิม
 
   try {
-    var folder = DriveApp.getFolderById(PHOTO_FOLDER_ID);
+    var folder = getPhotoFolder();
     var cleanBase64 = base64Data.replace(/^data:image\/\w+;base64,/, '');
     var bytes = Utilities.base64Decode(cleanBase64);
     var codeStr = String(employeeCode).trim();
@@ -157,7 +184,7 @@ function saveAvatarToDrive(base64Data, employeeCode) {
 function updateAllAvatarLinksFromDrive() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = getEmployeeSheet(ss);
-  var folder = DriveApp.getFolderById(PHOTO_FOLDER_ID);
+  var folder = getPhotoFolder();
   
   // สร้าง Index ไฟล์ทั้งหมดในโฟลเดอร์รูปภาพ (ทั้งตามรหัสพนักงาน 8 หลัก และตามชื่อไฟล์เต็ม)
   var files = folder.getFiles();
@@ -179,20 +206,23 @@ function updateAllAvatarLinksFromDrive() {
   
   var codes = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
   var avatars = sheet.getRange(2, 15, lastRow - 1, 1).getValues();
+  var webBaseUrl = 'https://newdatapd.onrender.com/assets/uploads/employees/';
+  var pngCodes = { '24680046': true, '24680048': true };
   
   var updated = 0;
   for (var i = 0; i < codes.length; i++) {
     var code = String(codes[i][0]).trim();
+    if (!code) continue;
     var currentAvatar = String(avatars[i][0] || '').trim();
     
-    // ถ้าในช่องมี Base64 ค้างอยู่ ให้อัปโหลดขึ้น Drive แล้วแปลงเป็นลิงก์ทันที
+    // 1. ถ้าในช่องมี Base64 ค้างอยู่ ให้อัปโหลดขึ้น Drive แล้วแปลงเป็นลิงก์ทันที
     if (currentAvatar.indexOf('data:image') === 0) {
       avatars[i][0] = saveAvatarToDrive(currentAvatar, code);
       updated++;
       continue;
     }
 
-    // ค้นหา File ID จากชื่อไฟล์เดิมในช่อง O หรือจากรหัสพนักงาน 8 หลัก
+    // 2. ค้นหา File ID จากชื่อไฟล์เดิมในช่อง O หรือจากรหัสพนักงาน 8 หลักในโฟลเดอร์ Drive
     var fileId = fileMapByName[currentAvatar] || fileMapByCode[code];
     if (!fileId && currentAvatar) {
       var mAvatar = currentAvatar.match(/(\d{8})/);
@@ -201,6 +231,27 @@ function updateAllAvatarLinksFromDrive() {
       }
     }
 
+    // 3. หากยังไม่มีไฟล์รูปของพนักงานคนนี้ใน Google Drive เลย ให้ดึงรูปต้นฉบับจากเว็บเซิร์ฟเวอร์มาเซฟลง Drive อัตโนมัติ!
+    if (!fileId && currentAvatar !== '') {
+      try {
+        var ext = (currentAvatar.toLowerCase().indexOf('.png') !== -1 || pngCodes[code]) ? 'png' : 'jpg';
+        var imgUrl = webBaseUrl + code + '.' + ext;
+        var resp = UrlFetchApp.fetch(imgUrl, { muteHttpExceptions: true });
+        if (resp.getResponseCode() === 200) {
+          var blob = resp.getBlob().setName('emp_' + code + '.' + ext);
+          var createdFile = folder.createFile(blob);
+          try {
+            createdFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+          } catch (e) {}
+          fileId = createdFile.getId();
+          fileMapByCode[code] = fileId;
+        }
+      } catch (fetchErr) {
+        Logger.log('ข้ามการดึงรูปจากเว็บสำหรับรหัส ' + code + ': ' + fetchErr.toString());
+      }
+    }
+
+    // 4. หากได้ File ID บน Google Drive แล้ว ให้แปลงค่าในคอลัมน์ O เป็นลิงก์ตรงของ Google Drive ทันที
     if (fileId) {
       try {
         var file = DriveApp.getFileById(fileId);
@@ -215,7 +266,7 @@ function updateAllAvatarLinksFromDrive() {
   
   // บันทึกลิงก์รูปภาพลงคอลัมน์ O ใน Google Sheet
   sheet.getRange(2, 15, lastRow - 1, 1).setValues(avatars);
-  return { success: true, count: updated, message: 'แปลงชื่อไฟล์ในคอลัมน์ O เป็นลิงก์ Google Drive สำเร็จ ' + updated + ' คน' };
+  return { success: true, count: updated, folderUrl: folder.getUrl(), message: 'แปลงชื่อไฟล์ในคอลัมน์ O เป็นลิงก์ Google Drive สำเร็จ ' + updated + ' คน' };
 }
 
 
