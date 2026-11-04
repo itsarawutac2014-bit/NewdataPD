@@ -849,7 +849,8 @@
           body: JSON.stringify({
             action: 'save_all',
             employees: appData.employees || [],
-            attendance: appData.attendance || {}
+            attendance: appData.attendance || {},
+            daily_shifts: appData.dailyShifts || {}
           })
         }).catch(err => console.warn('API sync warning:', err));
       } catch(e) {}
@@ -990,8 +991,8 @@
             <span class="day-name text-[9px] block opacity-80">${THAI_DAYS[dow]}</span>
             <div class="mt-0.5">
               <button type="button" onclick="cycleShiftType('${shiftMapMachine}', '${shiftKey}', '${dateStr}', event)" 
-                      class="text-[9px] font-bold px-1 py-0 rounded-full border shadow-2xs ${shiftType ? 'bg-white/90 text-slate-900 border-slate-300' : 'bg-slate-200/80 text-slate-700 border-transparent hover:bg-slate-300'}"
-                      title="คลิกเพื่อสลับกะ: เช้า -> ดึก -> PM -> ค่าปกติ">
+                      class="text-[9px] font-bold px-1 py-0 rounded-full border shadow-2xs cursor-pointer ${shiftType ? 'bg-white/90 text-slate-900 border-slate-300' : 'bg-slate-200/80 text-slate-700 border-transparent hover:bg-slate-300'}"
+                      title="คลิกที่วันใดก็ได้เพื่อตั้งกะ (☀️ เช้า -> 🌙 ดึก -> 🌆 PM -> ปกติ) ครั้งละ 7 วันรวด">
                 ${shiftBadge || '+ กะ'}
               </button>
             </div>
@@ -1193,7 +1194,13 @@
                 ${emps.length} คน
               </span>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
+              <div class="flex items-center gap-1 bg-white/90 border border-slate-200 rounded-xl px-2 py-1 shadow-2xs">
+                <span class="text-[11px] font-black text-slate-600 mr-1"><i class="fa-solid fa-calendar-week text-orange-500"></i> ตั้งกะทีละ 7 วัน:</span>
+                <button type="button" onclick="openWeeklyShiftModal('${ currentMachine === 'ALL' ? 'BHS' : currentMachine }', '${shiftKey}', ${month}, ${year}, ${daysInMonth})" class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-black transition cursor-pointer flex items-center gap-1 shadow-2xs">
+                  <i class="fa-solid fa-sliders"></i> เลือกช่วง 7 วัน (เช้า / ดึก)
+                </button>
+              </div>
               <button type="button" onclick="scrollToRightSummary('${tableCardId}')" class="px-3 py-1.5 rounded-xl border border-blue-200 bg-white hover:bg-blue-50 text-blue-700 text-xs font-bold transition shadow-2xs">
                 <i class="fa-solid fa-arrow-right mr-1"></i> ดูผลรวมขวาสุด
               </button>
@@ -1261,7 +1268,7 @@
       }
     }
 
-    // 6. Shift Cycle Toggle (+ กะ on date header)
+    // 6. Shift Cycle Toggle (+ กะ on date header -> ตั้งกะทีละ 7 วันรวด)
     function cycleShiftType(machine, shiftGroup, dateStr, event) {
       event.stopPropagation();
       const key = `${machine}_${shiftGroup}_${dateStr}`;
@@ -1273,14 +1280,104 @@
       else if (current === 'ดึก') next = 'PM';
       else next = null;
 
-      if (next) {
-        appData.dailyShifts[key] = next;
-      } else {
-        delete appData.dailyShifts[key];
+      // คำนวณช่วง 7 วัน (ตั้งแต่วันที่กด ไปอีก 7 วัน หรือถ้ากดในบล็อกสัปดาห์ อาทิตย์-เสาร์ ให้คลุมทั้ง 7 วัน)
+      const parts = dateStr.split('-');
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10);
+      const startDay = parseInt(parts[2], 10);
+      const daysInMonth = new Date(year, month, 0).getDate();
+      const pad = n => String(n).padStart(2, '0');
+
+      const endDay = Math.min(startDay + 6, daysInMonth);
+      for (let d = startDay; d <= endDay; d++) {
+        const dStr = `${year}-${pad(month)}-${pad(d)}`;
+        const dKey = `${machine}_${shiftGroup}_${dStr}`;
+        if (next) {
+          appData.dailyShifts[dKey] = next;
+        } else {
+          delete appData.dailyShifts[dKey];
+        }
       }
 
       saveData();
       renderDashboard();
+
+      // แสดง Toast แจ้งเตือนว่าตั้งค่า 7 วันแล้ว
+      if (typeof Swal !== 'undefined') {
+        const labelText = next === 'เช้า' ? '☀️ กะเช้า' : (next === 'ดึก' ? '🌙 กะดึก' : (next === 'PM' ? '🌆 PM' : 'ล้างค่ากะ'));
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: `ตั้งค่า ${labelText} (วันที่ ${startDay} - ${endDay} ${THAI_MONTHS[month]}) สำเร็จ`,
+          showConfirmButton: false,
+          timer: 1800
+        });
+      }
+    }
+
+    // เปิดหน้าต่างตั้งค่ากะรายสัปดาห์ (ทีละ 7 วัน) แบบเลือกช่วงได้สะดวก
+    function openWeeklyShiftModal(machine, shiftGroup, month, year, daysInMonth) {
+      const pad = n => String(n).padStart(2, '0');
+      const weeks = [];
+      let curStart = 1;
+      while (curStart <= daysInMonth) {
+        const curEnd = Math.min(curStart + 6, daysInMonth);
+        const sampleKey = `${machine}_${shiftGroup}_${year}-${pad(month)}-${pad(curStart)}`;
+        const curShift = appData.dailyShifts[sampleKey] || '';
+        weeks.push({ start: curStart, end: curEnd, current: curShift });
+        curStart += 7;
+      }
+
+      let rowsHtml = weeks.map((w, idx) => `
+        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 gap-2">
+          <div class="text-xs font-black text-slate-800">
+            สัปดาห์ที่ ${idx + 1}: <span class="text-orange-600">วันที่ ${w.start} - ${w.end} ${THAI_MONTHS[month]}</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <button type="button" onclick="applyWeekRangeShift('${machine}', '${shiftGroup}', ${year}, ${month}, ${w.start}, ${w.end}, 'เช้า')" class="px-2.5 py-1 rounded-lg text-xs font-bold border transition cursor-pointer ${w.current === 'เช้า' ? 'bg-amber-300 text-amber-950 border-amber-500 ring-2 ring-amber-400' : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'}">
+              ☀️ กะเช้า
+            </button>
+            <button type="button" onclick="applyWeekRangeShift('${machine}', '${shiftGroup}', ${year}, ${month}, ${w.start}, ${w.end}, 'ดึก')" class="px-2.5 py-1 rounded-lg text-xs font-bold border transition cursor-pointer ${w.current === 'ดึก' ? 'bg-blue-700 text-white border-blue-900 ring-2 ring-blue-400' : 'bg-blue-600 hover:bg-blue-700 text-white border-blue-700'}">
+              🌙 กะดึก
+            </button>
+            <button type="button" onclick="applyWeekRangeShift('${machine}', '${shiftGroup}', ${year}, ${month}, ${w.start}, ${w.end}, null)" class="px-2 py-1 rounded-lg text-xs font-bold bg-slate-200 hover:bg-slate-300 text-slate-700 transition cursor-pointer" title="ล้างกะ">
+              ล้าง
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      Swal.fire({
+        title: `<div class="text-base font-black text-slate-900"><i class="fa-solid fa-calendar-week text-orange-500 mr-1.5"></i>กำหนดกะทำงานทีละ 7 วัน (${machine} - กะ ${shiftGroup})</div>`,
+        html: `
+          <div class="text-left space-y-2.5 mt-2">
+            <p class="text-xs text-slate-500">เลือกตั้งค่า <b>☀️ กะเช้า</b> หรือ <b>🌙 กะดึก</b> ให้คลุมทีละ 7 วันรวด หรือคลิกที่ปุ่ม <b>"+ กะ"</b> บนหัวตารางวันแรกของสัปดาห์ก็ได้เช่นกัน</p>
+            ${rowsHtml}
+          </div>
+        `,
+        showConfirmButton: true,
+        confirmButtonText: 'เสร็จสิ้น',
+        confirmButtonColor: '#0f172a',
+        width: '520px'
+      });
+    }
+
+    function applyWeekRangeShift(machine, shiftGroup, year, month, startDay, endDay, shiftType) {
+      const pad = n => String(n).padStart(2, '0');
+      for (let d = startDay; d <= endDay; d++) {
+        const dStr = `${year}-${pad(month)}-${pad(d)}`;
+        const dKey = `${machine}_${shiftGroup}_${dStr}`;
+        if (shiftType) {
+          appData.dailyShifts[dKey] = shiftType;
+        } else {
+          delete appData.dailyShifts[dKey];
+        }
+      }
+      saveData();
+      renderDashboard();
+      const daysInMonth = new Date(year, month, 0).getDate();
+      openWeeklyShiftModal(machine, shiftGroup, month, year, daysInMonth);
     }
 
     // 7. Modals: Edit Cell Status
@@ -1816,6 +1913,9 @@
           const sData = await res.json();
           if (sData && sData.success && Array.isArray(sData.employees) && sData.employees.length > 0) {
             appData.employees = sData.employees;
+            if (sData.daily_shifts && typeof sData.daily_shifts === 'object' && Object.keys(sData.daily_shifts).length > 0) {
+              appData.dailyShifts = { ...(appData.dailyShifts || {}), ...sData.daily_shifts };
+            }
             localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
             renderDashboard();
           }

@@ -81,6 +81,7 @@ if ($method === 'GET') {
         'success' => true,
         'employees' => $store['employees'] ?? [],
         'attendance' => $store['attendance'] ?? [],
+        'daily_shifts' => $store['daily_shifts'] ?? [],
         'updated_at' => $store['updated_at'] ?? null
     ], JSON_UNESCAPED_UNICODE);
     exit;
@@ -109,6 +110,9 @@ if ($method === 'POST') {
         }
         if (isset($payload['attendance'])) {
             $store['attendance'] = $payload['attendance'];
+        }
+        if (isset($payload['daily_shifts'])) {
+            $store['daily_shifts'] = $payload['daily_shifts'];
         }
         $store['updated_at'] = date('Y-m-d H:i:s');
         saveStore($dataFile, $store);
