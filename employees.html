@@ -521,14 +521,38 @@
             <input type="text" id="edit-emp-position" placeholder="เช่น ผู้ปฏิบัติงาน Dry End, หัวหน้ากะ" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
           </div>
           <!-- วันเริ่มงาน -->
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">วันเริ่มงาน (Start Date)</label>
-            <input type="date" id="edit-emp-startdate" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <div class="bg-blue-50/50 p-3 rounded-2xl border border-blue-200/80 space-y-1.5">
+            <div class="flex items-center justify-between gap-1 flex-wrap">
+              <label class="block font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                <i class="fa-regular fa-calendar-plus text-blue-600"></i>
+                <span>วันเริ่มงาน (Start Date)</span>
+              </label>
+              <span id="edit-emp-startdate-display" class="text-[11px] font-black text-blue-700 bg-white px-2 py-0.5 rounded-lg border border-blue-200 font-mono shadow-2xs">
+                -
+              </span>
+            </div>
+            <input type="date" id="edit-emp-startdate" oninput="updateEditDateDisplays()" onchange="updateEditDateDisplays()" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-2xs">
+            <div class="flex items-center justify-between text-[11px] text-slate-600 font-medium pt-0.5">
+              <span><i class="fa-solid fa-briefcase text-blue-500 mr-1"></i> อายุงานคำนวณได้:</span>
+              <span id="edit-emp-tenure-text" class="font-bold text-blue-700 bg-white px-2 py-0.5 rounded border border-blue-100 shadow-2xs">-</span>
+            </div>
           </div>
           <!-- วันเกิด -->
-          <div>
-            <label class="block font-bold text-slate-700 mb-1">วันเกิด (Birth Date)</label>
-            <input type="date" id="edit-emp-birthdate" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <div class="bg-purple-50/50 p-3 rounded-2xl border border-purple-200/80 space-y-1.5">
+            <div class="flex items-center justify-between gap-1 flex-wrap">
+              <label class="block font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                <i class="fa-solid fa-cake-candles text-purple-600"></i>
+                <span>วันเกิด (Birth Date)</span>
+              </label>
+              <span id="edit-emp-birthdate-display" class="text-[11px] font-black text-purple-700 bg-white px-2 py-0.5 rounded-lg border border-purple-200 font-mono shadow-2xs">
+                -
+              </span>
+            </div>
+            <input type="date" id="edit-emp-birthdate" oninput="updateEditDateDisplays()" onchange="updateEditDateDisplays()" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-2xs">
+            <div class="flex items-center justify-between text-[11px] text-slate-600 font-medium pt-0.5">
+              <span><i class="fa-solid fa-user-clock text-purple-500 mr-1"></i> อายุตัวคำนวณได้:</span>
+              <span id="edit-emp-age-text" class="font-bold text-purple-700 bg-white px-2 py-0.5 rounded border border-purple-100 shadow-2xs">-</span>
+            </div>
           </div>
           <!-- สถานะทดลองงาน -->
           <div>
@@ -861,6 +885,41 @@
         }
       } catch(e) {}
       return '';
+    }
+
+    /**
+     * แปลงวันที่เป็นข้อความภาษาไทยที่อ่านง่ายและมีตัวเลขชัดเจน เช่น 10/05/2013 (10 พ.ค. 2556)
+     */
+    function formatReadableDateThai(dateVal) {
+      if (!dateVal) return '-';
+      const clean = formatDateForInput(dateVal);
+      if (!clean) return String(dateVal);
+      const parts = clean.split('-');
+      if (parts.length !== 3) return clean;
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10);
+      const d = parseInt(parts[2], 10);
+      const thaiMonths = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+      const thaiYear = y + 543;
+      return `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y} (${d} ${thaiMonths[m] || ''} ${thaiYear})`;
+    }
+
+    /**
+     * อัปเดตตัวเลขแสดงผลวันที่, อายุงาน, และอายุตัวในหน้าต่างแก้ไขแบบ Real-time
+     */
+    function updateEditDateDisplays() {
+      const sVal = document.getElementById('edit-emp-startdate')?.value;
+      const bVal = document.getElementById('edit-emp-birthdate')?.value;
+
+      const sDisp = document.getElementById('edit-emp-startdate-display');
+      const sTenure = document.getElementById('edit-emp-tenure-text');
+      if (sDisp) sDisp.textContent = sVal ? formatReadableDateThai(sVal) : '-';
+      if (sTenure) sTenure.textContent = sVal ? calculateTenure(sVal).text : '-';
+
+      const bDisp = document.getElementById('edit-emp-birthdate-display');
+      const bAge = document.getElementById('edit-emp-age-text');
+      if (bDisp) bDisp.textContent = bVal ? formatReadableDateThai(bVal) : '-';
+      if (bAge) bAge.textContent = bVal ? calculateAge(bVal).text : '-';
     }
 
     function setViewMode(mode) {
@@ -1819,6 +1878,7 @@
       document.getElementById('edit-emp-resigned-date').value = formatDateForInput(emp.resigned_date);
       document.getElementById('edit-emp-status-notes').value = emp.notes || '';
       handleEditStatusChange();
+      updateEditDateDisplays();
       document.getElementById('edit-emp-subtitle').textContent = `รหัสพนักงาน: ${emp.employee_code} (${emp.first_name})`;
 
       // รูปถ่ายพนักงาน Avatar
