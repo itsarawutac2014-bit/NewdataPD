@@ -6,9 +6,10 @@
 const GoogleSheetSync = (function() {
   const WEBHOOK_KEY = 'pd_google_sheet_webhook_url';
   const LAST_SYNC_KEY = 'pd_google_sheet_last_sync';
+  const DEFAULT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycby76NkRsdrlJE5STix5sCl1cQyM9Go9Wtx8vTCIlPM-GWwzxHZYmiGhNqdzp0Rh0QhO/exec';
 
   function getWebhookUrl() {
-    return (localStorage.getItem(WEBHOOK_KEY) || '').trim();
+    return (localStorage.getItem(WEBHOOK_KEY) || DEFAULT_WEBHOOK_URL).trim();
   }
 
   function setWebhookUrl(url) {
