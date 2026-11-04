@@ -858,20 +858,25 @@
             const isLeader = cfg.tier === 1 || posInfo.isLeader;
             const empMTheme = getMachineTheme(emp.machine || currentMachine);
 
+            const isInactive = (emp.status === 'resigned' || emp.status === 'terminated');
+
             cards += `
               <div draggable="true" ondragstart="handleDragStart(event, ${emp.id})" ondragend="handleDragEnd(event)"
                    ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDropToStation(event, '${stName}', '${shiftKey}')"
-                   class="${empMTheme.bgCard} rounded-3xl p-4 sm:p-4.5 transition group cursor-grab active:cursor-grabbing relative flex flex-col justify-between">
+                   class="${empMTheme.bgCard} ${isInactive ? 'opacity-75 ring-2 ring-rose-400' : ''} rounded-3xl p-4 sm:p-4.5 transition group cursor-grab active:cursor-grabbing relative flex flex-col justify-between">
                 
                 <!-- Station Header Bar -->
                 <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-200/90">
-                  <div class="flex items-center gap-1.5">
+                  <div class="flex items-center gap-1.5 flex-wrap">
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black shadow-xs ${isLeader ? 'bg-amber-400 text-slate-950 border border-amber-500' : isCustom ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-white'}">
                       <i class="${posInfo.icon}"></i> ${stName}
                     </span>
                     <span class="px-2 py-0.5 rounded-lg text-[10px] font-black border ${empMTheme.badge}">
                       ${emp.machine}
                     </span>
+                    ${emp.status === 'resigned' ? `<span class="px-2 py-0.5 rounded-lg text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300">🚪 ลาออกแล้ว</span>` : ''}
+                    ${emp.status === 'terminated' ? `<span class="px-2 py-0.5 rounded-lg text-[10px] font-black bg-rose-100 text-rose-900 border border-rose-300">🚫 พ้นสภาพ</span>` : ''}
+                    ${emp.status === 'suspended' ? `<span class="px-2 py-0.5 rounded-lg text-[10px] font-black bg-slate-200 text-slate-800 border border-slate-300">⏸ พักงาน</span>` : ''}
                     ${isCustom ? `
                       <button type="button" onclick="renameCustomStation('${stName}', '${shiftKey}')" title="เปลี่ยนชื่อจุดนี้" class="text-slate-400 hover:text-blue-600 text-xs p-1 cursor-pointer">
                         <i class="fa-solid fa-pen-to-square"></i>

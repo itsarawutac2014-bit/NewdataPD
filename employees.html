@@ -188,7 +188,7 @@
       <!-- Filters & Search Bar -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end pt-2 border-t border-slate-100">
         <!-- Search -->
-        <div class="lg:col-span-4">
+        <div class="lg:col-span-3">
           <label class="block text-xs font-bold text-slate-700 mb-1">
             <i class="fa-solid fa-magnifying-glass text-orange-500 mr-1"></i> ค้นหาพนักงาน
           </label>
@@ -217,8 +217,23 @@
           </select>
         </div>
 
+        <!-- Status Filter -->
+        <div class="lg:col-span-2">
+          <label class="block text-xs font-bold text-slate-700 mb-1">
+            <i class="fa-solid fa-user-check text-orange-500 mr-1"></i> สถานะ:
+          </label>
+          <select id="filter-status" onchange="renderEmployees()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500">
+            <option value="">ทั้งหมด (All)</option>
+            <option value="active">🟢 ปฏิบัติงานอยู่ (Active)</option>
+            <option value="probation">🟡 ทดลองงาน (Probation)</option>
+            <option value="resigned">🟠 ลาออก (Resigned)</option>
+            <option value="terminated">🔴 ไล่ออก / พ้นสภาพ</option>
+            <option value="suspended">⚪ พักงาน (Suspended)</option>
+          </select>
+        </div>
+
         <!-- Sort By -->
-        <div class="lg:col-span-3">
+        <div class="lg:col-span-2">
           <label class="block text-xs font-bold text-slate-700 mb-1">เรียงลำดับ:</label>
           <select id="filter-sort" onchange="renderEmployees()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500">
             <option value="tenure_desc">อายุงานมาก &rarr; น้อย</option>
@@ -272,10 +287,11 @@
         <div class="flex flex-col sm:flex-row items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
           <img id="modal-avatar-img" src="" alt="" referrerpolicy="no-referrer" class="w-24 h-24 rounded-full object-cover border-4 border-orange-400 shadow-md cursor-pointer hover:scale-105 hover:ring-4 hover:ring-orange-200 transition" onclick="openAvatarPreview(currentViewingEmpId)" title="คลิกเพื่อดูรูปขยาย">
           <div class="space-y-1 text-center sm:text-left flex-1">
-            <div class="flex items-center gap-2 justify-center sm:justify-start">
+            <div class="flex items-center gap-2 justify-center sm:justify-start flex-wrap">
               <span class="text-base font-bold text-slate-900" id="modal-name-text">คะนอง ศิริวรรณ</span>
               <span class="text-orange-600 font-black text-sm" id="modal-nickname-text">(นอง)</span>
               <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold" id="modal-probation-badge">พ้นทดลองงาน</span>
+              <span id="modal-status-badge"></span>
             </div>
             <p class="text-xs text-slate-600" id="modal-position-text">ผู้ปฏิบัติงาน Dry End (จุดประจำการ: Stacker)</p>
             <div class="flex flex-wrap gap-2 justify-center sm:justify-start text-xs font-bold pt-1">
@@ -497,12 +513,23 @@
           <!-- สถานะการทำงาน -->
           <div>
             <label class="block font-bold text-slate-700 mb-1">สถานะการทำงาน</label>
-            <select id="edit-emp-status" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="active">ปกติ / ปฏิบัติงานอยู่ (Active)</option>
-              <option value="resigned">ลาออกแล้ว (Resigned)</option>
-              <option value="suspended">พักงาน (Suspended)</option>
+            <select id="edit-emp-status" onchange="handleEditStatusChange()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="active">🟢 ปกติ / ปฏิบัติงานอยู่ (Active)</option>
+              <option value="probation">🟡 อยู่ระหว่างทดลองงาน (Probation)</option>
+              <option value="resigned">🟠 ลาออกแล้ว (Resigned)</option>
+              <option value="terminated">🔴 ไล่ออก / เลิกจ้าง / พ้นสภาพ (Terminated)</option>
+              <option value="suspended">⚪ พักงาน (Suspended)</option>
             </select>
           </div>
+        </div>
+
+        <!-- รายละเอียดสาเหตุ / วันที่มีผล (แสดงเมื่อเลือก ลาออก / ไล่ออก / พักงาน) -->
+        <div id="edit-status-notes-box" class="hidden p-3.5 bg-rose-50/70 border border-rose-200 rounded-2xl">
+          <label class="block font-bold text-rose-900 text-xs mb-1 flex items-center gap-1.5">
+            <i class="fa-solid fa-clipboard-list text-rose-600"></i>
+            <span>หมายเหตุ / สาเหตุการพ้นสภาพ / วันที่มีผล:</span>
+          </label>
+          <input type="text" id="edit-emp-status-notes" placeholder="เช่น ลาออกวันที่ 30 พ.ย. / ขาดงานติดต่อกันเกินกำหนด / ละเมิดความปลอดภัย" class="w-full bg-white border border-rose-300 rounded-xl px-3 py-2 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-rose-500 font-medium">
         </div>
 
         <!-- ทักษะประจำจุดเครื่องจักร -->
@@ -779,8 +806,13 @@
       document.getElementById('filter-search').value = '';
       document.getElementById('filter-machine').value = '';
       document.getElementById('filter-shift').value = '';
+      document.getElementById('filter-status').value = '';
       document.getElementById('filter-sort').value = 'tenure_desc';
       renderEmployees();
+    }
+
+    function saveStoreData(store) {
+      localStorage.setItem('datamanbhs_attendance_v1', JSON.stringify(store));
     }
 
     function renderEmployees() {
@@ -790,12 +822,18 @@
       const search = document.getElementById('filter-search').value.trim().toLowerCase();
       const machine = document.getElementById('filter-machine').value;
       const shift = document.getElementById('filter-shift').value;
+      const statusFilter = (document.getElementById('filter-status')?.value || '').toLowerCase();
       const sortBy = document.getElementById('filter-sort').value;
 
       // Filter
       emps = emps.filter(e => {
         if (machine && e.machine !== machine) return false;
         if (shift && e.shift !== shift) return false;
+        if (statusFilter) {
+          const empStatus = (e.status || 'active').toLowerCase();
+          if (statusFilter === 'active' && empStatus !== 'active' && empStatus !== '') return false;
+          if (statusFilter !== 'active' && empStatus !== statusFilter) return false;
+        }
         if (search) {
           const matchCode = (e.employee_code || '').toLowerCase().includes(search);
           const matchName = (e.first_name || '').toLowerCase().includes(search);
@@ -1048,6 +1086,158 @@
       if (fileInput) fileInput.value = '';
     }
 
+    // Employee Status Badge Helper (Active, Probation, Resigned, Terminated, Suspended)
+    function getEmployeeStatusBadge(status, clickableEmpId = null) {
+      const s = (status || 'active').toLowerCase().trim();
+      let badgeHtml = '';
+      
+      if (s === 'resigned' || s === 'ลาออก') {
+        badgeHtml = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs">
+          <i class="fa-solid fa-door-open text-amber-600"></i> ลาออกแล้ว
+        </span>`;
+      } else if (s === 'terminated' || s === 'dismissed' || s === 'ไล่ออก') {
+        badgeHtml = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-rose-100 text-rose-900 border border-rose-300 shadow-2xs">
+          <i class="fa-solid fa-ban text-rose-600"></i> ไล่ออก / พ้นสภาพ
+        </span>`;
+      } else if (s === 'suspended' || s === 'พักงาน') {
+        badgeHtml = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-slate-200 text-slate-800 border border-slate-300 shadow-2xs">
+          <i class="fa-solid fa-pause text-slate-600"></i> พักงาน
+        </span>`;
+      } else if (s === 'probation' || s === 'ทดลองงาน') {
+        badgeHtml = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-sky-100 text-sky-900 border border-sky-300 shadow-2xs">
+          <i class="fa-solid fa-hourglass-half text-sky-600"></i> ทดลองงาน
+        </span>`;
+      } else {
+        // active / ปกติ
+        badgeHtml = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-2xs">
+          <i class="fa-solid fa-circle-check text-emerald-600"></i> ปฏิบัติงานอยู่
+        </span>`;
+      }
+
+      if (clickableEmpId) {
+        return `<button type="button" onclick="openQuickStatusModal(${clickableEmpId})" class="cursor-pointer hover:opacity-80 hover:scale-105 transition" title="คลิกเพื่อปรับเปลี่ยนสถานะ">${badgeHtml}</button>`;
+      }
+      return badgeHtml;
+    }
+
+    // Toggle notes box in edit modal
+    function handleEditStatusChange() {
+      const status = document.getElementById('edit-emp-status').value;
+      const notesBox = document.getElementById('edit-status-notes-box');
+      if (notesBox) {
+        if (['resigned', 'terminated', 'suspended'].includes(status)) {
+          notesBox.classList.remove('hidden');
+        } else {
+          notesBox.classList.add('hidden');
+        }
+      }
+    }
+
+    // Quick Status Change with SweetAlert2
+    function openQuickStatusModal(empId) {
+      const store = getStoreData();
+      const emp = (store.employees || []).find(e => e.id == empId);
+      if (!emp) return;
+
+      const currentStatus = (emp.status || 'active').toLowerCase();
+      
+      Swal.fire({
+        title: `<div class="text-base font-black text-slate-900">ปรับสถานะพนักงาน</div>`,
+        html: `
+          <div class="text-left text-xs space-y-3 mt-2">
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-orange-100 text-orange-800 font-black flex items-center justify-center text-sm border border-orange-200 shrink-0">
+                ${escapeHtml(emp.nickname || emp.first_name[0])}
+              </div>
+              <div class="min-w-0">
+                <div class="font-black text-slate-900 text-sm truncate">${escapeHtml(emp.first_name)} ${escapeHtml(emp.last_name || '')} (${escapeHtml(emp.nickname || '-')})</div>
+                <div class="text-[11px] text-slate-500 font-mono font-bold">รหัส: ${escapeHtml(emp.employee_code)} &bull; เครื่อง ${escapeHtml(emp.machine || 'BHS')} กะ ${escapeHtml(emp.shift || 'A')}</div>
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-700 mb-1.5">เลือกสถานะใหม่:</label>
+              <select id="swal-quick-status" class="w-full p-2.5 border-2 border-slate-300 rounded-xl text-xs font-bold bg-white focus:outline-none focus:border-blue-500">
+                <option value="active" ${currentStatus==='active'?'selected':''}>🟢 ปฏิบัติงานอยู่ (Active)</option>
+                <option value="probation" ${currentStatus==='probation'?'selected':''}>🟡 อยู่ระหว่างทดลองงาน (Probation)</option>
+                <option value="resigned" ${currentStatus==='resigned'?'selected':''}>🟠 ลาออก (Resigned)</option>
+                <option value="terminated" ${currentStatus==='terminated'?'selected':''}>🔴 ไล่ออก / พ้นสภาพ / เลิกจ้าง (Terminated)</option>
+                <option value="suspended" ${currentStatus==='suspended'?'selected':''}>⚪ พักงาน (Suspended)</option>
+              </select>
+            </div>
+
+            <div id="swal-status-reason-box" class="${['resigned','terminated','suspended'].includes(currentStatus)?'':'hidden'}">
+              <label class="block font-bold text-rose-700 mb-1">หมายเหตุ / สาเหตุ / วันที่มีผล (ระบุหรือไม่ก็ได้):</label>
+              <input type="text" id="swal-quick-reason" value="${escapeHtml(emp.notes || '')}" placeholder="เช่น ลาออกมีผล 15 ธ.ค. / ขาดงานเกินกำหนด" class="w-full p-2.5 border border-rose-300 bg-rose-50/50 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-rose-500">
+            </div>
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '<i class="fa-solid fa-check mr-1"></i> บันทึกสถานะ',
+        cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: '#2563eb',
+        cancelButtonColor: '#64748b',
+        didOpen: () => {
+          const select = document.getElementById('swal-quick-status');
+          const box = document.getElementById('swal-status-reason-box');
+          select.onchange = () => {
+            if (['resigned','terminated','suspended'].includes(select.value)) {
+              box.classList.remove('hidden');
+            } else {
+              box.classList.add('hidden');
+            }
+          };
+        },
+        preConfirm: () => {
+          const newStatus = document.getElementById('swal-quick-status').value;
+          const reason = document.getElementById('swal-quick-reason')?.value || '';
+          return { newStatus, reason };
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          updateEmployeeStatus(emp.id, result.value.newStatus, result.value.reason);
+        }
+      });
+    }
+
+    // Execute status update and sync to Sheet
+    function updateEmployeeStatus(empId, newStatus, reason) {
+      const store = getStoreData();
+      const empIdx = (store.employees || []).findIndex(e => e.id == empId);
+      if (empIdx === -1) return;
+
+      store.employees[empIdx].status = newStatus;
+      if (reason !== undefined) {
+        store.employees[empIdx].notes = reason;
+      }
+      store.employees[empIdx].updated_at = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+      saveStoreData(store);
+      renderEmployees();
+
+      // Two-way sync to Google Sheet
+      if (typeof GoogleSheetSync !== 'undefined' && GoogleSheetSync.hasWebhook()) {
+        GoogleSheetSync.syncEditEmployee(store.employees[empIdx]);
+      }
+
+      const statusLabels = {
+        'active': 'ปฏิบัติงานอยู่ 🟢',
+        'probation': 'ทดลองงาน 🟡',
+        'resigned': 'ลาออกแล้ว 🟠',
+        'terminated': 'ไล่ออก / พ้นสภาพ 🔴',
+        'suspended': 'พักงาน ⚪'
+      };
+
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: `ปรับสถานะเป็น "${statusLabels[newStatus] || newStatus}" เรียบร้อยแล้ว`,
+        showConfirmButton: false,
+        timer: 3000
+      });
+    }
+
     // Role display for Corrugator Factory positions
     function getJobRoleBadge(pos) {
       const p = (pos || '').trim();
@@ -1078,9 +1268,10 @@
         const posInfo = getPositionIcon(e.station || e.position);
         const isLeader = (e.station === 'Host' || (e.position && e.position.includes('หัวหน้า')) || posInfo.isLeader);
         const avatarSrc = getEmployeeAvatarUrl(e.avatar, e.first_name);
+        const isInactive = (e.status === 'resigned' || e.status === 'terminated');
 
         html += `
-          <div class="rounded-3xl p-5 sm:p-6 transition shadow-sm hover:shadow-xl ${mTheme.bgCard} flex flex-col justify-between space-y-4">
+          <div class="rounded-3xl p-5 sm:p-6 transition shadow-sm hover:shadow-xl ${mTheme.bgCard} ${isInactive ? 'opacity-85 ring-2 ring-rose-300' : ''} flex flex-col justify-between space-y-4">
             <div class="flex items-start justify-between gap-3">
               <div class="relative shrink-0 cursor-pointer" onclick="openAvatarPreview(${e.id})" title="คลิกดูรูปขยาย">
                 ${avatarSrc ? `
@@ -1115,17 +1306,25 @@
             </div>
 
             <div>
-              <div class="flex items-baseline gap-1.5 flex-wrap">
-                <h3 class="font-black text-slate-900 text-base sm:text-lg">${escapeHtml(e.first_name)} ${escapeHtml(e.last_name || '')}</h3>
-                ${e.nickname ? `<span class="${mTheme.textAccent} font-black text-base sm:text-lg">(${escapeHtml(e.nickname)})</span>` : ''}
+              <div class="flex items-baseline justify-between gap-1.5 flex-wrap">
+                <div class="flex items-baseline gap-1.5 flex-wrap">
+                  <h3 class="font-black text-slate-900 text-base sm:text-lg">${escapeHtml(e.first_name)} ${escapeHtml(e.last_name || '')}</h3>
+                  ${e.nickname ? `<span class="${mTheme.textAccent} font-black text-base sm:text-lg">(${escapeHtml(e.nickname)})</span>` : ''}
+                </div>
+                <div>
+                  ${getEmployeeStatusBadge(e.status, e.id)}
+                </div>
               </div>
               <div class="mt-1">
                 ${getJobRoleBadge(e.position)}
               </div>
-              <div class="mt-2.5">
+              <div class="mt-2.5 flex items-center justify-between gap-1 flex-wrap">
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black border ${posInfo.bg} shadow-2xs">
                   <i class="${posInfo.icon} ${posInfo.color}"></i> จุด: ${escapeHtml(e.station || 'รอจัดตำแหน่ง')}
                 </span>
+                ${(e.status === 'resigned' || e.status === 'terminated') && e.notes ? `
+                  <span class="text-[10px] text-rose-700 font-bold truncate max-w-[130px]" title="${escapeHtml(e.notes)}"><i class="fa-solid fa-circle-exclamation mr-1"></i>${escapeHtml(e.notes)}</span>
+                ` : ''}
               </div>
             </div>
 
@@ -1164,9 +1363,10 @@
         const posInfo = getPositionIcon(e.station || e.position);
         const isLeader = (e.station === 'Host' || (e.position && e.position.includes('หัวหน้า')) || posInfo.isLeader);
         const avatarSrc = getEmployeeAvatarUrl(e.avatar, e.first_name);
+        const isInactive = (e.status === 'resigned' || e.status === 'terminated');
 
         rows += `
-          <tr class="${mTheme.bgRow} transition text-xs sm:text-sm">
+          <tr class="${mTheme.bgRow} ${isInactive ? 'opacity-85' : ''} transition text-xs sm:text-sm">
             <td class="p-3.5 sm:p-4 text-center text-slate-500 font-bold w-12">${idx+1}</td>
             <td class="p-3.5 sm:p-4">
               <div class="flex items-center gap-3.5">
@@ -1215,6 +1415,12 @@
             <td class="p-3.5 sm:p-4 text-xs sm:text-sm">
               ${getJobRoleBadge(e.position)}
             </td>
+            <td class="p-3.5 sm:p-4 text-center">
+              ${getEmployeeStatusBadge(e.status, e.id)}
+              ${(e.status === 'resigned' || e.status === 'terminated') && e.notes ? `
+                <div class="text-[10px] text-rose-700 font-bold mt-0.5 truncate max-w-[120px] mx-auto" title="${escapeHtml(e.notes)}">${escapeHtml(e.notes)}</div>
+              ` : ''}
+            </td>
             <td class="p-3.5 sm:p-4 font-black text-amber-900 font-num text-xs sm:text-sm">${tenure.text}</td>
             <td class="p-3.5 sm:p-4 text-center font-bold text-slate-700 font-num text-xs sm:text-sm">${age.text}</td>
             <td class="p-3.5 sm:p-4 text-center">
@@ -1243,6 +1449,7 @@
                   <th class="p-3.5 sm:p-4 text-center">กะ</th>
                   <th class="p-3.5 sm:p-4">จุดประจำการ (Station)</th>
                   <th class="p-3.5 sm:p-4">ตำแหน่งงาน</th>
+                  <th class="p-3.5 sm:p-4 text-center">สถานะ</th>
                   <th class="p-3.5 sm:p-4">อายุงาน</th>
                   <th class="p-3.5 sm:p-4 text-center">อายุตัว</th>
                   <th class="p-3.5 sm:p-4 text-center">จัดการ</th>
@@ -1273,6 +1480,7 @@
       document.getElementById('modal-emp-sub').textContent = `รหัส: ${emp.employee_code} • เครื่อง ${emp.machine} กะ ${emp.shift}`;
       document.getElementById('modal-name-text').textContent = `${emp.first_name} ${emp.last_name || ''}`;
       document.getElementById('modal-nickname-text').textContent = emp.nickname ? `(${emp.nickname})` : '';
+      document.getElementById('modal-status-badge').innerHTML = getEmployeeStatusBadge(emp.status, emp.id);
       document.getElementById('modal-position-text').textContent = `${emp.position || 'ผู้ปฏิบัติงาน'} (จุดประจำการ: ${emp.station || '-'})`;
       document.getElementById('modal-tenure-badge').textContent = `อายุงาน: ${tenure.text}`;
       document.getElementById('modal-age-badge').textContent = `อายุตัว: ${age.text}`;
@@ -1415,6 +1623,8 @@
       document.getElementById('edit-emp-birthdate').value = emp.birth_date || '';
       document.getElementById('edit-emp-probation').value = emp.probation_status || 'passed';
       document.getElementById('edit-emp-status').value = emp.status || 'active';
+      document.getElementById('edit-emp-status-notes').value = emp.notes || '';
+      handleEditStatusChange();
       document.getElementById('edit-emp-subtitle').textContent = `รหัสพนักงาน: ${emp.employee_code} (${emp.first_name})`;
 
       // รูปถ่ายพนักงาน Avatar
@@ -1520,6 +1730,8 @@
         birth_date: birthDate,
         probation_status: probationStatus,
         status: status,
+        notes: document.getElementById('edit-emp-status-notes')?.value || store.employees[empIdx].notes || '',
+        updated_at: new Date().toISOString().slice(0, 19).replace('T', ' '),
         control_room: document.getElementById('edit-skill-control').checked ? 1 : 0,
         stacker: document.getElementById('edit-skill-stacker').checked ? 1 : 0,
         df: document.getElementById('edit-skill-df').checked ? 1 : 0,

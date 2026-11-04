@@ -1116,6 +1116,8 @@
                     <span class="font-bold text-slate-900 text-xs truncate">${escapeHtml(emp.first_name)}</span>
                     ${emp.nickname ? `<span class="text-orange-600 font-black text-xs">(${escapeHtml(emp.nickname)})</span>` : ''}
                     ${isLeader ? `<span class="px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-300 font-bold text-[9px]"><i class="fa-solid fa-helmet-safety text-[8px] mr-0.5"></i>หัวหน้ากะ</span>` : ''}
+                    ${emp.status === 'resigned' ? `<span class="px-1.5 py-0.2 rounded bg-amber-100 text-amber-900 border border-amber-300 font-bold text-[9px]">🚪 ลาออก</span>` : ''}
+                    ${emp.status === 'terminated' ? `<span class="px-1.5 py-0.2 rounded bg-rose-100 text-rose-900 border border-rose-300 font-bold text-[9px]">🚫 พ้นสภาพ</span>` : ''}
                   </div>
                   <div class="flex items-center gap-1 text-[11px] text-slate-500 mt-0.5">
                     <span class="px-1 py-0 rounded bg-slate-100 text-slate-700 font-bold text-[10px] border border-slate-200">${escapeHtml(emp.station || '-')}</span>
