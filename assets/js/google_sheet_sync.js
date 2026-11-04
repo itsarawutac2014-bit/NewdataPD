@@ -257,13 +257,40 @@ const GoogleSheetSync = (function() {
         
         const existingEmps = store.employees || (window.DATAMANBHS_INITIAL ? window.DATAMANBHS_INITIAL.employees : []);
 
-        // รวมข้อมูลพนักงานโดยรักษา id และทักษะเครื่องจักรเดิมไว้
+        // ฟังก์ชันล้างฟอร์แมตวันที่ให้เป็น YYYY-MM-DD มาตรฐาน ป้องกันช่อง date input ว่างเปล่า
+        function cleanDateStr(val) {
+          if (!val) return '';
+          if (typeof val === 'string') {
+            const trimmed = val.trim();
+            if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+            const m = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+          }
+          try {
+            const d = new Date(val);
+            if (!isNaN(d.getTime())) {
+              const y = d.getFullYear();
+              const mo = String(d.getMonth() + 1).padStart(2, '0');
+              const da = String(d.getDate()).padStart(2, '0');
+              if (y >= 1940 && y <= 2100) return `${y}-${mo}-${da}`;
+            }
+          } catch(e) {}
+          return String(val || '');
+        }
+
+        // รวมข้อมูลพนักงานโดยรักษา id และทักษะเครื่องจักรเดิมไว้ พร้อมจัดระเบียบวันที่
         store.employees = data.employees.map(newEmp => {
           const codeStr = String(newEmp.employee_code || '').trim();
           const exist = existingEmps.find(o => String(o.employee_code || '').trim() === codeStr);
+          const sDate = cleanDateStr(newEmp.start_date) || cleanDateStr(exist?.start_date);
+          const bDate = cleanDateStr(newEmp.birth_date) || cleanDateStr(exist?.birth_date);
+          const rDate = cleanDateStr(newEmp.resigned_date) || cleanDateStr(exist?.resigned_date);
           return {
             ...(exist || {}),
             ...newEmp,
+            start_date: sDate,
+            birth_date: bDate,
+            resigned_date: rDate,
             id: exist ? exist.id : (parseInt(codeStr) || Math.floor(Math.random() * 100000))
           };
         });

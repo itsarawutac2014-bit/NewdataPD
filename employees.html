@@ -838,6 +838,31 @@
       return { years: age, text: `${age} ปี` };
     }
 
+    /**
+     * แปลงรูปแบบวันที่ทุกชนิด (ISO 8601, Date string, UTC) ให้เป็น YYYY-MM-DD สำหรับใส่ใน <input type="date">
+     */
+    function formatDateForInput(dateVal) {
+      if (!dateVal) return '';
+      if (typeof dateVal === 'string') {
+        const trimmed = dateVal.trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+        const m = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+      }
+      try {
+        const d = new Date(dateVal);
+        if (!isNaN(d.getTime())) {
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          if (year >= 1940 && year <= 2100) {
+            return `${year}-${month}-${day}`;
+          }
+        }
+      } catch(e) {}
+      return '';
+    }
+
     function setViewMode(mode) {
       viewMode = mode;
       if (mode === 'grid') {
@@ -1787,11 +1812,11 @@
       document.getElementById('edit-emp-shift').value = emp.shift || 'A';
       document.getElementById('edit-emp-station').value = emp.station || '';
       document.getElementById('edit-emp-position').value = emp.position || '';
-      document.getElementById('edit-emp-startdate').value = emp.start_date || '';
-      document.getElementById('edit-emp-birthdate').value = emp.birth_date || '';
+      document.getElementById('edit-emp-startdate').value = formatDateForInput(emp.start_date);
+      document.getElementById('edit-emp-birthdate').value = formatDateForInput(emp.birth_date);
       document.getElementById('edit-emp-probation').value = emp.probation_status || 'passed';
       document.getElementById('edit-emp-status').value = emp.status || 'active';
-      document.getElementById('edit-emp-resigned-date').value = emp.resigned_date || '';
+      document.getElementById('edit-emp-resigned-date').value = formatDateForInput(emp.resigned_date);
       document.getElementById('edit-emp-status-notes').value = emp.notes || '';
       handleEditStatusChange();
       document.getElementById('edit-emp-subtitle').textContent = `รหัสพนักงาน: ${emp.employee_code} (${emp.first_name})`;
@@ -1858,8 +1883,11 @@
       const shift = document.getElementById('edit-emp-shift').value;
       const station = document.getElementById('edit-emp-station').value.trim() || 'ฝ่ายผลิต';
       const position = document.getElementById('edit-emp-position').value.trim() || 'พนักงานฝ่ายผลิต';
-      const startDate = document.getElementById('edit-emp-startdate').value;
-      const birthDate = document.getElementById('edit-emp-birthdate').value;
+      const rawStartDate = document.getElementById('edit-emp-startdate').value;
+      const rawBirthDate = document.getElementById('edit-emp-birthdate').value;
+      const existingEmp = store.employees[empIdx];
+      const startDate = rawStartDate || formatDateForInput(existingEmp.start_date) || '';
+      const birthDate = rawBirthDate || formatDateForInput(existingEmp.birth_date) || '';
       const probationStatus = document.getElementById('edit-emp-probation').value;
       const status = document.getElementById('edit-emp-status').value;
 

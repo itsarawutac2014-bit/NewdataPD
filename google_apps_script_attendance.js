@@ -571,6 +571,28 @@ function doPost(e) {
 }
 
 /**
+ * แปลงค่าวันที่ใน Google Sheet ให้เป็นสตริง YYYY-MM-DD มาตรฐาน ป้องกันการส่ง Date Object ISO
+ */
+function formatGasDate(val) {
+  if (!val) return '';
+  if (val instanceof Date) {
+    return Utilities.formatDate(val, "GMT+7", "yyyy-MM-dd");
+  }
+  var str = String(val).trim();
+  if (str.indexOf('T') !== -1) {
+    try {
+      var d = new Date(str);
+      if (!isNaN(d.getTime())) {
+        return Utilities.formatDate(d, "GMT+7", "yyyy-MM-dd");
+      }
+    } catch(e) {}
+  }
+  var m = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return m[1] + '-' + m[2] + '-' + m[3];
+  return str;
+}
+
+/**
  * ดึงข้อมูลพนักงานและการลงเวลาไปแสดงผลที่หน้าเว็บ (GET)
  */
 function doGet(e) {
@@ -593,13 +615,13 @@ function doGet(e) {
         shift: data[i][6],
         station: data[i][7],
         position: data[i][8],
-        start_date: data[i][9],
-        birth_date: data[i][10],
+        start_date: formatGasDate(data[i][9]),
+        birth_date: formatGasDate(data[i][10]),
         phone: data[i][11],
         probation_status: data[i][12],
         status: data[i][13],
         avatar: data[i][14] || '',
-        resigned_date: data[i][15] ? String(data[i][15]).slice(0, 10) : '',
+        resigned_date: formatGasDate(data[i][15]),
         notes: data[i][16] || ''
       });
     }

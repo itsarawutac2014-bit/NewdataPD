@@ -94,7 +94,18 @@ if ($method === 'POST') {
         foreach ($store['employees'] as $idx => $existing) {
             if (($id !== null && strval($existing['id'] ?? '') === strval($id)) || 
                 ($code !== '' && strval($existing['employee_code'] ?? '') === $code)) {
-                $store['employees'][$idx] = array_merge($existing, $emp);
+                $merged = array_merge($existing, $emp);
+                // ป้องกันการทับข้อมูลสำคัญหากฝั่งส่งมาเป็นค่าว่าง
+                if (empty($emp['start_date']) && !empty($existing['start_date'])) {
+                    $merged['start_date'] = $existing['start_date'];
+                }
+                if (empty($emp['birth_date']) && !empty($existing['birth_date'])) {
+                    $merged['birth_date'] = $existing['birth_date'];
+                }
+                if (empty($emp['phone']) && !empty($existing['phone'])) {
+                    $merged['phone'] = $existing['phone'];
+                }
+                $store['employees'][$idx] = $merged;
                 $found = true;
                 break;
             }
