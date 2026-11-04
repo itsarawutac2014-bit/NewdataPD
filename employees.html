@@ -265,7 +265,7 @@
       <div class="p-6 overflow-y-auto space-y-5">
         <!-- Personal Info Header -->
         <div class="flex flex-col sm:flex-row items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-          <img id="modal-avatar-img" src="" alt="" class="w-24 h-24 rounded-full object-cover border-4 border-orange-400 shadow-md cursor-pointer hover:scale-105 hover:ring-4 hover:ring-orange-200 transition" onclick="openAvatarPreview(currentViewingEmpId)" title="คลิกเพื่อดูรูปขยาย">
+          <img id="modal-avatar-img" src="" alt="" referrerpolicy="no-referrer" class="w-24 h-24 rounded-full object-cover border-4 border-orange-400 shadow-md cursor-pointer hover:scale-105 hover:ring-4 hover:ring-orange-200 transition" onclick="openAvatarPreview(currentViewingEmpId)" title="คลิกเพื่อดูรูปขยาย">
           <div class="space-y-1 text-center sm:text-left flex-1">
             <div class="flex items-center gap-2 justify-center sm:justify-start">
               <span class="text-base font-bold text-slate-900" id="modal-name-text">คะนอง ศิริวรรณ</span>
@@ -356,7 +356,7 @@
           <div class="flex flex-col sm:flex-row items-center gap-4">
             <!-- ภาพพรีวิว -->
             <div class="relative shrink-0">
-              <img id="edit-avatar-preview" src="" alt="" class="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl object-cover border-3 border-orange-400 shadow-md">
+              <img id="edit-avatar-preview" src="" alt="" referrerpolicy="no-referrer" class="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl object-cover border-3 border-orange-400 shadow-md">
             </div>
             
             <!-- การอัปโหลด / ลิงก์รูป -->
@@ -376,10 +376,19 @@
 
               <!-- ช่องใส่ชื่อไฟล์หรือ URL -->
               <div>
-                <label class="text-[11px] text-slate-500 font-semibold block mb-1">
-                  หรือวาง <span class="font-bold text-slate-700">ชื่อไฟล์</span> ในโฟลเดอร์ หรือ <span class="font-bold text-slate-700">URL ลิงก์รูป (Google Drive / ลิงก์รูปออนไลน์)</span>:
+                <label class="text-[11px] text-slate-700 font-bold block mb-1">
+                  <i class="fa-solid fa-link text-blue-600 mr-1"></i> วางลิงก์รูปภาพออนไลน์ (เช่น Google Drive / เว็บฝากรูป):
                 </label>
-                <input type="text" id="edit-emp-avatar-text" placeholder="เช่น emp_24520003.jpg หรือ https://drive.google.com/..." class="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-slate-800 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-orange-500" oninput="handleAvatarTextInput(this.value)">
+                <div class="relative flex items-center">
+                  <input type="text" id="edit-emp-avatar-text" placeholder="วางลิงก์ เช่น https://drive.google.com/... หรือชื่อไฟล์ emp_xxx.jpg" class="w-full bg-white border border-slate-300 rounded-xl pl-3 pr-22 py-2 text-slate-800 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-orange-500" oninput="handleAvatarTextInput(this.value)">
+                  <button type="button" onclick="testAvatarUrl()" class="absolute right-1.5 px-3 py-1 bg-orange-100 hover:bg-orange-200 text-orange-800 font-bold text-[11px] rounded-lg transition cursor-pointer">
+                    <i class="fa-solid fa-bolt mr-0.5"></i> ทดสอบ
+                  </button>
+                </div>
+                <p class="text-[10px] text-slate-500 mt-1.5 flex items-center gap-1.5">
+                  <i class="fa-solid fa-circle-info text-blue-500"></i>
+                  <span><b>Google Drive:</b> เปิดแชร์เป็น <i>"ทุกคนที่มีลิงก์ (Anyone with link)"</i> วางลิงก์ระบบจะแปลงให้อัตโนมัติ</span>
+                </p>
               </div>
             </div>
           </div>
@@ -655,7 +664,7 @@
   <div id="avatarPreviewModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeAvatarModal()">
     <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-sm overflow-hidden text-center p-6 space-y-4 animate-scaleIn">
       <div class="relative inline-block mx-auto">
-        <img id="preview-avatar-img" src="" alt="" class="w-40 h-40 rounded-full object-cover border-4 border-orange-500 shadow-xl mx-auto">
+        <img id="preview-avatar-img" src="" alt="" referrerpolicy="no-referrer" class="w-40 h-40 rounded-full object-cover border-4 border-orange-500 shadow-xl mx-auto">
         <span id="preview-leader-crown" class="absolute top-1 right-1 w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center shadow hidden" title="หัวหน้ากะ (Shift Leader)">
           <i class="fa-solid fa-helmet-safety text-sm"></i>
         </span>
@@ -985,7 +994,27 @@
       const trimmed = (val || '').trim();
       currentEditingAvatar = trimmed;
       const firstName = document.getElementById('edit-emp-firstname').value || 'User';
-      document.getElementById('edit-avatar-preview').src = getEmployeeAvatarUrl(trimmed, firstName);
+      const previewImg = document.getElementById('edit-avatar-preview');
+      previewImg.referrerPolicy = 'no-referrer';
+      previewImg.src = getEmployeeAvatarUrl(trimmed, firstName);
+    }
+
+    function testAvatarUrl() {
+      const val = (document.getElementById('edit-emp-avatar-text').value || '').trim();
+      if (!val) {
+        Swal.fire('กรุณาระบุลิงก์', 'วางลิงก์รูปภาพในช่องก่อนกดทดสอบ', 'info');
+        return;
+      }
+      handleAvatarTextInput(val);
+      const isGdrive = val.includes('drive.google.com');
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'info',
+        title: isGdrive ? 'แปลงลิงก์ Google Drive แล้ว ตรวจสอบที่ภาพพรีวิว' : 'ดึงลิงก์รูปภาพแล้ว ตรวจสอบที่ภาพพรีวิว',
+        showConfirmButton: false,
+        timer: 2500
+      });
     }
 
     function clearAvatarPhoto() {
@@ -1033,7 +1062,7 @@
             <div class="flex items-start justify-between gap-3">
               <div class="relative shrink-0 cursor-pointer" onclick="openAvatarPreview(${e.id})" title="คลิกดูรูปขยาย">
                 ${avatarSrc ? `
-                  <img src="${avatarSrc}" class="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl object-cover border-3 ${mTheme.avatarBorder} shadow-md hover:scale-105 transition" alt="" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-orange-200 text-orange-950 font-black flex items-center justify-center text-xl\\'>${escapeHtml(e.nickname || e.first_name[0])}</div>'">
+                  <img src="${avatarSrc}" referrerpolicy="no-referrer" class="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl object-cover border-3 ${mTheme.avatarBorder} shadow-md hover:scale-105 transition" alt="" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-orange-200 text-orange-950 font-black flex items-center justify-center text-xl\\'>${escapeHtml(e.nickname || e.first_name[0])}</div>'">
                 ` : `
                   <div class="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-orange-100 text-orange-800 font-black flex items-center justify-center text-2xl hover:scale-105 transition border-3 ${mTheme.avatarBorder}">
                     ${escapeHtml(e.nickname || e.first_name[0])}
@@ -1121,7 +1150,7 @@
               <div class="flex items-center gap-3.5">
                 <div class="relative shrink-0 cursor-pointer" onclick="openAvatarPreview(${e.id})" title="คลิกดูรูปขยาย">
                   ${avatarSrc ? `
-                    <img src="${avatarSrc}" class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl object-cover border-2 sm:border-3 ${mTheme.avatarBorder} hover:scale-110 transition shadow-xs" alt="">
+                    <img src="${avatarSrc}" referrerpolicy="no-referrer" class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl object-cover border-2 sm:border-3 ${mTheme.avatarBorder} hover:scale-110 transition shadow-xs" alt="">
                   ` : `
                     <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-orange-100 text-orange-800 font-black text-sm sm:text-base flex items-center justify-center hover:scale-110 transition border-2 ${mTheme.avatarBorder}">
                       ${escapeHtml(e.nickname || e.first_name[0])}

@@ -679,7 +679,7 @@
   <div id="avatarPreviewModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeAvatarModal()">
     <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-sm overflow-hidden text-center p-6 space-y-4">
       <div class="relative inline-block mx-auto">
-        <img id="preview-avatar-img" src="" alt="" class="w-36 h-36 rounded-full object-cover border-4 border-orange-500 shadow-xl mx-auto">
+        <img id="preview-avatar-img" src="" alt="" referrerpolicy="no-referrer" class="w-36 h-36 rounded-full object-cover border-4 border-orange-500 shadow-xl mx-auto">
         <span id="preview-leader-crown" class="absolute top-1 right-1 w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center shadow hidden" title="หัวหน้ากะ (Shift Leader)">
           <i class="fa-solid fa-helmet-safety text-sm"></i>
         </span>
@@ -1093,7 +1093,7 @@
                 <input type="checkbox" class="rounded text-orange-600 focus:ring-0 shrink-0" ${isChecked ? 'checked' : ''} onchange="toggleEmpCheck(${eid}, this.checked)">
                 <div class="relative shrink-0 cursor-pointer" onclick="openAvatarPreview(${eid})">
                   ${avatarSrc ? `
-                    <img src="${avatarSrc}" class="emp-avatar-lg" alt="" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'emp-avatar-lg bg-orange-100 text-orange-800 font-bold flex items-center justify-center\\'>${escapeHtml(emp.nickname || emp.first_name[0])}</div>'">
+                    <img src="${avatarSrc}" referrerpolicy="no-referrer" class="emp-avatar-lg" alt="" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'emp-avatar-lg bg-orange-100 text-orange-800 font-bold flex items-center justify-center\\'>${escapeHtml(emp.nickname || emp.first_name[0])}</div>'">
                   ` : `
                     <div class="emp-avatar-lg bg-orange-100 text-orange-800 font-black text-xs flex items-center justify-center">
                       ${escapeHtml(emp.nickname || emp.first_name[0])}

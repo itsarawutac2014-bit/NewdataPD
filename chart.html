@@ -273,7 +273,7 @@
   <div id="avatarPreviewModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeAvatarModal()">
     <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-sm overflow-hidden text-center p-6 space-y-4 animate-scaleIn">
       <div class="relative inline-block mx-auto">
-        <img id="preview-avatar-img" src="" alt="" class="w-40 h-40 rounded-full object-cover border-4 border-orange-500 shadow-xl mx-auto">
+        <img id="preview-avatar-img" src="" alt="" referrerpolicy="no-referrer" class="w-40 h-40 rounded-full object-cover border-4 border-orange-500 shadow-xl mx-auto">
         <span id="preview-leader-crown" class="absolute top-1 right-1 w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center shadow hidden" title="หัวหน้ากะ (Shift Leader)">
           <i class="fa-solid fa-helmet-safety text-sm"></i>
         </span>
@@ -725,7 +725,7 @@
             <div class="flex items-center gap-4">
               <div class="relative shrink-0 cursor-pointer" onclick="openAvatarPreview(${h.id})" title="คลิกดูรูปขยาย">
                 ${avatarSrc ? `
-                  <img src="${avatarSrc}" class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl object-cover border-3 border-amber-400 shadow-md hover:scale-105 transition" alt="">
+                  <img src="${avatarSrc}" referrerpolicy="no-referrer" class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl object-cover border-3 border-amber-400 shadow-md hover:scale-105 transition" alt="">
                 ` : `
                   <div class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-2xl hover:scale-105 transition">
                     ${h.nickname || h.first_name[0]}
@@ -785,7 +785,7 @@
             <div class="flex items-center gap-3 min-w-0">
               <div class="relative shrink-0 cursor-pointer" onclick="openAvatarPreview(${emp.id})" title="คลิกดูรูปขยาย">
                 ${avatarSrc ? `
-                  <img src="${avatarSrc}" class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl object-cover border-2 sm:border-3 ${mTheme.avatarBorder} shadow-xs" alt="">
+                  <img src="${avatarSrc}" referrerpolicy="no-referrer" class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl object-cover border-2 sm:border-3 ${mTheme.avatarBorder} shadow-xs" alt="">
                 ` : `
                   <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-amber-200 text-amber-950 font-black flex items-center justify-center text-base border-2 ${mTheme.avatarBorder}">
                     ${emp.nickname || emp.first_name[0]}
@@ -882,7 +882,7 @@
                 <div class="flex items-center gap-3.5 my-1">
                   <div class="relative shrink-0 cursor-pointer" onclick="openAvatarPreview(${emp.id})" title="คลิกดูรูปขยาย">
                     ${avatarSrc ? `
-                      <img src="${avatarSrc}" class="w-15 h-15 sm:w-16 sm:h-16 rounded-2xl object-cover border-3 ${isLeader ? 'border-amber-500' : empMTheme.avatarBorder} hover:scale-108 transition shadow-xs" alt="">
+                      <img src="${avatarSrc}" referrerpolicy="no-referrer" class="w-15 h-15 sm:w-16 sm:h-16 rounded-2xl object-cover border-3 ${isLeader ? 'border-amber-500' : empMTheme.avatarBorder} hover:scale-108 transition shadow-xs" alt="">
                     ` : `
                       <div class="w-15 h-15 sm:w-16 sm:h-16 rounded-2xl bg-orange-100 text-orange-950 font-black flex items-center justify-center text-lg hover:scale-108 transition border-3 ${empMTheme.avatarBorder}">
                         ${emp.nickname || emp.first_name[0]}
@@ -1585,7 +1585,7 @@
           <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/40 transition gap-2">
             <div class="flex items-center gap-2.5 min-w-0">
               ${avatarSrc ? `
-                <img src="${avatarSrc}" class="w-9 h-9 rounded-full object-cover border border-slate-300 shrink-0" alt="">
+                <img src="${avatarSrc}" referrerpolicy="no-referrer" class="w-9 h-9 rounded-full object-cover border border-slate-300 shrink-0" alt="">
               ` : `
                 <div class="w-9 h-9 rounded-full bg-slate-200 text-slate-700 font-bold flex items-center justify-center text-xs shrink-0">
                   ${emp.nickname || emp.first_name[0]}
