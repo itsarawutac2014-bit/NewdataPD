@@ -189,7 +189,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     if (Auth.isLoggedIn()) {
       const urlParams = new URLSearchParams(window.location.search);
-      const redirectUrl = urlParams.get('redirect') || 'dashboard.html';
+      const redirectUrl = urlParams.get('redirect') || 'index.html';
       window.location.replace(redirectUrl);
     }
   });
@@ -218,7 +218,7 @@
     const res = Auth.login(u, p);
     if (res.success) {
       const urlParams = new URLSearchParams(window.location.search);
-      const redirectUrl = urlParams.get('redirect') || 'dashboard.html';
+      const redirectUrl = urlParams.get('redirect') || 'index.html';
       window.location.replace(redirectUrl);
     } else {
       alertText.textContent = res.message;
