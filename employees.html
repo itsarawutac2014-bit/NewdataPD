@@ -825,11 +825,45 @@
     let viewMode = 'grid'; // 'grid' | 'table'
 
     function getStoreData() {
+      let store = null;
       const saved = localStorage.getItem('datamanbhs_attendance_v1');
       if (saved) {
-        try { return JSON.parse(saved); } catch (e) {}
+        try { store = JSON.parse(saved); } catch (e) {}
       }
-      return window.DATAMANBHS_INITIAL || { employees: [] };
+      if (!store || !Array.isArray(store.employees) || store.employees.length === 0) {
+        store = window.DATAMANBHS_INITIAL ? JSON.parse(JSON.stringify(window.DATAMANBHS_INITIAL)) : { employees: [] };
+      }
+
+      // Auto-heal: ซ่อมแซมวันเริ่มงานและวันเกิดอัตโนมัติ หากในเครื่องเคยเผลอเซฟเป็นค่าว่าง
+      if (window.DATAMANBHS_INITIAL && Array.isArray(window.DATAMANBHS_INITIAL.employees)) {
+        const masterMap = {};
+        window.DATAMANBHS_INITIAL.employees.forEach(m => {
+          if (m.employee_code) masterMap[String(m.employee_code).trim()] = m;
+        });
+        let healed = false;
+        (store.employees || []).forEach(e => {
+          const code = String(e.employee_code || '').trim();
+          const master = masterMap[code];
+          if (master) {
+            if ((!e.start_date || e.start_date === '') && master.start_date) {
+              e.start_date = master.start_date;
+              healed = true;
+            }
+            if ((!e.birth_date || e.birth_date === '') && master.birth_date) {
+              e.birth_date = master.birth_date;
+              healed = true;
+            }
+            if ((!e.phone || e.phone === '') && master.phone) {
+              e.phone = master.phone;
+              healed = true;
+            }
+          }
+        });
+        if (healed) {
+          try { localStorage.setItem('datamanbhs_attendance_v1', JSON.stringify(store)); } catch(err) {}
+        }
+      }
+      return store;
     }
 
     function calculateTenure(startDateStr) {
@@ -1871,8 +1905,17 @@
       document.getElementById('edit-emp-shift').value = emp.shift || 'A';
       document.getElementById('edit-emp-station').value = emp.station || '';
       document.getElementById('edit-emp-position').value = emp.position || '';
-      document.getElementById('edit-emp-startdate').value = formatDateForInput(emp.start_date);
-      document.getElementById('edit-emp-birthdate').value = formatDateForInput(emp.birth_date);
+      let startDateVal = emp.start_date;
+      let birthDateVal = emp.birth_date;
+      if (!startDateVal || !birthDateVal) {
+        const master = (window.DATAMANBHS_INITIAL?.employees || []).find(m => String(m.employee_code).trim() === String(emp.employee_code).trim());
+        if (master) {
+          if (!startDateVal) startDateVal = master.start_date;
+          if (!birthDateVal) birthDateVal = master.birth_date;
+        }
+      }
+      document.getElementById('edit-emp-startdate').value = formatDateForInput(startDateVal);
+      document.getElementById('edit-emp-birthdate').value = formatDateForInput(birthDateVal);
       document.getElementById('edit-emp-probation').value = emp.probation_status || 'passed';
       document.getElementById('edit-emp-status').value = emp.status || 'active';
       document.getElementById('edit-emp-resigned-date').value = formatDateForInput(emp.resigned_date);
