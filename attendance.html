@@ -634,14 +634,33 @@
       </div>
 
       <div class="p-5 space-y-4">
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">วันที่เช็คชื่อ:</label>
-            <input type="date" id="bulk-date-input" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-900">
+            <input type="date" id="bulk-date-input" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 text-xs font-bold text-slate-900">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">เครื่องจักร:</label>
+            <select id="bulk-machine-select" onchange="renderBulkEmployeeList()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 text-xs font-bold text-slate-900">
+              <option value="ALL">ทุกเครื่อง</option>
+              <option value="BHS">BHS</option>
+              <option value="YUELI">YUELI</option>
+              <option value="ISOWA">ISOWA</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">กะการทำงาน:</label>
+            <select id="bulk-shift-select" onchange="renderBulkEmployeeList()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 text-xs font-bold text-slate-900">
+              <option value="">ทุกกะ</option>
+              <option value="A">กะ A</option>
+              <option value="B">กะ B</option>
+              <option value="AB">กะ AB</option>
+              <option value="Normal">กลาง (Normal)</option>
+            </select>
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">สถานะ:</label>
-            <select id="bulk-status-select" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-900">
+            <select id="bulk-status-select" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-2.5 py-2 text-xs font-bold text-slate-900">
               <option value="present">มาทำงานปกติ (Present)</option>
               <option value="holiday">วันหยุด (Holiday)</option>
               <option value="absent">ขาดงาน (Absent)</option>
@@ -651,7 +670,7 @@
 
         <div>
           <div class="flex items-center justify-between mb-2">
-            <label class="text-xs font-bold text-slate-700">เลือกกลุ่มเป้าหมาย:</label>
+            <label class="text-xs font-bold text-slate-700">เลือกกลุ่มเป้าหมาย (เฉพาะผู้ที่ปฏิบัติงานอยู่): <span id="bulk-emp-count-badge" class="text-blue-600 font-black"></span></label>
             <div class="flex gap-2">
               <button type="button" onclick="bulkSelectAll(true)" class="text-[11px] font-bold text-blue-600 hover:underline">เลือกทั้งหมด</button>
               <span class="text-slate-300">|</span>
@@ -903,8 +922,15 @@
       // Calculate days in month
       const daysInMonth = new Date(year, month, 0).getDate();
 
-      // Filter Employees
+      // ฟังก์ชันเช็กว่าพนักงานยังปฏิบัติงานอยู่หรือไม่ (ตัดคนที่ ลาออก / ไล่ออก / พักงาน ออก ไม่ให้แสดงในตารางลงชื่อ)
+      const isWorkingEmployee = (e) => {
+        const st = String(e.status || 'active').trim().toLowerCase();
+        return !['resigned', 'terminated', 'dismissed', 'suspended', 'ลาออก', 'ไล่ออก', 'พ้นสภาพ', 'พักงาน'].includes(st);
+      };
+
+      // Filter Employees (เฉพาะคนที่ปฏิบัติงานอยู่)
       let filteredEmps = appData.employees.filter(e => {
+        if (!isWorkingEmployee(e)) return false;
         if (machine !== 'ALL' && e.machine !== machine) return false;
         if (shift !== '' && e.shift !== shift) return false;
         return true;
@@ -1472,13 +1498,47 @@
       renderDashboard();
     }
 
-    // 8. Bulk Check Modal
+    // 8. Bulk Check Modal (ยึดเครื่องจักรและกะตามตัวกรองหน้าหลัก และเลือกเปลี่ยนใน Modal ได้)
+    function isEmployeeActiveForAttendance(e) {
+      const st = String(e.status || 'active').trim().toLowerCase();
+      return !['resigned', 'terminated', 'dismissed', 'suspended', 'ลาออก', 'ไล่ออก', 'พ้นสภาพ', 'พักงาน'].includes(st);
+    }
+
     function openBulkAttendanceModal() {
+      const mainMachine = document.getElementById('filter-machine').value || 'BHS';
+      const mainShift = document.getElementById('filter-shift').value || '';
+
+      const bulkMachineEl = document.getElementById('bulk-machine-select');
+      const bulkShiftEl = document.getElementById('bulk-shift-select');
+      if (bulkMachineEl) bulkMachineEl.value = mainMachine;
+      if (bulkShiftEl) bulkShiftEl.value = mainShift;
+
+      renderBulkEmployeeList();
+      document.getElementById('bulkAttendanceModal').classList.remove('hidden');
+    }
+
+    function renderBulkEmployeeList() {
       const list = document.getElementById('bulk-emp-checkbox-list');
+      if (!list) return;
       list.innerHTML = '';
 
-      const machine = document.getElementById('filter-machine').value;
-      const emps = appData.employees.filter(e => machine === 'ALL' || e.machine === machine);
+      const machine = document.getElementById('bulk-machine-select')?.value || document.getElementById('filter-machine').value;
+      const shift = document.getElementById('bulk-shift-select')?.value ?? document.getElementById('filter-shift').value;
+
+      const emps = appData.employees.filter(e => {
+        if (!isEmployeeActiveForAttendance(e)) return false;
+        if (machine !== 'ALL' && e.machine !== machine) return false;
+        if (shift !== '' && e.shift !== shift) return false;
+        return true;
+      });
+
+      const countBadge = document.getElementById('bulk-emp-count-badge');
+      if (countBadge) countBadge.textContent = `(${emps.length} คน)`;
+
+      if (emps.length === 0) {
+        list.innerHTML = `<div class="p-4 text-center text-slate-400 font-bold">ไม่พบพนักงานที่ปฏิบัติงานอยู่ในเครื่องจักรและกะที่เลือก</div>`;
+        return;
+      }
 
       emps.forEach(e => {
         list.insertAdjacentHTML('beforeend', `
@@ -1486,12 +1546,10 @@
             <input type="checkbox" class="bulk-item-check rounded text-blue-600" value="${e.id}" checked>
             <span class="font-bold text-slate-800">${escapeHtml(e.first_name)} ${e.nickname ? `(${escapeHtml(e.nickname)})` : ''}</span>
             <span class="text-slate-400 font-mono text-[10px]">${e.employee_code}</span>
-            <span class="ml-auto text-[10px] font-bold px-1.5 py-0.2 rounded bg-slate-200 text-slate-700">${e.machine} ${e.shift}</span>
+            <span class="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-200 text-slate-700">${e.machine} กะ ${e.shift}</span>
           </label>
         `);
       });
-
-      document.getElementById('bulkAttendanceModal').classList.remove('hidden');
     }
 
     function closeBulkModal() {
@@ -1563,7 +1621,12 @@
     }
 
     function toggleSelectShiftGroup(shiftKey, isChecked) {
-      const emps = appData.employees.filter(e => e.shift === shiftKey);
+      const machine = document.getElementById('filter-machine').value;
+      const emps = appData.employees.filter(e => {
+        if (!isEmployeeActiveForAttendance(e)) return false;
+        if (machine !== 'ALL' && e.machine !== machine) return false;
+        return e.shift === shiftKey;
+      });
       emps.forEach(e => {
         if (isChecked) selectedEmpIds.add(e.id);
         else selectedEmpIds.delete(e.id);
