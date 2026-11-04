@@ -984,8 +984,25 @@
         `;
       }
 
-      // Generate Employee Rows
-      let rowsHtml = '';
+    // Helper to resolve employee avatar URL (Supports Local files, Base64 data URLs, and external web/Google Drive URLs)
+    function getEmployeeAvatarUrl(avatar, fallbackName = '') {
+      if (!avatar || !String(avatar).trim()) {
+        if (!fallbackName) return '';
+        return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(fallbackName) + '&background=ff7900&color=fff&size=256';
+      }
+      const s = String(avatar).trim();
+      if (s.startsWith('data:image/') || s.startsWith('blob:') || s.startsWith('http://') || s.startsWith('https://')) {
+        const gdriveMatch = s.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/);
+        if (gdriveMatch) {
+          return `https://drive.google.com/thumbnail?id=${gdriveMatch[1]}&sz=w400`;
+        }
+        return s;
+      }
+      return `assets/uploads/employees/${s}`;
+    }
+
+    // Generate Employee Rows
+    let rowsHtml = '';
       const shiftColTotals = { present: 0, holiday: 0, annual: 0, sick: 0, business: 0, other: 0, total_leave: 0, absent: 0 };
       const dayTotals = Array.from({ length: daysInMonth + 1 }, () => ({ present: 0, absent: 0, leave: 0 }));
 
@@ -993,7 +1010,7 @@
         const eid = emp.id;
         const isLeader = (emp.station === 'Host' || (emp.position && emp.position.includes('หัวหน้า')));
         const leaderTitle = isLeader ? 'หัวหน้ากะ' : '';
-        const avatarSrc = emp.avatar ? `assets/uploads/employees/${emp.avatar}` : '';
+        const avatarSrc = getEmployeeAvatarUrl(emp.avatar, emp.first_name);
         const isChecked = selectedEmpIds.has(eid);
 
         // Employee Totals
@@ -1518,15 +1535,11 @@
       if (!emp) return;
 
       const isLeader = (emp.station === 'Host' || (emp.position && emp.position.includes('หัวหน้า')));
-      const avatarSrc = emp.avatar ? `assets/uploads/employees/${emp.avatar}` : '';
+      const avatarSrc = getEmployeeAvatarUrl(emp.avatar, emp.first_name);
 
       const imgEl = document.getElementById('preview-avatar-img');
-      if (avatarSrc) {
-        imgEl.src = avatarSrc;
-        imgEl.onerror = () => { imgEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(emp.first_name) + '&background=ff7900&color=fff&size=256'; };
-      } else {
-        imgEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(emp.first_name) + '&background=ff7900&color=fff&size=256';
-      }
+      imgEl.src = avatarSrc;
+      imgEl.onerror = () => { imgEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(emp.first_name) + '&background=ff7900&color=fff&size=256'; };
 
       document.getElementById('preview-emp-name').textContent = `${emp.title || ''} ${emp.first_name} ${emp.last_name || ''}`;
       document.getElementById('preview-emp-nickname').textContent = emp.nickname ? `(${emp.nickname})` : '';

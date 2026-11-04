@@ -608,6 +608,23 @@
       };
     }
 
+    // Helper to resolve employee avatar URL (Supports Local files, Base64 data URLs, and external web/Google Drive URLs)
+    function getEmployeeAvatarUrl(avatar, fallbackName = '') {
+      if (!avatar || !String(avatar).trim()) {
+        if (!fallbackName) return '';
+        return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(fallbackName) + '&background=ff7900&color=fff&size=256';
+      }
+      const s = String(avatar).trim();
+      if (s.startsWith('data:image/') || s.startsWith('blob:') || s.startsWith('http://') || s.startsWith('https://')) {
+        const gdriveMatch = s.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/);
+        if (gdriveMatch) {
+          return `https://drive.google.com/thumbnail?id=${gdriveMatch[1]}&sz=w400`;
+        }
+        return s;
+      }
+      return `assets/uploads/employees/${s}`;
+    }
+
     // Position Icon Helper for Corrugated Paper Factory (โรงงานผลิตกระดาษลูกฟูก)
     function getPositionIcon(stOrPos) {
       const s = (stOrPos || '').trim();
@@ -701,7 +718,7 @@
 
       let cardsHtml = '';
       heads.forEach(h => {
-        const avatarSrc = h.avatar ? `assets/uploads/employees/${h.avatar}` : '';
+        const avatarSrc = getEmployeeAvatarUrl(h.avatar, h.first_name);
         const mTheme = getMachineTheme(h.machine);
         cardsHtml += `
           <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-3xl p-5 shadow-lg flex items-center justify-between border-2 border-amber-400">
@@ -758,7 +775,7 @@
 
       let html = '';
       pool.forEach(emp => {
-        const avatarSrc = emp.avatar ? `assets/uploads/employees/${emp.avatar}` : '';
+        const avatarSrc = getEmployeeAvatarUrl(emp.avatar, emp.first_name);
         const mTheme = getMachineTheme(emp.machine);
         const posInfo = getPositionIcon(emp.station || emp.position);
 
@@ -831,7 +848,7 @@
           const posInfo = getPositionIcon(stName);
 
           if (emp) {
-            const avatarSrc = emp.avatar ? `assets/uploads/employees/${emp.avatar}` : '';
+            const avatarSrc = getEmployeeAvatarUrl(emp.avatar, emp.first_name);
             const isLeader = cfg.tier === 1 || posInfo.isLeader;
             const empMTheme = getMachineTheme(emp.machine || currentMachine);
 
@@ -1561,7 +1578,7 @@
       }
 
       candidates.forEach(emp => {
-        const avatarSrc = emp.avatar ? `assets/uploads/employees/${emp.avatar}` : '';
+        const avatarSrc = getEmployeeAvatarUrl(emp.avatar, emp.first_name);
         const isWaiting = (!emp.station || emp.station === 'รอจัดตำแหน่ง' || emp.station === '-');
 
         listContainer.insertAdjacentHTML('beforeend', `
@@ -1665,17 +1682,13 @@
       if (!emp) return;
 
       const isLeader = (emp.station === 'Host' || (emp.position && emp.position.includes('หัวหน้า')));
-      const avatarSrc = emp.avatar ? `assets/uploads/employees/${emp.avatar}` : '';
+      const avatarSrc = getEmployeeAvatarUrl(emp.avatar, emp.first_name);
 
       const imgEl = document.getElementById('preview-avatar-img');
-      if (avatarSrc) {
-        imgEl.src = avatarSrc;
-        imgEl.onerror = () => {
-          imgEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(emp.first_name) + '&background=ff7900&color=fff&size=256';
-        };
-      } else {
+      imgEl.src = avatarSrc;
+      imgEl.onerror = () => {
         imgEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(emp.first_name) + '&background=ff7900&color=fff&size=256';
-      }
+      };
 
       document.getElementById('preview-emp-name').textContent = `${emp.title || ''} ${emp.first_name} ${emp.last_name || ''}`;
       document.getElementById('preview-emp-nickname').textContent = emp.nickname ? `(${emp.nickname})` : '';
