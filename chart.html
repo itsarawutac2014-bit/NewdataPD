@@ -555,10 +555,105 @@
       return [...BASE_STATIONS, ...custom.map(c => c.name)];
     }
 
+    // Machine Color Theme Helper (BHS = ส้มอ่อน, YUELI = น้ำเงินอ่อน, ISOWA = เขียวอ่อน)
+    function getMachineTheme(machine) {
+      const m = (machine || '').toUpperCase();
+      if (m === 'BHS') {
+        return {
+          name: 'BHS',
+          label: 'เครื่อง BHS',
+          bgRow: 'bg-orange-50/60 hover:bg-orange-100/70 border-b border-orange-100',
+          bgCard: 'bg-gradient-to-br from-orange-50/95 via-amber-50/70 to-white border-2 border-orange-300 hover:border-orange-500 shadow-xs hover:shadow-md',
+          bgEmpty: 'bg-orange-50/30 border-orange-200 hover:border-orange-400',
+          badge: 'bg-orange-100 text-orange-950 border-orange-300',
+          avatarBorder: 'border-orange-400',
+          textAccent: 'text-orange-700',
+          icon: 'fa-solid fa-industry'
+        };
+      } else if (m === 'YUELI') {
+        return {
+          name: 'YUELI',
+          label: 'เครื่อง YUELI',
+          bgRow: 'bg-blue-50/60 hover:bg-blue-100/70 border-b border-blue-100',
+          bgCard: 'bg-gradient-to-br from-blue-50/95 via-sky-50/70 to-white border-2 border-blue-300 hover:border-blue-500 shadow-xs hover:shadow-md',
+          bgEmpty: 'bg-blue-50/30 border-blue-200 hover:border-blue-400',
+          badge: 'bg-blue-100 text-blue-950 border-blue-300',
+          avatarBorder: 'border-blue-400',
+          textAccent: 'text-blue-700',
+          icon: 'fa-solid fa-gears'
+        };
+      } else if (m === 'ISOWA') {
+        return {
+          name: 'ISOWA',
+          label: 'เครื่อง ISOWA',
+          bgRow: 'bg-emerald-50/60 hover:bg-emerald-100/70 border-b border-emerald-100',
+          bgCard: 'bg-gradient-to-br from-emerald-50/95 via-teal-50/70 to-white border-2 border-emerald-300 hover:border-emerald-500 shadow-xs hover:shadow-md',
+          bgEmpty: 'bg-emerald-50/30 border-emerald-200 hover:border-emerald-400',
+          badge: 'bg-emerald-100 text-emerald-950 border-emerald-300',
+          avatarBorder: 'border-emerald-400',
+          textAccent: 'text-emerald-700',
+          icon: 'fa-solid fa-screwdriver-wrench'
+        };
+      }
+      return {
+        name: m || 'ทั่วไป',
+        label: m || 'ทั่วไป',
+        bgRow: 'bg-white hover:bg-slate-50 border-b border-slate-100',
+        bgCard: 'bg-white border-2 border-slate-200 hover:border-slate-400 shadow-xs hover:shadow-md',
+        bgEmpty: 'bg-slate-50/60 border-slate-300 hover:border-slate-400',
+        badge: 'bg-slate-100 text-slate-800 border-slate-300',
+        avatarBorder: 'border-slate-300',
+        textAccent: 'text-slate-700',
+        icon: 'fa-solid fa-cube'
+      };
+    }
+
+    // Position Icon Helper for Important Stations & Roles
+    function getPositionIcon(stOrPos) {
+      const s = (stOrPos || '').trim();
+      const lower = s.toLowerCase();
+
+      if (s === 'Host' || lower.includes('หัวหน้ากะ')) {
+        return { icon: 'fa-solid fa-crown', color: 'text-amber-500', bg: 'bg-amber-100 text-amber-900 border-amber-300', isLeader: true };
+      }
+      if (s === 'Control' || lower.includes('ห้องควบคุม') || lower.includes('control')) {
+        return { icon: 'fa-solid fa-sliders', color: 'text-cyan-600', bg: 'bg-cyan-100 text-cyan-900 border-cyan-300' };
+      }
+      if (s === 'Stacker' || lower.includes('เครื่องเรียง') || lower.includes('stacker')) {
+        return { icon: 'fa-solid fa-boxes-stacked', color: 'text-purple-600', bg: 'bg-purple-100 text-purple-900 border-purple-300' };
+      }
+      if (s === 'DOUBLE' || lower.includes('เครื่องกาว') || lower.includes('double')) {
+        return { icon: 'fa-solid fa-clone', color: 'text-amber-600', bg: 'bg-amber-100 text-amber-900 border-amber-300' };
+      }
+      if (s.startsWith('SF-') || lower.includes('single')) {
+        return { icon: 'fa-solid fa-gear', color: 'text-blue-600', bg: 'bg-blue-100 text-blue-900 border-blue-300' };
+      }
+      if (/^M[1-5]$/.test(s) || lower.includes('wet end')) {
+        return { icon: 'fa-solid fa-wrench', color: 'text-emerald-600', bg: 'bg-emerald-100 text-emerald-900 border-emerald-300' };
+      }
+      if (lower.includes('หัวหน้าแผนก') || lower.includes('สำนักงาน') || lower.includes('office')) {
+        return { icon: 'fa-solid fa-building-user', color: 'text-indigo-600', bg: 'bg-indigo-100 text-indigo-900 border-indigo-300', isLeader: true };
+      }
+      if (lower.includes('qc') || lower.includes('คุณภาพ')) {
+        return { icon: 'fa-solid fa-clipboard-check', color: 'text-rose-600', bg: 'bg-rose-100 text-rose-900 border-rose-300' };
+      }
+      if (lower.includes('โฟล์ค') || lower.includes('forklift') || lower.includes('ขนส่ง')) {
+        return { icon: 'fa-solid fa-truck-ramp-box', color: 'text-orange-600', bg: 'bg-orange-100 text-orange-900 border-orange-300' };
+      }
+      if (lower.includes('สแปร์') || lower.includes('สำรอง') || lower.includes('รอจัด')) {
+        return { icon: 'fa-solid fa-user-clock', color: 'text-amber-600', bg: 'bg-amber-100 text-amber-900 border-amber-300' };
+      }
+      return { icon: 'fa-solid fa-user-gear', color: 'text-slate-500', bg: 'bg-slate-100 text-slate-800 border-slate-300' };
+    }
+
     // Main Chart Rendering
     function renderChart() {
       const machine = document.getElementById('filter-chart-machine').value;
-      document.getElementById('chart-machine-badge').textContent = `เครื่อง ${machine}`;
+      const mTheme = getMachineTheme(machine);
+      
+      const badgeEl = document.getElementById('chart-machine-badge');
+      badgeEl.textContent = `เครื่อง ${machine}`;
+      badgeEl.className = `px-3 py-1 rounded-full text-xs font-black border ${mTheme.badge} shadow-xs`;
 
       const store = getStoreData();
       const allEmps = store.employees || [];
@@ -607,29 +702,39 @@
       let cardsHtml = '';
       heads.forEach(h => {
         const avatarSrc = h.avatar ? `assets/uploads/employees/${h.avatar}` : '';
+        const mTheme = getMachineTheme(h.machine);
         cardsHtml += `
-          <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-3xl p-4 shadow-lg flex items-center justify-between border-2 border-amber-400">
-            <div class="flex items-center gap-3">
+          <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-3xl p-5 shadow-lg flex items-center justify-between border-2 border-amber-400">
+            <div class="flex items-center gap-4">
               <div class="relative shrink-0 cursor-pointer" onclick="openAvatarPreview(${h.id})" title="คลิกดูรูปขยาย">
                 ${avatarSrc ? `
-                  <img src="${avatarSrc}" class="w-14 h-14 rounded-2xl object-cover border-2 border-amber-400 shadow hover:scale-105 transition" alt="">
+                  <img src="${avatarSrc}" class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl object-cover border-3 border-amber-400 shadow-md hover:scale-105 transition" alt="">
                 ` : `
-                  <div class="w-14 h-14 rounded-2xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xl hover:scale-105 transition">
+                  <div class="w-16 h-16 sm:w-18 sm:h-18 rounded-2xl bg-amber-500 text-slate-950 font-black flex items-center justify-center text-2xl hover:scale-105 transition">
                     ${h.nickname || h.first_name[0]}
                   </div>
                 `}
+                <span class="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-xs shadow-xs border border-white" title="หัวหน้าแผนก">
+                  <i class="fa-solid fa-crown"></i>
+                </span>
               </div>
               <div>
-                <div class="flex items-center gap-1.5">
-                  <span class="font-black text-sm">${h.first_name} ${h.last_name || ''}</span>
-                  <span class="text-amber-400 font-black text-sm">(${h.nickname || ''})</span>
+                <div class="flex items-center gap-2">
+                  <span class="font-black text-base sm:text-lg">${h.first_name} ${h.last_name || ''}</span>
+                  <span class="text-amber-400 font-black text-base sm:text-lg">(${h.nickname || '-'})</span>
                 </div>
-                <p class="text-xs text-slate-300 font-semibold">${h.position || 'หัวหน้าแผนก / สำนักงาน'}</p>
-                <div class="mt-0.5 text-[10px] text-slate-400 font-mono">${h.employee_code} &bull; สำนักงาน ${h.machine}</div>
+                <p class="text-xs sm:text-sm text-slate-300 font-semibold mt-0.5 flex items-center gap-1.5">
+                  <i class="fa-solid fa-building-user text-amber-400"></i> ${h.position || 'หัวหน้าแผนก / สำนักงาน'}
+                </p>
+                <div class="mt-1 text-xs text-slate-400 font-mono flex items-center gap-2">
+                  <span>${h.employee_code}</span>
+                  <span>&bull;</span>
+                  <span class="px-2 py-0.5 rounded-md bg-white/10 text-slate-200 font-bold">สำนักงาน ${h.machine}</span>
+                </div>
               </div>
             </div>
-            <span class="px-2.5 py-1 rounded-full bg-amber-400 text-slate-950 font-black text-[10px] shadow">
-              <i class="fa-solid fa-crown mr-0.5"></i> สำนักงาน / ผู้นำ
+            <span class="px-3.5 py-1.5 rounded-full bg-amber-400 text-slate-950 font-black text-xs shadow-md">
+              <i class="fa-solid fa-crown mr-1"></i> สำนักงาน / ผู้นำ
             </span>
           </div>
         `;
@@ -644,8 +749,8 @@
 
       if (!pool || pool.length === 0) {
         container.innerHTML = `
-          <div class="col-span-full py-4 text-center text-xs text-slate-400 font-medium">
-            <i class="fa-solid fa-circle-check text-emerald-500 mr-1.5"></i> ขณะนี้ไม่มีพนักงานรอจัดตำแหน่ง (จัดประจำการครบถ้วน)
+          <div class="col-span-full py-5 text-center text-xs sm:text-sm text-slate-500 font-bold">
+            <i class="fa-solid fa-circle-check text-emerald-500 mr-2 text-base"></i> ขณะนี้ไม่มีพนักงานรอจัดตำแหน่ง (จัดประจำการครบถ้วน)
           </div>
         `;
         return;
@@ -654,38 +759,45 @@
       let html = '';
       pool.forEach(emp => {
         const avatarSrc = emp.avatar ? `assets/uploads/employees/${emp.avatar}` : '';
+        const mTheme = getMachineTheme(emp.machine);
+        const posInfo = getPositionIcon(emp.station || emp.position);
+
         html += `
           <div draggable="true" ondragstart="handleDragStart(event, ${emp.id})" ondragend="handleDragEnd(event)"
-               class="bg-white hover:bg-amber-100/60 rounded-2xl border-2 border-amber-300 hover:border-amber-400 p-2.5 shadow-xs transition flex items-center justify-between gap-2 cursor-grab active:cursor-grabbing group">
-            <div class="flex items-center gap-2 min-w-0">
+               class="${mTheme.bgCard} rounded-2xl p-3 sm:p-3.5 shadow-xs transition flex items-center justify-between gap-3 cursor-grab active:cursor-grabbing group">
+            <div class="flex items-center gap-3 min-w-0">
               <div class="relative shrink-0 cursor-pointer" onclick="openAvatarPreview(${emp.id})" title="คลิกดูรูปขยาย">
                 ${avatarSrc ? `
-                  <img src="${avatarSrc}" class="w-10 h-10 rounded-full object-cover border-2 border-amber-400 shadow-xs" alt="">
+                  <img src="${avatarSrc}" class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl object-cover border-2 sm:border-3 ${mTheme.avatarBorder} shadow-xs" alt="">
                 ` : `
-                  <div class="w-10 h-10 rounded-full bg-amber-200 text-amber-900 font-black flex items-center justify-center text-xs">
+                  <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-amber-200 text-amber-950 font-black flex items-center justify-center text-base border-2 ${mTheme.avatarBorder}">
                     ${emp.nickname || emp.first_name[0]}
                   </div>
                 `}
-                <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-slate-950 text-[9px] font-black flex items-center justify-center shadow-xs">
-                  <i class="fa-solid fa-arrows-up-down-left-right text-[8px]"></i>
+                <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-amber-500 text-slate-950 text-[10px] font-black flex items-center justify-center shadow-xs border border-white">
+                  <i class="fa-solid fa-arrows-up-down-left-right"></i>
                 </span>
               </div>
               <div class="min-w-0">
-                <div class="font-black text-xs text-slate-900 truncate flex items-center gap-1">
+                <div class="font-black text-sm text-slate-900 truncate flex items-center gap-1.5">
                   <span>${emp.first_name}</span>
-                  <span class="text-amber-700 font-black">(${emp.nickname || '-'})</span>
+                  <span class="${mTheme.textAccent} font-black">(${emp.nickname || '-'})</span>
                 </div>
-                <div class="text-[10px] text-slate-500 truncate font-medium">${emp.position || 'พนักงานสำรอง'}</div>
-                <div class="text-[9px] text-slate-400 font-mono flex items-center gap-1">
-                  <span>${emp.employee_code}</span>
-                  <span class="px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-bold">กะ ${emp.shift || '-'}</span>
+                <div class="text-[11px] text-slate-600 truncate font-semibold mt-0.5 flex items-center gap-1">
+                  <i class="${posInfo.icon} ${posInfo.color}"></i> ${emp.position || 'พนักงานสำรอง'}
+                </div>
+                <div class="text-[10px] text-slate-500 font-mono flex items-center gap-1.5 mt-0.5">
+                  <span class="font-bold">${emp.employee_code}</span>
+                  <span>&bull;</span>
+                  <span class="px-1.5 py-0.2 rounded-md ${mTheme.badge} font-black text-[9px]">${emp.machine}</span>
+                  <span class="px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-700 font-bold text-[9px]">กะ ${emp.shift || '-'}</span>
                 </div>
               </div>
             </div>
 
             <button type="button" onclick="openMoveModal(${emp.id})" title="กำหนดจุดประจำการ"
-                    class="px-2.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-[11px] shadow-2xs transition shrink-0 cursor-pointer">
-              ส่งเข้าจุด
+                    class="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs shadow-xs transition shrink-0 cursor-pointer flex items-center gap-1">
+              <i class="fa-solid fa-paper-plane text-[10px]"></i> ส่งเข้าจุด
             </button>
           </div>
         `;
@@ -696,6 +808,8 @@
     // Render Shift Tiers with Custom Stations (Tier 1-5 + Tier 6)
     function renderShiftTiers(shiftKey, shiftEmps, customStations, container) {
       container.innerHTML = '';
+      const currentMachine = document.getElementById('filter-chart-machine').value;
+      const currentMTheme = getMachineTheme(currentMachine);
 
       // Build complete tiers list: TIERS_CONFIG + optional Tier 6 for custom stations
       const tiers = [...TIERS_CONFIG];
@@ -714,100 +828,115 @@
         cfg.stations.forEach(stName => {
           const emp = shiftEmps.find(e => e.station === stName);
           const isCustom = !BASE_STATIONS.includes(stName);
+          const posInfo = getPositionIcon(stName);
 
           if (emp) {
             const avatarSrc = emp.avatar ? `assets/uploads/employees/${emp.avatar}` : '';
-            const isLeader = cfg.tier === 1;
+            const isLeader = cfg.tier === 1 || posInfo.isLeader;
+            const empMTheme = getMachineTheme(emp.machine || currentMachine);
 
             cards += `
               <div draggable="true" ondragstart="handleDragStart(event, ${emp.id})" ondragend="handleDragEnd(event)"
                    ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDropToStation(event, '${stName}', '${shiftKey}')"
-                   class="bg-slate-50 hover:bg-orange-50/70 rounded-2xl border-2 ${isLeader ? 'border-amber-400 bg-amber-50/40' : isCustom ? 'border-indigo-300 bg-indigo-50/30' : 'border-slate-200'} p-3 shadow-2xs transition group cursor-grab active:cursor-grabbing relative">
+                   class="${empMTheme.bgCard} rounded-3xl p-4 sm:p-4.5 transition group cursor-grab active:cursor-grabbing relative flex flex-col justify-between">
                 
                 <!-- Station Header Bar -->
-                <div class="flex items-center justify-between mb-2 pb-1.5 border-b border-slate-200">
+                <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-200/90">
                   <div class="flex items-center gap-1.5">
-                    <span class="px-2 py-0.5 rounded-lg text-[10px] font-black ${isLeader ? 'bg-amber-400 text-slate-950' : isCustom ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-700'}">
-                      ${stName}
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black shadow-xs ${isLeader ? 'bg-amber-400 text-slate-950 border border-amber-500' : isCustom ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-white'}">
+                      <i class="${posInfo.icon}"></i> ${stName}
+                    </span>
+                    <span class="px-2 py-0.5 rounded-lg text-[10px] font-black border ${empMTheme.badge}">
+                      ${emp.machine}
                     </span>
                     ${isCustom ? `
-                      <button type="button" onclick="renameCustomStation('${stName}', '${shiftKey}')" title="เปลี่ยนชื่อจุดนี้" class="text-slate-400 hover:text-blue-600 text-[11px] p-0.5 cursor-pointer">
+                      <button type="button" onclick="renameCustomStation('${stName}', '${shiftKey}')" title="เปลี่ยนชื่อจุดนี้" class="text-slate-400 hover:text-blue-600 text-xs p-1 cursor-pointer">
                         <i class="fa-solid fa-pen-to-square"></i>
                       </button>
-                      <button type="button" onclick="deleteCustomStation('${stName}', '${shiftKey}')" title="ลบจุดเพิ่มเติมนี้" class="text-slate-400 hover:text-rose-600 text-[11px] p-0.5 cursor-pointer">
+                      <button type="button" onclick="deleteCustomStation('${stName}', '${shiftKey}')" title="ลบจุดเพิ่มเติมนี้" class="text-slate-400 hover:text-rose-600 text-xs p-1 cursor-pointer">
                         <i class="fa-solid fa-trash-can"></i>
                       </button>
                     ` : ''}
                   </div>
-                  <span class="font-mono text-[10px] text-slate-400 font-bold">${emp.employee_code}</span>
+                  <span class="font-mono text-xs text-slate-500 font-bold">${emp.employee_code}</span>
                 </div>
 
-                <!-- Employee Info -->
-                <div class="flex items-center gap-2.5">
+                <!-- Employee Info (Enlarged) -->
+                <div class="flex items-center gap-3.5 my-1">
                   <div class="relative shrink-0 cursor-pointer" onclick="openAvatarPreview(${emp.id})" title="คลิกดูรูปขยาย">
                     ${avatarSrc ? `
-                      <img src="${avatarSrc}" class="w-11 h-11 rounded-full object-cover border-2 ${isLeader ? 'border-amber-500' : isCustom ? 'border-indigo-500' : 'border-orange-400'} hover:scale-110 transition shadow-2xs" alt="">
+                      <img src="${avatarSrc}" class="w-15 h-15 sm:w-16 sm:h-16 rounded-2xl object-cover border-3 ${isLeader ? 'border-amber-500' : empMTheme.avatarBorder} hover:scale-108 transition shadow-xs" alt="">
                     ` : `
-                      <div class="w-11 h-11 rounded-full ${isCustom ? 'bg-indigo-100 text-indigo-800' : 'bg-orange-100 text-orange-800'} font-black flex items-center justify-center text-xs hover:scale-110 transition">
+                      <div class="w-15 h-15 sm:w-16 sm:h-16 rounded-2xl bg-orange-100 text-orange-950 font-black flex items-center justify-center text-lg hover:scale-108 transition border-3 ${empMTheme.avatarBorder}">
                         ${emp.nickname || emp.first_name[0]}
                       </div>
                     `}
+                    ${isLeader ? `
+                      <span class="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-xs shadow-xs border border-white" title="หัวหน้ากะ">
+                        <i class="fa-solid fa-crown"></i>
+                      </span>
+                    ` : ''}
                   </div>
                   <div class="min-w-0 flex-1">
-                    <div class="font-bold text-xs text-slate-900 truncate">
-                      ${emp.first_name}
-                      <span class="text-orange-600 font-black">(${emp.nickname || ''})</span>
+                    <div class="font-black text-sm sm:text-base text-slate-900 truncate">
+                      ${emp.first_name} ${emp.last_name || ''}
                     </div>
-                    <div class="text-[10px] text-slate-500 truncate">${emp.position || 'ผู้ปฏิบัติงาน'}</div>
+                    <div class="${empMTheme.textAccent} font-black text-sm sm:text-base truncate">
+                      (${emp.nickname || '-'})
+                    </div>
+                    <div class="text-xs text-slate-600 font-semibold truncate mt-0.5 flex items-center gap-1">
+                      <i class="${posInfo.icon} ${posInfo.color} text-[11px]"></i>
+                      ${emp.position || 'ผู้ปฏิบัติงาน'}
+                    </div>
                   </div>
                 </div>
 
                 <!-- Action Toolbar on Card -->
-                <div class="mt-2.5 pt-2 border-t border-slate-200/80 flex items-center justify-between text-[10px]">
+                <div class="mt-3 pt-2.5 border-t border-slate-200/80 flex items-center justify-between text-xs">
                   <button type="button" onclick="openMoveModal(${emp.id})" title="ย้ายหรือสลับตำแหน่ง"
-                          class="px-2 py-0.5 rounded-lg bg-orange-100 hover:bg-orange-200 text-orange-800 font-bold flex items-center gap-1 transition cursor-pointer">
-                    <i class="fa-solid fa-arrows-up-down-left-right text-[9px]"></i> ย้าย/สลับ
+                          class="px-3 py-1.5 rounded-xl bg-orange-100 hover:bg-orange-200 text-orange-900 font-black flex items-center gap-1.5 transition cursor-pointer shadow-2xs">
+                    <i class="fa-solid fa-arrows-up-down-left-right text-[11px]"></i> ย้าย/สลับ
                   </button>
                   <button type="button" onclick="quickUnassign(${emp.id})" title="ปลดไปช่องรอจัดตำแหน่ง"
-                          class="text-slate-400 hover:text-rose-600 font-semibold transition cursor-pointer flex items-center gap-0.5">
+                          class="px-2.5 py-1 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg font-bold transition cursor-pointer flex items-center gap-1">
                     <i class="fa-solid fa-arrow-right-from-bracket"></i> ปลด
                   </button>
                 </div>
               </div>
             `;
           } else {
-            // Empty station slot
+            // Empty station slot (Enlarged)
             cards += `
               <div ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDropToStation(event, '${stName}', '${shiftKey}')"
-                   class="bg-slate-50/80 hover:bg-emerald-50/80 rounded-2xl border-2 border-dashed ${isCustom ? 'border-indigo-300 bg-indigo-50/20' : 'border-slate-300 hover:border-emerald-400'} p-3 text-center transition flex flex-col justify-between min-h-[115px]">
+                   class="${currentMTheme.bgEmpty} rounded-3xl border-2 border-dashed p-4 sm:p-5 text-center transition flex flex-col justify-between min-h-[145px] sm:min-h-[160px]">
                 <div>
-                  <div class="flex items-center justify-between mb-1">
-                    <span class="px-2 py-0.5 rounded-lg text-[10px] font-black ${isCustom ? 'bg-indigo-100 text-indigo-700 border border-indigo-200' : 'bg-slate-200 text-slate-600'}">
-                      ${stName}
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black shadow-2xs ${isCustom ? 'bg-indigo-100 text-indigo-800 border border-indigo-200' : 'bg-slate-200 text-slate-700'}">
+                      <i class="${posInfo.icon} ${posInfo.color}"></i> ${stName}
                     </span>
                     ${isCustom ? `
                       <div class="flex items-center gap-1">
-                        <button type="button" onclick="renameCustomStation('${stName}', '${shiftKey}')" title="เปลี่ยนชื่อจุดนี้" class="text-slate-400 hover:text-blue-600 text-[11px] p-0.5 cursor-pointer">
+                        <button type="button" onclick="renameCustomStation('${stName}', '${shiftKey}')" title="เปลี่ยนชื่อจุดนี้" class="text-slate-400 hover:text-blue-600 text-xs p-1 cursor-pointer">
                           <i class="fa-solid fa-pen-to-square"></i>
                         </button>
-                        <button type="button" onclick="deleteCustomStation('${stName}', '${shiftKey}')" title="ลบจุดประจำการนี้" class="text-slate-400 hover:text-rose-600 text-[11px] p-0.5 cursor-pointer">
+                        <button type="button" onclick="deleteCustomStation('${stName}', '${shiftKey}')" title="ลบจุดประจำการนี้" class="text-slate-400 hover:text-rose-600 text-xs p-1 cursor-pointer">
                           <i class="fa-solid fa-trash-can"></i>
                         </button>
                       </div>
                     ` : ''}
                   </div>
-                  <p class="text-[11px] text-slate-500 font-medium my-1.5">
-                    <i class="fa-regular fa-user mr-1 text-slate-400"></i> ยังไม่กำหนดพนักงาน (ว่าง)
+                  <p class="text-xs sm:text-sm text-slate-500 font-bold my-2 flex items-center justify-center gap-1.5">
+                    <i class="fa-regular fa-user text-slate-400"></i> ยังไม่กำหนดพนักงาน (ว่าง)
                   </p>
-                  <p class="text-[9px] text-emerald-700 font-semibold bg-emerald-50 rounded-lg py-0.5 border border-emerald-100">
-                    <i class="fa-solid fa-arrow-down mr-0.5"></i> ลากพนักงานมาวางที่นี่ได้
+                  <p class="text-[10px] text-emerald-800 font-black bg-emerald-100/80 rounded-xl py-1 px-2 border border-emerald-200 inline-block">
+                    <i class="fa-solid fa-arrow-down mr-1"></i> ลากพนักงานมาวางที่จุดนี้ได้
                   </p>
                 </div>
 
-                <div class="flex items-center justify-center gap-1 pt-1.5">
+                <div class="flex items-center justify-center gap-1 pt-2">
                   <button type="button" onclick="openAssignModal('${stName}', '${shiftKey}')"
-                          class="px-2.5 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] transition cursor-pointer flex items-center gap-1 shadow-2xs">
-                    <i class="fa-solid fa-user-plus text-[9px]"></i> + กำหนดพนักงาน
+                          class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition cursor-pointer flex items-center gap-1.5 shadow-xs">
+                    <i class="fa-solid fa-user-plus text-[11px]"></i> + กำหนดพนักงาน
                   </button>
                 </div>
               </div>
@@ -816,11 +945,11 @@
         });
 
         container.insertAdjacentHTML('beforeend', `
-          <div class="space-y-2">
-            <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-              <i class="fa-solid ${cfg.icon} ${cfg.tier === 6 ? 'text-indigo-600' : 'text-orange-500'}"></i> ${cfg.title}
+          <div class="space-y-2.5">
+            <h4 class="text-xs sm:text-sm font-black text-slate-800 flex items-center gap-2">
+              <i class="fa-solid ${cfg.icon} ${cfg.tier === 6 ? 'text-indigo-600' : 'text-orange-500'} text-sm"></i> ${cfg.title}
             </h4>
-            <div class="grid ${cfg.grid} gap-2.5">
+            <div class="grid ${cfg.grid} gap-3 sm:gap-4">
               ${cards}
             </div>
           </div>
@@ -831,8 +960,8 @@
       container.insertAdjacentHTML('beforeend', `
         <div class="pt-2">
           <button type="button" onclick="addNewStationSlot('${shiftKey}')"
-                  class="w-full py-2.5 px-3 rounded-2xl border-2 border-dashed ${shiftKey === 'A' ? 'border-blue-300 hover:border-blue-500 bg-blue-50/40 hover:bg-blue-50 text-blue-700' : 'border-rose-300 hover:border-rose-500 bg-rose-50/40 hover:bg-rose-50 text-rose-700'} font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-2xs">
-            <i class="fa-solid fa-plus-circle"></i> + เพิ่มช่องตำแหน่งล่างสุด (>10 คน)
+                  class="w-full py-3 px-4 rounded-2xl border-2 border-dashed ${shiftKey === 'A' ? 'border-blue-300 hover:border-blue-500 bg-blue-50/50 hover:bg-blue-100/60 text-blue-800' : 'border-rose-300 hover:border-rose-500 bg-rose-50/50 hover:bg-rose-100/60 text-rose-800'} font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer shadow-xs">
+            <i class="fa-solid fa-plus-circle text-base"></i> + เพิ่มช่องตำแหน่งล่างสุด (>10 คน)
           </button>
         </div>
       `);

@@ -785,69 +785,166 @@
       }
     }
 
+    // Machine Color Theme Helper (BHS = ส้มอ่อน, YUELI = น้ำเงินอ่อน, ISOWA = เขียวอ่อน)
+    function getMachineTheme(machine) {
+      const m = (machine || '').toUpperCase();
+      if (m === 'BHS') {
+        return {
+          name: 'BHS',
+          label: 'เครื่อง BHS',
+          bgRow: 'bg-orange-50/60 hover:bg-orange-100/70 border-b border-orange-100',
+          bgCard: 'bg-gradient-to-br from-orange-50/95 via-amber-50/60 to-white border-2 border-orange-300 hover:border-orange-500 hover:shadow-lg',
+          badge: 'bg-orange-100 text-orange-950 border-orange-300',
+          avatarBorder: 'border-orange-400',
+          textAccent: 'text-orange-700',
+          icon: 'fa-solid fa-industry'
+        };
+      } else if (m === 'YUELI') {
+        return {
+          name: 'YUELI',
+          label: 'เครื่อง YUELI',
+          bgRow: 'bg-blue-50/60 hover:bg-blue-100/70 border-b border-blue-100',
+          bgCard: 'bg-gradient-to-br from-blue-50/95 via-sky-50/60 to-white border-2 border-blue-300 hover:border-blue-500 hover:shadow-lg',
+          badge: 'bg-blue-100 text-blue-950 border-blue-300',
+          avatarBorder: 'border-blue-400',
+          textAccent: 'text-blue-700',
+          icon: 'fa-solid fa-gears'
+        };
+      } else if (m === 'ISOWA') {
+        return {
+          name: 'ISOWA',
+          label: 'เครื่อง ISOWA',
+          bgRow: 'bg-emerald-50/60 hover:bg-emerald-100/70 border-b border-emerald-100',
+          bgCard: 'bg-gradient-to-br from-emerald-50/95 via-teal-50/60 to-white border-2 border-emerald-300 hover:border-emerald-500 hover:shadow-lg',
+          badge: 'bg-emerald-100 text-emerald-950 border-emerald-300',
+          avatarBorder: 'border-emerald-400',
+          textAccent: 'text-emerald-700',
+          icon: 'fa-solid fa-screwdriver-wrench'
+        };
+      }
+      return {
+        name: m || 'ทั่วไป',
+        label: m || 'ทั่วไป',
+        bgRow: 'bg-white hover:bg-slate-50 border-b border-slate-100',
+        bgCard: 'bg-white border-2 border-slate-200 hover:border-slate-400 hover:shadow-md',
+        badge: 'bg-slate-100 text-slate-800 border-slate-300',
+        avatarBorder: 'border-slate-300',
+        textAccent: 'text-slate-700',
+        icon: 'fa-solid fa-cube'
+      };
+    }
+
+    // Position Icon Helper for Important Stations & Roles
+    function getPositionIcon(stOrPos) {
+      const s = (stOrPos || '').trim();
+      const lower = s.toLowerCase();
+
+      if (s === 'Host' || lower.includes('หัวหน้ากะ')) {
+        return { icon: 'fa-solid fa-crown', color: 'text-amber-500', bg: 'bg-amber-100 text-amber-900 border-amber-300', isLeader: true };
+      }
+      if (s === 'Control' || lower.includes('ห้องควบคุม') || lower.includes('control')) {
+        return { icon: 'fa-solid fa-sliders', color: 'text-cyan-600', bg: 'bg-cyan-100 text-cyan-900 border-cyan-300' };
+      }
+      if (s === 'Stacker' || lower.includes('เครื่องเรียง') || lower.includes('stacker')) {
+        return { icon: 'fa-solid fa-boxes-stacked', color: 'text-purple-600', bg: 'bg-purple-100 text-purple-900 border-purple-300' };
+      }
+      if (s === 'DOUBLE' || lower.includes('เครื่องกาว') || lower.includes('double')) {
+        return { icon: 'fa-solid fa-clone', color: 'text-amber-600', bg: 'bg-amber-100 text-amber-900 border-amber-300' };
+      }
+      if (s.startsWith('SF-') || lower.includes('single')) {
+        return { icon: 'fa-solid fa-gear', color: 'text-blue-600', bg: 'bg-blue-100 text-blue-900 border-blue-300' };
+      }
+      if (/^M[1-5]$/.test(s) || lower.includes('wet end')) {
+        return { icon: 'fa-solid fa-wrench', color: 'text-emerald-600', bg: 'bg-emerald-100 text-emerald-900 border-emerald-300' };
+      }
+      if (lower.includes('หัวหน้าแผนก') || lower.includes('สำนักงาน') || lower.includes('office')) {
+        return { icon: 'fa-solid fa-building-user', color: 'text-indigo-600', bg: 'bg-indigo-100 text-indigo-900 border-indigo-300', isLeader: true };
+      }
+      if (lower.includes('qc') || lower.includes('คุณภาพ')) {
+        return { icon: 'fa-solid fa-clipboard-check', color: 'text-rose-600', bg: 'bg-rose-100 text-rose-900 border-rose-300' };
+      }
+      if (lower.includes('โฟล์ค') || lower.includes('forklift') || lower.includes('ขนส่ง')) {
+        return { icon: 'fa-solid fa-truck-ramp-box', color: 'text-orange-600', bg: 'bg-orange-100 text-orange-900 border-orange-300' };
+      }
+      if (lower.includes('สแปร์') || lower.includes('สำรอง') || lower.includes('รอจัด')) {
+        return { icon: 'fa-solid fa-user-clock', color: 'text-amber-600', bg: 'bg-amber-100 text-amber-900 border-amber-300' };
+      }
+      return { icon: 'fa-solid fa-user-gear', color: 'text-slate-500', bg: 'bg-slate-100 text-slate-800 border-slate-300' };
+    }
+
     function renderGridView(emps, container) {
-      let html = '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">';
+      let html = '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">';
       emps.forEach(e => {
         const tenure = calculateTenure(e.start_date);
         const age = calculateAge(e.birth_date);
-        const isLeader = (e.station === 'Host' || (e.position && e.position.includes('หัวหน้า')));
+        const mTheme = getMachineTheme(e.machine);
+        const posInfo = getPositionIcon(e.station || e.position);
+        const isLeader = (e.station === 'Host' || (e.position && e.position.includes('หัวหน้า')) || posInfo.isLeader);
         const avatarSrc = e.avatar ? `assets/uploads/employees/${e.avatar}` : '';
 
-        // Badge color for machine
-        const mBadge = e.machine === 'BHS' ? 'bg-orange-100 text-orange-800 border-orange-200' : (e.machine === 'YUELI' ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-emerald-100 text-emerald-800 border-emerald-200');
-
         html += `
-          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition p-5 flex flex-col justify-between space-y-4">
+          <div class="rounded-3xl p-5 sm:p-6 transition shadow-sm hover:shadow-xl ${mTheme.bgCard} flex flex-col justify-between space-y-4">
             <div class="flex items-start justify-between gap-3">
               <div class="relative shrink-0 cursor-pointer" onclick="openAvatarPreview(${e.id})" title="คลิกดูรูปขยาย">
                 ${avatarSrc ? `
-                  <img src="${avatarSrc}" class="w-16 h-16 rounded-2xl object-cover border-2 border-orange-400 shadow-sm hover:scale-105 hover:border-orange-500 transition" alt="" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'w-16 h-16 rounded-2xl bg-orange-100 text-orange-800 font-bold flex items-center justify-center text-lg\\'>${escapeHtml(e.nickname || e.first_name[0])}</div>'">
+                  <img src="${avatarSrc}" class="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl object-cover border-3 ${mTheme.avatarBorder} shadow-md hover:scale-105 transition" alt="" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-orange-200 text-orange-950 font-black flex items-center justify-center text-xl\\'>${escapeHtml(e.nickname || e.first_name[0])}</div>'">
                 ` : `
-                  <div class="w-16 h-16 rounded-2xl bg-orange-100 text-orange-800 font-black flex items-center justify-center text-lg hover:scale-105 transition">
+                  <div class="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-orange-100 text-orange-800 font-black flex items-center justify-center text-2xl hover:scale-105 transition border-3 ${mTheme.avatarBorder}">
                     ${escapeHtml(e.nickname || e.first_name[0])}
                   </div>
                 `}
                 ${isLeader ? `
-                  <span class="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-xs shadow" title="หัวหน้ากะ">
+                  <span class="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-xs shadow-md border-2 border-white" title="หัวหน้า / ผู้นำ">
                     <i class="fa-solid fa-crown"></i>
                   </span>
                 ` : ''}
               </div>
 
-              <div class="text-right">
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${mBadge}">${e.machine}</span>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 ml-1">กะ ${e.shift}</span>
-                <div class="mt-1 font-mono text-[11px] text-slate-400 font-semibold">${e.employee_code}</div>
+              <div class="text-right space-y-1">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black border ${mTheme.badge} shadow-2xs">
+                  <i class="${mTheme.icon}"></i> ${e.machine}
+                </span>
+                <div>
+                  <span class="inline-block px-2.5 py-0.5 rounded-lg text-xs font-black ${e.shift==='A'?'bg-blue-600 text-white':(e.shift==='B'?'bg-rose-600 text-white':'bg-amber-500 text-slate-950')} shadow-2xs">
+                    กะ ${e.shift}
+                  </span>
+                </div>
+                <div class="font-mono text-xs text-slate-500 font-bold">${e.employee_code}</div>
               </div>
             </div>
 
             <div>
               <div class="flex items-baseline gap-1.5 flex-wrap">
-                <h3 class="font-black text-slate-900 text-sm">${escapeHtml(e.first_name)} ${escapeHtml(e.last_name || '')}</h3>
-                ${e.nickname ? `<span class="text-orange-600 font-black text-sm">(${escapeHtml(e.nickname)})</span>` : ''}
+                <h3 class="font-black text-slate-900 text-base sm:text-lg">${escapeHtml(e.first_name)} ${escapeHtml(e.last_name || '')}</h3>
+                ${e.nickname ? `<span class="${mTheme.textAccent} font-black text-base sm:text-lg">(${escapeHtml(e.nickname)})</span>` : ''}
               </div>
-              <p class="text-xs text-slate-500 mt-0.5">${escapeHtml(e.position || 'ผู้ปฏิบัติงาน')}</p>
-              <div class="mt-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-bold">
-                <i class="fa-solid fa-location-dot text-slate-400 text-[10px]"></i> ${escapeHtml(e.station || '-')}
+              <p class="text-xs text-slate-600 font-semibold mt-1 flex items-center gap-1">
+                ${isLeader ? '<i class="fa-solid fa-crown text-amber-500"></i>' : '<i class="fa-solid fa-user-tag text-slate-400"></i>'}
+                ${escapeHtml(e.position || 'ผู้ปฏิบัติงาน')}
+              </p>
+              <div class="mt-2.5">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black border ${posInfo.bg} shadow-2xs">
+                  <i class="${posInfo.icon} ${posInfo.color}"></i> จุด: ${escapeHtml(e.station || 'รอจัดตำแหน่ง')}
+                </span>
               </div>
             </div>
 
-            <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+            <div class="pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs">
               <div>
-                <span class="text-[10px] text-slate-400 font-semibold block">อายุงาน:</span>
-                <strong class="text-amber-800 font-black font-num">${tenure.text}</strong>
+                <span class="text-[11px] text-slate-500 font-bold block">อายุงาน:</span>
+                <strong class="text-amber-900 font-black text-sm font-num">${tenure.text}</strong>
               </div>
               <div class="text-right">
-                <span class="text-[10px] text-slate-400 font-semibold block">อายุตัว:</span>
-                <strong class="text-slate-700 font-black font-num">${age.text}</strong>
+                <span class="text-[11px] text-slate-500 font-bold block">อายุตัว:</span>
+                <strong class="text-slate-800 font-black text-sm font-num">${age.text}</strong>
               </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-2 mt-2">
-              <button type="button" onclick="openProfileModal(${e.id})" class="py-2 bg-slate-50 hover:bg-orange-50 border border-slate-200 hover:border-orange-200 text-slate-700 hover:text-orange-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1">
-                <i class="fa-solid fa-id-card"></i> ประวัติ
+            <div class="grid grid-cols-2 gap-2 mt-2 pt-1">
+              <button type="button" onclick="openProfileModal(${e.id})" class="py-2.5 px-3 bg-white hover:bg-orange-50 border-2 border-slate-200 hover:border-orange-300 text-slate-800 hover:text-orange-700 rounded-2xl text-xs font-black transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer">
+                <i class="fa-solid fa-id-card text-orange-600"></i> ดูประวัติ
               </button>
-              <button type="button" onclick="openEditEmployeeModal(${e.id})" class="py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1">
+              <button type="button" onclick="openEditEmployeeModal(${e.id})" class="py-2.5 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-black transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer">
                 <i class="fa-solid fa-pen-to-square"></i> แก้ไข
               </button>
             </div>
@@ -863,43 +960,68 @@
       emps.forEach((e, idx) => {
         const tenure = calculateTenure(e.start_date);
         const age = calculateAge(e.birth_date);
-        const isLeader = (e.station === 'Host' || (e.position && e.position.includes('หัวหน้า')));
+        const mTheme = getMachineTheme(e.machine);
+        const posInfo = getPositionIcon(e.station || e.position);
+        const isLeader = (e.station === 'Host' || (e.position && e.position.includes('หัวหน้า')) || posInfo.isLeader);
         const avatarSrc = e.avatar ? `assets/uploads/employees/${e.avatar}` : '';
 
         rows += `
-          <tr class="hover:bg-amber-50/30 transition text-xs border-b border-slate-100">
-            <td class="p-3 text-center text-slate-400 font-semibold">${idx+1}</td>
-            <td class="p-3">
-              <div class="flex items-center gap-3">
+          <tr class="${mTheme.bgRow} transition text-xs sm:text-sm">
+            <td class="p-3.5 sm:p-4 text-center text-slate-500 font-bold w-12">${idx+1}</td>
+            <td class="p-3.5 sm:p-4">
+              <div class="flex items-center gap-3.5">
                 <div class="relative shrink-0 cursor-pointer" onclick="openAvatarPreview(${e.id})" title="คลิกดูรูปขยาย">
                   ${avatarSrc ? `
-                    <img src="${avatarSrc}" class="w-10 h-10 rounded-full object-cover border-2 border-orange-400 hover:scale-115 hover:border-orange-600 transition shadow-xs" alt="">
+                    <img src="${avatarSrc}" class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl object-cover border-2 sm:border-3 ${mTheme.avatarBorder} hover:scale-110 transition shadow-xs" alt="">
                   ` : `
-                    <div class="w-10 h-10 rounded-full bg-orange-100 text-orange-800 font-bold text-xs flex items-center justify-center hover:scale-115 transition">
+                    <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-orange-100 text-orange-800 font-black text-sm sm:text-base flex items-center justify-center hover:scale-110 transition border-2 ${mTheme.avatarBorder}">
                       ${escapeHtml(e.nickname || e.first_name[0])}
                     </div>
                   `}
+                  ${isLeader ? `
+                    <span class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-[10px] shadow-xs border border-white" title="หัวหน้า / ผู้นำ">
+                      <i class="fa-solid fa-crown"></i>
+                    </span>
+                  ` : ''}
                 </div>
                 <div>
-                  <div class="font-bold text-slate-900">${e.first_name} ${e.last_name || ''} <span class="text-orange-600 font-black">(${e.nickname || ''})</span></div>
-                  <div class="text-[10px] text-slate-400 font-mono">${e.employee_code}</div>
+                  <div class="font-black text-slate-900 text-sm sm:text-base leading-snug">
+                    ${e.first_name} ${e.last_name || ''}
+                    <span class="${mTheme.textAccent} font-black text-sm sm:text-base">(${e.nickname || '-'})</span>
+                  </div>
+                  <div class="text-[11px] text-slate-500 font-mono font-bold mt-0.5">${e.employee_code}</div>
                 </div>
               </div>
             </td>
-            <td class="p-3 text-center font-bold text-slate-700">${e.machine}</td>
-            <td class="p-3 text-center">
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${e.shift==='A'?'bg-blue-100 text-blue-800':(e.shift==='B'?'bg-rose-100 text-rose-800':'bg-slate-100 text-slate-800')}">${e.shift}</span>
+            <td class="p-3.5 sm:p-4 text-center">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black border ${mTheme.badge} shadow-2xs">
+                <i class="${mTheme.icon}"></i> ${e.machine}
+              </span>
             </td>
-            <td class="p-3 font-semibold text-slate-800">${e.station || '-'}</td>
-            <td class="p-3 text-slate-600">${e.position || '-'}</td>
-            <td class="p-3 font-black text-amber-800 font-num">${tenure.text}</td>
-            <td class="p-3 text-center font-bold text-slate-700 font-num">${age.text}</td>
-            <td class="p-3 text-center">
-              <div class="inline-flex items-center gap-1.5">
-                <button type="button" onclick="openProfileModal(${e.id})" class="px-2.5 py-1 bg-white hover:bg-orange-50 border border-slate-200 hover:border-orange-300 text-orange-600 rounded-lg text-xs font-bold transition">
-                  ดูประวัติ
+            <td class="p-3.5 sm:p-4 text-center">
+              <span class="inline-flex items-center justify-center w-7 h-7 rounded-xl text-xs font-black shadow-2xs ${e.shift==='A'?'bg-blue-600 text-white':(e.shift==='B'?'bg-rose-600 text-white':'bg-amber-500 text-slate-950')}">
+                ${e.shift}
+              </span>
+            </td>
+            <td class="p-3.5 sm:p-4">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black border ${posInfo.bg} shadow-2xs">
+                <i class="${posInfo.icon} ${posInfo.color}"></i> ${e.station || '-'}
+              </span>
+            </td>
+            <td class="p-3.5 sm:p-4 font-semibold text-slate-800 text-xs sm:text-sm">
+              <div class="flex items-center gap-1.5">
+                ${isLeader ? '<i class="fa-solid fa-crown text-amber-500"></i>' : ''}
+                <span>${e.position || '-'}</span>
+              </div>
+            </td>
+            <td class="p-3.5 sm:p-4 font-black text-amber-900 font-num text-xs sm:text-sm">${tenure.text}</td>
+            <td class="p-3.5 sm:p-4 text-center font-bold text-slate-700 font-num text-xs sm:text-sm">${age.text}</td>
+            <td class="p-3.5 sm:p-4 text-center">
+              <div class="inline-flex items-center gap-2">
+                <button type="button" onclick="openProfileModal(${e.id})" class="px-3 py-1.5 bg-white hover:bg-orange-50 border-2 border-slate-200 hover:border-orange-300 text-slate-800 hover:text-orange-700 rounded-xl text-xs font-black transition shadow-2xs flex items-center gap-1 cursor-pointer">
+                  <i class="fa-solid fa-id-card text-orange-600"></i> ดูประวัติ
                 </button>
-                <button type="button" onclick="openEditEmployeeModal(${e.id})" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                <button type="button" onclick="openEditEmployeeModal(${e.id})" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-black transition flex items-center gap-1 shadow-2xs cursor-pointer">
                   <i class="fa-solid fa-pen-to-square"></i> แก้ไข
                 </button>
               </div>
@@ -909,20 +1031,20 @@
       });
 
       container.innerHTML = `
-        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="bg-white rounded-3xl border-2 border-slate-200 shadow-sm overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
               <thead>
-                <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600">
-                  <th class="p-3 text-center w-12">#</th>
-                  <th class="p-3">พนักงาน</th>
-                  <th class="p-3 text-center">เครื่องจักร</th>
-                  <th class="p-3 text-center">กะ</th>
-                  <th class="p-3">จุดประจำการ</th>
-                  <th class="p-3">ตำแหน่ง</th>
-                  <th class="p-3">อายุงาน</th>
-                  <th class="p-3 text-center">อายุตัว</th>
-                  <th class="p-3 text-center">จัดการ</th>
+                <tr class="bg-slate-100 border-b-2 border-slate-200 text-xs sm:text-sm font-black text-slate-700 uppercase tracking-wider">
+                  <th class="p-3.5 sm:p-4 text-center w-12">#</th>
+                  <th class="p-3.5 sm:p-4">พนักงาน (ชื่อ - สกุล / ชื่อเล่น)</th>
+                  <th class="p-3.5 sm:p-4 text-center">เครื่องจักร</th>
+                  <th class="p-3.5 sm:p-4 text-center">กะ</th>
+                  <th class="p-3.5 sm:p-4">จุดประจำการ (Station)</th>
+                  <th class="p-3.5 sm:p-4">ตำแหน่งงาน</th>
+                  <th class="p-3.5 sm:p-4">อายุงาน</th>
+                  <th class="p-3.5 sm:p-4 text-center">อายุตัว</th>
+                  <th class="p-3.5 sm:p-4 text-center">จัดการ</th>
                 </tr>
               </thead>
               <tbody>
