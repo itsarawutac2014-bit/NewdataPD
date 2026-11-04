@@ -156,6 +156,45 @@ const GoogleSheetSync = (function() {
   }
 
   /**
+   * ดึงข้อมูลพนักงานและรูปภาพล่าสุดจาก Google Sheet / Drive มาอัปเดตลงหน้าเว็บ
+   */
+  async function pullDataFromSheet(showNotification = false) {
+    const url = getWebhookUrl();
+    if (!url) return false;
+    try {
+      if (showNotification) {
+        showToast('กำลังดึงข้อมูลล่าสุดจาก Google Sheet...', 'info');
+      }
+      const res = await fetch(url);
+      if (!res.ok) return false;
+      const data = await res.json();
+      if (data && data.success && Array.isArray(data.employees) && data.employees.length > 0) {
+        let store = {};
+        try {
+          const raw = localStorage.getItem('datamanbhs_attendance_v1');
+          if (raw) store = JSON.parse(raw);
+        } catch(e) {}
+        
+        // อัปเดตข้อมูลพนักงาน
+        store.employees = data.employees;
+        if (Array.isArray(data.attendance) && data.attendance.length > 0) {
+          store.attendance = data.attendance;
+        }
+        localStorage.setItem('datamanbhs_attendance_v1', JSON.stringify(store));
+        localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());
+
+        if (showNotification) {
+          showToast('ดึงข้อมูลพนักงานและรูปภาพล่าสุดเรียบร้อย ✅', 'success');
+        }
+        return true;
+      }
+    } catch (err) {
+      console.warn('GoogleSheetSync pull warning:', err);
+    }
+    return false;
+  }
+
+  /**
    * แสดง Toast Notification สวยงามที่มุมขวาล่าง
    */
   function showToast(message, type = 'info') {
@@ -366,6 +405,7 @@ const GoogleSheetSync = (function() {
     syncAttendance,
     syncBulkAttendance,
     syncAllEmployees,
+    pullDataFromSheet,
     openSettingsModal,
     closeSettingsModal,
     saveModalSettings,
