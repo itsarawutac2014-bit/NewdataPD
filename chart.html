@@ -536,6 +536,17 @@
 
     function saveStoreData(data) {
       localStorage.setItem('datamanbhs_attendance_v1', JSON.stringify(data));
+      try {
+        fetch('employees_api.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'save_all',
+            employees: data.employees || [],
+            attendance: data.attendance || []
+          })
+        }).catch(err => console.warn('API sync warning:', err));
+      } catch(e) {}
     }
 
     // Custom Stations management (per machine)
@@ -1740,8 +1751,23 @@
     }
 
     // Initialize on DOM ready
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       renderChart();
+      try {
+        const res = await fetch('employees_api.php?t=' + Date.now());
+        if (res.ok) {
+          const sData = await res.json();
+          if (sData && sData.success && Array.isArray(sData.employees) && sData.employees.length > 0) {
+            const currentStore = getStoreData();
+            currentStore.employees = sData.employees;
+            if (Array.isArray(sData.attendance) && sData.attendance.length > 0) {
+              currentStore.attendance = sData.attendance;
+            }
+            localStorage.setItem('datamanbhs_attendance_v1', JSON.stringify(currentStore));
+            renderChart();
+          }
+        }
+      } catch(e) {}
     });
   </script>
 </body>

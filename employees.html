@@ -168,6 +168,10 @@
             <span>โฟลเดอร์รูป Drive</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-blue-400"></i>
           </a>
+          <button type="button" onclick="refreshLatestData(true)" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer" title="ดึงข้อมูลล่าสุดจากเซิร์ฟเวอร์ และ Google Sheet">
+            <i class="fa-solid fa-arrows-rotate" id="refresh-icon"></i>
+            <span>ดึงข้อมูลล่าสุด</span>
+          </button>
           <button type="button" onclick="GoogleSheetSync.openSettingsModal()" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition cursor-pointer">
             <i class="fa-solid fa-file-excel mr-1"></i> ซิงค์ Google Sheet
           </button>
@@ -857,6 +861,18 @@
 
     function saveStoreData(store) {
       localStorage.setItem('datamanbhs_attendance_v1', JSON.stringify(store));
+      // ส่งข้อมูลไปเซฟที่ Render Server API เพื่อให้ทุกเครื่อง (PC, Tablet, มือถือ) อัปเดตพร้อมกันทันที
+      try {
+        fetch('employees_api.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'save_all',
+            employees: store.employees || [],
+            attendance: store.attendance || []
+          })
+        }).catch(err => console.warn('API sync warning:', err));
+      } catch(e) {}
     }
 
     function renderEmployees() {
@@ -1717,7 +1733,7 @@
       };
 
       store.employees.push(newEmp);
-      localStorage.setItem('datamanbhs_attendance_v1', JSON.stringify(store));
+      saveStoreData(store);
 
       closeAddEmployeeModal();
       renderEmployees();
@@ -1888,7 +1904,7 @@
       };
 
       store.employees[empIdx] = updatedEmp;
-      localStorage.setItem('datamanbhs_attendance_v1', JSON.stringify(store));
+      saveStoreData(store);
 
       closeEditEmployeeModal();
       renderEmployees();
@@ -1971,8 +1987,62 @@
         .replace(/'/g, '&#039;');
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    async function refreshLatestData(showNotice = false) {
+      const icon = document.getElementById('refresh-icon');
+      if (icon) icon.classList.add('fa-spin');
+
+      let updated = false;
+
+      // 1. ดึงข้อมูลล่าสุดจาก Render Server API (เชื่อมโยงทุกเครื่องทั่วโลก)
+      try {
+        const res = await fetch('employees_api.php?t=' + Date.now());
+        if (res.ok) {
+          const sData = await res.json();
+          if (sData && sData.success && Array.isArray(sData.employees) && sData.employees.length > 0) {
+            const currentStore = getStoreData();
+            currentStore.employees = sData.employees;
+            if (Array.isArray(sData.attendance) && sData.attendance.length > 0) {
+              currentStore.attendance = sData.attendance;
+            }
+            localStorage.setItem('datamanbhs_attendance_v1', JSON.stringify(currentStore));
+            renderEmployees();
+            updated = true;
+          }
+        }
+      } catch (err) {
+        console.warn('API fetch warning:', err);
+      }
+
+      // 2. ดึงข้อมูลล่าสุดจาก Google Sheet (ถ้ามีการตั้งค่า Webhook)
+      if (typeof GoogleSheetSync !== 'undefined' && GoogleSheetSync.hasWebhook()) {
+        const pulled = await GoogleSheetSync.pullDataFromSheet(false);
+        if (pulled) {
+          renderEmployees();
+          updated = true;
+        }
+      }
+
+      if (icon) icon.classList.remove('fa-spin');
+
+      if (showNotice) {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: 'ดึงข้อมูลพนักงานล่าสุดเรียบร้อยแล้ว ✅',
+          showConfirmButton: false,
+          timer: 2500
+        });
+      }
+      return updated;
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. แสดงผลข้อมูลจากแคชเครื่องทันทีเพื่อให้หน้าโหลดเร็ว
       renderEmployees();
+
+      // 2. ซิงค์ดึงข้อมูลพนักงานล่าสุดในพื้นหลังอัตโนมัติ เพื่อให้เครื่องหลักและทุกอุปกรณ์ตรงกันเสมอ
+      await refreshLatestData(false);
     });
   </script>
 </body>

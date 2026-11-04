@@ -6,7 +6,7 @@
 const GoogleSheetSync = (function() {
   const WEBHOOK_KEY = 'pd_google_sheet_webhook_url';
   const LAST_SYNC_KEY = 'pd_google_sheet_last_sync';
-  const DEFAULT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycby76NkRsdrlJE5STix5sCl1cQyM9Go9Wtx8vTCIlPM-GWwzxHZYmiGhNqdzp0Rh0QhO/exec';
+  const DEFAULT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycby76NkRsdrlJE5STix5sCl1cQyM9Go9Wtx8vTCIIPM-GWwzxHZYmiGhNqdzp0Rh0QhO/exec';
 
   function getWebhookUrl() {
     return (localStorage.getItem(WEBHOOK_KEY) || DEFAULT_WEBHOOK_URL).trim();
@@ -175,13 +175,33 @@ const GoogleSheetSync = (function() {
           if (raw) store = JSON.parse(raw);
         } catch(e) {}
         
-        // อัปเดตข้อมูลพนักงาน
-        store.employees = data.employees;
+        const existingEmps = store.employees || (window.DATAMANBHS_INITIAL ? window.DATAMANBHS_INITIAL.employees : []);
+
+        // รวมข้อมูลพนักงานโดยรักษา id และทักษะเครื่องจักรเดิมไว้
+        store.employees = data.employees.map(newEmp => {
+          const codeStr = String(newEmp.employee_code || '').trim();
+          const exist = existingEmps.find(o => String(o.employee_code || '').trim() === codeStr);
+          return {
+            ...(exist || {}),
+            ...newEmp,
+            id: exist ? exist.id : (parseInt(codeStr) || Math.floor(Math.random() * 100000))
+          };
+        });
+
         if (Array.isArray(data.attendance) && data.attendance.length > 0) {
           store.attendance = data.attendance;
         }
         localStorage.setItem('datamanbhs_attendance_v1', JSON.stringify(store));
         localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());
+
+        // บันทึกลง Render API ด้วยเพื่อให้ทุกเครื่องได้ข้อมูลชุดนี้
+        try {
+          fetch('employees_api.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'save_all', employees: store.employees, attendance: store.attendance })
+          }).catch(() => {});
+        } catch(e) {}
 
         if (showNotification) {
           showToast('ดึงข้อมูลพนักงานและรูปภาพล่าสุดเรียบร้อย ✅', 'success');
@@ -285,12 +305,17 @@ const GoogleSheetSync = (function() {
           ${isConnected ? `
             <div class="p-3 bg-emerald-50/70 border border-emerald-300 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
               <div>
-                <p class="text-xs text-emerald-950 font-bold"><i class="fa-solid fa-cloud-arrow-up text-emerald-600 mr-1"></i> ซิงค์พนักงานทั้งหมดเข้าชีตทันที:</p>
-                <p class="text-[11px] text-emerald-800">ส่งรายชื่อพนักงานทั้งหมด 41 คนลงแท็บ "ระเบียนพนักงาน"</p>
+                <p class="text-xs text-emerald-950 font-bold"><i class="fa-solid fa-arrows-rotate text-emerald-600 mr-1"></i> ซิงค์รับ-ส่งข้อมูลกับ Google Sheet:</p>
+                <p class="text-[11px] text-emerald-800">ส่งข้อมูลพนักงานขึ้นชีต หรือดึงข้อมูลล่าสุดจากชีตลงเครื่อง</p>
               </div>
-              <button onclick="GoogleSheetSync.syncAllEmployees()" type="button" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer shrink-0">
-                <i class="fa-solid fa-bolt"></i> ซิงค์ 41 คนทันที
-              </button>
+              <div class="flex items-center gap-2">
+                <button onclick="GoogleSheetSync.pullDataFromSheet(true).then(() => { if(typeof renderEmployees==='function') renderEmployees(); })" type="button" class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer shrink-0">
+                  <i class="fa-solid fa-cloud-arrow-down"></i> ดึงจากชีต
+                </button>
+                <button onclick="GoogleSheetSync.syncAllEmployees()" type="button" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer shrink-0">
+                  <i class="fa-solid fa-bolt"></i> ซิงค์ 41 คนขึ้นชีต
+                </button>
+              </div>
             </div>
           ` : ''}
 
@@ -301,8 +326,8 @@ const GoogleSheetSync = (function() {
             </label>
             <input id="gs-webhook-input" type="url" value="${currentUrl}" placeholder="https://script.google.com/macros/s/.../exec"
               class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50">
-            <p class="text-[11px] text-slate-500 font-medium">
-              วาง URL ของเว็บแอปพลิเคชันที่ Deploy จาก Google Apps Script (เลือก Execute as: Me และ Who has access: Anyone)
+            <p class="text-[11px] text-rose-600 font-bold">
+              * สำคัญมาก: ตอน Deploy ใน Google Apps Script ต้องตั้งค่า <u>"ผู้มีสิทธิ์เข้าถึง (Who has access)" เป็น "ทุกคน (Anyone)"</u> และกดปุ่ม "คัดลอก" ใต้ช่อง เว็บแอป URL มาวาง
             </p>
           </div>
 
@@ -314,8 +339,14 @@ const GoogleSheetSync = (function() {
             <ol class="list-decimal list-inside space-y-1 pl-1 text-[11px] leading-relaxed">
               <li>เปิด Google Sheet ของคุณ > ไปที่เมนู <b>"ส่วนขยาย" (Extensions) > "Apps Script"</b></li>
               <li>คัดลอกโค้ดจากไฟล์ <code>google_apps_script_attendance.js</code> ในระบบไปวางทั้งหมด</li>
-              <li>เลือกรันฟังก์ชัน <b>setupSheetAndSeedEmployees</b> 1 ครั้ง (ระบบจะสร้างชีตและลงข้อมูลพนักงาน 41 คนให้ทันที)</li>
-              <li>กด <b>"การทำให้ใช้งานได้" (Deploy) > "เว็บแอปพลิเคชัน"</b> แล้วนำ URL มาวางที่นี่</li>
+              <li>กด <b>"การทำให้ใช้งานได้" (Deploy) > "จัดการการทำให้ใช้งานได้"</b> หรือ "การทำให้ใช้งานได้รายการใหม่"</li>
+              <li>เลือกประเภท <b>"เว็บแอป" (Web app)</b>:
+                <ul class="list-disc list-inside pl-3 text-slate-700 font-semibold">
+                  <li>ดำเนินการในฐานะ (Execute as): <b>ฉัน (Me)</b></li>
+                  <li>ผู้มีสิทธิ์เข้าถึง (Who has access): <b class="text-rose-600">ทุกคน (Anyone)</b> *(ห้ามเลือกฉันเท่านั้น)*</li>
+                </ul>
+              </li>
+              <li>กดปุ่ม <b>"คัดลอก"</b> ใต้ช่อง <b>"เว็บแอป URL"</b> แล้วนำ URL ตัวเต็มมาวางในช่องด้านบน</li>
             </ol>
           </div>
 

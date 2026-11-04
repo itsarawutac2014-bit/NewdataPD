@@ -842,6 +842,17 @@
 
     function saveData() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+      try {
+        fetch('employees_api.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'save_all',
+            employees: appData.employees || [],
+            attendance: appData.attendance || {}
+          })
+        }).catch(err => console.warn('API sync warning:', err));
+      } catch(e) {}
     }
 
     function resetToDefaultData() {
@@ -1796,9 +1807,20 @@
     }
 
     // 14. Kickoff
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       initData();
       renderDashboard();
+      try {
+        const res = await fetch('employees_api.php?t=' + Date.now());
+        if (res.ok) {
+          const sData = await res.json();
+          if (sData && sData.success && Array.isArray(sData.employees) && sData.employees.length > 0) {
+            appData.employees = sData.employees;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+            renderDashboard();
+          }
+        }
+      } catch(e) {}
     });
   </script>
 </body>
