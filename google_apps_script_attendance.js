@@ -1,4 +1,4 @@
-﻿/**
+/**
  * =========================================================================
  * Google Apps Script: ระบบเชื่อมโยง ระเบียนพนักงาน & บันทึกการทำงาน ฝ่ายผลิต PD
  * =========================================================================
@@ -90,7 +90,7 @@ function setupSheetAndSeedEmployees() {
     'รหัสพนักงาน', 'คำนำหน้า', 'ชื่อ', 'นามสกุล', 'ชื่อเล่น', 
     'เครื่องจักร', 'กะการทำงาน', 'จุดประจำการ (Station)', 'ตำแหน่ง', 
     'วันเริ่มงาน', 'วันเกิด', 'เบอร์โทรศัพท์', 'สถานะทดลองงาน', 'สถานะการทำงาน',
-    'รูปภาพ (Avatar)'
+    'รูปภาพ (Avatar)', 'วันที่มีผล (พ้นสภาพ)', 'หมายเหตุ'
   ];
   empSheet.getRange(1, 1, 1, empHeaders.length).setValues([empHeaders]);
   empSheet.getRange(1, 1, 1, empHeaders.length)
@@ -234,7 +234,9 @@ function doPost(e) {
         emp.phone || '',
         emp.probation_status || 'passed',
         emp.status || 'active',
-        driveAvatarUrl || ''
+        driveAvatarUrl || '',
+        emp.resigned_date || '',
+        emp.notes || ''
       ];
 
       if (foundRow > 0) {
@@ -366,7 +368,8 @@ function doGet(e) {
 
   var employees = [];
   if (empSheet && empSheet.getLastRow() > 1) {
-    var data = empSheet.getRange(2, 1, empSheet.getLastRow() - 1, 15).getValues();
+    var numCols = Math.max(15, empSheet.getLastColumn());
+    var data = empSheet.getRange(2, 1, empSheet.getLastRow() - 1, numCols).getValues();
     for (var i = 0; i < data.length; i++) {
       employees.push({
         employee_code: String(data[i][0]),
@@ -383,7 +386,9 @@ function doGet(e) {
         phone: data[i][11],
         probation_status: data[i][12],
         status: data[i][13],
-        avatar: data[i][14] || ''
+        avatar: data[i][14] || '',
+        resigned_date: data[i][15] ? String(data[i][15]).slice(0, 10) : '',
+        notes: data[i][16] || ''
       });
     }
   }

@@ -707,6 +707,10 @@
           <span class="text-slate-500 font-semibold">ตำแหน่งงาน:</span>
           <span class="font-bold text-slate-800" id="preview-emp-position">ผู้ปฏิบัติงาน Dry End</span>
         </div>
+        <div id="preview-status-box" class="hidden p-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 font-bold flex justify-between items-center">
+          <span class="flex items-center gap-1"><i class="fa-solid fa-user-xmark text-rose-600"></i> <span id="preview-emp-status-badge">ลาออกแล้ว</span></span>
+          <span class="text-[11px] text-rose-700 font-bold" id="preview-emp-resigned-date">มีผล: -</span>
+        </div>
       </div>
 
       <button type="button" onclick="closeAvatarModal()" class="w-full py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition">
@@ -1555,6 +1559,18 @@
       document.getElementById('preview-emp-machine-shift').textContent = `${emp.machine || '-'} / กะ ${emp.shift || '-'}`;
       document.getElementById('preview-emp-station').textContent = emp.station || '-';
       document.getElementById('preview-emp-position').textContent = emp.position || '-';
+
+      const statusBox = document.getElementById('preview-status-box');
+      if (statusBox) {
+        if (['resigned', 'terminated', 'suspended'].includes(emp.status)) {
+          statusBox.classList.remove('hidden');
+          const statusLabels = { 'resigned': '🟠 ลาออกแล้ว', 'terminated': '🔴 พ้นสภาพ / ไล่ออก', 'suspended': '⚪ พักงาน' };
+          document.getElementById('preview-emp-status-badge').textContent = statusLabels[emp.status] || emp.status;
+          document.getElementById('preview-emp-resigned-date').textContent = emp.resigned_date ? `มีผล: ${emp.resigned_date}` : '';
+        } else {
+          statusBox.classList.add('hidden');
+        }
+      }
 
       const crownEl = document.getElementById('preview-leader-crown');
       if (isLeader) crownEl.classList.remove('hidden');

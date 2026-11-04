@@ -301,6 +301,27 @@
           </div>
         </div>
 
+        <!-- ข้อมูลการพ้นสภาพ / ลาออก / พักงาน (แสดงเมื่อไม่ใช่ active) -->
+        <div id="modal-resigned-info-box" class="hidden p-4 bg-rose-50 border-2 border-rose-200 rounded-2xl text-xs space-y-2">
+          <div class="font-black text-rose-900 flex items-center justify-between">
+            <span class="flex items-center gap-1.5">
+              <i class="fa-solid fa-calendar-xmark text-rose-600"></i>
+              <span id="modal-resigned-title">ข้อมูลการลาออก</span>
+            </span>
+            <span class="px-2 py-0.5 rounded-md bg-rose-200 text-rose-900 font-bold text-[10px]" id="modal-resigned-tag">พ้นสภาพ</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-800">
+            <div class="p-2.5 rounded-xl bg-white border border-rose-200">
+              <span class="text-rose-700 font-bold block text-[11px] mb-0.5">วันที่มีผล (Effective Date):</span>
+              <strong class="text-slate-900 text-sm font-black" id="modal-resigned-date">-</strong>
+            </div>
+            <div class="p-2.5 rounded-xl bg-white border border-rose-200">
+              <span class="text-rose-700 font-bold block text-[11px] mb-0.5">สาเหตุ / หมายเหตุ:</span>
+              <strong class="text-slate-900 text-xs font-semibold" id="modal-resigned-notes">-</strong>
+            </div>
+          </div>
+        </div>
+
         <!-- Skills Matrix (Station Skills) -->
         <div class="space-y-2">
           <h4 class="text-xs font-black text-slate-900 flex items-center gap-1.5 uppercase tracking-wider">
@@ -375,9 +396,12 @@
             <i class="fa-solid fa-camera text-orange-600 text-sm"></i> รูปถ่ายพนักงาน (Avatar Profile)
           </label>
           <div class="flex flex-col sm:flex-row items-center gap-4">
-            <!-- ภาพพรีวิว -->
-            <div class="relative shrink-0">
-              <img id="edit-avatar-preview" src="" alt="" referrerpolicy="no-referrer" class="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl object-cover border-3 border-orange-400 shadow-md">
+            <!-- ภาพพรีวิว (คลิกดูภาพขยาย) -->
+            <div class="relative shrink-0 cursor-pointer group" onclick="openAvatarPreview(parseInt(document.getElementById('edit-emp-id').value))" title="คลิกดูรูปขยาย">
+              <img id="edit-avatar-preview" src="" alt="" referrerpolicy="no-referrer" class="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl object-cover border-3 border-orange-400 shadow-md group-hover:scale-105 transition">
+              <span class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-slate-900/80 text-white flex items-center justify-center text-[10px] shadow" title="คลิกดูรูปขยาย">
+                <i class="fa-solid fa-magnifying-glass-plus"></i>
+              </span>
             </div>
             
             <!-- การอัปโหลด / ลิงก์รูป -->
@@ -524,12 +548,28 @@
         </div>
 
         <!-- รายละเอียดสาเหตุ / วันที่มีผล (แสดงเมื่อเลือก ลาออก / ไล่ออก / พักงาน) -->
-        <div id="edit-status-notes-box" class="hidden p-3.5 bg-rose-50/70 border border-rose-200 rounded-2xl">
-          <label class="block font-bold text-rose-900 text-xs mb-1 flex items-center gap-1.5">
-            <i class="fa-solid fa-clipboard-list text-rose-600"></i>
-            <span>หมายเหตุ / สาเหตุการพ้นสภาพ / วันที่มีผล:</span>
-          </label>
-          <input type="text" id="edit-emp-status-notes" placeholder="เช่น ลาออกวันที่ 30 พ.ย. / ขาดงานติดต่อกันเกินกำหนด / ละเมิดความปลอดภัย" class="w-full bg-white border border-rose-300 rounded-xl px-3 py-2 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-rose-500 font-medium">
+        <div id="edit-status-notes-box" class="hidden p-4 bg-rose-50/90 border-2 border-rose-200 rounded-2xl space-y-3">
+          <div class="flex items-center gap-2 text-rose-900 font-black text-xs pb-1.5 border-b border-rose-200">
+            <i class="fa-solid fa-calendar-xmark text-rose-600 text-sm"></i>
+            <span id="edit-status-box-title">บันทึกข้อมูลการพ้นสภาพ / วันที่มีผล</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-rose-950 text-xs mb-1 flex items-center gap-1.5">
+                <i class="fa-regular fa-calendar-check text-rose-600"></i>
+                <span id="edit-resigned-date-label">วันที่มีผล (Effective Date):</span>
+              </label>
+              <input type="date" id="edit-emp-resigned-date" class="w-full bg-white border-2 border-rose-300 rounded-xl px-3 py-2 text-slate-900 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-rose-500">
+            </div>
+            <div>
+              <label class="block font-bold text-rose-950 text-xs mb-1 flex items-center gap-1.5">
+                <i class="fa-solid fa-file-pen text-rose-600"></i>
+                <span>สาเหตุ / หมายเหตุ:</span>
+              </label>
+              <input type="text" id="edit-emp-status-notes" placeholder="เช่น ได้งานใหม่ / ขาดงานเกินกำหนด / กลับภูมิลำเนา" class="w-full bg-white border border-rose-300 rounded-xl px-3 py-2 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-rose-500 font-medium">
+            </div>
+          </div>
         </div>
 
         <!-- ทักษะประจำจุดเครื่องจักร -->
@@ -734,6 +774,10 @@
         <div class="flex justify-between">
           <span class="text-slate-500 font-semibold">ตำแหน่งงาน:</span>
           <span class="font-bold text-slate-800" id="preview-emp-position">ผู้ปฏิบัติงาน Dry End</span>
+        </div>
+        <div id="preview-status-box" class="hidden p-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 font-bold flex justify-between items-center">
+          <span class="flex items-center gap-1"><i class="fa-solid fa-user-xmark text-rose-600"></i> <span id="preview-emp-status-badge">ลาออกแล้ว</span></span>
+          <span class="text-[11px] text-rose-700 font-bold" id="preview-emp-resigned-date">มีผล: -</span>
         </div>
       </div>
 
@@ -1120,33 +1164,70 @@
       return badgeHtml;
     }
 
-    // Toggle notes box in edit modal
+    // Helper format Thai Date (เช่น 2026-11-30 -> 30 พ.ย. 2569)
+    function formatThaiDate(dateStr) {
+      if (!dateStr) return '-';
+      try {
+        const parts = String(dateStr).trim().split('-');
+        if (parts.length === 3) {
+          const year = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10);
+          const day = parseInt(parts[2], 10);
+          const thaiMonths = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+          const thaiYear = year > 2500 ? year : year + 543;
+          return `${day} ${thaiMonths[month] || ''} ${thaiYear}`;
+        }
+      } catch (e) {}
+      return dateStr;
+    }
+
+    // Toggle notes & resigned date box in edit modal
     function handleEditStatusChange() {
       const status = document.getElementById('edit-emp-status').value;
       const notesBox = document.getElementById('edit-status-notes-box');
+      const boxTitle = document.getElementById('edit-status-box-title');
+      const dateLabel = document.getElementById('edit-resigned-date-label');
+      const dateInput = document.getElementById('edit-emp-resigned-date');
+
       if (notesBox) {
         if (['resigned', 'terminated', 'suspended'].includes(status)) {
           notesBox.classList.remove('hidden');
+          if (boxTitle && dateLabel) {
+            if (status === 'resigned') {
+              boxTitle.textContent = 'บันทึกข้อมูลการลาออก (Resignation Details)';
+              dateLabel.textContent = 'วันที่มีผลการลาออก (Effective Date):';
+            } else if (status === 'terminated') {
+              boxTitle.textContent = 'บันทึกข้อมูลการให้ออก / พ้นสภาพ (Termination Details)';
+              dateLabel.textContent = 'วันที่มีผลการพ้นสภาพ / เลิกจ้าง:';
+            } else if (status === 'suspended') {
+              boxTitle.textContent = 'บันทึกข้อมูลการพักงาน (Suspension Details)';
+              dateLabel.textContent = 'วันที่มีผลการพักงาน:';
+            }
+          }
+          if (dateInput && !dateInput.value) {
+            dateInput.value = new Date().toISOString().slice(0, 10);
+          }
         } else {
           notesBox.classList.add('hidden');
         }
       }
     }
 
-    // Quick Status Change with SweetAlert2
+    // Quick Status Change with SweetAlert2 (พร้อมเลือกวันที่มีผล)
     function openQuickStatusModal(empId) {
       const store = getStoreData();
       const emp = (store.employees || []).find(e => e.id == empId);
       if (!emp) return;
 
       const currentStatus = (emp.status || 'active').toLowerCase();
+      const defaultDate = emp.resigned_date || new Date().toISOString().slice(0, 10);
       
       Swal.fire({
         title: `<div class="text-base font-black text-slate-900">ปรับสถานะพนักงาน</div>`,
         html: `
           <div class="text-left text-xs space-y-3 mt-2">
             <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-orange-100 text-orange-800 font-black flex items-center justify-center text-sm border border-orange-200 shrink-0">
+              <div class="w-10 h-10 rounded-xl bg-orange-100 text-orange-800 font-black flex items-center justify-center text-sm border border-orange-200 shrink-0 cursor-pointer hover:scale-105 transition" onclick="openAvatarPreview(${emp.id})" title="คลิกดูรูปขยาย">
                 ${escapeHtml(emp.nickname || emp.first_name[0])}
               </div>
               <div class="min-w-0">
@@ -1166,9 +1247,21 @@
               </select>
             </div>
 
-            <div id="swal-status-reason-box" class="${['resigned','terminated','suspended'].includes(currentStatus)?'':'hidden'}">
-              <label class="block font-bold text-rose-700 mb-1">หมายเหตุ / สาเหตุ / วันที่มีผล (ระบุหรือไม่ก็ได้):</label>
-              <input type="text" id="swal-quick-reason" value="${escapeHtml(emp.notes || '')}" placeholder="เช่น ลาออกมีผล 15 ธ.ค. / ขาดงานเกินกำหนด" class="w-full p-2.5 border border-rose-300 bg-rose-50/50 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-rose-500">
+            <div id="swal-status-reason-box" class="${['resigned','terminated','suspended'].includes(currentStatus)?'':'hidden'} p-3.5 bg-rose-50 border-2 border-rose-200 rounded-2xl space-y-2.5">
+              <div>
+                <label id="swal-date-label" class="block font-bold text-rose-950 text-xs mb-1 flex items-center gap-1.5">
+                  <i class="fa-regular fa-calendar-check text-rose-600"></i>
+                  <span>วันที่มีผล (Effective Date):</span>
+                </label>
+                <input type="date" id="swal-quick-date" value="${escapeHtml(emp.resigned_date || defaultDate)}" class="w-full p-2 border border-rose-300 bg-white rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500">
+              </div>
+              <div>
+                <label class="block font-bold text-rose-950 text-xs mb-1 flex items-center gap-1.5">
+                  <i class="fa-solid fa-file-pen text-rose-600"></i>
+                  <span>สาเหตุ / หมายเหตุ (ระบุหรือไม่ก็ได้):</span>
+                </label>
+                <input type="text" id="swal-quick-reason" value="${escapeHtml(emp.notes || '')}" placeholder="เช่น ได้งานใหม่ / ขาดงานเกินกำหนด / กลับภูมิลำเนา" class="w-full p-2 border border-rose-300 bg-white rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500">
+              </div>
             </div>
           </div>
         `,
@@ -1180,28 +1273,44 @@
         didOpen: () => {
           const select = document.getElementById('swal-quick-status');
           const box = document.getElementById('swal-status-reason-box');
-          select.onchange = () => {
+          const dateLabel = document.getElementById('swal-date-label');
+          const dateInput = document.getElementById('swal-quick-date');
+          
+          const updateBoxState = () => {
             if (['resigned','terminated','suspended'].includes(select.value)) {
               box.classList.remove('hidden');
+              if (select.value === 'resigned') {
+                dateLabel.innerHTML = '<i class="fa-regular fa-calendar-check text-rose-600"></i> <span>วันที่มีผลการลาออก (Effective Date):</span>';
+              } else if (select.value === 'terminated') {
+                dateLabel.innerHTML = '<i class="fa-regular fa-calendar-check text-rose-600"></i> <span>วันที่มีผลการพ้นสภาพ / ให้ออก:</span>';
+              } else {
+                dateLabel.innerHTML = '<i class="fa-regular fa-calendar-check text-rose-600"></i> <span>วันที่มีผลการพักงาน:</span>';
+              }
+              if (dateInput && !dateInput.value) {
+                dateInput.value = new Date().toISOString().slice(0, 10);
+              }
             } else {
               box.classList.add('hidden');
             }
           };
+          select.onchange = updateBoxState;
+          updateBoxState();
         },
         preConfirm: () => {
           const newStatus = document.getElementById('swal-quick-status').value;
           const reason = document.getElementById('swal-quick-reason')?.value || '';
-          return { newStatus, reason };
+          const resignedDate = document.getElementById('swal-quick-date')?.value || '';
+          return { newStatus, reason, resignedDate };
         }
       }).then((result) => {
         if (result.isConfirmed) {
-          updateEmployeeStatus(emp.id, result.value.newStatus, result.value.reason);
+          updateEmployeeStatus(emp.id, result.value.newStatus, result.value.reason, result.value.resignedDate);
         }
       });
     }
 
     // Execute status update and sync to Sheet
-    function updateEmployeeStatus(empId, newStatus, reason) {
+    function updateEmployeeStatus(empId, newStatus, reason, resignedDate) {
       const store = getStoreData();
       const empIdx = (store.employees || []).findIndex(e => e.id == empId);
       if (empIdx === -1) return;
@@ -1209,6 +1318,9 @@
       store.employees[empIdx].status = newStatus;
       if (reason !== undefined) {
         store.employees[empIdx].notes = reason;
+      }
+      if (resignedDate !== undefined) {
+        store.employees[empIdx].resigned_date = ['resigned', 'terminated', 'suspended'].includes(newStatus) ? resignedDate : '';
       }
       store.employees[empIdx].updated_at = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
@@ -1322,10 +1434,17 @@
                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black border ${posInfo.bg} shadow-2xs">
                   <i class="${posInfo.icon} ${posInfo.color}"></i> จุด: ${escapeHtml(e.station || 'รอจัดตำแหน่ง')}
                 </span>
-                ${(e.status === 'resigned' || e.status === 'terminated') && e.notes ? `
-                  <span class="text-[10px] text-rose-700 font-bold truncate max-w-[130px]" title="${escapeHtml(e.notes)}"><i class="fa-solid fa-circle-exclamation mr-1"></i>${escapeHtml(e.notes)}</span>
+                ${(e.resigned_date && ['resigned', 'terminated', 'suspended'].includes(e.status)) ? `
+                  <span class="text-[11px] text-rose-700 font-bold bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-2xs" title="${escapeHtml(e.notes || '')}">
+                    <i class="fa-regular fa-calendar-xmark text-rose-600"></i> มีผล: ${formatThaiDate(e.resigned_date)}
+                  </span>
                 ` : ''}
               </div>
+              ${(['resigned', 'terminated', 'suspended'].includes(e.status) && e.notes) ? `
+                <div class="mt-1 text-[11px] text-rose-700 font-medium bg-rose-50/60 border border-rose-100 rounded-lg px-2.5 py-1 truncate" title="${escapeHtml(e.notes)}">
+                  <i class="fa-solid fa-file-pen text-rose-500 mr-1"></i> สาเหตุ: ${escapeHtml(e.notes)}
+                </div>
+              ` : ''}
             </div>
 
             <div class="pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs">
@@ -1416,10 +1535,17 @@
               ${getJobRoleBadge(e.position)}
             </td>
             <td class="p-3.5 sm:p-4 text-center">
-              ${getEmployeeStatusBadge(e.status, e.id)}
-              ${(e.status === 'resigned' || e.status === 'terminated') && e.notes ? `
-                <div class="text-[10px] text-rose-700 font-bold mt-0.5 truncate max-w-[120px] mx-auto" title="${escapeHtml(e.notes)}">${escapeHtml(e.notes)}</div>
-              ` : ''}
+              <div class="inline-flex flex-col items-center gap-1">
+                ${getEmployeeStatusBadge(e.status, e.id)}
+                ${(e.resigned_date && ['resigned', 'terminated', 'suspended'].includes(e.status)) ? `
+                  <span class="text-[10px] text-rose-700 font-bold bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-2xs" title="${escapeHtml(e.notes || '')}">
+                    <i class="fa-regular fa-calendar-xmark text-rose-600"></i> ${formatThaiDate(e.resigned_date)}
+                  </span>
+                ` : ''}
+                ${(['resigned', 'terminated', 'suspended'].includes(e.status) && e.notes) ? `
+                  <div class="text-[10px] text-rose-600 font-medium truncate max-w-[120px] mx-auto" title="${escapeHtml(e.notes)}">${escapeHtml(e.notes)}</div>
+                ` : ''}
+              </div>
             </td>
             <td class="p-3.5 sm:p-4 font-black text-amber-900 font-num text-xs sm:text-sm">${tenure.text}</td>
             <td class="p-3.5 sm:p-4 text-center font-bold text-slate-700 font-num text-xs sm:text-sm">${age.text}</td>
@@ -1488,6 +1614,22 @@
       document.getElementById('modal-birth-date').textContent = emp.birth_date || '-';
       document.getElementById('modal-phone').textContent = emp.phone || '-';
       document.getElementById('modal-penalty-count').textContent = (emp.penalty_count > 0) ? `${emp.penalty_count} ครั้ง` : '0 ครั้ง (ปกติ)';
+
+      // ข้อมูลการพ้นสภาพ / ลาออก / พักงาน
+      const resBox = document.getElementById('modal-resigned-info-box');
+      if (resBox) {
+        if (['resigned', 'terminated', 'suspended'].includes(emp.status)) {
+          resBox.classList.remove('hidden');
+          const statusTitle = emp.status === 'resigned' ? 'ข้อมูลการลาออก (Resignation Details)' : (emp.status === 'terminated' ? 'ข้อมูลการให้ออก / พ้นสภาพ (Termination Details)' : 'ข้อมูลการพักงาน (Suspension Details)');
+          const tagTitle = emp.status === 'resigned' ? 'ลาออกแล้ว' : (emp.status === 'terminated' ? 'พ้นสภาพ / เลิกจ้าง' : 'พักงาน');
+          document.getElementById('modal-resigned-title').textContent = statusTitle;
+          document.getElementById('modal-resigned-tag').textContent = tagTitle;
+          document.getElementById('modal-resigned-date').textContent = emp.resigned_date ? `${formatThaiDate(emp.resigned_date)} (${emp.resigned_date})` : 'ไม่ระบุวันที่มีผล';
+          document.getElementById('modal-resigned-notes').textContent = emp.notes || 'ไม่มีหมายเหตุเพิ่มเติม';
+        } else {
+          resBox.classList.add('hidden');
+        }
+      }
 
       const imgEl = document.getElementById('modal-avatar-img');
       imgEl.src = avatarSrc || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(emp.first_name) + '&background=ff7900&color=fff&size=256';
@@ -1623,6 +1765,7 @@
       document.getElementById('edit-emp-birthdate').value = emp.birth_date || '';
       document.getElementById('edit-emp-probation').value = emp.probation_status || 'passed';
       document.getElementById('edit-emp-status').value = emp.status || 'active';
+      document.getElementById('edit-emp-resigned-date').value = emp.resigned_date || '';
       document.getElementById('edit-emp-status-notes').value = emp.notes || '';
       handleEditStatusChange();
       document.getElementById('edit-emp-subtitle').textContent = `รหัสพนักงาน: ${emp.employee_code} (${emp.first_name})`;
@@ -1730,7 +1873,8 @@
         birth_date: birthDate,
         probation_status: probationStatus,
         status: status,
-        notes: document.getElementById('edit-emp-status-notes')?.value || store.employees[empIdx].notes || '',
+        resigned_date: ['resigned', 'terminated', 'suspended'].includes(status) ? (document.getElementById('edit-emp-resigned-date')?.value || '') : '',
+        notes: document.getElementById('edit-emp-status-notes')?.value || '',
         updated_at: new Date().toISOString().slice(0, 19).replace('T', ' '),
         control_room: document.getElementById('edit-skill-control').checked ? 1 : 0,
         stacker: document.getElementById('edit-skill-stacker').checked ? 1 : 0,
@@ -1783,6 +1927,18 @@
       document.getElementById('preview-emp-machine-shift').textContent = `${emp.machine || '-'} / กะ ${emp.shift || '-'}`;
       document.getElementById('preview-emp-station').textContent = emp.station || '-';
       document.getElementById('preview-emp-position').textContent = emp.position || '-';
+
+      const statusBox = document.getElementById('preview-status-box');
+      if (statusBox) {
+        if (['resigned', 'terminated', 'suspended'].includes(emp.status)) {
+          statusBox.classList.remove('hidden');
+          const statusLabels = { 'resigned': '🟠 ลาออกแล้ว', 'terminated': '🔴 พ้นสภาพ / ไล่ออก', 'suspended': '⚪ พักงาน' };
+          document.getElementById('preview-emp-status-badge').textContent = statusLabels[emp.status] || emp.status;
+          document.getElementById('preview-emp-resigned-date').textContent = emp.resigned_date ? `มีผล: ${formatThaiDate(emp.resigned_date)}` : '';
+        } else {
+          statusBox.classList.add('hidden');
+        }
+      }
 
       const crown = document.getElementById('preview-leader-crown');
       if (crown) {

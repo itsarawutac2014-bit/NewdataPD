@@ -483,6 +483,52 @@
   </main>
 
   <!-- ========================================== -->
+  <!-- Modal: รูปขยายพนักงาน (Avatar Preview)     -->
+  <!-- ========================================== -->
+  <div id="avatarPreviewModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4" onclick="if(event.target===this) closeAvatarModal()">
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-sm overflow-hidden text-center p-6 space-y-4 animate-scaleIn">
+      <div class="relative inline-block mx-auto">
+        <img id="preview-avatar-img" src="" alt="" referrerpolicy="no-referrer" class="w-40 h-40 rounded-full object-cover border-4 border-orange-500 shadow-xl mx-auto">
+        <span id="preview-leader-crown" class="absolute top-1 right-1 w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center shadow hidden" title="หัวหน้ากะ (Shift Leader)">
+          <i class="fa-solid fa-helmet-safety text-sm"></i>
+        </span>
+      </div>
+
+      <div>
+        <h3 class="text-lg font-black text-slate-900" id="preview-emp-name">คะนอง ศิริวรรณ</h3>
+        <p class="text-sm font-extrabold text-orange-600" id="preview-emp-nickname">(นอง)</p>
+      </div>
+
+      <div class="bg-slate-50 rounded-2xl p-3 border border-slate-200 text-xs space-y-1.5 text-left">
+        <div class="flex justify-between">
+          <span class="text-slate-500 font-semibold">รหัสพนักงาน:</span>
+          <span class="font-bold text-slate-800 font-mono" id="preview-emp-code">24520003</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500 font-semibold">เครื่องจักร / กะ:</span>
+          <span class="font-bold text-slate-800" id="preview-emp-machine-shift">BHS / กะ A</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500 font-semibold">จุดประจำการ (Station):</span>
+          <span class="font-bold text-blue-700" id="preview-emp-station">Stacker</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500 font-semibold">ตำแหน่งงาน:</span>
+          <span class="font-bold text-slate-800" id="preview-emp-position">ผู้ปฏิบัติงาน Dry End</span>
+        </div>
+        <div id="preview-status-box" class="hidden p-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 font-bold flex justify-between items-center">
+          <span class="flex items-center gap-1"><i class="fa-solid fa-user-xmark text-rose-600"></i> <span id="preview-emp-status-badge">ลาออกแล้ว</span></span>
+          <span class="text-[11px] text-rose-700 font-bold" id="preview-emp-resigned-date">มีผล: -</span>
+        </div>
+      </div>
+
+      <button type="button" onclick="closeAvatarModal()" class="w-full py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition">
+        ปิดหน้าต่าง
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
   <!-- JavaScript Logic                           -->
   <!-- ========================================== -->
   <script>
@@ -501,6 +547,46 @@
         try { return JSON.parse(saved); } catch (e) {}
       }
       return window.DATAMANBHS_INITIAL || { employees: [], attendance: [], daily_shifts: [] };
+    }
+
+    // Helper format Thai Date
+    function formatThaiDate(dateStr) {
+      if (!dateStr) return '-';
+      try {
+        const parts = String(dateStr).trim().split('-');
+        if (parts.length === 3) {
+          const year = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10);
+          const day = parseInt(parts[2], 10);
+          const thaiMonths = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+          const thaiYear = year > 2500 ? year : year + 543;
+          return `${day} ${thaiMonths[month] || ''} ${thaiYear}`;
+        }
+      } catch (e) {}
+      return dateStr;
+    }
+
+    // Helper to resolve employee avatar URL (Supports Local files, Base64 data URLs, and external web/Google Drive URLs)
+    function getEmployeeAvatarUrl(avatar, fallbackName = '') {
+      if (!avatar || !String(avatar).trim()) {
+        if (!fallbackName) return '';
+        return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(fallbackName) + '&background=ff7900&color=fff&size=256';
+      }
+      let s = String(avatar).trim();
+      if (s.startsWith('data:image/') || s.startsWith('blob:') || s.startsWith('http://') || s.startsWith('https://')) {
+        const gdriveMatch = s.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/);
+        if (gdriveMatch) {
+          return `https://drive.google.com/thumbnail?id=${gdriveMatch[1]}&sz=w400`;
+        }
+        return s;
+      }
+      const codeMatch = s.match(/(\d{8})/);
+      if (codeMatch) {
+        const extMatch = s.match(/\.(jpg|jpeg|png|webp)$/i);
+        const ext = extMatch ? extMatch[1].toLowerCase() : (s.includes('png') ? 'png' : 'jpg');
+        return `assets/uploads/employees/${codeMatch[1]}.${ext}`;
+      }
+      return `assets/uploads/employees/${s}`;
     }
 
     function calculateTenure(startDateStr) {
@@ -668,7 +754,7 @@
             <div class="flex items-center justify-between bg-white/20 backdrop-blur-xs p-2 rounded-xl">
               <div class="flex items-center gap-2">
                 <span class="w-6 h-6 rounded-full bg-white text-rose-600 font-black text-[10px] flex items-center justify-center">${item.day}</span>
-                <span class="font-bold">${item.emp.first_name} ${item.emp.nickname ? `(${item.emp.nickname})` : ''}</span>
+                <span class="font-bold cursor-pointer hover:underline" onclick="openAvatarPreview(${item.emp.id})" title="คลิกดูรูปขยาย">${item.emp.first_name} ${item.emp.nickname ? `(${item.emp.nickname})` : ''}</span>
               </div>
               <span class="text-[10px] font-mono text-white/90">${item.emp.machine} กะ ${item.emp.shift}</span>
             </div>
@@ -682,20 +768,22 @@
       topSeniorEl.innerHTML = '';
       seniorList.forEach((e, idx) => {
         const tenure = calculateTenure(e.start_date);
-        const avatarSrc = e.avatar ? `assets/uploads/employees/${e.avatar}` : '';
+        const avatarSrc = getEmployeeAvatarUrl(e.avatar, e.first_name);
         topSeniorEl.insertAdjacentHTML('beforeend', `
           <div class="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 border border-slate-200">
             <div class="flex items-center gap-3">
               <span class="w-6 h-6 rounded-full ${idx===0?'bg-amber-500 text-slate-950 font-black':'bg-slate-200 text-slate-700 font-bold'} text-xs flex items-center justify-center">
                 ${idx+1}
               </span>
-              ${avatarSrc ? `
-                <img src="${avatarSrc}" class="w-9 h-9 rounded-full object-cover border-2 border-orange-400" alt="">
-              ` : `
-                <div class="w-9 h-9 rounded-full bg-orange-100 text-orange-700 font-bold text-xs flex items-center justify-center">
-                  ${e.nickname || e.first_name[0]}
-                </div>
-              `}
+              <div class="relative shrink-0 cursor-pointer" onclick="openAvatarPreview(${e.id})" title="คลิกดูรูปขยาย">
+                ${avatarSrc ? `
+                  <img src="${avatarSrc}" class="w-9 h-9 rounded-full object-cover border-2 border-orange-400 hover:scale-110 transition" alt="">
+                ` : `
+                  <div class="w-9 h-9 rounded-full bg-orange-100 text-orange-700 font-bold text-xs flex items-center justify-center hover:scale-110 transition border border-orange-300">
+                    ${e.nickname || e.first_name[0]}
+                  </div>
+                `}
+              </div>
               <div>
                 <div class="font-bold text-xs text-slate-900">${e.first_name} <span class="text-orange-600 font-black">(${e.nickname || ''})</span></div>
                 <div class="text-[10px] text-slate-400">${e.station || '-'} &bull; ${e.machine} กะ ${e.shift}</div>
@@ -793,6 +881,56 @@
           cutout: '70%'
         }
       });
+    }
+
+    // Avatar Lightbox / Preview
+    function openAvatarPreview(empId) {
+      if (!empId) return;
+      const store = getStoreData();
+      const emp = (store.employees || []).find(e => e.id === empId);
+      if (!emp) return;
+
+      const isLeader = (emp.station === 'Host' || (emp.position && emp.position.includes('หัวหน้า')));
+      const avatarSrc = getEmployeeAvatarUrl(emp.avatar, emp.first_name);
+
+      const imgEl = document.getElementById('preview-avatar-img');
+      if (imgEl) {
+        imgEl.src = avatarSrc;
+        imgEl.onerror = () => {
+          imgEl.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(emp.first_name) + '&background=ff7900&color=fff&size=256';
+        };
+      }
+
+      document.getElementById('preview-emp-name').textContent = `${emp.title || ''} ${emp.first_name} ${emp.last_name || ''}`;
+      document.getElementById('preview-emp-nickname').textContent = emp.nickname ? `(${emp.nickname})` : '';
+      document.getElementById('preview-emp-code').textContent = emp.employee_code || '-';
+      document.getElementById('preview-emp-machine-shift').textContent = `${emp.machine || '-'} / กะ ${emp.shift || '-'}`;
+      document.getElementById('preview-emp-station').textContent = emp.station || '-';
+      document.getElementById('preview-emp-position').textContent = emp.position || '-';
+
+      const statusBox = document.getElementById('preview-status-box');
+      if (statusBox) {
+        if (['resigned', 'terminated', 'suspended'].includes(emp.status)) {
+          statusBox.classList.remove('hidden');
+          const statusLabels = { 'resigned': '🟠 ลาออกแล้ว', 'terminated': '🔴 พ้นสภาพ / ไล่ออก', 'suspended': '⚪ พักงาน' };
+          document.getElementById('preview-emp-status-badge').textContent = statusLabels[emp.status] || emp.status;
+          document.getElementById('preview-emp-resigned-date').textContent = emp.resigned_date ? `มีผล: ${formatThaiDate(emp.resigned_date)}` : '';
+        } else {
+          statusBox.classList.add('hidden');
+        }
+      }
+
+      const crown = document.getElementById('preview-leader-crown');
+      if (crown) {
+        crown.classList.toggle('hidden', !isLeader);
+      }
+
+      document.getElementById('avatarPreviewModal').classList.remove('hidden');
+    }
+
+    function closeAvatarModal() {
+      const modal = document.getElementById('avatarPreviewModal');
+      if (modal) modal.classList.add('hidden');
     }
 
     document.addEventListener('DOMContentLoaded', () => {
