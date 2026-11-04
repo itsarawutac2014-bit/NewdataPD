@@ -401,6 +401,11 @@
                   <span><b>Google Drive:</b> เปิดแชร์เป็น <i>"ทุกคนที่มีลิงก์ (Anyone with link)"</i> วางลิงก์ระบบจะแปลงให้อัตโนมัติ</span>
                 </p>
               </div>
+
+              <!-- ข้อความแจ้งสถานะการบันทึกภาพลง Google Drive อัตโนมัติ -->
+              <div id="drive-sync-status-hint" class="pt-1">
+                <!-- Injected by openEditEmployeeModal -->
+              </div>
             </div>
           </div>
         </div>
@@ -1412,6 +1417,30 @@
       document.getElementById('edit-avatar-preview').src = getEmployeeAvatarUrl(currentEditingAvatar, emp.first_name);
       const fileInput = document.getElementById('edit-avatar-file-input');
       if (fileInput) fileInput.value = '';
+
+      const hintEl = document.getElementById('drive-sync-status-hint');
+      if (hintEl) {
+        if (typeof GoogleSheetSync !== 'undefined' && GoogleSheetSync.hasWebhook()) {
+          hintEl.innerHTML = `
+            <div class="text-[11px] font-bold text-emerald-800 bg-emerald-50/90 border border-emerald-300 rounded-xl px-3 py-1.5 flex items-center gap-1.5 shadow-2xs">
+              <i class="fa-solid fa-cloud-arrow-up text-emerald-600 text-sm"></i>
+              <span>เมื่อเลือกรูปและกดบันทึก ระบบจะส่งรูปไปบันทึกลง Google Drive โฟลเดอร์ <b>"รูปภาพพนักงานฝ่ายผลิต"</b> ให้ทันที</span>
+            </div>
+          `;
+        } else {
+          hintEl.innerHTML = `
+            <div class="text-[11px] font-bold text-amber-900 bg-amber-50/90 border border-amber-300 rounded-xl px-3 py-1.5 flex items-center justify-between gap-1.5 shadow-2xs">
+              <span class="flex items-center gap-1.5">
+                <i class="fa-solid fa-triangle-exclamation text-amber-600 text-sm"></i>
+                <span>ยังไม่ได้เชื่อมต่อ Apps Script Webhook สำหรับส่งรูปขึ้น Drive อัตโนมัติ</span>
+              </span>
+              <button type="button" onclick="GoogleSheetSync.openSettingsModal()" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[10px] font-bold transition cursor-pointer">
+                เชื่อมต่อ
+              </button>
+            </div>
+          `;
+        }
+      }
 
       // Skills checkboxes
       document.getElementById('edit-skill-control').checked = Boolean(emp.control_room == 1);
