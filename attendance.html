@@ -985,12 +985,59 @@
       }
 
     // Helper to resolve employee avatar URL (Supports Local files, Base64 data URLs, and external web/Google Drive URLs)
+    const OLD_TO_NEW_AVATARS = {
+      "emp_24520003_1787893802.jpg": "คะนอง ศิริวรรณ (นอง).jpg",
+      "emp_24560128_1787895520.jpg": "ภูธร กะรัมย์ (ธร).jpg",
+      "emp_24580206_1787893846.jpg": "บุญใสย์ จันทร์ลี (เขียด).jpg",
+      "emp_24610062_1787895536.jpg": "สาทร วาที (ทร).jpg",
+      "emp_24620035_1787895583.jpg": "ภานุเมศ โสสุด (เลน).jpg",
+      "emp_24620283_1787902588.jpg": "อภิรักษ์ ศรุติปกรณ์ (บอล).jpg",
+      "emp_24630152_1787902324.jpg": "วันชัย สอนโพนงาม (เล็ก).jpg",
+      "emp_24650104_1787902649.jpg": "ชยังกูร ดอนตะโก (นิว).jpg",
+      "emp_24660114_1787902664.jpg": "สมพงษ์ จันทร์ลี (เอ๋).jpg",
+      "emp_24620017_1787895560.jpg": "อิสระ สัจบาล (อิส).jpg",
+      "emp_24620086_1787895626.jpg": "อดิเรก หาญกล้า (โอ).jpg",
+      "emp_24620217_1787902577.jpg": "สุธานนท์ คนเพียร (ทิศโก้).jpg",
+      "emp_24620291_1789016559.jpg": "ภาคภูมิ ดีสม (ไนท์).jpg",
+      "emp_24640005_1787902628.jpg": "อุเทน พรมวงค์ (เท่).jpg",
+      "emp_24640067_1787902637.jpg": "วันชนะ หีบแก้ว (เซียงโก้).jpg",
+      "emp_24680046_1787902675.png": "สายนธี พิมน์ทรัพน์ (บิ๊ก).png",
+      "emp_24680048_1787902690.png": "ธนากร ทิพย์ชัย (เก้า).png",
+      "emp_24690063_1789008109.jpg": "ทักษ์ดนัย เพชรประไพ (บอส).jpg",
+      "emp_24690065_1789016292.jpg": "ธนาธิป สระทองเงิน (ต้น).jpg",
+      "emp_24610007_1787893825.jpg": "อิศราวุธ คงเจริญ (อาร์ท).jpg",
+      "emp_24600010_1788573848.jpg": "วิทยา เสียงหวาน (เค).jpg",
+      "emp_24610139_1788573873.jpg": "KYAW PAYING PHYO (ไป๋).jpg",
+      "emp_24620057_1788574269.jpg": "นันทวุฒิ จุลทัศน์ (นิ๊ก).jpg",
+      "emp_24620057_1787974409.jpg": "นันทวุฒิ จุลทัศน์ (นิ๊ก).jpg",
+      "emp_24680098_1788576488.jpg": "สมชาย เกษตรไพร (ปุ๊).jpg",
+      "emp_24690099_1788576597.jpg": "Phone Nyat Ou (อู).jpg",
+      "emp_24690005_1788576524.jpg": "วาทิตย์ มุ่งรายกลาง (นาย).jpg",
+      "emp_24690009_1788576615.jpg": "กิตติวุฒิ ณ บางช้าง (เพิร์ท).jpg",
+      "emp_24690013_1788576717.jpg": "ธนพงษ์ โพธิ์ผาง (บอส).jpg",
+      "emp_24690011_1788576729.jpg": "รุ่งตะวัน แดงขาว (ไนท์).jpg",
+      "emp_24690029_1788576774.jpg": "ทรงเกียรติ วารีคีรี (กบ).jpg",
+      "emp_24690047_1788576784.jpg": "ภานุวัฒน์ พุ่มฉัตร (บีม).jpg",
+      "emp_24620289_1788949456.jpg": "วุฒิชัย โสภากุ (เจ).jpg",
+      "emp_24640081_1788949248.jpg": "กิจจา เคลือบยิ้ม (แจ็ค).jpg",
+      "emp_24640029_1788950246.jpg": "นุพล อุปพงษ์ (ออฟ).jpg",
+      "emp_24670027_1788949435.jpg": "วันชัย พรมเสน (เปา).jpg",
+      "emp_24680060_1788949532.jpg": "สรศักดิ์ ขันชะลี (เวฟ).jpg",
+      "emp_24680090_1788949418.jpg": "อติชาต เปรียบนาน (แอ๊ะ).jpg",
+      "emp_24680089_1788949730.jpg": "สรรค์ชัย ชูสุวรรณ (แต้ม).jpg",
+      "emp_24690018_1788949752.jpg": "จักรพงษ์ หงษ์คำเมือง (โอ๊ต).jpg",
+      "emp_24690027_1788949686.jpg": "ประพันธ์ สุนิกร (ตั้ง).jpg"
+    };
+
     function getEmployeeAvatarUrl(avatar, fallbackName = '') {
       if (!avatar || !String(avatar).trim()) {
         if (!fallbackName) return '';
         return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(fallbackName) + '&background=ff7900&color=fff&size=256';
       }
-      const s = String(avatar).trim();
+      let s = String(avatar).trim();
+      if (OLD_TO_NEW_AVATARS[s]) {
+        s = OLD_TO_NEW_AVATARS[s];
+      }
       if (s.startsWith('data:image/') || s.startsWith('blob:') || s.startsWith('http://') || s.startsWith('https://')) {
         const gdriveMatch = s.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/);
         if (gdriveMatch) {
@@ -998,7 +1045,7 @@
         }
         return s;
       }
-      return `assets/uploads/employees/${s}`;
+      return 'assets/uploads/employees/' + encodeURI(s);
     }
 
     // Generate Employee Rows
