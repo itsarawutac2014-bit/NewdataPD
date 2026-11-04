@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>เข้าสู่ระบบจัดการพนักงาน | ระบบบันทึกประวัติและอายุงาน ฝ่ายผลิต</title>
+  <title>PRODUCTION SMART | ระบบบริหารจัดการฝ่ายผลิต & กำลังพลอัจฉริยะ</title>
 
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
@@ -28,35 +28,55 @@
       font-family: 'Prompt', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
     body {
-      background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 50%, #fed7aa 100%);
+      background: 
+        radial-gradient(circle at 10% 15%, rgba(249, 115, 22, 0.16) 0%, transparent 45%),
+        radial-gradient(circle at 90% 18%, rgba(37, 99, 235, 0.16) 0%, transparent 45%),
+        radial-gradient(circle at 50% 90%, rgba(16, 185, 129, 0.16) 0%, transparent 50%),
+        linear-gradient(135deg, #fffaf5 0%, #f0f7ff 50%, #f0fdf4 100%);
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 1.5rem 0.75rem;
+      position: relative;
     }
     .login-card {
-      border-radius: 24px;
-      box-shadow: 0 20px 40px rgba(234, 88, 12, 0.18);
+      border-radius: 28px;
+      box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.12), 0 10px 30px rgba(37, 99, 235, 0.08);
       background: #ffffff;
-      border: 1px solid rgba(255, 121, 0, 0.2);
+      border: 1px solid rgba(226, 232, 240, 0.9);
       overflow: hidden;
       width: 100%;
       max-width: 440px;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
-    .btn-orange {
-      background: linear-gradient(135deg, #ff7900, #ea580c);
+    .login-card:hover {
+      box-shadow: 0 30px 60px -15px rgba(15, 23, 42, 0.16), 0 12px 36px rgba(37, 99, 235, 0.12);
+    }
+    .accent-stripe {
+      height: 5px;
+      width: 100%;
+      background: linear-gradient(90deg, #f97316 0%, #2563eb 50%, #10b981 100%);
+    }
+    .login-header {
+      background: linear-gradient(135deg, #ea580c 0%, #2563eb 55%, #059669 100%);
+      color: #ffffff;
+      position: relative;
+    }
+    .btn-smart {
+      background: linear-gradient(135deg, #ea580c 0%, #2563eb 55%, #059669 100%);
       color: #ffffff;
       border: none;
-      box-shadow: 0 4px 14px rgba(234, 88, 12, 0.35);
-      transition: all 0.2s ease;
+      box-shadow: 0 6px 18px rgba(37, 99, 235, 0.28);
+      transition: all 0.25s ease;
+      font-weight: 800;
+      letter-spacing: 0.3px;
     }
-    .btn-orange:hover, .btn-orange:focus {
-      background: linear-gradient(135deg, #ea580c, #c2410c);
+    .btn-smart:hover, .btn-smart:focus {
+      background: linear-gradient(135deg, #c2410c 0%, #1d4ed8 55%, #047857 100%);
       color: #ffffff;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 18px rgba(234, 88, 12, 0.45);
+      transform: translateY(-1.5px);
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.38);
     }
     .input-group-text {
       background-color: #f8fafc;
@@ -66,8 +86,23 @@
       border-color: #cbd5e1;
     }
     .form-control:focus {
-      border-color: #ff7900;
-      box-shadow: 0 0 0 0.25rem rgba(255, 121, 0, 0.18);
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 0.25rem rgba(37, 99, 235, 0.18);
+    }
+    .badge-bhs {
+      background-color: #ffedd5;
+      color: #9a3412;
+      border: 1px solid #fdba74;
+    }
+    .badge-yueli {
+      background-color: #dbeafe;
+      color: #1e40af;
+      border: 1px solid #93c5fd;
+    }
+    .badge-isowa {
+      background-color: #d1fae5;
+      color: #065f46;
+      border: 1px solid #6ee7b7;
     }
   </style>
 </head>
@@ -75,13 +110,33 @@
 
 <div class="container p-2">
   <div class="login-card mx-auto">
-    <!-- Header Gradient Banner -->
-    <div class="p-4 p-md-5 text-center" style="background: linear-gradient(135deg, #ff7900, #ea580c); color: white;">
-      <div class="d-inline-flex align-items-center justify-content-center bg-white rounded-circle shadow mb-3" style="width: 76px; height: 76px;">
-        <i class="fas fa-shield-halved fs-1" style="color: #ff7900;"></i>
+    <!-- Top 3-Color Accent Line -->
+    <div class="accent-stripe"></div>
+
+    <!-- Header Gradient Banner (ส้มอ่อน • น้ำเงินอ่อน • เขียวอ่อน) -->
+    <div class="login-header p-4 p-md-5 text-center">
+      <!-- Logo Container -->
+      <div class="d-inline-flex align-items-center justify-content-center bg-white rounded-circle shadow-lg mb-3" style="width: 80px; height: 80px; border: 3px solid rgba(255,255,255,0.85);">
+        <i class="fa-solid fa-industry fs-1" style="background: linear-gradient(135deg, #ea580c 0%, #2563eb 55%, #059669 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
       </div>
-      <h4 class="fw-bold mb-1">เข้าสู่ระบบจัดการพนักงาน</h4>
-      <p class="mb-0 text-white-50 small">ระบบรักษาความปลอดภัย & บันทึกประวัติฝ่ายผลิต</p>
+      
+      <!-- App Name -->
+      <h3 class="fw-black mb-1 text-white tracking-wide" style="font-weight: 800; letter-spacing: 0.5px;">PRODUCTION SMART</h3>
+      
+      <!-- Machine Badges: BHS, YUELI, ISOWA -->
+      <div class="d-flex align-items-center justify-content-center gap-1.5 flex-wrap mt-2">
+        <span class="badge rounded-pill bg-white text-dark shadow-2xs px-2.5 py-1" style="font-size: 10.5px; font-weight: 800; border: 1px solid #fed7aa;">
+          <i class="fa-solid fa-circle text-warning me-1"></i>BHS
+        </span>
+        <span class="badge rounded-pill bg-white text-dark shadow-2xs px-2.5 py-1" style="font-size: 10.5px; font-weight: 800; border: 1px solid #bfdbfe;">
+          <i class="fa-solid fa-circle text-primary me-1"></i>YUELI
+        </span>
+        <span class="badge rounded-pill bg-white text-dark shadow-2xs px-2.5 py-1" style="font-size: 10.5px; font-weight: 800; border: 1px solid #a7f3d0;">
+          <i class="fa-solid fa-circle text-success me-1"></i>ISOWA
+        </span>
+      </div>
+
+      <p class="mb-0 text-white-75 small mt-2" style="font-weight: 500;">ระบบบริหารจัดการฝ่ายผลิต & กำลังพลอัจฉริยะ</p>
     </div>
 
     <!-- Login Form Area -->
@@ -94,28 +149,34 @@
 
       <form id="loginForm" onsubmit="handleLoginSubmit(event)">
         <div class="mb-3">
-          <label for="username" class="form-label fw-semibold text-secondary small">ชื่อผู้ใช้งาน (Username)</label>
+          <label for="username" class="form-label fw-bold text-secondary small">ชื่อผู้ใช้งาน (Username)</label>
           <div class="input-group">
-            <span class="input-group-text border-end-0"><i class="fas fa-user text-muted"></i></span>
-            <input type="text" class="form-control border-start-0 ps-0" id="username" name="username" placeholder="ระบุชื่อผู้ใช้" required autofocus autocomplete="username">
+            <span class="input-group-text border-end-0 rounded-start-3"><i class="fas fa-user text-muted"></i></span>
+            <input type="text" class="form-control border-start-0 ps-0 rounded-end-3" id="username" name="username" placeholder="ระบุชื่อผู้ใช้" required autofocus autocomplete="username">
           </div>
         </div>
 
         <div class="mb-4">
-          <label for="password" class="form-label fw-semibold text-secondary small">รหัสผ่าน (Password)</label>
+          <label for="password" class="form-label fw-bold text-secondary small">รหัสผ่าน (Password)</label>
           <div class="input-group">
-            <span class="input-group-text border-end-0"><i class="fas fa-lock text-muted"></i></span>
+            <span class="input-group-text border-end-0 rounded-start-3"><i class="fas fa-lock text-muted"></i></span>
             <input type="password" class="form-control border-start-0 ps-0" id="password" name="password" placeholder="ระบุรหัสผ่าน" required autocomplete="current-password">
-            <button class="btn btn-outline-secondary border-start-0" type="button" onclick="togglePasswordVisibility()">
+            <button class="btn btn-outline-secondary border-start-0 rounded-end-3" type="button" onclick="togglePasswordVisibility()">
               <i class="fas fa-eye text-muted" id="eye-icon"></i>
             </button>
           </div>
         </div>
 
-        <div class="d-grid mb-0">
-          <button type="submit" class="btn btn-orange py-2.5 rounded-3 fw-bold">
-            <i class="fas fa-sign-in-alt me-1"></i> เข้าสู่ระบบ
+        <div class="d-grid mb-3">
+          <button type="submit" class="btn btn-smart py-2.5 rounded-3">
+            <i class="fas fa-sign-in-alt me-1.5"></i> เข้าสู่ระบบ
           </button>
+        </div>
+
+        <div class="text-center pt-2">
+          <span class="text-muted small" style="font-size: 11px; font-weight: 500;">
+            <i class="fa-solid fa-shield-halved text-success me-1"></i> ระบบรักษาความปลอดภัย & Google Sheet Sync
+          </span>
         </div>
       </form>
     </div>
