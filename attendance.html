@@ -680,8 +680,8 @@
     <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-sm overflow-hidden text-center p-6 space-y-4">
       <div class="relative inline-block mx-auto">
         <img id="preview-avatar-img" src="" alt="" class="w-36 h-36 rounded-full object-cover border-4 border-orange-500 shadow-xl mx-auto">
-        <span id="preview-leader-crown" class="absolute top-1 right-1 w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center shadow hidden">
-          <i class="fa-solid fa-crown text-sm"></i>
+        <span id="preview-leader-crown" class="absolute top-1 right-1 w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center shadow hidden" title="หัวหน้ากะ (Shift Leader)">
+          <i class="fa-solid fa-helmet-safety text-sm"></i>
         </span>
       </div>
 
@@ -1083,8 +1083,8 @@
                     </div>
                   `}
                   ${isLeader ? `
-                    <span class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-[10px] shadow" title="หัวหน้ากะ">
-                      <i class="fa-solid fa-crown"></i>
+                    <span class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-amber-500 text-slate-950 flex items-center justify-center text-[10px] shadow" title="หัวหน้ากะ (Shift Leader)">
+                      <i class="fa-solid fa-helmet-safety"></i>
                     </span>
                   ` : ''}
                 </div>
@@ -1092,7 +1092,7 @@
                   <div class="flex items-center gap-1 flex-wrap">
                     <span class="font-bold text-slate-900 text-xs truncate">${escapeHtml(emp.first_name)}</span>
                     ${emp.nickname ? `<span class="text-orange-600 font-black text-xs">(${escapeHtml(emp.nickname)})</span>` : ''}
-                    ${isLeader ? `<span class="px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-300 font-bold text-[9px]"><i class="fa-solid fa-crown text-[8px] mr-0.5"></i>กะ</span>` : ''}
+                    ${isLeader ? `<span class="px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-300 font-bold text-[9px]"><i class="fa-solid fa-helmet-safety text-[8px] mr-0.5"></i>หัวหน้ากะ</span>` : ''}
                   </div>
                   <div class="flex items-center gap-1 text-[11px] text-slate-500 mt-0.5">
                     <span class="px-1 py-0 rounded bg-slate-100 text-slate-700 font-bold text-[10px] border border-slate-200">${escapeHtml(emp.station || '-')}</span>

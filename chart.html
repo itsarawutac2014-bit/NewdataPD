@@ -274,8 +274,8 @@
     <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl w-full max-w-sm overflow-hidden text-center p-6 space-y-4 animate-scaleIn">
       <div class="relative inline-block mx-auto">
         <img id="preview-avatar-img" src="" alt="" class="w-40 h-40 rounded-full object-cover border-4 border-orange-500 shadow-xl mx-auto">
-        <span id="preview-leader-crown" class="absolute top-1 right-1 w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center shadow hidden" title="หัวหน้ากะ">
-          <i class="fa-solid fa-crown text-sm"></i>
+        <span id="preview-leader-crown" class="absolute top-1 right-1 w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center shadow hidden" title="หัวหน้ากะ (Shift Leader)">
+          <i class="fa-solid fa-helmet-safety text-sm"></i>
         </span>
       </div>
 
@@ -483,14 +483,14 @@
       {
         tier: 1,
         title: 'ระดับที่ 1: หัวหน้ากะ (Shift Leader)',
-        icon: 'fa-crown',
+        icon: 'fa-helmet-safety',
         stations: ['Host'],
         grid: 'grid-cols-1'
       },
       {
         tier: 2,
         title: 'ระดับที่ 2: ห้องควบคุม & เครื่องเรียง (Control / Stacker)',
-        icon: 'fa-sliders',
+        icon: 'fa-boxes-stacked',
         stations: ['Control', 'Stacker'],
         grid: 'grid-cols-1 sm:grid-cols-2'
       },
@@ -504,14 +504,14 @@
       {
         tier: 4,
         title: 'ระดับที่ 4: เครื่อง SF-B & จุด M3 (SF-B / M3)',
-        icon: 'fa-gear',
+        icon: 'fa-gears',
         stations: ['SF-B', 'M3'],
         grid: 'grid-cols-1 sm:grid-cols-2'
       },
       {
         tier: 5,
         title: 'ระดับที่ 5: จุด M2 / SF-C / M1 (M2 / SF-C / M1)',
-        icon: 'fa-cogs',
+        icon: 'fa-scroll',
         stations: ['M2', 'SF-C', 'M1'],
         grid: 'grid-cols-1 sm:grid-cols-3'
       }
@@ -608,42 +608,42 @@
       };
     }
 
-    // Position Icon Helper for Important Stations & Roles
+    // Position Icon Helper for Corrugated Paper Factory (โรงงานผลิตกระดาษลูกฟูก)
     function getPositionIcon(stOrPos) {
       const s = (stOrPos || '').trim();
       const lower = s.toLowerCase();
 
       if (s === 'Host' || lower.includes('หัวหน้ากะ')) {
-        return { icon: 'fa-solid fa-crown', color: 'text-amber-500', bg: 'bg-amber-100 text-amber-900 border-amber-300', isLeader: true };
+        return { icon: 'fa-solid fa-helmet-safety', color: 'text-amber-500', bg: 'bg-amber-100 text-amber-950 border-amber-300', isLeader: true };
       }
       if (s === 'Control' || lower.includes('ห้องควบคุม') || lower.includes('control')) {
-        return { icon: 'fa-solid fa-sliders', color: 'text-cyan-600', bg: 'bg-cyan-100 text-cyan-900 border-cyan-300' };
+        return { icon: 'fa-solid fa-desktop', color: 'text-cyan-600', bg: 'bg-cyan-100 text-cyan-950 border-cyan-300' };
       }
-      if (s === 'Stacker' || lower.includes('เครื่องเรียง') || lower.includes('stacker')) {
-        return { icon: 'fa-solid fa-boxes-stacked', color: 'text-purple-600', bg: 'bg-purple-100 text-purple-900 border-purple-300' };
+      if (s === 'Stacker' || lower.includes('เครื่องเรียง') || lower.includes('stacker') || lower.includes('dry end')) {
+        return { icon: 'fa-solid fa-boxes-stacked', color: 'text-purple-600', bg: 'bg-purple-100 text-purple-950 border-purple-300' };
       }
       if (s === 'DOUBLE' || lower.includes('เครื่องกาว') || lower.includes('double')) {
-        return { icon: 'fa-solid fa-clone', color: 'text-amber-600', bg: 'bg-amber-100 text-amber-900 border-amber-300' };
+        return { icon: 'fa-solid fa-layer-group', color: 'text-amber-600', bg: 'bg-amber-100 text-amber-950 border-amber-300' };
       }
       if (s.startsWith('SF-') || lower.includes('single')) {
-        return { icon: 'fa-solid fa-gear', color: 'text-blue-600', bg: 'bg-blue-100 text-blue-900 border-blue-300' };
+        return { icon: 'fa-solid fa-gears', color: 'text-blue-600', bg: 'bg-blue-100 text-blue-950 border-blue-300' };
       }
       if (/^M[1-5]$/.test(s) || lower.includes('wet end')) {
-        return { icon: 'fa-solid fa-wrench', color: 'text-emerald-600', bg: 'bg-emerald-100 text-emerald-900 border-emerald-300' };
+        return { icon: 'fa-solid fa-scroll', color: 'text-emerald-600', bg: 'bg-emerald-100 text-emerald-950 border-emerald-300' };
       }
       if (lower.includes('หัวหน้าแผนก') || lower.includes('สำนักงาน') || lower.includes('office')) {
-        return { icon: 'fa-solid fa-building-user', color: 'text-indigo-600', bg: 'bg-indigo-100 text-indigo-900 border-indigo-300', isLeader: true };
+        return { icon: 'fa-solid fa-user-tie', color: 'text-indigo-600', bg: 'bg-indigo-100 text-indigo-950 border-indigo-300', isDeptHead: true };
       }
       if (lower.includes('qc') || lower.includes('คุณภาพ')) {
-        return { icon: 'fa-solid fa-clipboard-check', color: 'text-rose-600', bg: 'bg-rose-100 text-rose-900 border-rose-300' };
+        return { icon: 'fa-solid fa-clipboard-check', color: 'text-rose-600', bg: 'bg-rose-100 text-rose-950 border-rose-300' };
       }
       if (lower.includes('โฟล์ค') || lower.includes('forklift') || lower.includes('ขนส่ง')) {
-        return { icon: 'fa-solid fa-truck-ramp-box', color: 'text-orange-600', bg: 'bg-orange-100 text-orange-900 border-orange-300' };
+        return { icon: 'fa-solid fa-truck-ramp-box', color: 'text-orange-600', bg: 'bg-orange-100 text-orange-950 border-orange-300' };
       }
       if (lower.includes('สแปร์') || lower.includes('สำรอง') || lower.includes('รอจัด')) {
-        return { icon: 'fa-solid fa-user-clock', color: 'text-amber-600', bg: 'bg-amber-100 text-amber-900 border-amber-300' };
+        return { icon: 'fa-solid fa-user-clock', color: 'text-amber-600', bg: 'bg-amber-100 text-amber-950 border-amber-300' };
       }
-      return { icon: 'fa-solid fa-user-gear', color: 'text-slate-500', bg: 'bg-slate-100 text-slate-800 border-slate-300' };
+      return { icon: 'fa-solid fa-user-gear', color: 'text-slate-600', bg: 'bg-slate-100 text-slate-800 border-slate-300' };
     }
 
     // Main Chart Rendering
@@ -714,8 +714,8 @@
                     ${h.nickname || h.first_name[0]}
                   </div>
                 `}
-                <span class="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-xs shadow-xs border border-white" title="หัวหน้าแผนก">
-                  <i class="fa-solid fa-crown"></i>
+                <span class="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs shadow-xs border border-white" title="หัวหน้าแผนก">
+                  <i class="fa-solid fa-user-tie"></i>
                 </span>
               </div>
               <div>
@@ -724,7 +724,7 @@
                   <span class="text-amber-400 font-black text-base sm:text-lg">(${h.nickname || '-'})</span>
                 </div>
                 <p class="text-xs sm:text-sm text-slate-300 font-semibold mt-0.5 flex items-center gap-1.5">
-                  <i class="fa-solid fa-building-user text-amber-400"></i> ${h.position || 'หัวหน้าแผนก / สำนักงาน'}
+                  <i class="fa-solid fa-user-tie text-amber-400"></i> ${h.position || 'หัวหน้าแผนก / สำนักงาน'}
                 </p>
                 <div class="mt-1 text-xs text-slate-400 font-mono flex items-center gap-2">
                   <span>${h.employee_code}</span>
@@ -733,8 +733,8 @@
                 </div>
               </div>
             </div>
-            <span class="px-3.5 py-1.5 rounded-full bg-amber-400 text-slate-950 font-black text-xs shadow-md">
-              <i class="fa-solid fa-crown mr-1"></i> สำนักงาน / ผู้นำ
+            <span class="px-3.5 py-1.5 rounded-full bg-slate-800 border border-slate-600 text-amber-400 font-black text-xs shadow-md">
+              <i class="fa-solid fa-industry mr-1"></i> สำนักงานฝ่ายผลิต
             </span>
           </div>
         `;
@@ -872,8 +872,8 @@
                       </div>
                     `}
                     ${isLeader ? `
-                      <span class="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-xs shadow-xs border border-white" title="หัวหน้ากะ">
-                        <i class="fa-solid fa-crown"></i>
+                      <span class="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-xs shadow-xs border border-white" title="หัวหน้ากะ (Shift Leader)">
+                        <i class="fa-solid fa-helmet-safety"></i>
                       </span>
                     ` : ''}
                   </div>
