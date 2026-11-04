@@ -1294,19 +1294,158 @@
       }
     }
 
-    // 6. Shift Cycle Toggle (+ กะ on date header -> ตั้งกะทีละ 7 วันรวด)
+    // 6. Shift Picker Modal (+ กะ on date header -> มีตัวเลือก เช้า / ดึก / PM และเลือกแบบ 1 วัน หรือ 7 วันได้)
+    let currentPickerState = {
+      machine: 'BHS',
+      shiftGroup: 'A',
+      dateStr: '',
+      selectedType: 'เช้า',
+      selectedDuration: 7
+    };
+
     function cycleShiftType(machine, shiftGroup, dateStr, event) {
-      event.stopPropagation();
+      if (event) event.stopPropagation();
       const key = `${machine}_${shiftGroup}_${dateStr}`;
-      const current = appData.dailyShifts[key];
-      let next = null;
+      const current = appData.dailyShifts[key] || 'เช้า';
 
-      if (!current) next = 'เช้า';
-      else if (current === 'เช้า') next = 'ดึก';
-      else if (current === 'ดึก') next = 'PM';
-      else next = null;
+      const parts = dateStr.split('-');
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10);
+      const startDay = parseInt(parts[2], 10);
+      const daysInMonth = new Date(year, month, 0).getDate();
+      const endDay7 = Math.min(startDay + 6, daysInMonth);
 
-      // คำนวณช่วง 7 วัน (ตั้งแต่วันที่กด ไปอีก 7 วัน หรือถ้ากดในบล็อกสัปดาห์ อาทิตย์-เสาร์ ให้คลุมทั้ง 7 วัน)
+      currentPickerState = {
+        machine: machine,
+        shiftGroup: shiftGroup,
+        dateStr: dateStr,
+        selectedType: current,
+        selectedDuration: 7
+      };
+
+      Swal.fire({
+        title: `<div class="text-base font-black text-slate-900"><i class="fa-solid fa-clock text-orange-500 mr-1.5"></i>เลือกกะการทำงาน (${machine} - กะ ${shiftGroup})</div>`,
+        html: `
+          <div class="text-left space-y-4 mt-2">
+            <!-- 1. เลือกประเภทกะ -->
+            <div>
+              <label class="block text-xs font-black text-slate-700 mb-2">1. เลือกกะที่ต้องการ:</label>
+              <div class="grid grid-cols-3 gap-2" id="picker-type-group">
+                <button type="button" onclick="setPickerShiftType('เช้า')" id="btn-pick-type-morning" class="p-3 rounded-2xl border-2 font-black text-xs flex flex-col items-center gap-1 transition cursor-pointer">
+                  <span class="text-lg">☀️</span>
+                  <span>กะเช้า</span>
+                </button>
+                <button type="button" onclick="setPickerShiftType('ดึก')" id="btn-pick-type-night" class="p-3 rounded-2xl border-2 font-black text-xs flex flex-col items-center gap-1 transition cursor-pointer">
+                  <span class="text-lg">🌙</span>
+                  <span>กะดึก</span>
+                </button>
+                <button type="button" onclick="setPickerShiftType('PM')" id="btn-pick-type-pm" class="p-3 rounded-2xl border-2 font-black text-xs flex flex-col items-center gap-1 transition cursor-pointer">
+                  <span class="text-lg">🌆</span>
+                  <span>PM</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 2. เลือกจำนวนวัน (1 วัน หรือ 7 วัน) -->
+            <div>
+              <label class="block text-xs font-black text-slate-700 mb-2">2. เลือกรูปแบบจำนวนวัน:</label>
+              <div class="grid grid-cols-2 gap-2.5">
+                <button type="button" onclick="setPickerShiftDuration(1)" id="btn-pick-dur-1" class="p-3 rounded-2xl border-2 text-left transition cursor-pointer">
+                  <div class="font-black text-xs text-slate-900 flex items-center justify-between">
+                    <span>📅 เลือก 1 วัน</span>
+                    <i class="fa-solid fa-circle-check text-orange-600 hidden" id="icon-dur-1"></i>
+                  </div>
+                  <div class="text-[11px] text-slate-500 font-bold mt-1">เฉพาะวันที่ ${startDay} ${THAI_MONTHS[month]}</div>
+                </button>
+                <button type="button" onclick="setPickerShiftDuration(7)" id="btn-pick-dur-7" class="p-3 rounded-2xl border-2 text-left transition cursor-pointer">
+                  <div class="font-black text-xs text-slate-900 flex items-center justify-between">
+                    <span>🗓️ เลือก 7 วันรวด</span>
+                    <i class="fa-solid fa-circle-check text-orange-600 hidden" id="icon-dur-7"></i>
+                  </div>
+                  <div class="text-[11px] text-orange-600 font-bold mt-1">วันที่ ${startDay} - ${endDay7} ${THAI_MONTHS[month]}</div>
+                </button>
+              </div>
+            </div>
+
+            <!-- ปุ่มบันทึก / ล้างค่า -->
+            <div class="pt-3 border-t border-slate-200 flex items-center justify-between gap-2">
+              <button type="button" onclick="confirmPickerShift(true)" class="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition cursor-pointer">
+                <i class="fa-solid fa-eraser mr-1"></i> ล้างค่ากะ
+              </button>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="Swal.close()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer">
+                  ยกเลิก
+                </button>
+                <button type="button" onclick="confirmPickerShift(false)" class="px-5 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-black shadow-sm transition cursor-pointer">
+                  <i class="fa-solid fa-check mr-1"></i> บันทึกกะ
+                </button>
+              </div>
+            </div>
+          </div>
+        `,
+        showConfirmButton: false,
+        width: '440px',
+        didOpen: () => {
+          refreshPickerUI();
+        }
+      });
+    }
+
+    function setPickerShiftType(type) {
+      currentPickerState.selectedType = type;
+      refreshPickerUI();
+    }
+
+    function setPickerShiftDuration(days) {
+      currentPickerState.selectedDuration = days;
+      refreshPickerUI();
+    }
+
+    function refreshPickerUI() {
+      const t = currentPickerState.selectedType;
+      const d = currentPickerState.selectedDuration;
+
+      const btnM = document.getElementById('btn-pick-type-morning');
+      const btnN = document.getElementById('btn-pick-type-night');
+      const btnP = document.getElementById('btn-pick-type-pm');
+
+      if (btnM) {
+        btnM.className = `p-3 rounded-2xl border-2 font-black text-xs flex flex-col items-center gap-1 transition cursor-pointer ${
+          t === 'เช้า' ? 'bg-amber-200 border-amber-500 text-amber-950 ring-2 ring-amber-400 shadow-xs' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-amber-50'
+        }`;
+      }
+      if (btnN) {
+        btnN.className = `p-3 rounded-2xl border-2 font-black text-xs flex flex-col items-center gap-1 transition cursor-pointer ${
+          t === 'ดึก' ? 'bg-blue-600 border-blue-800 text-white ring-2 ring-blue-300 shadow-xs' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-blue-50'
+        }`;
+      }
+      if (btnP) {
+        btnP.className = `p-3 rounded-2xl border-2 font-black text-xs flex flex-col items-center gap-1 transition cursor-pointer ${
+          t === 'PM' ? 'bg-purple-600 border-purple-800 text-white ring-2 ring-purple-300 shadow-xs' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-purple-50'
+        }`;
+      }
+
+      const btnD1 = document.getElementById('btn-pick-dur-1');
+      const btnD7 = document.getElementById('btn-pick-dur-7');
+      const ic1 = document.getElementById('icon-dur-1');
+      const ic7 = document.getElementById('icon-dur-7');
+
+      if (btnD1) {
+        btnD1.className = `p-3 rounded-2xl border-2 text-left transition cursor-pointer ${
+          d === 1 ? 'bg-orange-50 border-orange-500 ring-2 ring-orange-200' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
+        }`;
+      }
+      if (btnD7) {
+        btnD7.className = `p-3 rounded-2xl border-2 text-left transition cursor-pointer ${
+          d === 7 ? 'bg-orange-50 border-orange-500 ring-2 ring-orange-200' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
+        }`;
+      }
+      if (ic1) ic1.classList.toggle('hidden', d !== 1);
+      if (ic7) ic7.classList.toggle('hidden', d !== 7);
+    }
+
+    function confirmPickerShift(isClear = false) {
+      const { machine, shiftGroup, dateStr, selectedType, selectedDuration } = currentPickerState;
       const parts = dateStr.split('-');
       const year = parseInt(parts[0], 10);
       const month = parseInt(parts[1], 10);
@@ -1314,32 +1453,32 @@
       const daysInMonth = new Date(year, month, 0).getDate();
       const pad = n => String(n).padStart(2, '0');
 
-      const endDay = Math.min(startDay + 6, daysInMonth);
+      const endDay = selectedDuration === 7 ? Math.min(startDay + 6, daysInMonth) : startDay;
+
       for (let d = startDay; d <= endDay; d++) {
         const dStr = `${year}-${pad(month)}-${pad(d)}`;
         const dKey = `${machine}_${shiftGroup}_${dStr}`;
-        if (next) {
-          appData.dailyShifts[dKey] = next;
-        } else {
+        if (isClear) {
           delete appData.dailyShifts[dKey];
+        } else {
+          appData.dailyShifts[dKey] = selectedType;
         }
       }
 
       saveData();
+      Swal.close();
       renderDashboard();
 
-      // แสดง Toast แจ้งเตือนว่าตั้งค่า 7 วันแล้ว
-      if (typeof Swal !== 'undefined') {
-        const labelText = next === 'เช้า' ? '☀️ กะเช้า' : (next === 'ดึก' ? '🌙 กะดึก' : (next === 'PM' ? '🌆 PM' : 'ล้างค่ากะ'));
-        Swal.fire({
-          toast: true,
-          position: 'top-end',
-          icon: 'success',
-          title: `ตั้งค่า ${labelText} (วันที่ ${startDay} - ${endDay} ${THAI_MONTHS[month]}) สำเร็จ`,
-          showConfirmButton: false,
-          timer: 1800
-        });
-      }
+      const labelText = isClear ? 'ล้างค่ากะ' : (selectedType === 'เช้า' ? '☀️ กะเช้า' : (selectedType === 'ดึก' ? '🌙 กะดึก' : '🌆 PM'));
+      const rangeText = selectedDuration === 7 ? `วันที่ ${startDay} - ${endDay} ${THAI_MONTHS[month]}` : `วันที่ ${startDay} ${THAI_MONTHS[month]}`;
+      Swal.fire({
+        toast: true,
+        position: 'top-end',
+        icon: 'success',
+        title: `${labelText} (${rangeText}) เรียบร้อย`,
+        showConfirmButton: false,
+        timer: 1800
+      });
     }
 
     // เปิดหน้าต่างตั้งค่ากะรายสัปดาห์ (ทีละ 7 วัน) แบบเลือกช่วงได้สะดวก
@@ -1362,10 +1501,13 @@
           </div>
           <div class="flex items-center gap-1">
             <button type="button" onclick="applyWeekRangeShift('${machine}', '${shiftGroup}', ${year}, ${month}, ${w.start}, ${w.end}, 'เช้า')" class="px-2.5 py-1 rounded-lg text-xs font-bold border transition cursor-pointer ${w.current === 'เช้า' ? 'bg-amber-300 text-amber-950 border-amber-500 ring-2 ring-amber-400' : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'}">
-              ☀️ กะเช้า
+              ☀️ เช้า
             </button>
             <button type="button" onclick="applyWeekRangeShift('${machine}', '${shiftGroup}', ${year}, ${month}, ${w.start}, ${w.end}, 'ดึก')" class="px-2.5 py-1 rounded-lg text-xs font-bold border transition cursor-pointer ${w.current === 'ดึก' ? 'bg-blue-700 text-white border-blue-900 ring-2 ring-blue-400' : 'bg-blue-600 hover:bg-blue-700 text-white border-blue-700'}">
-              🌙 กะดึก
+              🌙 ดึก
+            </button>
+            <button type="button" onclick="applyWeekRangeShift('${machine}', '${shiftGroup}', ${year}, ${month}, ${w.start}, ${w.end}, 'PM')" class="px-2.5 py-1 rounded-lg text-xs font-bold border transition cursor-pointer ${w.current === 'PM' ? 'bg-purple-700 text-white border-purple-900 ring-2 ring-purple-400' : 'bg-purple-600 hover:bg-purple-700 text-white border-purple-700'}">
+              🌆 PM
             </button>
             <button type="button" onclick="applyWeekRangeShift('${machine}', '${shiftGroup}', ${year}, ${month}, ${w.start}, ${w.end}, null)" class="px-2 py-1 rounded-lg text-xs font-bold bg-slate-200 hover:bg-slate-300 text-slate-700 transition cursor-pointer" title="ล้างกะ">
               ล้าง
