@@ -1332,20 +1332,30 @@
       if (empIdx === -1) return;
 
       store.employees[empIdx].status = newStatus;
-      if (reason !== undefined) {
-        store.employees[empIdx].notes = reason;
-      }
-      if (resignedDate !== undefined) {
-        store.employees[empIdx].resigned_date = ['resigned', 'terminated', 'suspended'].includes(newStatus) ? resignedDate : '';
+      if (newStatus === 'active') {
+        store.employees[empIdx].resigned_date = '';
+        store.employees[empIdx].notes = '';
+      } else {
+        if (reason !== undefined) {
+          store.employees[empIdx].notes = reason;
+        }
+        if (resignedDate !== undefined) {
+          store.employees[empIdx].resigned_date = ['resigned', 'terminated', 'suspended'].includes(newStatus) ? resignedDate : '';
+        }
       }
       store.employees[empIdx].updated_at = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
       saveStoreData(store);
       renderEmployees();
 
-      // Two-way sync to Google Sheet
+      // Two-way sync to Google Sheet: อัปเดตเฉพาะสถานะใน Google Sheet ทันที (ไม่แตะประวัติอื่น)
       if (typeof GoogleSheetSync !== 'undefined' && GoogleSheetSync.hasWebhook()) {
-        GoogleSheetSync.syncEditEmployee(store.employees[empIdx]);
+        GoogleSheetSync.syncEmployeeStatus(
+          store.employees[empIdx].employee_code, 
+          newStatus, 
+          store.employees[empIdx].resigned_date, 
+          store.employees[empIdx].notes
+        );
       }
 
       const statusLabels = {

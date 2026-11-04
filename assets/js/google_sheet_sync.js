@@ -87,6 +87,64 @@ const GoogleSheetSync = (function() {
   }
 
   /**
+   * ซิงค์เฉพาะรูปภาพของพนักงาน 1 คนไปยัง Google Sheet (ไม่แตะคอลัมน์ประวัติอื่น)
+   */
+  async function syncEmployeeAvatar(employeeCode, avatarData) {
+    if (!hasWebhook()) return false;
+    showToast(`กำลังส่งรูปภาพ ${employeeCode} ไปที่ Google Drive & Sheet...`, 'info');
+    const res = await postToWebhook({
+      action: 'update_avatar',
+      employee_code: String(employeeCode),
+      avatar: avatarData
+    });
+    if (res.success) {
+      showToast(`อัปเดตเฉพาะรูปภาพใน Google Sheet เรียบร้อย ✅`, 'success');
+    }
+    return res.success;
+  }
+
+  /**
+   * ซิงค์เฉพาะสถานะพนักงาน (ปกติ, ลาออก, ไล่ออก, พักงาน) ไปยัง Google Sheet ทันที!
+   */
+  async function syncEmployeeStatus(employeeCode, status, resignedDate = '', notes = '') {
+    if (!hasWebhook()) return false;
+    const isAct = (status === 'active');
+    showToast(`กำลังอัปเดตสถานะเป็น "${isAct ? 'ปกติ (Active)' : status}" ใน Google Sheet...`, 'info');
+    const res = await postToWebhook({
+      action: 'update_status',
+      employee_code: String(employeeCode),
+      status: status,
+      resigned_date: isAct ? '' : (resignedDate || ''),
+      notes: isAct ? '' : (notes || '')
+    });
+    if (res.success) {
+      showToast(`อัปเดตสถานะใน Google Sheet ทันทีเรียบร้อย ✅`, 'success');
+    }
+    return res.success;
+  }
+
+  /**
+   * สั่งให้ Google Apps Script กู้คืนข้อมูลวันเริ่มงาน/วันเกิดที่หายไป และผูกลิงก์รูปภาพทั้งหมด
+   */
+  async function repairSheet() {
+    if (!hasWebhook()) {
+      alert('กรุณาบันทึก Webhook URL ก่อน');
+      return false;
+    }
+    showToast('กำลังกู้คืนข้อมูลประวัติและรูปภาพใน Google Sheet...', 'info');
+    const res = await postToWebhook({ action: 'repair_sheet' });
+    if (res.success) {
+      showToast('กู้คืนข้อมูลในชีตเรียบร้อย! กำลังดึงข้อมูลล่าสุด...', 'success');
+      setTimeout(async () => {
+        await pullDataFromSheet(true);
+        if (typeof renderEmployees === 'function') renderEmployees();
+        if (typeof renderDashboard === 'function') renderDashboard();
+      }, 1500);
+    }
+    return res.success;
+  }
+
+  /**
    * สั่งให้ Google Apps Script ผูกลิงก์รูปภาพทั้งหมดจาก Google Drive โฟลเดอร์ "รูปภาพพนักงานฝ่ายผลิต"
    * ลงคอลัมน์ O ใน Google Sheet และดึงข้อมูลใหม่กลับมาทันที
    */
@@ -337,6 +395,9 @@ const GoogleSheetSync = (function() {
                 <button onclick="GoogleSheetSync.syncAvatarLinksFromDrive()" type="button" class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer shrink-0" title="ผูกลิงก์รูปพนักงานจาก Google Drive ลงในชีต">
                   <i class="fa-solid fa-image"></i> ผูกลิงก์รูป Drive
                 </button>
+                <button onclick="GoogleSheetSync.repairSheet()" type="button" class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-black text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer shrink-0" title="กู้คืนวันเริ่มงาน/วันเกิด และรูปภาพใน Google Sheet">
+                  <i class="fa-solid fa-wrench"></i> กู้คืนประวัติในชีต
+                </button>
                 <button onclick="GoogleSheetSync.syncAllEmployees()" type="button" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer shrink-0">
                   <i class="fa-solid fa-bolt"></i> ซิงค์ 41 คนขึ้นชีต
                 </button>
@@ -457,11 +518,14 @@ const GoogleSheetSync = (function() {
     setWebhookUrl,
     hasWebhook,
     syncEmployee,
+    syncEmployeeAvatar,
+    syncEmployeeStatus,
     syncEditEmployee,
     syncAttendance,
     syncBulkAttendance,
     syncAllEmployees,
     syncAvatarLinksFromDrive,
+    repairSheet,
     pullDataFromSheet,
     openSettingsModal,
     closeSettingsModal,
