@@ -521,38 +521,14 @@
             <input type="text" id="edit-emp-position" placeholder="เช่น ผู้ปฏิบัติงาน Dry End, หัวหน้ากะ" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
           </div>
           <!-- วันเริ่มงาน -->
-          <div class="bg-blue-50/50 p-3 rounded-2xl border border-blue-200/80 space-y-1.5">
-            <div class="flex items-center justify-between gap-1 flex-wrap">
-              <label class="block font-bold text-slate-800 text-xs flex items-center gap-1.5">
-                <i class="fa-regular fa-calendar-plus text-blue-600"></i>
-                <span>วันเริ่มงาน (Start Date)</span>
-              </label>
-              <span id="edit-emp-startdate-display" class="text-[11px] font-black text-blue-700 bg-white px-2 py-0.5 rounded-lg border border-blue-200 font-mono shadow-2xs">
-                -
-              </span>
-            </div>
-            <input type="date" id="edit-emp-startdate" oninput="updateEditDateDisplays()" onchange="updateEditDateDisplays()" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-2xs">
-            <div class="flex items-center justify-between text-[11px] text-slate-600 font-medium pt-0.5">
-              <span><i class="fa-solid fa-briefcase text-blue-500 mr-1"></i> อายุงานคำนวณได้:</span>
-              <span id="edit-emp-tenure-text" class="font-bold text-blue-700 bg-white px-2 py-0.5 rounded border border-blue-100 shadow-2xs">-</span>
-            </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">วันเริ่มงาน (Start Date)</label>
+            <input type="date" id="edit-emp-startdate" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
           </div>
           <!-- วันเกิด -->
-          <div class="bg-purple-50/50 p-3 rounded-2xl border border-purple-200/80 space-y-1.5">
-            <div class="flex items-center justify-between gap-1 flex-wrap">
-              <label class="block font-bold text-slate-800 text-xs flex items-center gap-1.5">
-                <i class="fa-solid fa-cake-candles text-purple-600"></i>
-                <span>วันเกิด (Birth Date)</span>
-              </label>
-              <span id="edit-emp-birthdate-display" class="text-[11px] font-black text-purple-700 bg-white px-2 py-0.5 rounded-lg border border-purple-200 font-mono shadow-2xs">
-                -
-              </span>
-            </div>
-            <input type="date" id="edit-emp-birthdate" oninput="updateEditDateDisplays()" onchange="updateEditDateDisplays()" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-2xs">
-            <div class="flex items-center justify-between text-[11px] text-slate-600 font-medium pt-0.5">
-              <span><i class="fa-solid fa-user-clock text-purple-500 mr-1"></i> อายุตัวคำนวณได้:</span>
-              <span id="edit-emp-age-text" class="font-bold text-purple-700 bg-white px-2 py-0.5 rounded border border-purple-100 shadow-2xs">-</span>
-            </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">วันเกิด (Birth Date)</label>
+            <input type="date" id="edit-emp-birthdate" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
           </div>
           <!-- สถานะทดลองงาน -->
           <div>
@@ -824,6 +800,45 @@
   <script>
     let viewMode = 'grid'; // 'grid' | 'table'
 
+    /**
+     * แปลงรูปแบบวันที่ทุกชนิด (ตัด T17:00:00.000Z ออก และแปลงตามเวลาไทย UTC+7) ให้เหลือเฉพาะ YYYY-MM-DD
+     */
+    function formatDateForInput(dateVal) {
+      if (!dateVal) return '';
+      if (typeof dateVal === 'string') {
+        const trimmed = dateVal.trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+        if (trimmed.includes('T')) {
+          try {
+            const d = new Date(trimmed);
+            if (!isNaN(d.getTime())) {
+              const bkk = new Date(d.getTime() + 7 * 60 * 60 * 1000);
+              const year = bkk.getUTCFullYear();
+              const month = String(bkk.getUTCMonth() + 1).padStart(2, '0');
+              const day = String(bkk.getUTCDate()).padStart(2, '0');
+              if (year >= 1940 && year <= 2100) {
+                return `${year}-${month}-${day}`;
+              }
+            }
+          } catch(e) {}
+        }
+        const m = trimmed.match(/(\d{4})-(\d{2})-(\d{2})/);
+        if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+      }
+      try {
+        const d = new Date(dateVal);
+        if (!isNaN(d.getTime())) {
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          if (year >= 1940 && year <= 2100) {
+            return `${year}-${month}-${day}`;
+          }
+        }
+      } catch(e) {}
+      return '';
+    }
+
     function getStoreData() {
       let store = null;
       const saved = localStorage.getItem('datamanbhs_attendance_v1');
@@ -834,41 +849,66 @@
         store = window.DATAMANBHS_INITIAL ? JSON.parse(JSON.stringify(window.DATAMANBHS_INITIAL)) : { employees: [] };
       }
 
-      // Auto-heal: ซ่อมแซมวันเริ่มงานและวันเกิดอัตโนมัติ หากในเครื่องเคยเผลอเซฟเป็นค่าว่าง
+      // Auto-heal & Clean: ตัด T17:00:00.000Z ออก และซ่อมแซมวันเริ่มงาน/วันเกิดที่หายไปอัตโนมัติ
+      const masterMap = {};
       if (window.DATAMANBHS_INITIAL && Array.isArray(window.DATAMANBHS_INITIAL.employees)) {
-        const masterMap = {};
         window.DATAMANBHS_INITIAL.employees.forEach(m => {
           if (m.employee_code) masterMap[String(m.employee_code).trim()] = m;
         });
-        let healed = false;
-        (store.employees || []).forEach(e => {
-          const code = String(e.employee_code || '').trim();
-          const master = masterMap[code];
-          if (master) {
-            if ((!e.start_date || e.start_date === '') && master.start_date) {
-              e.start_date = master.start_date;
-              healed = true;
-            }
-            if ((!e.birth_date || e.birth_date === '') && master.birth_date) {
-              e.birth_date = master.birth_date;
-              healed = true;
-            }
-            if ((!e.phone || e.phone === '') && master.phone) {
-              e.phone = master.phone;
-              healed = true;
-            }
+      }
+      let healed = false;
+      (store.employees || []).forEach(e => {
+        const code = String(e.employee_code || '').trim();
+        const master = masterMap[code];
+
+        // ตัดเวลา T...Z ต่อท้ายวันที่ออกให้เหลือเฉพาะ YYYY-MM-DD
+        if (e.start_date) {
+          const cleanS = formatDateForInput(e.start_date);
+          if (cleanS !== e.start_date) {
+            e.start_date = cleanS;
+            healed = true;
           }
-        });
-        if (healed) {
-          try { localStorage.setItem('datamanbhs_attendance_v1', JSON.stringify(store)); } catch(err) {}
         }
+        if (e.birth_date) {
+          const cleanB = formatDateForInput(e.birth_date);
+          if (cleanB !== e.birth_date) {
+            e.birth_date = cleanB;
+            healed = true;
+          }
+        }
+        if (e.resigned_date) {
+          const cleanR = formatDateForInput(e.resigned_date);
+          if (cleanR !== e.resigned_date) {
+            e.resigned_date = cleanR;
+            healed = true;
+          }
+        }
+
+        if (master) {
+          if ((!e.start_date || e.start_date === '') && master.start_date) {
+            e.start_date = formatDateForInput(master.start_date);
+            healed = true;
+          }
+          if ((!e.birth_date || e.birth_date === '') && master.birth_date) {
+            e.birth_date = formatDateForInput(master.birth_date);
+            healed = true;
+          }
+          if ((!e.phone || e.phone === '') && master.phone) {
+            e.phone = master.phone;
+            healed = true;
+          }
+        }
+      });
+      if (healed) {
+        try { localStorage.setItem('datamanbhs_attendance_v1', JSON.stringify(store)); } catch(err) {}
       }
       return store;
     }
 
     function calculateTenure(startDateStr) {
       if (!startDateStr) return { years: 0, months: 0, days: 0, text: '-' };
-      const start = new Date(startDateStr);
+      const clean = formatDateForInput(startDateStr) || startDateStr;
+      const start = new Date(clean);
       const now = new Date();
       let y = now.getFullYear() - start.getFullYear();
       let m = now.getMonth() - start.getMonth();
@@ -886,7 +926,8 @@
 
     function calculateAge(birthDateStr) {
       if (!birthDateStr) return { years: 0, text: '-' };
-      const birth = new Date(birthDateStr);
+      const clean = formatDateForInput(birthDateStr) || birthDateStr;
+      const birth = new Date(clean);
       const now = new Date();
       let age = now.getFullYear() - birth.getFullYear();
       const m = now.getMonth() - birth.getMonth();
@@ -894,66 +935,6 @@
         age--;
       }
       return { years: age, text: `${age} ปี` };
-    }
-
-    /**
-     * แปลงรูปแบบวันที่ทุกชนิด (ISO 8601, Date string, UTC) ให้เป็น YYYY-MM-DD สำหรับใส่ใน <input type="date">
-     */
-    function formatDateForInput(dateVal) {
-      if (!dateVal) return '';
-      if (typeof dateVal === 'string') {
-        const trimmed = dateVal.trim();
-        if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
-        const m = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/);
-        if (m) return `${m[1]}-${m[2]}-${m[3]}`;
-      }
-      try {
-        const d = new Date(dateVal);
-        if (!isNaN(d.getTime())) {
-          const year = d.getFullYear();
-          const month = String(d.getMonth() + 1).padStart(2, '0');
-          const day = String(d.getDate()).padStart(2, '0');
-          if (year >= 1940 && year <= 2100) {
-            return `${year}-${month}-${day}`;
-          }
-        }
-      } catch(e) {}
-      return '';
-    }
-
-    /**
-     * แปลงวันที่เป็นข้อความภาษาไทยที่อ่านง่ายและมีตัวเลขชัดเจน เช่น 10/05/2013 (10 พ.ค. 2556)
-     */
-    function formatReadableDateThai(dateVal) {
-      if (!dateVal) return '-';
-      const clean = formatDateForInput(dateVal);
-      if (!clean) return String(dateVal);
-      const parts = clean.split('-');
-      if (parts.length !== 3) return clean;
-      const y = parseInt(parts[0], 10);
-      const m = parseInt(parts[1], 10);
-      const d = parseInt(parts[2], 10);
-      const thaiMonths = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-      const thaiYear = y + 543;
-      return `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y} (${d} ${thaiMonths[m] || ''} ${thaiYear})`;
-    }
-
-    /**
-     * อัปเดตตัวเลขแสดงผลวันที่, อายุงาน, และอายุตัวในหน้าต่างแก้ไขแบบ Real-time
-     */
-    function updateEditDateDisplays() {
-      const sVal = document.getElementById('edit-emp-startdate')?.value;
-      const bVal = document.getElementById('edit-emp-birthdate')?.value;
-
-      const sDisp = document.getElementById('edit-emp-startdate-display');
-      const sTenure = document.getElementById('edit-emp-tenure-text');
-      if (sDisp) sDisp.textContent = sVal ? formatReadableDateThai(sVal) : '-';
-      if (sTenure) sTenure.textContent = sVal ? calculateTenure(sVal).text : '-';
-
-      const bDisp = document.getElementById('edit-emp-birthdate-display');
-      const bAge = document.getElementById('edit-emp-age-text');
-      if (bDisp) bDisp.textContent = bVal ? formatReadableDateThai(bVal) : '-';
-      if (bAge) bAge.textContent = bVal ? calculateAge(bVal).text : '-';
     }
 
     function setViewMode(mode) {
@@ -1754,8 +1735,8 @@
       document.getElementById('modal-position-text').textContent = `${emp.position || 'ผู้ปฏิบัติงาน'} (จุดประจำการ: ${emp.station || '-'})`;
       document.getElementById('modal-tenure-badge').textContent = `อายุงาน: ${tenure.text}`;
       document.getElementById('modal-age-badge').textContent = `อายุตัว: ${age.text}`;
-      document.getElementById('modal-start-date').textContent = emp.start_date || '-';
-      document.getElementById('modal-birth-date').textContent = emp.birth_date || '-';
+      document.getElementById('modal-start-date').textContent = formatDateForInput(emp.start_date) || '-';
+      document.getElementById('modal-birth-date').textContent = formatDateForInput(emp.birth_date) || '-';
       document.getElementById('modal-phone').textContent = emp.phone || '-';
       document.getElementById('modal-penalty-count').textContent = (emp.penalty_count > 0) ? `${emp.penalty_count} ครั้ง` : '0 ครั้ง (ปกติ)';
 
@@ -1921,7 +1902,6 @@
       document.getElementById('edit-emp-resigned-date').value = formatDateForInput(emp.resigned_date);
       document.getElementById('edit-emp-status-notes').value = emp.notes || '';
       handleEditStatusChange();
-      updateEditDateDisplays();
       document.getElementById('edit-emp-subtitle').textContent = `รหัสพนักงาน: ${emp.employee_code} (${emp.first_name})`;
 
       // รูปถ่ายพนักงาน Avatar
@@ -1988,9 +1968,6 @@
       const position = document.getElementById('edit-emp-position').value.trim() || 'พนักงานฝ่ายผลิต';
       const rawStartDate = document.getElementById('edit-emp-startdate').value;
       const rawBirthDate = document.getElementById('edit-emp-birthdate').value;
-      const existingEmp = store.employees[empIdx];
-      const startDate = rawStartDate || formatDateForInput(existingEmp.start_date) || '';
-      const birthDate = rawBirthDate || formatDateForInput(existingEmp.birth_date) || '';
       const probationStatus = document.getElementById('edit-emp-probation').value;
       const status = document.getElementById('edit-emp-status').value;
 
@@ -2005,6 +1982,10 @@
         Swal.fire('ข้อผิดพลาด', 'ไม่พบข้อมูลพนักงานที่จะแก้ไข', 'error');
         return;
       }
+
+      const existingEmp = store.employees[empIdx];
+      const startDate = formatDateForInput(rawStartDate) || formatDateForInput(existingEmp.start_date) || '';
+      const birthDate = formatDateForInput(rawBirthDate) || formatDateForInput(existingEmp.birth_date) || '';
 
       // ตรวจสอบรหัสพนักงานซ้ำกับคนอื่น
       const dup = store.employees.find(e => String(e.employee_code) === code && e.id !== empId);
@@ -2149,7 +2130,12 @@
           const sData = await res.json();
           if (sData && sData.success && Array.isArray(sData.employees) && sData.employees.length > 0) {
             const currentStore = getStoreData();
-            currentStore.employees = sData.employees;
+            currentStore.employees = sData.employees.map(e => ({
+              ...e,
+              start_date: formatDateForInput(e.start_date),
+              birth_date: formatDateForInput(e.birth_date),
+              resigned_date: formatDateForInput(e.resigned_date)
+            }));
             if (Array.isArray(sData.attendance) && sData.attendance.length > 0) {
               currentStore.attendance = sData.attendance;
             }

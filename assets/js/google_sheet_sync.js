@@ -257,12 +257,22 @@ const GoogleSheetSync = (function() {
         
         const existingEmps = store.employees || (window.DATAMANBHS_INITIAL ? window.DATAMANBHS_INITIAL.employees : []);
 
-        // ฟังก์ชันล้างฟอร์แมตวันที่ให้เป็น YYYY-MM-DD มาตรฐาน ป้องกันช่อง date input ว่างเปล่า
+        // ฟังก์ชันล้างฟอร์แมตวันที่ให้เป็น YYYY-MM-DD มาตรฐาน ป้องกันช่อง date input ว่างเปล่า และตัด T17:00:00.000Z
         function cleanDateStr(val) {
           if (!val) return '';
           if (typeof val === 'string') {
             const trimmed = val.trim();
             if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+            if (trimmed.includes('T')) {
+              const d = new Date(trimmed);
+              if (!isNaN(d.getTime())) {
+                const thTime = new Date(d.getTime() + 7 * 3600 * 1000);
+                const y = thTime.getUTCFullYear();
+                const mo = String(thTime.getUTCMonth() + 1).padStart(2, '0');
+                const da = String(thTime.getUTCDate()).padStart(2, '0');
+                return `${y}-${mo}-${da}`;
+              }
+            }
             const m = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/);
             if (m) return `${m[1]}-${m[2]}-${m[3]}`;
           }
