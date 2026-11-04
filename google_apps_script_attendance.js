@@ -27,10 +27,9 @@ var PHOTO_FOLDER_ID = '1u2byqrl5WZ-mByOcMenp2MGrc19XJDhC';
 
 /**
  * =========================================================================
- * 1. ฟังก์ชันซ่อมแซมและกู้คืนข้อมูลประวัติพนักงานใน Google Sheet (รันฟังก์ชันนี้ได้ทันที!)
- * - กู้คืนวันเริ่มงานและวันเกิดของ บุญใสย์ (24580206), สายนธี (24680046), อิศราวุธ (24610007)
- * - ล้าง Base64 ยาวๆ ในคอลัมน์ O แล้วแทนที่ด้วยลิงก์รูปภาพจริงจาก Google Drive
- * - ผูกลิงก์รูปภาพ Drive ลงคอลัมน์ O ให้พนักงานทุกคนอัตโนมัติ
+ * 1. ฟังก์ชันแปลงรูปในคอลัมน์ O ทั้งหมดเป็นลิงก์ Google Drive และกู้คืนวันที่ (รันฟังก์ชันนี้ได้ทันที!)
+ * - แปลงชื่อไฟล์เดิม (เช่น emp_24520003_...jpg) และ Base64 ในคอลัมน์ O ให้เป็นลิงก์ Google Drive ทั้งหมด
+ * - กู้คืนวันเริ่มงานและวันเกิดที่เคยแหว่ง และล้างค่า T17:00:00.000Z ให้เป็น YYYY-MM-DD
  * =========================================================================
  */
 function repairAndFixEmployeeSheet() {
@@ -42,21 +41,37 @@ function repairAndFixEmployeeSheet() {
     return { success: false, message: 'ไม่มีข้อมูลในชีต' };
   }
 
+  // ตั้งค่าฟอร์แมตคอลัมน์ J (วันเริ่มงาน), K (วันเกิด), L (เบอร์โทร), P (วันที่มีผล) เป็น Plain Text เพื่อป้องกัน T17:00:00.000Z
+  sheet.getRange(2, 10, lastRow - 1, 3).setNumberFormat('@');
+  sheet.getRange(2, 16, lastRow - 1, 1).setNumberFormat('@');
+
   var numCols = Math.max(17, sheet.getLastColumn());
   var data = sheet.getRange(2, 1, lastRow - 1, numCols).getValues();
 
-  var restoreMap = {
-    '24580206': { start: '2015-06-02', birth: '1988-03-20' }, // บุญใสย์ จันทร์ลี
-    '24680046': { start: '2025-06-01', birth: '2004-04-10' }, // สายนธี พิมพ์ทรัพย์
-    '24610007': { start: '2018-01-06', birth: '1997-10-22' }  // อิศราวุธ คงเจริญ
-  };
+  // สร้างแผนที่ข้อมูลวันเริ่มงานและวันเกิดจาก SEED_EMPLOYEES ทั้ง 41 คน เพื่อเติมเต็มช่องที่ว่าง
+  var seedMap = {};
+  if (typeof SEED_EMPLOYEES !== 'undefined' && Array.isArray(SEED_EMPLOYEES)) {
+    for (var s = 0; s < SEED_EMPLOYEES.length; s++) {
+      var se = SEED_EMPLOYEES[s];
+      seedMap[String(se.employee_code).trim()] = {
+        start: se.start_date || '',
+        birth: se.birth_date || ''
+      };
+    }
+  }
 
   for (var i = 0; i < data.length; i++) {
     var code = String(data[i][0]).trim();
-    if (restoreMap[code]) {
-      data[i][9] = restoreMap[code].start;   // Col J: วันเริ่มงาน
-      data[i][10] = restoreMap[code].birth;  // Col K: วันเกิด
-    }
+    
+    // ล้างค่า T17:00:00.000Z หรือเติมวันเริ่มงาน/วันเกิดที่หายไป
+    var curStart = formatGasDate(data[i][9]);
+    var curBirth = formatGasDate(data[i][10]);
+    if (!curStart && seedMap[code]) curStart = seedMap[code].start;
+    if (!curBirth && seedMap[code]) curBirth = seedMap[code].birth;
+    data[i][9] = curStart;
+    data[i][10] = curBirth;
+    data[i][15] = formatGasDate(data[i][15]);
+
     // ล้างข้อความ Base64 ที่ค้างในช่องรูปภาพ (Col O) แล้วเซฟขึ้น Drive แทน
     var avatarVal = String(data[i][14] || '').trim();
     if (avatarVal.indexOf('data:image') === 0 || avatarVal.length > 200) {
@@ -71,10 +86,10 @@ function repairAndFixEmployeeSheet() {
 
   sheet.getRange(2, 1, data.length, numCols).setValues(data);
 
-  // ดึงลิงก์รูปภาพความคมชัดสูงจาก Google Drive มาใส่ให้ครบทุกคน
-  updateAllAvatarLinksFromDrive();
-  Logger.log('กู้คืนข้อมูลประวัติและรูปภาพสำเร็จเรียบร้อยแล้ว');
-  return { success: true, message: 'กู้คืนข้อมูลประวัติและรูปภาพเรียบร้อยแล้ว' };
+  // แปลงชื่อไฟล์ (emp_24520003_...jpg) ในคอลัมน์ O ทั้งหมดให้เป็นลิงก์ Google Drive
+  var linkRes = updateAllAvatarLinksFromDrive();
+  Logger.log('แปลงลิงก์รูปภาพ Google Drive สำเร็จ ' + (linkRes.count || 0) + ' คน และจัดระเบียบวันที่เรียบร้อยแล้ว');
+  return { success: true, count: linkRes.count, message: 'แปลงรูปเป็นลิงก์ Google Drive ทั้งหมด (' + (linkRes.count || 0) + ' คน) เรียบร้อยแล้ว' };
 }
 
 /**
@@ -136,23 +151,26 @@ function saveAvatarToDrive(base64Data, employeeCode) {
 
 /**
  * ฟังก์ชันสร้าง/ผูกลิงก์รูปภาพพนักงานทั้งหมดจาก Google Drive ลงในคอลัมน์ O ของ Google Sheet
- * ค้นหาไฟล์รูปในโฟลเดอร์ "รูปภาพพนักงานฝ่ายผลิต" ตามรหัสพนักงาน
- * และแปลงเป็น URL ภาพตรง (Direct Thumbnail URL) ที่เปิดดูได้ทันที
+ * ค้นหาไฟล์รูปในโฟลเดอร์ "รูปภาพพนักงานฝ่ายผลิต" ตามรหัสพนักงาน หรือชื่อไฟล์เดิม (emp_24520003_...jpg)
+ * และแปลงเป็น URL ภาพตรง (Direct Thumbnail URL) ที่เปิดดูได้ทันทีทุกเครื่อง
  */
 function updateAllAvatarLinksFromDrive() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = getEmployeeSheet(ss);
   var folder = DriveApp.getFolderById(PHOTO_FOLDER_ID);
   
-  // สร้าง Index ไฟล์ทั้งหมดในโฟลเดอร์รูปภาพ (ดึงรหัสพนักงาน 8 หลักจากชื่อไฟล์)
+  // สร้าง Index ไฟล์ทั้งหมดในโฟลเดอร์รูปภาพ (ทั้งตามรหัสพนักงาน 8 หลัก และตามชื่อไฟล์เต็ม)
   var files = folder.getFiles();
-  var fileMap = {}; // code => fileId
+  var fileMapByCode = {}; // รหัส 8 หลัก => fileId
+  var fileMapByName = {}; // ชื่อไฟล์ => fileId
   while (files.hasNext()) {
     var f = files.next();
     var fname = f.getName();
+    var fid = f.getId();
+    fileMapByName[fname.trim()] = fid;
     var m = fname.match(/(\d{8})/);
     if (m) {
-      fileMap[m[1]] = f.getId();
+      fileMapByCode[m[1]] = fid;
     }
   }
   
@@ -165,8 +183,25 @@ function updateAllAvatarLinksFromDrive() {
   var updated = 0;
   for (var i = 0; i < codes.length; i++) {
     var code = String(codes[i][0]).trim();
-    if (fileMap[code]) {
-      var fileId = fileMap[code];
+    var currentAvatar = String(avatars[i][0] || '').trim();
+    
+    // ถ้าในช่องมี Base64 ค้างอยู่ ให้อัปโหลดขึ้น Drive แล้วแปลงเป็นลิงก์ทันที
+    if (currentAvatar.indexOf('data:image') === 0) {
+      avatars[i][0] = saveAvatarToDrive(currentAvatar, code);
+      updated++;
+      continue;
+    }
+
+    // ค้นหา File ID จากชื่อไฟล์เดิมในช่อง O หรือจากรหัสพนักงาน 8 หลัก
+    var fileId = fileMapByName[currentAvatar] || fileMapByCode[code];
+    if (!fileId && currentAvatar) {
+      var mAvatar = currentAvatar.match(/(\d{8})/);
+      if (mAvatar && fileMapByCode[mAvatar[1]]) {
+        fileId = fileMapByCode[mAvatar[1]];
+      }
+    }
+
+    if (fileId) {
       try {
         var file = DriveApp.getFileById(fileId);
         file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
@@ -180,7 +215,7 @@ function updateAllAvatarLinksFromDrive() {
   
   // บันทึกลิงก์รูปภาพลงคอลัมน์ O ใน Google Sheet
   sheet.getRange(2, 15, lastRow - 1, 1).setValues(avatars);
-  return { success: true, count: updated, message: 'ผูกลิงก์รูปภาพลงชีตสำเร็จ ' + updated + ' คน' };
+  return { success: true, count: updated, message: 'แปลงชื่อไฟล์ในคอลัมน์ O เป็นลิงก์ Google Drive สำเร็จ ' + updated + ' คน' };
 }
 
 
