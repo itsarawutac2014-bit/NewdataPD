@@ -27,6 +27,7 @@ var PHOTO_FOLDER_ID = '1u2byqrl5WZ-mByOcMenp2MGrc19XJDhC';
 
 /**
  * บันทึกรูปภาพ Base64 ลงใน Google Drive โฟลเดอร์ "รูปภาพพนักงานฝ่ายผลิต"
+ * แทนที่รูปเก่า และสร้างลิงก์ตรงสำหรับเปิดดูได้ทุกเครื่อง
  * @param {string} base64Data ข้อมูลรูปภาพ (Base64 data:image/...)
  * @param {string} employeeCode รหัสพนักงาน
  * @return {string} URL ตรงของรูปภาพบน Google Drive
@@ -39,23 +40,79 @@ function saveAvatarToDrive(base64Data, employeeCode) {
     var folder = DriveApp.getFolderById(PHOTO_FOLDER_ID);
     var cleanBase64 = base64Data.replace(/^data:image\/\w+;base64,/, '');
     var bytes = Utilities.base64Decode(cleanBase64);
-    var filename = String(employeeCode).trim() + '.jpg';
+    var codeStr = String(employeeCode).trim();
+    var filename = codeStr + '.jpg';
 
-    // ลบรูปเดิมใน Drive เพื่อไม่ให้ไฟล์ซ้ำซ้อน
-    var existing = folder.getFilesByName(filename);
-    while (existing.hasNext()) {
-      existing.next().setTrashed(true);
+    // 1. ค้นหาและลบรูปเดิมของพนักงานคนนี้ใน Drive ทั้งหมด (แทนที่รูปเก่า)
+    var allFiles = folder.getFiles();
+    while (allFiles.hasNext()) {
+      var oldFile = allFiles.next();
+      var oldName = oldFile.getName();
+      // ลบถ้าชื่อไฟล์มีรหัสพนักงานคนนี้อยู่
+      if (oldName.indexOf(codeStr) !== -1) {
+        oldFile.setTrashed(true);
+      }
     }
 
-    var file = folder.createFile(Utilities.newBlob(bytes, 'image/jpeg', filename));
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    // 2. สร้างไฟล์รูปภาพใหม่ใน Google Drive
+    var newFile = folder.createFile(Utilities.newBlob(bytes, 'image/jpeg', filename));
+    newFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
     
-    // คืนค่า Google Drive Thumbnail URL ที่สามารถแสดงผลบนเว็บและมือถือได้ทันที
-    return 'https://drive.google.com/thumbnail?id=' + file.getId() + '&sz=w500';
+    // 3. คืนค่า Google Drive Thumbnail URL ที่สามารถแสดงผลบนเว็บและมือถือได้ทันที
+    return 'https://drive.google.com/thumbnail?id=' + newFile.getId() + '&sz=w500';
   } catch (err) {
     Logger.log('Error saving avatar to Drive: ' + err.toString());
     return base64Data;
   }
+}
+
+/**
+ * ฟังก์ชันสร้าง/ผูกลิงก์รูปภาพพนักงานทั้งหมดจาก Google Drive ลงในคอลัมน์ O ของ Google Sheet
+ * ค้นหาไฟล์รูปในโฟลเดอร์ "รูปภาพพนักงานฝ่ายผลิต" ตามรหัสพนักงาน
+ * และแปลงเป็น URL ภาพตรง (Direct Thumbnail URL) ที่เปิดดูได้ทันที
+ */
+function updateAllAvatarLinksFromDrive() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = getEmployeeSheet(ss);
+  var folder = DriveApp.getFolderById(PHOTO_FOLDER_ID);
+  
+  // สร้าง Index ไฟล์ทั้งหมดในโฟลเดอร์รูปภาพ (ดึงรหัสพนักงาน 8 หลักจากชื่อไฟล์)
+  var files = folder.getFiles();
+  var fileMap = {}; // code => fileId
+  while (files.hasNext()) {
+    var f = files.next();
+    var fname = f.getName();
+    var m = fname.match(/(\d{8})/);
+    if (m) {
+      fileMap[m[1]] = f.getId();
+    }
+  }
+  
+  var lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return { success: false, message: 'ไม่มีข้อมูลพนักงานในชีต' };
+  
+  var codes = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  var avatars = sheet.getRange(2, 15, lastRow - 1, 1).getValues();
+  
+  var updated = 0;
+  for (var i = 0; i < codes.length; i++) {
+    var code = String(codes[i][0]).trim();
+    if (fileMap[code]) {
+      var fileId = fileMap[code];
+      try {
+        var file = DriveApp.getFileById(fileId);
+        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      } catch(e) {}
+      
+      var linkUrl = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w500';
+      avatars[i][0] = linkUrl;
+      updated++;
+    }
+  }
+  
+  // บันทึกลิงก์รูปภาพลงคอลัมน์ O ใน Google Sheet
+  sheet.getRange(2, 15, lastRow - 1, 1).setValues(avatars);
+  return { success: true, count: updated, message: 'ผูกลิงก์รูปภาพลงชีตสำเร็จ ' + updated + ' คน' };
 }
 
 // ข้อมูลพนักงานตั้งต้นทั้ง 41 คน
@@ -273,6 +330,13 @@ function doPost(e) {
         result.avatar_url = driveThumbnailUrl;
         result.message = 'บันทึกรูปภาพลง Google Drive โฟลเดอร์ "รูปภาพพนักงานฝ่ายผลิต" สำเร็จ';
       }
+    }
+
+    // 2.2 ผูกลิงก์รูปภาพทั้งหมดจาก Drive โฟลเดอร์ "รูปภาพพนักงานฝ่ายผลิต" ลงชีต (คอลัมน์ O)
+    else if (action === 'sync_avatar_links') {
+      var syncRes = updateAllAvatarLinksFromDrive();
+      result.count = syncRes.count;
+      result.message = syncRes.message;
     }
 
     // 3. บันทึกการลงเวลาทำงาน / วันลา ลงชีต Attendance / บันทึกการทำงาน

@@ -87,6 +87,28 @@ const GoogleSheetSync = (function() {
   }
 
   /**
+   * สั่งให้ Google Apps Script ผูกลิงก์รูปภาพทั้งหมดจาก Google Drive โฟลเดอร์ "รูปภาพพนักงานฝ่ายผลิต"
+   * ลงคอลัมน์ O ใน Google Sheet และดึงข้อมูลใหม่กลับมาทันที
+   */
+  async function syncAvatarLinksFromDrive() {
+    if (!hasWebhook()) {
+      alert('กรุณาบันทึก Google Apps Script Webhook URL ก่อน');
+      return false;
+    }
+    showToast('กำลังผูกลิงก์รูปภาพจาก Google Drive เข้า Google Sheet...', 'info');
+    const res = await postToWebhook({ action: 'sync_avatar_links' });
+    if (res.success) {
+      showToast('ผูกลิงก์รูปภาพลงชีตสำเร็จแล้ว! กำลังดึงรูปลงระบบ...', 'success');
+      setTimeout(async () => {
+        await pullDataFromSheet(true);
+        if (typeof renderEmployees === 'function') renderEmployees();
+        if (typeof renderChart === 'function') renderChart();
+      }, 1500);
+    }
+    return res.success;
+  }
+
+  /**
    * ซิงค์การลงเวลาทำงาน 1 รายการไปยัง Google Sheet
    */
   async function syncAttendance(record) {
@@ -308,11 +330,14 @@ const GoogleSheetSync = (function() {
                 <p class="text-xs text-emerald-950 font-bold"><i class="fa-solid fa-arrows-rotate text-emerald-600 mr-1"></i> ซิงค์รับ-ส่งข้อมูลกับ Google Sheet:</p>
                 <p class="text-[11px] text-emerald-800">ส่งข้อมูลพนักงานขึ้นชีต หรือดึงข้อมูลล่าสุดจากชีตลงเครื่อง</p>
               </div>
-              <div class="flex items-center gap-2">
-                <button onclick="GoogleSheetSync.pullDataFromSheet(true).then(() => { if(typeof renderEmployees==='function') renderEmployees(); })" type="button" class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer shrink-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <button onclick="GoogleSheetSync.pullDataFromSheet(true).then(() => { if(typeof renderEmployees==='function') renderEmployees(); })" type="button" class="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer shrink-0">
                   <i class="fa-solid fa-cloud-arrow-down"></i> ดึงจากชีต
                 </button>
-                <button onclick="GoogleSheetSync.syncAllEmployees()" type="button" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer shrink-0">
+                <button onclick="GoogleSheetSync.syncAvatarLinksFromDrive()" type="button" class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-black text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer shrink-0" title="ผูกลิงก์รูปพนักงานจาก Google Drive ลงในชีต">
+                  <i class="fa-solid fa-image"></i> ผูกลิงก์รูป Drive
+                </button>
+                <button onclick="GoogleSheetSync.syncAllEmployees()" type="button" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer shrink-0">
                   <i class="fa-solid fa-bolt"></i> ซิงค์ 41 คนขึ้นชีต
                 </button>
               </div>
@@ -436,6 +461,7 @@ const GoogleSheetSync = (function() {
     syncAttendance,
     syncBulkAttendance,
     syncAllEmployees,
+    syncAvatarLinksFromDrive,
     pullDataFromSheet,
     openSettingsModal,
     closeSettingsModal,

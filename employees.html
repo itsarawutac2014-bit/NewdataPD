@@ -1911,7 +1911,15 @@
 
       // ซิงค์การแก้ไขไปยัง Google Sheet อัตโนมัติ (ถ้าเชื่อมต่อไว้)
       if (typeof GoogleSheetSync !== 'undefined' && GoogleSheetSync.hasWebhook()) {
-        GoogleSheetSync.syncEditEmployee(updatedEmp);
+        GoogleSheetSync.syncEditEmployee(updatedEmp).then(() => {
+          // หากเป็นการอัปโหลดรูปใหม่ ระบบจะสร้างลิงก์ Drive และดึงกลับมาแทนที่ base64 อัตโนมัติ
+          if (updatedEmp.avatar && updatedEmp.avatar.startsWith('data:image/')) {
+            setTimeout(async () => {
+              await GoogleSheetSync.pullDataFromSheet(false);
+              renderEmployees();
+            }, 3000);
+          }
+        });
       }
 
       Swal.fire({
