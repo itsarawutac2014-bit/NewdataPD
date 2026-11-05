@@ -811,14 +811,30 @@
               <span class="px-3 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
                 <span id="dept-header-month">เดือน พฤศจิกายน</span>
               </span>
+              <span id="dept-header-gran-badge" class="px-3 py-0.5 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
+                มุมมอง: รายวัน
+              </span>
             </div>
             <p class="text-xs text-slate-500 font-medium mt-1">
-              รายละเอียดของเสียนอกเหนือจาก Waste ผลิต 5% (11 รายการ) แยกตามแผนก: <strong>Waste PL (3.50%)</strong> • <strong>Waste RM (1.58%)</strong> • <strong>Waste PU (0.02%)</strong> • <strong>Waste WH (0.01%)</strong> • <strong>Waste LTS (0.02%)</strong> • <strong>Waste MK (0.04%)</strong> • <strong>Diff waste (0.85%)</strong>
+              เปรียบเทียบและเจาะลึกรายละเอียด: <strong>Waste Production (5.00%)</strong> • <strong>Waste Planning (3.50%)</strong> • <strong>Waste RM (1.58%)</strong> • <strong>Waste Maketting (0.04%)</strong> • <strong>Diff waste (0.85%)</strong>
             </p>
           </div>
         </div>
 
-        <div class="flex items-center gap-2 flex-wrap" data-html2canvas-ignore="true">
+        <div class="flex items-center gap-2.5 flex-wrap" data-html2canvas-ignore="true">
+          <!-- ตัวกรองช่วงเวลา: รายวัน | ราย Week | รายเดือน -->
+          <div class="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-bold border border-slate-300 shadow-2xs">
+            <button type="button" onclick="setDeptGranularity('daily')" id="btn-dept-gran-daily-top" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 text-white font-black shadow-xs transition cursor-pointer">
+              <i class="fa-solid fa-calendar-day mr-1"></i> รายวัน
+            </button>
+            <button type="button" onclick="setDeptGranularity('weekly')" id="btn-dept-gran-weekly-top" class="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer">
+              <i class="fa-solid fa-calendar-week mr-1"></i> ราย Week
+            </button>
+            <button type="button" onclick="setDeptGranularity('monthly')" id="btn-dept-gran-monthly-top" class="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer">
+              <i class="fa-solid fa-calendar-days mr-1"></i> รายเดือน
+            </button>
+          </div>
+
           <button type="button" onclick="downloadDeptWasteSectionImage()" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-xl text-xs font-black shadow-sm transition cursor-pointer">
             <i class="fa-solid fa-camera"></i> แคปภาพสรุปแผนก
           </button>
@@ -845,7 +861,7 @@
               <table class="w-full text-xs sm:text-sm border-collapse">
                 <thead>
                   <tr class="bg-[#fcd34d] text-slate-950 font-black border-b-2 border-slate-400">
-                    <th class="p-2.5 text-left border-r border-slate-400">Waste <span id="dept-comp-th-machine">BHS</span> (แยกแผนก)</th>
+                    <th class="p-2.5 text-left border-r border-slate-400">Waste <span id="dept-comp-th-machine">BHS</span></th>
                     <th class="p-2.5 text-center border-r border-slate-400 w-24">Target</th>
                     <th class="p-2.5 text-center border-r border-slate-400 w-24">Actual</th>
                     <th class="p-2.5 text-center border-r border-slate-400 w-28">น้ำหนัก (kg)</th>
@@ -879,7 +895,7 @@
                 </span>
                 <span>กราฟสรุปเทียบ Waste แยกแผนก vs Target (<span id="dept-comp-chart-machine">BHS</span>)</span>
               </h3>
-              <p class="text-[11px] text-slate-500 mt-0.5">เปรียบเทียบ % Actual ของแต่ละแผนก เทียบกับเกณฑ์ Target มาตรฐาน</p>
+              <p class="text-[11px] text-slate-500 mt-0.5">เปรียบเทียบ % Actual ของ 5 หัวข้อหลัก (Production, Planning, RM, Maketting, Diff waste) เทียบกับ Target</p>
             </div>
             <div class="flex items-center gap-3 text-xs font-bold">
               <span class="inline-flex items-center gap-1.5 text-slate-600">
@@ -901,20 +917,32 @@
 
       </div>
 
-      <!-- 3. แถบปุ่มเลือกแผนก (Department Selector Tabs) + สลับหน่วย % / kg -->
-      <div class="bg-slate-100/90 p-3 rounded-2xl border border-slate-200 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3" data-html2canvas-ignore="true">
+      <!-- 3. แถบปุ่มเลือกแผนก (Department Selector Tabs) + ตัวกรอง รายวัน/รายWeek/รายเดือน + สลับหน่วย % / kg -->
+      <div class="bg-slate-100/90 p-3 rounded-2xl border border-slate-200 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-3" data-html2canvas-ignore="true">
         <div class="flex items-center gap-1.5 flex-wrap" id="deptTabsContainer">
-          <button type="button" onclick="selectDeptTab('PL')" id="dept-tab-PL" class="dept-tab-btn px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer bg-emerald-700 text-white shadow-sm flex items-center gap-1.5">
+          <button type="button" onclick="selectDeptTab('ALL_DEPTS')" id="dept-tab-ALL_DEPTS" class="dept-tab-btn px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer bg-emerald-700 text-white shadow-sm flex items-center gap-1.5 ring-2 ring-emerald-400">
+            <i class="fa-solid fa-table-list"></i>
+            <span>ตารางสรุป 5 แผนกหลัก</span>
+          </button>
+          <button type="button" onclick="selectDeptTab('PD')" id="dept-tab-PD" class="dept-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 flex items-center gap-1.5">
+            <i class="fa-solid fa-industry"></i>
+            <span>Waste Production (5.00%)</span>
+          </button>
+          <button type="button" onclick="selectDeptTab('PL')" id="dept-tab-PL" class="dept-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 flex items-center gap-1.5">
             <i class="fa-solid fa-compass-drafting"></i>
-            <span>Waste PL (3.50%)</span>
+            <span>Waste Planning (3.50%)</span>
           </button>
           <button type="button" onclick="selectDeptTab('RM')" id="dept-tab-RM" class="dept-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 flex items-center gap-1.5">
             <i class="fa-solid fa-toilet-paper"></i>
             <span>Waste RM (1.58%)</span>
           </button>
-          <button type="button" onclick="selectDeptTab('PU')" id="dept-tab-PU" class="dept-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 flex items-center gap-1.5">
-            <i class="fa-solid fa-cart-flatbed"></i>
-            <span>Waste PU (0.02%)</span>
+          <button type="button" onclick="selectDeptTab('MK')" id="dept-tab-MK" class="dept-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 flex items-center gap-1.5">
+            <i class="fa-solid fa-bullhorn"></i>
+            <span>Waste Maketting (0.04%)</span>
+          </button>
+          <button type="button" onclick="selectDeptTab('DIFF')" id="dept-tab-DIFF" class="dept-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 flex items-center gap-1.5">
+            <i class="fa-solid fa-scale-unbalanced-flip"></i>
+            <span>Diff waste (0.85%)</span>
           </button>
           <button type="button" onclick="selectDeptTab('WH')" id="dept-tab-WH" class="dept-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 flex items-center gap-1.5">
             <i class="fa-solid fa-warehouse"></i>
@@ -924,22 +952,10 @@
             <i class="fa-solid fa-truck-fast"></i>
             <span>Waste LTS (0.02%)</span>
           </button>
-          <button type="button" onclick="selectDeptTab('MK')" id="dept-tab-MK" class="dept-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 flex items-center gap-1.5">
-            <i class="fa-solid fa-bullhorn"></i>
-            <span>Waste MK (0.04%)</span>
-          </button>
-          <button type="button" onclick="selectDeptTab('DIFF')" id="dept-tab-DIFF" class="dept-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 flex items-center gap-1.5">
-            <i class="fa-solid fa-scale-unbalanced-flip"></i>
-            <span>Diff waste (0.85%)</span>
-          </button>
-          <button type="button" onclick="selectDeptTab('ALL_DEPTS')" id="dept-tab-ALL_DEPTS" class="dept-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer bg-white text-indigo-700 hover:bg-indigo-50 border border-indigo-200 flex items-center gap-1.5">
-            <i class="fa-solid fa-table-list"></i>
-            <span>รวมทุกแผนก (รายวัน)</span>
-          </button>
         </div>
 
-        <!-- สลับหน่วยตาราง: % Waste vs น้ำหนัก (kg) -->
-        <div class="flex items-center gap-2 self-end lg:self-auto">
+        <!-- ตัวกรอง รายวัน/รายWeek/รายเดือน + สลับหน่วยตาราง: % Waste vs น้ำหนัก (kg) -->
+        <div class="flex items-center gap-2 flex-wrap self-end xl:self-auto">
           <div class="inline-flex rounded-xl border border-slate-300 bg-white p-1 text-xs font-bold shadow-2xs">
             <button type="button" id="btn-dept-unit-pct" onclick="setDeptTableUnit('pct')" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-black shadow-xs transition cursor-pointer">
               <i class="fa-solid fa-percent mr-1"></i> ตาราง % Waste
@@ -951,7 +967,7 @@
         </div>
       </div>
 
-      <!-- 4. ตารางข้อมูลรายวันของแผนกที่เลือก (สไตล์เหมือนตารางผลิต 5% เป๊ะๆ) -->
+      <!-- 4. ตารางข้อมูลของแผนกที่เลือก (รองรับ รายวัน / ราย Week / รายเดือน สไตล์เหมือนตารางผลิต 5% เป๊ะๆ) -->
       <div id="dept-detail-table-card" class="rounded-2xl border border-slate-200 shadow-xs overflow-hidden bg-white">
         <div class="px-5 py-3.5 bg-gradient-to-r from-emerald-950 via-teal-900 to-slate-900 text-white flex flex-wrap justify-between items-center gap-3">
           <div class="flex items-center gap-2.5">
@@ -960,11 +976,11 @@
             </span>
             <div>
               <h3 class="text-sm sm:text-base font-black tracking-wide flex items-center gap-2 flex-wrap">
-                <span id="dept-table-title">ตารางติดตามของเสียรายวัน — แผนกวางแผน (Waste PL)</span>
-                <span id="dept-table-target-pill" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-300 text-slate-950">Target 3.50%</span>
+                <span id="dept-table-title">ตารางติดตามของเสีย (รายวัน) — สรุป 5 แผนกหลัก</span>
+                <span id="dept-table-target-pill" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-300 text-slate-950">Target 10.97%</span>
               </h3>
               <p class="text-[11px] text-emerald-200/90 mt-0.5" id="dept-table-subtitle">
-                แยกตามรายการย่อยของแผนก พร้อมเปรียบเทียบค่า Target รายวันและสะสมทั้งเดือน
+                เปรียบเทียบค่า Target และผลรวมสะสม (สามารถสลับดู รายวัน / ราย Week / รายเดือน ได้)
               </p>
             </div>
           </div>
@@ -996,7 +1012,7 @@
         </div>
       </div>
 
-      <!-- 5. กราฟรายวันของแผนกที่เลือก (เหมือนกราฟ Waste รายวัน BHS Target 5.00% เป๊ะๆ) -->
+      <!-- 5. กราฟของแผนกที่เลือก (รองรับ รายวัน / ราย Week / รายเดือน เหมือนกราฟ Waste รายวัน BHS Target 5.00% เป๊ะๆ) -->
       <div id="dept-daily-chart-card" class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
         <div class="flex flex-col md:flex-row items-center justify-between pb-3 border-b border-slate-100 gap-4">
           <!-- Legend Left -->
@@ -1024,8 +1040,21 @@
             </h2>
           </div>
 
-          <!-- Filter Sub-item & Save button -->
+          <!-- Filter Granularity + Sub-item & Save button -->
           <div class="flex items-center gap-2 text-xs flex-wrap" data-html2canvas-ignore="true">
+            <!-- ปุ่มกรอง รายวัน / ราย Week / รายเดือน บนหัวกราฟ -->
+            <div class="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-bold border border-slate-200 shadow-2xs">
+              <button type="button" onclick="setDeptGranularity('daily')" id="btn-dept-gran-daily-chart" class="px-3 py-1 rounded-lg bg-emerald-600 text-white font-black shadow-xs transition cursor-pointer">
+                รายวัน
+              </button>
+              <button type="button" onclick="setDeptGranularity('weekly')" id="btn-dept-gran-weekly-chart" class="px-3 py-1 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer">
+                ราย Week
+              </button>
+              <button type="button" onclick="setDeptGranularity('monthly')" id="btn-dept-gran-monthly-chart" class="px-3 py-1 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer">
+                รายเดือน
+              </button>
+            </div>
+
             <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5">
               <label for="deptItemFilterSelect" class="font-bold text-slate-600">รายการ:</label>
               <select id="deptItemFilterSelect" onchange="onDeptItemFilterChange(this.value)" class="font-black bg-white border border-slate-300 rounded-lg px-2 py-1 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer">
@@ -6196,14 +6225,41 @@
     }
 
     // ========================================================
-    // ส่วนรายละเอียดของเสียแยกตามแผนก (PL, RM, PU, WH, LTS, MK) และ Diff waste
+    // ส่วนรายละเอียดของเสียแยกตามแผนก (PL, RM, WH, LTS, MK) และ Diff waste (ตัด PU ออกตามที่ผู้ใช้สั่ง)
+    // รองรับตัวกรอง: รายวัน (Daily) / ราย Week (Weekly) / รายเดือน (Monthly)
     // ========================================================
     const DEPT_DEFINITIONS = {
+      ALL_DEPTS: {
+        key: 'ALL_DEPTS',
+        code: 'Summary 5 Main Waste',
+        shortCode: '5 แผนกหลัก',
+        titleTh: 'สรุป 5 หัวข้อหลัก (Production / Planning / RM / Maketting / Diff waste)',
+        target: 10.97,
+        color: '#4f46e5',
+        items: [
+          { key: 'dept_PD', label: 'Waste Production', code: 'PD', target: 5.00 },
+          { key: 'dept_PL', label: 'Waste Planning', code: 'PL', target: 3.50 },
+          { key: 'dept_RM', label: 'Waste RM', code: 'RM', target: 1.58 },
+          { key: 'dept_MK', label: 'Waste Maketting', code: 'MK', target: 0.04 },
+          { key: 'dept_DIFF', label: 'Diff waste', code: 'DIFF', target: 0.85 }
+        ]
+      },
+      PD: {
+        key: 'PD',
+        code: 'Waste Production',
+        shortCode: 'Waste Production',
+        titleTh: 'แผนกผลิต 11 รายการ (Waste Production)',
+        target: 5.00,
+        color: '#059669',
+        items: [
+          { key: 'pd_waste', label: 'Waste Production (รวม 11 รายการผลิต)', code: 'PD', target: 5.00 }
+        ]
+      },
       PL: {
         key: 'PL',
         code: 'Waste Planning',
-        shortCode: 'Waste PL',
-        titleTh: 'แผนกวางแผน (Waste PL)',
+        shortCode: 'Waste Planning',
+        titleTh: 'แผนกวางแผน (Waste Planning)',
         target: 3.50,
         color: '#0d9488',
         items: [
@@ -6238,22 +6294,6 @@
           { key: 'rm_wet', label: 'ม้วนเปียกน้ำ', code: 'BL10', target: 0.00 }
         ]
       },
-      PU: {
-        key: 'PU',
-        code: 'Waste PU',
-        shortCode: 'Waste PU',
-        titleTh: 'แผนกจัดซื้อ/Supplier (Waste PU)',
-        target: 0.02,
-        color: '#7c3aed',
-        items: [
-          { key: 'pu_torn', label: 'กระดาษฉีกขาดจาก Sup', code: 'BL04', target: 0.02 },
-          { key: 'pu_liner', label: 'กระดาษรองตู้ Sup', code: 'BL38', target: 0.00 },
-          { key: 'pu_claim', label: 'เครม SUP', code: 'BL42', target: 0.00 },
-          { key: 'pu_claim_htp', label: 'เครม SUP HTP', code: 'BL41', target: 0.00 },
-          { key: 'pu_ridge', label: 'สันนูนเกินสเปค', code: 'BL39', target: 0.01 },
-          { key: 'pu_claim_intl', label: 'เครม SUP ต่างประเทศ', code: 'BL40', target: 0.00 }
-        ]
-      },
       WH: {
         key: 'WH',
         code: 'Waste WH',
@@ -6282,9 +6322,9 @@
       },
       MK: {
         key: 'MK',
-        code: 'Waste Marketing',
-        shortCode: 'Waste MK',
-        titleTh: 'แผนกการตลาด (Waste MK)',
+        code: 'Waste Maketting',
+        shortCode: 'Waste Maketting',
+        titleTh: 'แผนกการตลาด (Waste Maketting)',
         target: 0.04,
         color: '#db2777',
         items: [
@@ -6304,31 +6344,42 @@
         items: [
           { key: 'diff_waste', label: 'Diff waste (นน.เข้า - ออก - ของเสียชั่งจริง)', code: 'DIFF', target: 0.85 }
         ]
-      },
-      ALL_DEPTS: {
-        key: 'ALL_DEPTS',
-        code: 'All Departments',
-        shortCode: 'รวมทุกแผนก',
-        titleTh: 'เปรียบเทียบของเสียรวมทุกแผนกรายวัน (All Departments)',
-        target: 6.02,
-        color: '#4f46e5',
-        items: [
-          { key: 'dept_PL', label: 'Waste PL (วางแผน)', code: 'PL', target: 3.50 },
-          { key: 'dept_RM', label: 'Waste RM (วัตถุดิบ)', code: 'RM', target: 1.58 },
-          { key: 'dept_PU', label: 'Waste PU (จัดซื้อ)', code: 'PU', target: 0.02 },
-          { key: 'dept_WH', label: 'Waste WH (คลัง FG)', code: 'WH', target: 0.01 },
-          { key: 'dept_LTS', label: 'Waste LTS (จัดส่ง)', code: 'LTS', target: 0.02 },
-          { key: 'dept_MK', label: 'Waste MK (การตลาด)', code: 'MK', target: 0.04 },
-          { key: 'dept_DIFF', label: 'Diff waste (นน.หาย)', code: 'DIFF', target: 0.85 }
-        ]
       }
     };
 
-    let activeDeptTab = 'PL';
+    const MAIN_5_DEPT_KEYS = ['PD', 'PL', 'RM', 'MK', 'DIFF'];
+    let activeDeptTab = 'ALL_DEPTS';
     let activeDeptUnit = 'pct'; // 'pct' | 'kg'
+    let activeDeptGranularity = 'daily'; // 'daily' | 'weekly' | 'monthly'
     let activeDeptItemFilter = 'ALL';
     let deptComparisonChartInstance = null;
     let deptDailyWasteChartInstance = null;
+
+    function setDeptGranularity(gran) {
+      if (!['daily', 'weekly', 'monthly'].includes(gran)) return;
+      activeDeptGranularity = gran;
+
+      const granLabels = { daily: 'รายวัน', weekly: 'ราย Week', monthly: 'รายเดือน' };
+      safeSetText('dept-header-gran-badge', `มุมมอง: ${granLabels[gran]}`);
+
+      ['daily', 'weekly', 'monthly'].forEach(g => {
+        const btnTop = document.getElementById(`btn-dept-gran-${g}-top`);
+        const btnChart = document.getElementById(`btn-dept-gran-${g}-chart`);
+        const isActive = (g === gran);
+        if (btnTop) {
+          btnTop.className = isActive
+            ? 'px-3.5 py-1.5 rounded-lg bg-emerald-600 text-white font-black shadow-xs transition cursor-pointer'
+            : 'px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer';
+        }
+        if (btnChart) {
+          btnChart.className = isActive
+            ? 'px-3 py-1 rounded-lg bg-emerald-600 text-white font-black shadow-xs transition cursor-pointer'
+            : 'px-3 py-1 rounded-lg text-slate-600 hover:text-slate-900 font-bold transition cursor-pointer';
+        }
+      });
+
+      renderDeptWasteSection(currentDeptWaste, currentData, currentSummary, currentWeightSummary);
+    }
 
     // สร้างข้อมูลเริ่มต้นสำหรับ Dept Waste หากยังไม่ได้ดึงจาก API
     function buildFallbackDeptWaste(data, summary, weightSummary) {
@@ -6358,7 +6409,8 @@
         allKeys.forEach(k => { rKg[k] = 0; rPct[k] = 0; });
 
         if (c > 0) {
-          // ประมาณการเริ่มต้นก่อนโหลด API เสร็จ
+          const dayPdPct = Number(dRow.allWaste || 4.51);
+          rPct.pd_waste = dayPdPct; rKg.pd_waste = Math.round(c * (dayPdPct / 100));
           rPct.pl_trim = 0.05; rKg.pl_trim = Math.round(c * 0.0005);
           rPct.pl_silo = 3.34; rKg.pl_silo = Math.round(c * 0.0334);
           rPct.rm_cut_wh = 0.74; rKg.rm_cut_wh = Math.round(c * 0.0074);
@@ -6369,7 +6421,7 @@
           rPct.diff_waste = 1.40; rKg.diff_waste = Math.round(c * 0.0140);
         }
 
-        ['PL', 'RM', 'PU', 'WH', 'LTS', 'MK', 'DIFF'].forEach(gk => {
+        ['PD', 'PL', 'RM', 'WH', 'LTS', 'MK', 'DIFF'].forEach(gk => {
           let gSumKg = 0;
           DEPT_DEFINITIONS[gk].items.forEach(it => {
             gSumKg += (rKg[it.key] || 0);
@@ -6390,25 +6442,229 @@
 
       const groupTotalsKg = {};
       const groupTotalsPct = {};
-      ['PL', 'RM', 'PU', 'WH', 'LTS', 'MK', 'DIFF'].forEach(gk => {
+      ['PD', 'PL', 'RM', 'WH', 'LTS', 'MK', 'DIFF'].forEach(gk => {
         let sum = 0;
         DEPT_DEFINITIONS[gk].items.forEach(it => { sum += (itemTotalsKg[it.key] || 0); });
         groupTotalsKg[gk] = Math.round(sum);
         groupTotalsPct[gk] = totalCon > 0 ? parseFloat(((sum / totalCon) * 100).toFixed(2)) : 0;
       });
+      groupTotalsKg.PD = pdActualKg;
+      groupTotalsPct.PD = pdActualPct;
 
+      // ตารางสรุปเทียบ เหลือเฉพาะ 5 รายการตามที่ผู้ใช้สั่ง
       const comparison = [
         { key: 'PD', code: 'Waste Production', nameTh: 'แผนกผลิต (11 รายการ)', target: TARGETS.allWaste || 5.00, actualPct: pdActualPct, actualKg: pdActualKg, diffPct: parseFloat((pdActualPct - (TARGETS.allWaste || 5.00)).toFixed(2)) },
         { key: 'PL', code: 'Waste Planning', nameTh: 'แผนกวางแผน (Waste PL)', target: 3.50, actualPct: groupTotalsPct.PL, actualKg: groupTotalsKg.PL, diffPct: parseFloat((groupTotalsPct.PL - 3.50).toFixed(2)) },
         { key: 'RM', code: 'Waste RM', nameTh: 'แผนกวัตถุดิบ/คลังม้วน (Waste RM)', target: 1.58, actualPct: groupTotalsPct.RM, actualKg: groupTotalsKg.RM, diffPct: parseFloat((groupTotalsPct.RM - 1.58).toFixed(2)) },
-        { key: 'PU', code: 'Waste PU', nameTh: 'แผนกจัดซื้อ/Supplier (Waste PU)', target: 0.02, actualPct: groupTotalsPct.PU, actualKg: groupTotalsKg.PU, diffPct: parseFloat((groupTotalsPct.PU - 0.02).toFixed(2)) },
-        { key: 'WH', code: 'Waste WH', nameTh: 'แผนกคลังสินค้า FG (Waste WH)', target: 0.01, actualPct: groupTotalsPct.WH, actualKg: groupTotalsKg.WH, diffPct: parseFloat((groupTotalsPct.WH - 0.01).toFixed(2)) },
-        { key: 'LTS', code: 'Waste LTS', nameTh: 'แผนกจัดส่ง (Waste LTS)', target: 0.02, actualPct: groupTotalsPct.LTS, actualKg: groupTotalsKg.LTS, diffPct: parseFloat((groupTotalsPct.LTS - 0.02).toFixed(2)) },
-        { key: 'MK', code: 'Waste Marketing', nameTh: 'แผนกการตลาด (Waste MK)', target: 0.04, actualPct: groupTotalsPct.MK, actualKg: groupTotalsKg.MK, diffPct: parseFloat((groupTotalsPct.MK - 0.04).toFixed(2)) },
+        { key: 'MK', code: 'Waste Maketting', nameTh: 'แผนกการตลาด (Waste MK)', target: 0.04, actualPct: groupTotalsPct.MK, actualKg: groupTotalsKg.MK, diffPct: parseFloat((groupTotalsPct.MK - 0.04).toFixed(2)) },
         { key: 'DIFF', code: 'Diff waste', nameTh: 'ส่วนต่าง นน.เข้า-ออก หักของเสีย (Diff waste)', target: 0.85, actualPct: groupTotalsPct.DIFF, actualKg: groupTotalsKg.DIFF, diffPct: parseFloat((groupTotalsPct.DIFF - 0.85).toFixed(2)) }
       ];
 
       return { dailyPct, dailyKg, itemTotalsKg, itemTotalsPct, groupTotalsKg, groupTotalsPct, comparison };
+    }
+
+    // แปลงข้อมูลตามตัวกรอง รายวัน / ราย Week / รายเดือน
+    function buildDeptViewData(dw) {
+      const allSubKeys = [];
+      ['PD', 'PL', 'RM', 'WH', 'LTS', 'MK', 'DIFF'].forEach(gk => {
+        DEPT_DEFINITIONS[gk].items.forEach(it => allSubKeys.push(it.key));
+      });
+
+      if (activeDeptGranularity === 'daily') {
+        // ตรวจสอบว่า dailyKg มี pd_waste / dept_PD ครบถ้วน
+        const dailyKg = (dw.dailyKg || []).map((r, idx) => {
+          const dRow = currentData?.[idx] || {};
+          const wRow = currentWeightData?.[idx] || {};
+          const c = Number(r.consumption || dRow.consumption || 0);
+          const pdKg = (r.pd_waste !== undefined) ? Number(r.pd_waste) : Number(wRow.totalWeight || Math.round(c * ((dRow.allWaste || 0) / 100)));
+          return { ...r, pd_waste: pdKg, dept_PD: pdKg };
+        });
+        const dailyPct = (dw.dailyPct || []).map((r, idx) => {
+          const dRow = currentData?.[idx] || {};
+          const pdPct = (r.pd_waste !== undefined) ? Number(r.pd_waste) : Number(dRow.allWaste || 0);
+          return { ...r, pd_waste: pdPct, dept_PD: pdPct };
+        });
+        const gTotalsKg = { ...(dw.groupTotalsKg || {}) };
+        const gTotalsPct = { ...(dw.groupTotalsPct || {}) };
+        if (gTotalsPct.PD === undefined) {
+          gTotalsPct.PD = Number(currentSummary?.allWaste || 4.51);
+          gTotalsKg.PD = Number(currentWeightSummary?.totalAll || 0);
+        }
+        const iTotalsKg = { ...(dw.itemTotalsKg || {}), pd_waste: gTotalsKg.PD };
+        const iTotalsPct = { ...(dw.itemTotalsPct || {}), pd_waste: gTotalsPct.PD };
+
+        return {
+          rowsKg: dailyKg,
+          rowsPct: dailyPct,
+          itemTotalsKg: iTotalsKg,
+          itemTotalsPct: iTotalsPct,
+          groupTotalsKg: gTotalsKg,
+          groupTotalsPct: gTotalsPct,
+          periodLabel: 'รายวัน'
+        };
+      }
+
+      if (activeDeptGranularity === 'weekly') {
+        const weekRanges = [
+          { label: 'Week 1 (1-7)', start: 1, end: 7 },
+          { label: 'Week 2 (8-14)', start: 8, end: 14 },
+          { label: 'Week 3 (15-21)', start: 15, end: 21 },
+          { label: 'Week 4 (22-28)', start: 22, end: 28 },
+          { label: 'Week 5 (29-31)', start: 29, end: 31 }
+        ];
+        const srcKg = dw.dailyKg || [];
+        const rowsKg = [];
+        const rowsPct = [];
+        const itemTotalsKg = {};
+        allSubKeys.forEach(k => { itemTotalsKg[k] = 0; });
+        const groupTotalsKg = { PD: 0, PL: 0, RM: 0, WH: 0, LTS: 0, MK: 0, DIFF: 0 };
+        let totalConAll = 0;
+
+        weekRanges.forEach(w => {
+          let wCon = 0;
+          let wOut = 0;
+          let wConWithWaste = 0;
+          const wItemsKg = {};
+          allSubKeys.forEach(k => { wItemsKg[k] = 0; });
+
+          srcKg.forEach((r, idx) => {
+            const dayNum = parseInt(String(r.date || '').split('/')[0], 10) || (idx + 1);
+            if (dayNum >= w.start && dayNum <= w.end) {
+              const c = Number(r.consumption || 0);
+              const o = Number(r.output || 0);
+              wCon += c;
+              wOut += o;
+              const dRow = currentData?.[idx] || {};
+              const wRow = currentWeightData?.[idx] || {};
+              const pdKg = (r.pd_waste !== undefined) ? Number(r.pd_waste) : Number(wRow.totalWeight || Math.round(c * ((dRow.allWaste || 0) / 100)));
+              wItemsKg.pd_waste = (wItemsKg.pd_waste || 0) + pdKg;
+
+              allSubKeys.forEach(k => {
+                if (k !== 'pd_waste') {
+                  wItemsKg[k] += Number(r[k] || 0);
+                }
+              });
+
+              if (c > 0 && (pdKg > 0 || Number(r.weighed_total || 0) > 0)) {
+                wConWithWaste += c;
+              }
+            }
+          });
+
+          const denom = wConWithWaste > 0 ? wConWithWaste : wCon;
+          totalConAll += denom;
+
+          const rKg = { date: w.label, consumption: Math.round(wCon), output: Math.round(wOut) };
+          const rPct = { date: w.label, consumption: Math.round(wCon), output: Math.round(wOut) };
+
+          ['PD', 'PL', 'RM', 'WH', 'LTS', 'MK', 'DIFF'].forEach(gk => {
+            let gSum = 0;
+            DEPT_DEFINITIONS[gk].items.forEach(it => {
+              const vKg = wItemsKg[it.key] || 0;
+              rKg[it.key] = parseFloat(vKg.toFixed(1));
+              rPct[it.key] = denom > 0 ? parseFloat(((vKg / denom) * 100).toFixed(2)) : 0;
+              itemTotalsKg[it.key] += vKg;
+              gSum += vKg;
+            });
+            rKg[`dept_${gk}`] = parseFloat(gSum.toFixed(1));
+            rPct[`dept_${gk}`] = denom > 0 ? parseFloat(((gSum / denom) * 100).toFixed(2)) : 0;
+            groupTotalsKg[gk] += gSum;
+          });
+
+          rowsKg.push(rKg);
+          rowsPct.push(rPct);
+        });
+
+        const itemTotalsPct = {};
+        Object.keys(itemTotalsKg).forEach(k => {
+          itemTotalsPct[k] = totalConAll > 0 ? parseFloat(((itemTotalsKg[k] / totalConAll) * 100).toFixed(2)) : Number(dw.itemTotalsPct?.[k] || 0);
+        });
+        const groupTotalsPct = {};
+        Object.keys(groupTotalsKg).forEach(gk => {
+          groupTotalsPct[gk] = totalConAll > 0 ? parseFloat(((groupTotalsKg[gk] / totalConAll) * 100).toFixed(2)) : Number(dw.groupTotalsPct?.[gk] || 0);
+        });
+
+        return {
+          rowsKg,
+          rowsPct,
+          itemTotalsKg,
+          itemTotalsPct,
+          groupTotalsKg,
+          groupTotalsPct,
+          periodLabel: 'ราย Week'
+        };
+      }
+
+      // activeDeptGranularity === 'monthly'
+      let mKgList = (dw.monthlyKg || []).filter(m => m.hasData);
+      let mPctList = (dw.monthlyPct || []).filter(m => m.hasData);
+
+      // กรณี Fallback หากยังไม่มี monthlyKg จาก API
+      if (mKgList.length === 0) {
+        const baseView = buildDeptViewData({ ...dw, dailyKg: dw.dailyKg, dailyPct: dw.dailyPct });
+        const activeMonths = (currentYearlyTrend || []).filter(y => y.hasData || y.consumption > 0);
+        if (activeMonths.length > 0) {
+          mKgList = [];
+          mPctList = [];
+          activeMonths.forEach(y => {
+            const c = Number(y.consumption || 0);
+            const o = Number(y.output || 0);
+            const rKg = { date: `${y.label} 2026`, consumption: c, output: o, hasData: true };
+            const rPct = { date: `${y.label} 2026`, consumption: c, output: o, hasData: true };
+            ['PD', 'PL', 'RM', 'WH', 'LTS', 'MK', 'DIFF'].forEach(gk => {
+              let gSum = 0;
+              DEPT_DEFINITIONS[gk].items.forEach(it => {
+                const p = gk === 'PD' ? Number(y.wastePct || 0) : Number(dw.itemTotalsPct?.[it.key] || 0);
+                const k = gk === 'PD' ? Number(y.wasteKg || 0) : Math.round(c * (p / 100));
+                rPct[it.key] = p;
+                rKg[it.key] = k;
+                gSum += k;
+              });
+              rKg[`dept_${gk}`] = gSum;
+              rPct[`dept_${gk}`] = c > 0 ? parseFloat(((gSum / c) * 100).toFixed(2)) : 0;
+            });
+            mKgList.push(rKg);
+            mPctList.push(rPct);
+          });
+        }
+      }
+
+      const itemTotalsKg = {};
+      allSubKeys.forEach(k => { itemTotalsKg[k] = 0; });
+      const groupTotalsKg = { PD: 0, PL: 0, RM: 0, WH: 0, LTS: 0, MK: 0, DIFF: 0 };
+      let ytdCon = 0;
+
+      mKgList.forEach(r => {
+        ytdCon += Number(r.consumption || 0);
+        ['PD', 'PL', 'RM', 'WH', 'LTS', 'MK', 'DIFF'].forEach(gk => {
+          let gSum = 0;
+          DEPT_DEFINITIONS[gk].items.forEach(it => {
+            const v = Number(r[it.key] || 0);
+            itemTotalsKg[it.key] += v;
+            gSum += v;
+          });
+          groupTotalsKg[gk] += gSum;
+        });
+      });
+
+      const itemTotalsPct = {};
+      Object.keys(itemTotalsKg).forEach(k => {
+        itemTotalsPct[k] = ytdCon > 0 ? parseFloat(((itemTotalsKg[k] / ytdCon) * 100).toFixed(2)) : 0;
+      });
+      const groupTotalsPct = {};
+      Object.keys(groupTotalsKg).forEach(gk => {
+        groupTotalsPct[gk] = ytdCon > 0 ? parseFloat(((groupTotalsKg[gk] / ytdCon) * 100).toFixed(2)) : 0;
+      });
+
+      return {
+        rowsKg: mKgList,
+        rowsPct: mPctList,
+        itemTotalsKg,
+        itemTotalsPct,
+        groupTotalsKg,
+        groupTotalsPct,
+        periodLabel: 'รายเดือน'
+      };
     }
 
     function selectDeptTab(deptKey) {
@@ -6422,8 +6678,6 @@
         if (!btn) return;
         if (k === deptKey) {
           btn.className = 'dept-tab-btn px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer bg-emerald-700 text-white shadow-sm flex items-center gap-1.5 ring-2 ring-emerald-400';
-        } else if (k === 'ALL_DEPTS') {
-          btn.className = 'dept-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer bg-white text-indigo-700 hover:bg-indigo-50 border border-indigo-200 flex items-center gap-1.5';
         } else {
           btn.className = 'dept-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 flex items-center gap-1.5';
         }
@@ -6452,8 +6706,8 @@
     function populateDeptItemFilterDropdown(deptKey) {
       const sel = document.getElementById('deptItemFilterSelect');
       if (!sel) return;
-      const def = DEPT_DEFINITIONS[deptKey] || DEPT_DEFINITIONS.PL;
-      let html = `<option value="ALL">รวมทั้งแผนก (${def.shortCode} - Target ${def.target.toFixed(2)}%)</option>`;
+      const def = DEPT_DEFINITIONS[deptKey] || DEPT_DEFINITIONS.ALL_DEPTS;
+      let html = `<option value="ALL">รวม (${def.shortCode} - Target ${def.target.toFixed(2)}%)</option>`;
       def.items.forEach(it => {
         html += `<option value="${it.key}">${it.label} (Target ${it.target.toFixed(2)}%)</option>`;
       });
@@ -6479,7 +6733,7 @@
       const monthName = monthNames[month] || `เดือน ${month}`;
 
       safeSetText('dept-header-machine', machine);
-      safeSetText('dept-header-month', `เดือน ${monthName} 2026`);
+      safeSetText('dept-header-month', activeDeptGranularity === 'monthly' ? 'ภาพรวมรายเดือน ปี 2026' : `เดือน ${monthName} 2026`);
       safeSetText('dept-comp-table-machine', machine);
       safeSetText('dept-comp-th-machine', machine);
       safeSetText('dept-comp-chart-machine', machine);
@@ -6500,7 +6754,32 @@
       const tfoot = document.getElementById('deptComparisonTableFoot');
       if (!tbody) return;
 
-      const compList = dw.comparison || [];
+      // กรองให้เหลือเฉพาะ 5 หัวข้อหลักตามที่ผู้ใช้ระบุ: Waste Production, Waste Planning, Waste RM, Waste Maketting, Diff waste
+      const rawComp = dw.comparison || [];
+      const allowed5 = ['PD', 'PL', 'RM', 'MK', 'DIFF'];
+      const labelOverride = {
+        PD: 'Waste Production',
+        PL: 'Waste Planning',
+        RM: 'Waste RM',
+        MK: 'Waste Maketting',
+        DIFF: 'Diff waste'
+      };
+      const compList = allowed5.map(k => {
+        const found = rawComp.find(c => c.key === k);
+        if (found) {
+          return { ...found, code: labelOverride[k] || found.code };
+        }
+        const def = DEPT_DEFINITIONS[k];
+        return {
+          key: k,
+          code: labelOverride[k],
+          nameTh: def ? def.titleTh : '',
+          target: def ? def.target : 0,
+          actualPct: Number(dw.groupTotalsPct?.[k] || 0),
+          actualKg: Number(dw.groupTotalsKg?.[k] || 0)
+        };
+      });
+
       let sumTarget = 0;
       let sumActualPct = 0;
       let sumActualKg = 0;
@@ -6526,8 +6805,8 @@
           ? `<span class="px-2 py-0.5 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">ได้เป้า ✅</span>`
           : `<span class="px-2 py-0.5 rounded-full text-[11px] font-black bg-rose-100 text-rose-800 border border-rose-300">เกินเป้า ❌</span>`;
 
-        const clickAttr = item.key !== 'PD' ? `onclick="selectDeptTab('${item.key}')" title="คลิกเพื่อดูตารางและกราฟ ${item.code}"` : '';
-        const cursorCls = item.key !== 'PD' ? 'cursor-pointer' : '';
+        const clickAttr = `onclick="selectDeptTab('${item.key}')" title="คลิกเพื่อดูตารางและกราฟ ${item.code}"`;
+        const cursorCls = 'cursor-pointer';
 
         rowsHtml += `
           <tr class="${rowBg} ${cursorCls} transition" ${clickAttr}>
@@ -6537,7 +6816,7 @@
                   <span class="font-black text-slate-900">${item.code}</span>
                   <span class="text-[11px] text-slate-500 block">${item.nameTh || ''}</span>
                 </div>
-                ${item.key !== 'PD' ? '<i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>' : '<span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-bold">ตารางบน</span>'}
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
               </div>
             </td>
             <td class="p-2.5 text-center border-r border-slate-200 font-black text-slate-800 bg-amber-50/50">${t.toFixed(2)}%</td>
@@ -6557,7 +6836,7 @@
         const totalDiffStr = totalDiff > 0 ? `+${totalDiff.toFixed(2)}%` : `${totalDiff.toFixed(2)}%`;
         tfoot.innerHTML = `
           <tr class="bg-slate-900 text-white font-black text-xs sm:text-sm border-t-2 border-slate-700">
-            <td class="p-2.5 text-left border-r border-slate-700">รวมทั้งหมด (Total All Waste + Diff)</td>
+            <td class="p-2.5 text-left border-r border-slate-700">รวมทั้งหมด (5 หัวข้อหลัก)</td>
             <td class="p-2.5 text-center border-r border-slate-700 text-amber-300">${sumTarget.toFixed(2)}%</td>
             <td class="p-2.5 text-center border-r border-slate-700 ${totalPass ? 'text-emerald-300' : 'text-rose-300'}">${sumActualPct.toFixed(2)}%</td>
             <td class="p-2.5 text-center border-r border-slate-700 text-slate-200">${Math.round(sumActualKg).toLocaleString()}</td>
@@ -6579,7 +6858,7 @@
         deptComparisonChartInstance = null;
       }
 
-      const labels = compList.map(c => c.code.replace('Waste ', ''));
+      const labels = compList.map(c => c.code);
       const targetVals = compList.map(c => Number(c.target || 0));
       const actualVals = compList.map(c => Number(c.actualPct || 0));
       const actualBgColors = compList.map(c => (Number(c.actualPct || 0) <= Number(c.target || 0)) ? '#10b981' : '#ef4444');
@@ -6677,27 +6956,28 @@
       const tfoot = document.getElementById('deptDailyTableFoot');
       if (!thead || !tbody || !tfoot) return;
 
-      const def = DEPT_DEFINITIONS[activeDeptTab] || DEPT_DEFINITIONS.PL;
+      const viewData = buildDeptViewData(dw);
+      const def = DEPT_DEFINITIONS[activeDeptTab] || DEPT_DEFINITIONS.ALL_DEPTS;
       const isKg = (activeDeptUnit === 'kg');
-      const rows = isKg ? (dw.dailyKg || []) : (dw.dailyPct || []);
-      const dailyKgList = dw.dailyKg || [];
-      const dailyPctList = dw.dailyPct || [];
+      const rows = isKg ? (viewData.rowsKg || []) : (viewData.rowsPct || []);
+      const dailyKgList = viewData.rowsKg || [];
+      const dailyPctList = viewData.rowsPct || [];
 
       let deptTotalKg = 0;
       let deptTotalPct = 0;
       if (activeDeptTab === 'ALL_DEPTS') {
-        ['PL', 'RM', 'PU', 'WH', 'LTS', 'MK', 'DIFF'].forEach(gk => {
-          deptTotalKg += Number(dw.groupTotalsKg?.[gk] || 0);
-          deptTotalPct += Number(dw.groupTotalsPct?.[gk] || 0);
+        MAIN_5_DEPT_KEYS.forEach(gk => {
+          deptTotalKg += Number(viewData.groupTotalsKg?.[gk] || 0);
+          deptTotalPct += Number(viewData.groupTotalsPct?.[gk] || 0);
         });
         deptTotalPct = parseFloat(deptTotalPct.toFixed(2));
       } else {
-        deptTotalKg = Number(dw.groupTotalsKg?.[activeDeptTab] || 0);
-        deptTotalPct = Number(dw.groupTotalsPct?.[activeDeptTab] || 0);
+        deptTotalKg = Number(viewData.groupTotalsKg?.[activeDeptTab] || 0);
+        deptTotalPct = Number(viewData.groupTotalsPct?.[activeDeptTab] || 0);
       }
 
       const isDeptPass = deptTotalPct <= def.target;
-      safeSetText('dept-table-title', `ตารางติดตามของเสียรายวัน — ${def.titleTh} (${isKg ? 'หน่วย: กิโลกรัม kg' : 'หน่วย: % Waste'})`);
+      safeSetText('dept-table-title', `ตารางติดตามของเสีย (${viewData.periodLabel}) — ${def.titleTh} (${isKg ? 'หน่วย: กิโลกรัม kg' : 'หน่วย: % Waste'})`);
       safeSetText('dept-table-target-pill', `Target ${def.target.toFixed(2)}%`);
       safeSetText('dept-banner-actual-pct', `${deptTotalPct.toFixed(2)}%`);
       safeSetText('dept-banner-actual-kg', `(${Math.round(deptTotalKg).toLocaleString()} กก.)`);
@@ -6713,24 +6993,26 @@
         }
       }
 
+      const firstColHeader = activeDeptGranularity === 'weekly' ? 'สัปดาห์ (Week)' : (activeDeptGranularity === 'monthly' ? 'เดือน (Month)' : 'วันที่');
+
       // 1. สร้าง Header (แถว Target สีเหลือง + แถวชื่อรายการสีเขียว + แถวสรุปผลรวมสะสมสีเขียวเข้ม เหมือนตารางผลิต 5%)
-      let targetCells = `<th class="p-2 border-r border-slate-300 text-center font-extrabold text-slate-900 sticky left-0 bg-[#fcd34d] z-20 min-w-[100px]">Target</th>`;
-      let headerCells = `<th class="p-2.5 border-r border-emerald-300 text-left font-bold sticky left-0 bg-[#a7f3d0] z-20 min-w-[100px]">ป้ายชื่อแถว</th>`;
+      let targetCells = `<th class="p-2 border-r border-slate-300 text-center font-extrabold text-slate-900 sticky left-0 bg-[#fcd34d] z-20 min-w-[110px]">Target</th>`;
+      let headerCells = `<th class="p-2.5 border-r border-emerald-300 text-left font-bold sticky left-0 bg-[#a7f3d0] z-20 min-w-[110px]">${firstColHeader}</th>`;
       let topSumCells = `<td class="p-2 border-r border-emerald-500 text-left font-black sticky left-0 bg-emerald-700 text-white z-20">ผลรวมสะสม</td>`;
 
       def.items.forEach(it => {
-        targetCells += `<th class="p-2 border-r border-slate-300 font-bold text-slate-900 min-w-[88px]">${it.target.toFixed(2)}%</th>`;
-        headerCells += `<th class="p-2.5 border-r border-emerald-300 font-bold text-slate-900 min-w-[88px]">${it.label}</th>`;
+        targetCells += `<th class="p-2 border-r border-slate-300 font-bold text-slate-900 min-w-[92px]">${it.target.toFixed(2)}%</th>`;
+        headerCells += `<th class="p-2.5 border-r border-emerald-300 font-bold text-slate-900 min-w-[92px]">${it.label}</th>`;
 
         let itemSumVal = 0;
         let itemSumPct = 0;
         if (activeDeptTab === 'ALL_DEPTS') {
           const gk = it.key.replace('dept_', '');
-          itemSumVal = isKg ? Number(dw.groupTotalsKg?.[gk] || 0) : Number(dw.groupTotalsPct?.[gk] || 0);
-          itemSumPct = Number(dw.groupTotalsPct?.[gk] || 0);
+          itemSumVal = isKg ? Number(viewData.groupTotalsKg?.[gk] || 0) : Number(viewData.groupTotalsPct?.[gk] || 0);
+          itemSumPct = Number(viewData.groupTotalsPct?.[gk] || 0);
         } else {
-          itemSumVal = isKg ? Number(dw.itemTotalsKg?.[it.key] || 0) : Number(dw.itemTotalsPct?.[it.key] || 0);
-          itemSumPct = Number(dw.itemTotalsPct?.[it.key] || 0);
+          itemSumVal = isKg ? Number(viewData.itemTotalsKg?.[it.key] || 0) : Number(viewData.itemTotalsPct?.[it.key] || 0);
+          itemSumPct = Number(viewData.itemTotalsPct?.[it.key] || 0);
         }
         const overItem = itemSumPct > it.target && it.target >= 0 && itemSumPct > 0;
         const cellCls = overItem ? 'bg-rose-600 text-white font-black' : 'text-white font-bold';
@@ -6751,7 +7033,7 @@
       `;
 
       headerCells += `
-        <th class="p-2.5 border-r border-emerald-400 bg-[#6ee7b7] text-slate-950 font-extrabold min-w-[95px]">รวม ${def.shortCode}</th>
+        <th class="p-2.5 border-r border-emerald-400 bg-[#6ee7b7] text-slate-900 font-extrabold min-w-[95px]">รวม ${def.shortCode}</th>
         <th class="p-2.5 border-r border-emerald-300 bg-[#a7f3d0] text-slate-900 font-bold min-w-[85px]">Diff เทียบเป้า</th>
         <th class="p-2.5 border-r border-emerald-300 bg-[#a7f3d0] text-slate-900 font-bold min-w-[85px]">สถานะ</th>
         <th class="p-2.5 border-r border-emerald-300 bg-[#bbf7d0] text-slate-900 font-bold min-w-[100px]">Consumption</th>
@@ -6775,7 +7057,7 @@
         <tr class="bg-emerald-700 text-white font-extrabold border-b-2 border-emerald-900 shadow-xs text-xs">${topSumCells}</tr>
       `;
 
-      // 2. สร้างแถวรายวัน 1..31
+      // 2. สร้างแถวข้อมูลตามช่วงเวลา (รายวัน / ราย Week / รายเดือน)
       let bodyHtml = '';
       rows.forEach((r, idx) => {
         const rPctObj = dailyPctList[idx] || r;
@@ -6786,7 +7068,7 @@
         let dayDeptPct = 0;
         let dayDeptKg = 0;
         if (activeDeptTab === 'ALL_DEPTS') {
-          ['PL', 'RM', 'PU', 'WH', 'LTS', 'MK', 'DIFF'].forEach(gk => {
+          MAIN_5_DEPT_KEYS.forEach(gk => {
             dayDeptPct += Number(rPctObj[`dept_${gk}`] || 0);
             dayDeptKg += Number(rKgObj[`dept_${gk}`] || 0);
           });
@@ -6851,9 +7133,9 @@
         let val = 0;
         if (activeDeptTab === 'ALL_DEPTS') {
           const gk = it.key.replace('dept_', '');
-          val = isKg ? Number(dw.groupTotalsKg?.[gk] || 0) : Number(dw.groupTotalsPct?.[gk] || 0);
+          val = isKg ? Number(viewData.groupTotalsKg?.[gk] || 0) : Number(viewData.groupTotalsPct?.[gk] || 0);
         } else {
-          val = isKg ? Number(dw.itemTotalsKg?.[it.key] || 0) : Number(dw.itemTotalsPct?.[it.key] || 0);
+          val = isKg ? Number(viewData.itemTotalsKg?.[it.key] || 0) : Number(viewData.itemTotalsPct?.[it.key] || 0);
         }
         footCells += `<td class="p-2.5 border-r border-slate-300 font-black text-slate-900">${isKg ? Math.round(val).toLocaleString() : val.toFixed(2) + '%'}</td>`;
       });
@@ -6873,17 +7155,18 @@
       const chartEl = document.getElementById('deptDailyWasteChart');
       if (!chartEl || typeof Chart === 'undefined') return;
 
-      const def = DEPT_DEFINITIONS[activeDeptTab] || DEPT_DEFINITIONS.PL;
-      const dailyPctList = dw.dailyPct || [];
+      const viewData = buildDeptViewData(dw);
+      const def = DEPT_DEFINITIONS[activeDeptTab] || DEPT_DEFINITIONS.ALL_DEPTS;
+      const dailyPctList = viewData.rowsPct || [];
 
       let targetVal = def.target;
-      let chartLabel = `${def.shortCode} รายวัน`;
+      let chartLabel = `${def.shortCode} (${viewData.periodLabel})`;
 
       if (activeDeptItemFilter !== 'ALL') {
         const subIt = def.items.find(i => i.key === activeDeptItemFilter);
         if (subIt) {
           targetVal = subIt.target;
-          chartLabel = `${subIt.label} (${def.shortCode}) รายวัน`;
+          chartLabel = `${subIt.label} (${viewData.periodLabel})`;
         }
       }
 
@@ -6902,7 +7185,7 @@
         }
         if (activeDeptTab === 'ALL_DEPTS') {
           let sum = 0;
-          ['PL', 'RM', 'PU', 'WH', 'LTS', 'MK', 'DIFF'].forEach(gk => {
+          MAIN_5_DEPT_KEYS.forEach(gk => {
             sum += Number(d[`dept_${gk}`] || 0);
           });
           return parseFloat(sum.toFixed(2));
@@ -6914,17 +7197,17 @@
       if (activeDeptItemFilter !== 'ALL') {
         if (activeDeptTab === 'ALL_DEPTS') {
           const gk = activeDeptItemFilter.replace('dept_', '');
-          mtdActual = Number(dw.groupTotalsPct?.[gk] || 0);
+          mtdActual = Number(viewData.groupTotalsPct?.[gk] || 0);
         } else {
-          mtdActual = Number(dw.itemTotalsPct?.[activeDeptItemFilter] || 0);
+          mtdActual = Number(viewData.itemTotalsPct?.[activeDeptItemFilter] || 0);
         }
       } else if (activeDeptTab === 'ALL_DEPTS') {
-        ['PL', 'RM', 'PU', 'WH', 'LTS', 'MK', 'DIFF'].forEach(gk => {
-          mtdActual += Number(dw.groupTotalsPct?.[gk] || 0);
+        MAIN_5_DEPT_KEYS.forEach(gk => {
+          mtdActual += Number(viewData.groupTotalsPct?.[gk] || 0);
         });
         mtdActual = parseFloat(mtdActual.toFixed(2));
       } else {
-        mtdActual = Number(dw.groupTotalsPct?.[activeDeptTab] || 0);
+        mtdActual = Number(viewData.groupTotalsPct?.[activeDeptTab] || 0);
       }
       values.push(mtdActual);
 
