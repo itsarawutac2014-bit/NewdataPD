@@ -156,6 +156,83 @@ $mOffset = [
     'TOTAL' => 6    // เดือน 10+: col+6=Grand Total; fallback: รวม col+2+3+4
 ];
 
+// โครงสร้างรายการของเสียนอกเหนือจาก 11 รายการผลิต แยกตามแผนก (PL, RM, PU, WH, LTS, MK, DIFF)
+$deptItemKeys = [
+    // Waste PL (3.50%)
+    'pl_trim', 'pl_silo', 'pl_plan',
+    // Waste RM (1.58%)
+    'rm_dirty', 'rm_cut_wh', 'rm_cut_pd', 'rm_cut_full', 'rm_core_plus',
+    'rm_core_pd', 'rm_core_wh', 'rm_rewind', 'rm_termite_crush',
+    'rm_core_crush', 'rm_termite', 'rm_impact', 'rm_splice',
+    'rm_head_split', 'rm_head_split_pd', 'rm_wet',
+    // Waste PU (0.02%)
+    'pu_torn', 'pu_liner', 'pu_claim', 'pu_claim_htp', 'pu_ridge', 'pu_claim_intl',
+    // Waste WH (0.01%)
+    'wh_fg', 'wh_repair', 'wh_ct', 'wh_va',
+    // Waste LTS (0.02%)
+    'lts_waste', 'lts_reject',
+    // Waste MK (0.04%)
+    'mk_cancel', 'mk_close', 'mk_reject', 'mk_sample'
+];
+$dailyDeptBreakdown = [];
+$dailySheetTotalBlKg = [];
+
+function mapCodeToDeptItemKey($code, $desc) {
+    $code = strtoupper(trim((string)$code));
+    $desc = trim((string)$desc);
+    // PL
+    if ($code === 'BL32' || stripos($desc, 'Trim') !== false) return 'pl_trim';
+    if ($code === 'BL33' || stripos($desc, 'ไซโล') !== false) return 'pl_silo';
+    if ($code === 'BL34' || stripos($desc, 'วางแผน') !== false) return 'pl_plan';
+
+    // RM
+    if (stripos($desc, 'สกปรก') !== false || stripos($desc, 'คราบน้ำมัน') !== false) return 'rm_dirty';
+    if (stripos($desc, 'ตัดก่อนคลังม้วน เต็ม') !== false) return 'rm_cut_full';
+    if ($code === 'BL06' || stripos($desc, 'ตัดก่อนคลังม้วน') !== false) return 'rm_cut_wh';
+    if ($code === 'BL13' || stripos($desc, 'ตัดก่อนผลิต') !== false) return 'rm_cut_pd';
+    if ($code === 'BL64' || stripos($desc, 'เศษติดแกน+แกน') !== false) return 'rm_core_plus';
+    if ($code === 'BL14' || $desc === 'แกน-ผลิต') return 'rm_core_pd';
+    if ($code === 'BL05' || stripos($desc, 'เศษติดแกน-คลัง') !== false) return 'rm_core_wh';
+    if ($code === 'BL07' || stripos($desc, 'กรอม้วน') !== false) return 'rm_rewind';
+    if ($code === 'BL08') {
+        if (stripos($desc, 'ปลวก') !== false && stripos($desc, 'แกนบี้') !== false) return 'rm_termite_crush';
+        if (stripos($desc, 'แกนบี้') !== false) return 'rm_core_crush';
+        return 'rm_termite_crush';
+    }
+    if (stripos($desc, 'ปลวก') !== false) return 'rm_termite';
+    if ($code === 'BL66' || stripos($desc, 'กระแทก') !== false) return 'rm_impact';
+    if ($code === 'BL09' || stripos($desc, 'ม้วนกรอ') !== false || stripos($desc, 'รอยยับ') !== false) return 'rm_splice';
+    if (stripos($desc, 'ม้วนหัวแตก (ผลิต)') !== false) return 'rm_head_split_pd';
+    if ($code === 'BL03' || stripos($desc, 'ม้วนหัวแตก') !== false) return 'rm_head_split';
+    if (stripos($desc, 'เปียกน้ำ') !== false) return 'rm_wet';
+
+    // PU
+    if ($code === 'BL04' || stripos($desc, 'ฉีกขาดจาก Sup') !== false) return 'pu_torn';
+    if ($code === 'BL38' || stripos($desc, 'รองตู้ Sup') !== false) return 'pu_liner';
+    if (stripos($desc, 'เครม SUP HTP') !== false) return 'pu_claim_htp';
+    if ($code === 'BL40' || stripos($desc, 'ต่างประเทศ') !== false) return 'pu_claim_intl';
+    if ($code === 'BL42' || stripos($desc, 'เครม SUP') !== false) return 'pu_claim';
+    if ($code === 'BL39' || stripos($desc, 'สันนูนเกินสเปค') !== false) return 'pu_ridge';
+
+    // WH
+    if ($code === 'BL29' || stripos($desc, 'คลังFG') !== false) return 'wh_fg';
+    if ($code === 'BL62' || stripos($desc, 'ซ่อมงานผิดพลาด') !== false) return 'wh_repair';
+    if ($code === 'BL27' || stripos($desc, 'งาน CT') !== false) return 'wh_ct';
+    if ($code === 'BL28' || stripos($desc, 'เศษVA') !== false) return 'wh_va';
+
+    // LTS
+    if ($code === 'BL30' || stripos($desc, 'ของเสีย จัดส่ง') !== false) return 'lts_waste';
+    if ($code === 'BL31' || stripos($desc, 'Reject จัดส่ง') !== false) return 'lts_reject';
+
+    // MK
+    if ($code === 'BL35' || stripos($desc, 'ลูกค้ายกเลิก') !== false) return 'mk_cancel';
+    if ($code === 'BL36' || stripos($desc, 'งานตัดจบ') !== false) return 'mk_close';
+    if ($code === 'BL37' || stripos($desc, 'Reject ตลาด') !== false) return 'mk_reject';
+    if ($code === 'BL61' || stripos($desc, 'MKT ตัวอย่าง') !== false) return 'mk_sample';
+
+    return null;
+}
+
 if ($raw2 && preg_match('/setResponse\((.*)\);/s', $raw2, $m2)) {
     $j2 = json_decode($m2[1], true);
     if (isset($j2['table']['rows'])) {
@@ -165,6 +242,7 @@ if ($raw2 && preg_match('/setResponse\((.*)\);/s', $raw2, $m2)) {
 
         for ($r = 0; $r < count($rows2); $r++) {
             $cCode = trim($rows2[$r]['c'][$baseCol]['v'] ?? '');
+            $cDesc = trim($rows2[$r]['c'][$baseCol + 1]['v'] ?? '');
 
             // ตรวจจับวันที่ของเดือนนั้นๆ ในกลุ่ม offset ที่กำหนด (ไม่กรองปีเพราะ Sheet 2 มีข้อมูลปนหลายปี)
             if (preg_match('/^(\d{1,2})\/' . $month . '\/\d{2,4}$/', $cCode, $dm) ||
@@ -175,6 +253,7 @@ if ($raw2 && preg_match('/setResponse\((.*)\);/s', $raw2, $m2)) {
                     'order' => 0, 'core' => 0, 'spec' => 0, 'conveyor' => 0, 'qc' => 0, 'reject' => 0,
                     'totalKg' => 0
                 ];
+                $dailyDeptBreakdown[$currentDay] = array_fill_keys($deptItemKeys, 0);
                 // ค้นหาแถว Total ล่วงหน้าของวันนี้เพื่อดูว่ามีคอลัมน์ที่ 6 (ISOWA + BHS + YUELI = 3 เครื่อง) หรือไม่
                 $dayHasCol6 = false;
                 for ($k = $r + 1; $k < min(count($rows2), $r + 35); $k++) {
@@ -191,18 +270,28 @@ if ($raw2 && preg_match('/setResponse\((.*)\);/s', $raw2, $m2)) {
                 continue;
             }
 
+            $bhsVal = floatval($rows2[$r]['c'][$baseCol + 3]['v'] ?? 0);
+            $isoVal = $dayHasCol6 ? floatval($rows2[$r]['c'][$baseCol + 4]['v'] ?? 0) : 0;
+            $yueVal = $dayHasCol6 ? floatval($rows2[$r]['c'][$baseCol + 5]['v'] ?? 0) : floatval($rows2[$r]['c'][$baseCol + 4]['v'] ?? 0);
+            $totVal = $dayHasCol6 ? floatval($rows2[$r]['c'][$baseCol + 6]['v'] ?? 0) : floatval($rows2[$r]['c'][$baseCol + 5]['v'] ?? 0);
+
             if ($machine === 'BHS') {
-                $cKg = floatval($rows2[$r]['c'][$baseCol + 3]['v'] ?? 0);
+                $cKg = $bhsVal;
             } elseif ($machine === 'ISOWA') {
                 // ถ้าวันนี้ ISOWA ไม่ได้เดิน (มีแค่ 2 เครื่อง) col+4 จะเป็นของ YUELI ให้ ISOWA เป็น 0
-                $cKg = $dayHasCol6 ? floatval($rows2[$r]['c'][$baseCol + 4]['v'] ?? 0) : 0;
+                $cKg = $isoVal;
             } elseif ($machine === 'YUELI') {
                 // ถ้ามี 3 เครื่อง YUELI อยู่ col+5; ถ้ามี 2 เครื่อง YUELI อยู่ col+4
-                $cKg = $dayHasCol6 ? floatval($rows2[$r]['c'][$baseCol + 5]['v'] ?? 0) : floatval($rows2[$r]['c'][$baseCol + 4]['v'] ?? 0);
+                $cKg = $yueVal;
             } elseif ($machine === 'TOTAL') {
-                $cKg = $dayHasCol6 ? floatval($rows2[$r]['c'][$baseCol + 6]['v'] ?? 0) : floatval($rows2[$r]['c'][$baseCol + 5]['v'] ?? 0);
+                $cKg = $totVal;
             } else {
-                $cKg = floatval($rows2[$r]['c'][$baseCol + 3]['v'] ?? 0);
+                $cKg = $bhsVal;
+            }
+
+            if ($currentDay !== null && $cCode === 'Total') {
+                $dailySheetTotalBlKg[$currentDay] = $cKg;
+                continue;
             }
 
             // เฉพาะของเสีย 11 รายการ ไม่เอารวม (BL33, BL06, BL14, BL05, BL32 ฯลฯ ไม่นับ)
@@ -240,6 +329,17 @@ if ($raw2 && preg_match('/setResponse\((.*)\);/s', $raw2, $m2)) {
                 } elseif ($cCode === 'BL25') {
                     $dailyBreakdown[$currentDay]['reject'] += $cKg;
                     $dailyBreakdown[$currentDay]['totalKg'] += $cKg;
+                } else {
+                    // แยกของเสียแผนกอื่นๆ (PL, RM, PU, WH, LTS, MK)
+                    $deptItemKey = mapCodeToDeptItemKey($cCode, $cDesc);
+                    if ($deptItemKey !== null) {
+                        $deptKg = $cKg;
+                        // กรณีรายการคลังม้วน เช่น กรอม้วน (BL07) ที่บันทึกในรหัสคลัง 30101 (BHS=0, ISOWA=0, YUELI=0 แต่มีใน Grand Total)
+                        if ($deptKg == 0 && $totVal > 0 && $bhsVal == 0 && $isoVal == 0 && $yueVal == 0 && ($machine === 'BHS' || $machine === 'YUELI')) {
+                            $deptKg = $totVal / 2.0;
+                        }
+                        $dailyDeptBreakdown[$currentDay][$deptItemKey] += $deptKg;
+                    }
                 }
             }
         }
@@ -478,6 +578,188 @@ $summary = [
     'conveyor' => ($denom > 0) ? round(($weightTotals['conveyor'] / $denom) * 100, 2) : 0,
     'qc' => ($denom > 0) ? round(($weightTotals['qc'] / $denom) * 100, 2) : 0,
     'reject' => ($denom > 0) ? round(($weightTotals['reject'] / $denom) * 100, 2) : 0
+];
+
+// 3.5 คำนวณข้อมูลของเสียแยกตามแผนก (PL, RM, PU, WH, LTS, MK) และ Diff waste
+$deptGroupsMap = [
+    'PL'  => ['pl_trim', 'pl_silo', 'pl_plan'],
+    'RM'  => [
+        'rm_dirty', 'rm_cut_wh', 'rm_cut_pd', 'rm_cut_full', 'rm_core_plus',
+        'rm_core_pd', 'rm_core_wh', 'rm_rewind', 'rm_termite_crush',
+        'rm_core_crush', 'rm_termite', 'rm_impact', 'rm_splice',
+        'rm_head_split', 'rm_head_split_pd', 'rm_wet'
+    ],
+    'PU'  => ['pu_torn', 'pu_liner', 'pu_claim', 'pu_claim_htp', 'pu_ridge', 'pu_claim_intl'],
+    'WH'  => ['wh_fg', 'wh_repair', 'wh_ct', 'wh_va'],
+    'LTS' => ['lts_waste', 'lts_reject'],
+    'MK'  => ['mk_cancel', 'mk_close', 'mk_reject', 'mk_sample']
+];
+
+$deptTargets = [
+    'PD'   => 5.00,
+    'PL'   => 3.50,
+    'RM'   => 1.58,
+    'PU'   => 0.02,
+    'WH'   => 0.01,
+    'LTS'  => 0.02,
+    'MK'   => 0.04,
+    'DIFF' => 0.85
+];
+
+$deptDailyPct = [];
+$deptDailyKg = [];
+$deptItemTotalsKg = array_fill_keys($deptItemKeys, 0);
+$deptItemTotalsKg['diff_waste'] = 0;
+
+$deptGroupTotalsKg = [
+    'PL' => 0, 'RM' => 0, 'PU' => 0, 'WH' => 0, 'LTS' => 0, 'MK' => 0, 'DIFF' => 0
+];
+$totalSheetBlKgMTD = 0;
+
+for ($d = 1; $d <= $totalDays; $d++) {
+    $consum = $dailySummary[$d]['consum'] ?? 0;
+    $output = $dailySummary[$d]['output'] ?? 0;
+    $dItems = $dailyDeptBreakdown[$d] ?? array_fill_keys($deptItemKeys, 0);
+    $pdRow = $dailyBreakdown[$d] ?? null;
+    $pdDayKg = $pdRow ? floatval($pdRow['totalKg'] ?? 0) : 0;
+
+    $rowKg = ['date' => "{$d}/{$month}/2026", 'consumption' => round($consum), 'output' => round($output)];
+    $rowPct = ['date' => "{$d}/{$month}/2026", 'consumption' => round($consum), 'output' => round($output)];
+
+    $dayOtherBlSum = 0;
+    foreach ($deptGroupsMap as $gKey => $keysList) {
+        $gDayKg = 0;
+        foreach ($keysList as $ik) {
+            $valKg = floatval($dItems[$ik] ?? 0);
+            $rowKg[$ik] = round($valKg, 1);
+            $rowPct[$ik] = ($consum > 0) ? round(($valKg / $consum) * 100, 2) : 0;
+            $deptItemTotalsKg[$ik] += $valKg;
+            $gDayKg += $valKg;
+        }
+        $rowKg["dept_{$gKey}"] = round($gDayKg, 1);
+        $rowPct["dept_{$gKey}"] = ($consum > 0) ? round(($gDayKg / $consum) * 100, 2) : 0;
+        $deptGroupTotalsKg[$gKey] += $gDayKg;
+        $dayOtherBlSum += $gDayKg;
+    }
+
+    // คำนวณ Diff waste รายวัน = (Consumption - Output) - ของเสียชั่งจริงทั้งหมดในชีต Waste
+    $sheetBlTotal = isset($dailySheetTotalBlKg[$d]) ? floatval($dailySheetTotalBlKg[$d]) : ($pdDayKg + $dayOtherBlSum);
+    $totalSheetBlKgMTD += $sheetBlTotal;
+
+    $diffDayKg = 0;
+    if ($consum > 0 && ($pdDayKg > 0 || $sheetBlTotal > 0 || $output > 0)) {
+        $diffDayKg = ($consum - $output) - $sheetBlTotal;
+    }
+    $rowKg['diff_waste'] = round($diffDayKg, 1);
+    $rowKg['dept_DIFF'] = round($diffDayKg, 1);
+    $rowKg['weighed_total'] = round($sheetBlTotal, 1);
+
+    $rowPct['diff_waste'] = ($consum > 0) ? round(($diffDayKg / $consum) * 100, 2) : 0;
+    $rowPct['dept_DIFF'] = $rowPct['diff_waste'];
+
+    $deptItemTotalsKg['diff_waste'] += $diffDayKg;
+    $deptGroupTotalsKg['DIFF'] += $diffDayKg;
+
+    $deptDailyKg[] = $rowKg;
+    $deptDailyPct[] = $rowPct;
+}
+
+$deptItemTotalsPct = [];
+foreach ($deptItemTotalsKg as $ik => $totKgVal) {
+    $deptItemTotalsPct[$ik] = ($denom > 0) ? round(($totKgVal / $denom) * 100, 2) : 0;
+    $deptItemTotalsKg[$ik] = round($totKgVal, 1);
+}
+
+$deptGroupTotalsPct = [];
+foreach ($deptGroupTotalsKg as $gk => $gTotKgVal) {
+    $deptGroupTotalsPct[$gk] = ($denom > 0) ? round(($gTotKgVal / $denom) * 100, 2) : 0;
+    $deptGroupTotalsKg[$gk] = round($gTotKgVal, 1);
+}
+
+$deptComparison = [
+    [
+        'key' => 'PD',
+        'code' => 'Waste Production',
+        'nameTh' => 'แผนกผลิต (11 รายการ)',
+        'target' => $deptTargets['PD'],
+        'actualPct' => $actualMTD,
+        'actualKg' => round($weightTotals['totalAll'], 1),
+        'diffPct' => round($actualMTD - $deptTargets['PD'], 2)
+    ],
+    [
+        'key' => 'PL',
+        'code' => 'Waste Planning',
+        'nameTh' => 'แผนกวางแผน (Waste PL)',
+        'target' => $deptTargets['PL'],
+        'actualPct' => $deptGroupTotalsPct['PL'],
+        'actualKg' => $deptGroupTotalsKg['PL'],
+        'diffPct' => round($deptGroupTotalsPct['PL'] - $deptTargets['PL'], 2)
+    ],
+    [
+        'key' => 'RM',
+        'code' => 'Waste RM',
+        'nameTh' => 'แผนกวัตถุดิบ/คลังม้วน (Waste RM)',
+        'target' => $deptTargets['RM'],
+        'actualPct' => $deptGroupTotalsPct['RM'],
+        'actualKg' => $deptGroupTotalsKg['RM'],
+        'diffPct' => round($deptGroupTotalsPct['RM'] - $deptTargets['RM'], 2)
+    ],
+    [
+        'key' => 'PU',
+        'code' => 'Waste PU',
+        'nameTh' => 'แผนกจัดซื้อ/Supplier (Waste PU)',
+        'target' => $deptTargets['PU'],
+        'actualPct' => $deptGroupTotalsPct['PU'],
+        'actualKg' => $deptGroupTotalsKg['PU'],
+        'diffPct' => round($deptGroupTotalsPct['PU'] - $deptTargets['PU'], 2)
+    ],
+    [
+        'key' => 'WH',
+        'code' => 'Waste WH',
+        'nameTh' => 'แผนกคลังสินค้า FG (Waste WH)',
+        'target' => $deptTargets['WH'],
+        'actualPct' => $deptGroupTotalsPct['WH'],
+        'actualKg' => $deptGroupTotalsKg['WH'],
+        'diffPct' => round($deptGroupTotalsPct['WH'] - $deptTargets['WH'], 2)
+    ],
+    [
+        'key' => 'LTS',
+        'code' => 'Waste LTS',
+        'nameTh' => 'แผนกจัดส่ง (Waste LTS)',
+        'target' => $deptTargets['LTS'],
+        'actualPct' => $deptGroupTotalsPct['LTS'],
+        'actualKg' => $deptGroupTotalsKg['LTS'],
+        'diffPct' => round($deptGroupTotalsPct['LTS'] - $deptTargets['LTS'], 2)
+    ],
+    [
+        'key' => 'MK',
+        'code' => 'Waste Marketing',
+        'nameTh' => 'แผนกการตลาด (Waste MK)',
+        'target' => $deptTargets['MK'],
+        'actualPct' => $deptGroupTotalsPct['MK'],
+        'actualKg' => $deptGroupTotalsKg['MK'],
+        'diffPct' => round($deptGroupTotalsPct['MK'] - $deptTargets['MK'], 2)
+    ],
+    [
+        'key' => 'DIFF',
+        'code' => 'Diff waste',
+        'nameTh' => 'ส่วนต่าง นน.เข้า-ออก หักของเสีย (Diff waste)',
+        'target' => $deptTargets['DIFF'],
+        'actualPct' => $deptGroupTotalsPct['DIFF'],
+        'actualKg' => $deptGroupTotalsKg['DIFF'],
+        'diffPct' => round($deptGroupTotalsPct['DIFF'] - $deptTargets['DIFF'], 2)
+    ]
+];
+
+$deptWaste = [
+    'dailyPct' => $deptDailyPct,
+    'dailyKg' => $deptDailyKg,
+    'itemTotalsKg' => $deptItemTotalsKg,
+    'itemTotalsPct' => $deptItemTotalsPct,
+    'groupTotalsKg' => $deptGroupTotalsKg,
+    'groupTotalsPct' => $deptGroupTotalsPct,
+    'comparison' => $deptComparison,
+    'totalWeighedBlKg' => round($totalSheetBlKgMTD, 1)
 ];
 
 // 4. คำนวณแนวโน้มรายปี (Yearly Trend 12 เดือน) และแยก Week (Weekly Trend ตาม Week Num)
@@ -752,6 +1034,7 @@ echo json_encode([
     'summary' => $summary,
     'weightData' => $transformedWeight,
     'weightSummary' => $weightTotals,
+    'deptWaste' => $deptWaste,
     'yearlyTrend' => $yearlyTrend,
     'weeklyTrend' => $weeklyTrend,
     'machineSummaries' => $machineSummaries
