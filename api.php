@@ -675,7 +675,7 @@ foreach ($deptGroupTotalsKg as $gk => $gTotKgVal) {
 $deptGroupTotalsPct['PD'] = $actualMTD;
 $deptGroupTotalsKg['PD'] = round($weightTotals['totalAll'], 1);
 
-// ตารางสรุปเทียบ 5 รายการหลักตามที่ผู้ใช้ระบุ: Waste Production, Waste Planning, Waste RM, Waste Maketting, Diff waste
+// ตารางสรุปเทียบ 7 รายการหลักตามที่ผู้ใช้ระบุ: Waste Production, Waste Planning, Waste RM, Waste Maketting, Waste WH, Waste LTS, Diff waste
 $deptComparison = [
     [
         'key' => 'PD',
@@ -712,6 +712,24 @@ $deptComparison = [
         'actualPct' => $deptGroupTotalsPct['MK'],
         'actualKg' => $deptGroupTotalsKg['MK'],
         'diffPct' => round($deptGroupTotalsPct['MK'] - $deptTargets['MK'], 2)
+    ],
+    [
+        'key' => 'WH',
+        'code' => 'Waste WH',
+        'nameTh' => 'แผนกคลังสินค้า FG (Waste WH)',
+        'target' => $deptTargets['WH'],
+        'actualPct' => $deptGroupTotalsPct['WH'],
+        'actualKg' => $deptGroupTotalsKg['WH'],
+        'diffPct' => round($deptGroupTotalsPct['WH'] - $deptTargets['WH'], 2)
+    ],
+    [
+        'key' => 'LTS',
+        'code' => 'Waste LTS',
+        'nameTh' => 'แผนกจัดส่ง (Waste LTS)',
+        'target' => $deptTargets['LTS'],
+        'actualPct' => $deptGroupTotalsPct['LTS'],
+        'actualKg' => $deptGroupTotalsKg['LTS'],
+        'diffPct' => round($deptGroupTotalsPct['LTS'] - $deptTargets['LTS'], 2)
     ],
     [
         'key' => 'DIFF',
