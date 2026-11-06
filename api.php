@@ -48,9 +48,52 @@ $colMap = [
 ];
 $mCols = $colMap[$machine] ?? $colMap['BHS'];
 
-// 1. ดึงข้อมูล Sheet 1 (Summary: Consumption & Output)
-$url1 = "https://docs.google.com/spreadsheets/d/{$sheetId}/gviz/tq?tqx=out:json&gid=0";
-$raw1 = @file_get_contents($url1, false, $ctx);
+if (!function_exists('extractGvizArray')) {
+    function extractGvizArray($raw) {
+        if (!$raw || !is_string($raw)) return null;
+        $p1 = strpos($raw, 'setResponse(');
+        if ($p1 === false) return null;
+        $p1 += 12;
+        $p2 = strrpos($raw, ');');
+        if ($p2 === false || $p2 <= $p1) return null;
+        return json_decode(substr($raw, $p1, $p2 - $p1), true);
+    }
+}
+
+// ระบบแคชข้อมูลดิบจาก Google Sheets ลงไฟล์ชั่วคราว (ลดเวลาดึงข้อมูลจาก 3-5 วินาที เหลือ < 0.01 วินาที เมื่อเปลี่ยนตัวกรอง)
+$forceRefresh = !empty($_GET['refresh']);
+$rawCacheDir = __DIR__ . '/data/cache';
+if (!is_dir($rawCacheDir)) {
+    @mkdir($rawCacheDir, 0777, true);
+}
+$safeSheetId = preg_replace('/[^a-zA-Z0-9_-]/', '', $sheetId);
+$rawCacheFile = $rawCacheDir . '/gviz_parsed_' . $safeSheetId . '.json';
+$rawCacheTtl = 120; // แคช 2 นาที (กดปุ่มรีเฟรชจะดึงใหม่ทันที)
+
+global $__gvizMemoryCache;
+if (!isset($__gvizMemoryCache)) $__gvizMemoryCache = [];
+
+$j1 = $__gvizMemoryCache[$safeSheetId]['j1'] ?? null;
+$j2 = $__gvizMemoryCache[$safeSheetId]['j2'] ?? null;
+$usedSheetName = $__gvizMemoryCache[$safeSheetId]['usedSheetName'] ?? '';
+
+if ($forceRefresh || !$j1 || !$j2) {
+    if (!$forceRefresh && file_exists($rawCacheFile) && (time() - filemtime($rawCacheFile) < $rawCacheTtl)) {
+        $cachedParsed = @json_decode(@file_get_contents($rawCacheFile), true);
+        if ($cachedParsed && isset($cachedParsed['j1'], $cachedParsed['j2'])) {
+            $j1 = $cachedParsed['j1'];
+            $j2 = $cachedParsed['j2'];
+            $usedSheetName = $cachedParsed['usedSheetName'] ?? 'Waste ';
+        }
+    }
+}
+
+// 1. ดึงข้อมูล Sheet 1 (Summary: Consumption & Output) หากยังไม่มีในแคช
+if (!$j1) {
+    $url1 = "https://docs.google.com/spreadsheets/d/{$sheetId}/gviz/tq?tqx=out:json&gid=0";
+    $raw1 = @file_get_contents($url1, false, $ctx);
+    $j1 = extractGvizArray($raw1);
+}
 $dailySummary = [];
 $totalConsumMTD = 0;
 $totalOutputMTD = 0;
@@ -64,10 +107,8 @@ $machineSummaries = [
     'TOTAL' => ['consum' => 0, 'output' => 0, 'wasteKg' => 0]
 ];
 
-if ($raw1 && preg_match('/setResponse\((.*)\);/s', $raw1, $m1)) {
-    $j1 = json_decode($m1[1], true);
-    if (isset($j1['table']['rows'])) {
-        foreach ($j1['table']['rows'] as $r) {
+if ($j1 && isset($j1['table']['rows'])) {
+    foreach ($j1['table']['rows'] as $r) {
             $dateVal = $r['c'][0]['v'] ?? '';
             if (preg_match('/(\d{1,2})\/' . $monthPad . '\//', $dateVal, $dm) ||
                 preg_match('/(\d{1,2})\/' . $month . '\//', $dateVal, $dm)) {
@@ -115,7 +156,6 @@ if ($raw1 && preg_match('/setResponse\((.*)\);/s', $raw1, $m1)) {
                 $totalWasteKgMTD += $w;
             }
         }
-    }
 }
 
 foreach ($machineSummaries as $mKey => &$mInfo) {
@@ -128,21 +168,32 @@ unset($mInfo);
 
 // 2. ดึงข้อมูล Sheet 2 (หน้า "Waste " หรือ "Waste" หรือ "Waste {$machine}": แยก 11 หมวดหมู่ตามวัน)
 $trySheets = ["Waste ", "Waste", "Waste {$machine}", "Waste_{$machine}", "Waste BHS", "Waste YUELI"];
-$raw2 = false;
-$usedSheetName = '';
-
-foreach ($trySheets as $sName) {
-    $url2 = "https://docs.google.com/spreadsheets/d/{$sheetId}/gviz/tq?tqx=out:json&sheet=" . urlencode($sName);
-    $tmpRaw = @file_get_contents($url2, false, $ctx);
-    if ($tmpRaw && preg_match('/setResponse\((.*)\);/s', $tmpRaw, $tm)) {
-        $tj = json_decode($tm[1], true);
-        // ตรวจสอบว่าเป็นชีตแยกหมวดหมู่ของเสียจริง (ไม่ใช่ fallback ไป Sheet1 gid=0 ที่มี label 'Day of Posting Date')
-        if (isset($tj['table']['rows']) && count($tj['table']['rows']) > 50 && ($tj['table']['cols'][0]['label'] ?? '') !== 'Day of Posting Date') {
-            $raw2 = $tmpRaw;
+if (!$j2) {
+    foreach ($trySheets as $sName) {
+        $url2 = "https://docs.google.com/spreadsheets/d/{$sheetId}/gviz/tq?tqx=out:json&sheet=" . urlencode($sName);
+        $tmpRaw = @file_get_contents($url2, false, $ctx);
+        $tj = extractGvizArray($tmpRaw);
+        if ($tj && isset($tj['table']['rows']) && count($tj['table']['rows']) > 50 && ($tj['table']['cols'][0]['label'] ?? '') !== 'Day of Posting Date') {
+            $j2 = $tj;
             $usedSheetName = $sName;
             break;
         }
     }
+    if ($j1 && $j2) {
+        @file_put_contents($rawCacheFile, json_encode([
+            'updated_at' => time(),
+            'j1' => $j1,
+            'j2' => $j2,
+            'usedSheetName' => $usedSheetName
+        ], JSON_UNESCAPED_UNICODE));
+    }
+}
+if ($j1 && $j2) {
+    $__gvizMemoryCache[$safeSheetId] = [
+        'j1' => $j1,
+        'j2' => $j2,
+        'usedSheetName' => $usedSheetName
+    ];
 }
 
 $dailyBreakdown = [];
@@ -175,6 +226,7 @@ $deptItemKeys = [
 $dailyDeptBreakdown = [];
 $dailySheetTotalBlKg = [];
 
+if (!function_exists('mapCodeToDeptItemKey')) {
 function mapCodeToDeptItemKey($code, $desc) {
     $code = strtoupper(trim((string)$code));
     $desc = trim((string)$desc);
@@ -222,10 +274,9 @@ function mapCodeToDeptItemKey($code, $desc) {
 
     return null;
 }
+}
 
-if ($raw2 && preg_match('/setResponse\((.*)\);/s', $raw2, $m2)) {
-    $j2 = json_decode($m2[1], true);
-    if (isset($j2['table']['rows'])) {
+if ($j2 && isset($j2['table']['rows'])) {
         $rows2 = $j2['table']['rows'];
         $currentDay = null;
         $dayHasCol6 = false;
@@ -333,7 +384,6 @@ if ($raw2 && preg_match('/setResponse\((.*)\);/s', $raw2, $m2)) {
                 }
             }
         }
-    }
 }
 
 // 2.5 รวมข้อมูลที่นำเข้าจากหน้า upload.html (ถ้ามี)
@@ -757,7 +807,7 @@ for ($m = 1; $m <= 12; $m++) {
 }
 
 // 4.1 ดึงประวัติทั้งปีจาก Sheet 1 (con out)
-if ($raw1 && isset($j1['table']['rows'])) {
+if ($j1 && isset($j1['table']['rows'])) {
     foreach ($j1['table']['rows'] as $r) {
         $dateVal = $r['c'][0]['v'] ?? '';
         if (preg_match('/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/', $dateVal, $dm)) {
@@ -796,7 +846,7 @@ if ($raw1 && isset($j1['table']['rows'])) {
 }
 
 // 4.2 ดึงของเสีย 11 รายการ + ของเสียแผนกอื่นๆ ทั้งปีจาก Sheet 2 (Waste )
-if ($raw2 && isset($j2['table']['rows'])) {
+if ($j2 && isset($j2['table']['rows'])) {
     $rows2All = $j2['table']['rows'];
     $allowedCodes11 = ['BL18', 'BL17', 'BL16', 'BL21', 'BL20', 'BL15', 'BL12', 'BL19', 'BL22', 'BL24', 'BL25'];
     

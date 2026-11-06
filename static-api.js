@@ -25,9 +25,14 @@
     7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31
   };
 
-  // Cache สำหรับเก็บข้อมูล Google Sheets ชั่วคราว (ลดการโหลดซ้ำเมื่อสลับเดือน/เครื่อง)
+  // Cache สำหรับเก็บข้อมูล Google Sheets ชั่วคราว + Deduplicate in-flight requests + Precomputed Snapshot
   const gvizCache = {};
-  const CACHE_TTL_MS = 45 * 1000;
+  const inflightGviz = {};
+  const staticJsonCache = {};
+  const computedApiCache = {};
+  let precomputedSnapshot = null;
+  let precomputedSnapshotPromise = null;
+  const CACHE_TTL_MS = 120 * 1000;
 
   function fetchGvizJsonp(sheetId, queryParam, forceRefresh = false) {
     const cacheKey = `${sheetId}__${queryParam}`;
@@ -35,13 +40,17 @@
     if (!forceRefresh && gvizCache[cacheKey] && (now - gvizCache[cacheKey].ts < CACHE_TTL_MS)) {
       return Promise.resolve(gvizCache[cacheKey].data);
     }
+    if (!forceRefresh && inflightGviz[cacheKey]) {
+      return inflightGviz[cacheKey];
+    }
 
-    return new Promise((resolve) => {
+    const p = new Promise((resolve) => {
       const cbName = '__gviz_cb_' + Math.random().toString(36).slice(2) + '_' + Date.now();
       const script = document.createElement('script');
       let settled = false;
 
       const cleanup = () => {
+        delete inflightGviz[cacheKey];
         try { delete window[cbName]; } catch (e) { window[cbName] = undefined; }
         if (script.parentNode) script.parentNode.removeChild(script);
       };
@@ -60,6 +69,12 @@
         cleanup();
         if (resp && resp.table) {
           gvizCache[cacheKey] = { ts: Date.now(), data: resp };
+          // ล้าง computed cache เมื่อได้ข้อมูลสดใหม่จาก Google Sheets
+          Object.keys(computedApiCache).forEach(k => {
+            if (computedApiCache[k]?.source === 'precomputed_snapshot') {
+              delete computedApiCache[k];
+            }
+          });
           resolve(resp);
         } else {
           resolve(null);
@@ -77,17 +92,60 @@
       script.src = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=responseHandler:${cbName}&${queryParam}`;
       document.head.appendChild(script);
     });
+
+    inflightGviz[cacheKey] = p;
+    return p;
   }
 
-  async function fetchStaticJson(relPath) {
+  async function fetchStaticJson(relPath, forceRefresh = false) {
+    if (!forceRefresh && staticJsonCache[relPath] !== undefined) {
+      return staticJsonCache[relPath];
+    }
     try {
-      const res = await origFetch(relPath, { cache: 'no-cache' });
+      const res = await origFetch(relPath);
       if (!res.ok) return null;
-      return await res.json();
+      const data = await res.json();
+      staticJsonCache[relPath] = data;
+      return data;
     } catch (e) {
       return null;
     }
   }
+
+  function loadPrecomputedSnapshot() {
+    if (precomputedSnapshot) return Promise.resolve(precomputedSnapshot);
+    if (precomputedSnapshotPromise) return precomputedSnapshotPromise;
+    precomputedSnapshotPromise = origFetch('data/waste_cache_2026.json')
+      .then(r => (r.ok ? r.json() : null))
+      .then(json => {
+        if (json && json.items) {
+          const shared = json.machineShared || {};
+          Object.entries(json.items).forEach(([k, val]) => {
+            const mac = k.split('_')[0];
+            const sh = shared[mac];
+            if (sh && val) {
+              if (!val.yearlyTrend) val.yearlyTrend = sh.yearlyTrend || [];
+              if (!val.weeklyTrend) val.weeklyTrend = sh.weeklyTrend || [];
+              if (val.deptWaste) {
+                if (!val.deptWaste.monthlyPct) val.deptWaste.monthlyPct = sh.deptMonthlyPct || [];
+                if (!val.deptWaste.monthlyKg) val.deptWaste.monthlyKg = sh.deptMonthlyKg || [];
+              }
+            }
+          });
+          precomputedSnapshot = json.items;
+        }
+        return precomputedSnapshot;
+      })
+      .catch(() => null);
+    return precomputedSnapshotPromise;
+  }
+
+  // เริ่มต้นดึงข้อมูล Precomputed Snapshot และ Warm-up Google Sheets ทันทีที่เปิดหน้าเว็บ
+  loadPrecomputedSnapshot();
+  setTimeout(() => {
+    fetchGvizJsonp(DEFAULT_SHEET_ID, 'gid=0');
+    fetchGvizJsonp(DEFAULT_SHEET_ID, 'sheet=' + encodeURIComponent('Waste '));
+  }, 10);
 
   function makeJsonResponse(obj, status = 200) {
     return new Response(JSON.stringify(obj), {
@@ -171,7 +229,7 @@
   }
 
   // ==========================================================
-  // 1. จำลอง api.php
+  // 1. จำลอง api.php (พร้อมระบบ Instant Memory Cache + Precomputed Snapshot)
   // ==========================================================
   async function handleApiPhp(urlObj) {
     const params = urlObj.searchParams;
@@ -179,6 +237,7 @@
     const machine = (params.get('machine') || 'BHS').trim().toUpperCase();
     let month = parseInt(params.get('month') || String(new Date().getMonth() + 1), 10);
     if (isNaN(month) || month < 1 || month > 12) month = new Date().getMonth() + 1;
+    const forceRefresh = params.has('refresh') && params.get('refresh') !== '0';
     const monthPad = String(month).padStart(2, '0');
     const totalDays = DAYS_IN_MONTH[month] || 31;
 
@@ -187,9 +246,29 @@
       const q = params.has('sheet')
         ? `sheet=${encodeURIComponent(params.get('sheet'))}`
         : `gid=${encodeURIComponent(params.get('gid') || '0')}`;
-      const resp = await fetchGvizJsonp(sheetId, q);
+      const resp = await fetchGvizJsonp(sheetId, q, forceRefresh);
       if (resp) return makeJsonResponse(resp);
       return makeJsonResponse({ error: 'Unable to fetch sheet' });
+    }
+
+    const apiCacheKey = `${sheetId}_${machine}_${month}`;
+    if (!forceRefresh && computedApiCache[apiCacheKey]) {
+      return makeJsonResponse(computedApiCache[apiCacheKey]);
+    }
+
+    const gvizKey1 = `${sheetId}__gid=0`;
+    const gvizKey2 = `${sheetId}__sheet=${encodeURIComponent('Waste ')}`;
+    const hasLiveGvizInMemory = Boolean(gvizCache[gvizKey1]?.data && gvizCache[gvizKey2]?.data);
+
+    // ถ้ายังไม่ได้โหลด Google Sheet สดเข้าหน่วยความจำ ให้ส่งข้อมูลจาก Precomputed Snapshot ทันที (0ms) พร้อมดึงสดเบื้องหลัง
+    if (!forceRefresh && !hasLiveGvizInMemory && sheetId === DEFAULT_SHEET_ID) {
+      fetchGvizJsonp(sheetId, 'gid=0');
+      fetchGvizJsonp(sheetId, 'sheet=' + encodeURIComponent('Waste '));
+      const snap = precomputedSnapshot || (await loadPrecomputedSnapshot());
+      const snapItem = snap ? snap[`${machine}_${month}`] : null;
+      if (snapItem) {
+        return makeJsonResponse(snapItem);
+      }
     }
 
     const colMap = {
@@ -202,9 +281,9 @@
 
     // ดึง Sheet 1 (gid=0) และ Sheet 2 (sheet=Waste ) พร้อมกัน
     const [j1, j2Try1, importedFileJson] = await Promise.all([
-      fetchGvizJsonp(sheetId, 'gid=0'),
-      fetchGvizJsonp(sheetId, 'sheet=' + encodeURIComponent('Waste ')),
-      fetchStaticJson('data/imported_data.json')
+      fetchGvizJsonp(sheetId, 'gid=0', forceRefresh),
+      fetchGvizJsonp(sheetId, 'sheet=' + encodeURIComponent('Waste '), forceRefresh),
+      fetchStaticJson('data/imported_data.json', forceRefresh)
     ]);
 
     let j2 = j2Try1;
@@ -880,7 +959,7 @@
       return wObj;
     });
 
-    return makeJsonResponse({
+    const finalPayload = {
       success: true,
       source: 'google_sheet_filtered',
       usedSheet: usedSheetName,
@@ -898,7 +977,9 @@
       yearlyTrend,
       weeklyTrend,
       machineSummaries
-    });
+    };
+    computedApiCache[apiCacheKey] = finalPayload;
+    return makeJsonResponse(finalPayload);
   }
 
   // ==========================================================
@@ -1361,8 +1442,8 @@
       return origFetch(input, init);
     }
 
-    // ถ้าอยู่บน GitHub Pages / Vercel / Cloudflare Pages / Netlify หรือเปิดไฟล์ตรง ให้ใช้ Static Engine ทันที
-    if (isStaticHost) {
+    // สำหรับ api.php ให้ใช้ Fast Client/Snapshot Engine เสมอเพื่อให้เปลี่ยนตัวกรองแสดงผลทันที (< 5ms)
+    if (isStaticHost || matched.handler === handleApiPhp) {
       return matched.handler(matched.urlObj, init);
     }
 

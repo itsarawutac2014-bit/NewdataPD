@@ -1815,8 +1815,11 @@
     }
 
     // ==========================================
-    // ตัวจัดการเลือกเครื่องจักร / เดือน
+    // ตัวจัดการเลือกเครื่องจักร / เดือน (ตั้งค่าให้กราฟอัปเดตทันทีหลังถูกกรอง)
     // ==========================================
+    if (typeof Chart !== 'undefined' && Chart.defaults) {
+      Chart.defaults.animation = { duration: 120 };
+    }
     function onMachineChange() {
       currentMachine = document.getElementById('selectedMachine').value;
       safeSetText('chart-machine-label', currentMachine);
