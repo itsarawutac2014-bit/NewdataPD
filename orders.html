@@ -3,20 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>วิเคราะห์ออเดอร์ผลิต แยก 3 เครื่อง (BHS • YUELI • ISOWA)</title>
+  <title>วิเคราะห์ออเดอร์ผลิต — ประเภท PDR / PDW / PDS & สัดส่วนลอน (BHS • YUELI • ISOWA)</title>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
-  <script src="static-api.js"></script>
-  <script src="assets/js/auth.js"></script>
   <style>
     body {
       font-family: 'Prompt', sans-serif;
-      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
       color: #0f172a;
     }
     .custom-scrollbar::-webkit-scrollbar {
@@ -28,102 +24,104 @@
       border-radius: 9999px;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #94a3b8;
+      background: #cbd5e1;
       border-radius: 9999px;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #64748b;
+      background: #94a3b8;
     }
   </style>
 </head>
-<body class="min-h-screen pb-14">
+<body class="min-h-screen pb-16">
 
-  <!-- Top Navbar -->
+  <!-- ========================================== -->
+  <!-- Top Navigation Bar                         -->
+  <!-- ========================================== -->
   <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
-    <div class="max-w-[1600px] mx-auto px-3 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
-      <!-- Brand -->
+    <div class="max-w-[1500px] mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <!-- Title & Badges -->
       <div class="flex items-center gap-3">
         <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-600 via-blue-600 to-cyan-500 text-white flex items-center justify-center shadow-md">
-          <i class="fa-solid fa-boxes-stacked text-xl"></i>
+          <i class="fa-solid fa-table-list text-xl"></i>
         </div>
         <div>
           <div class="flex items-center gap-2 flex-wrap">
-            <h1 class="text-lg sm:text-xl font-black tracking-tight text-slate-900">
-              วิเคราะห์ออเดอร์ผลิต แยก 3 เครื่อง
+            <h1 class="text-base sm:text-lg font-black tracking-tight text-slate-900">
+              ตารางวิเคราะห์ออเดอร์ผลิต (PDR • PDW • PDS & สัดส่วนลอน)
             </h1>
-            <span id="header-active-machine-badge" class="px-2.5 py-0.5 text-xs font-black rounded-full bg-indigo-600 text-white shadow-2xs">
+            <span id="badge-mach" class="px-2.5 py-0.5 text-xs font-black rounded-full bg-indigo-600 text-white shadow-2xs">
               YUELI
             </span>
-            <span id="header-active-period-badge" class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+            <span id="badge-period" class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-amber-100 text-amber-900 border border-amber-300">
               ตุลาคม 2026
             </span>
           </div>
           <p class="text-xs text-slate-500">
-            ระบบวิเคราะห์จำนวนออเดอร์ แยก 2 กะ (A/B) • ลอนกระดาษ • จำนวนแผน • จำนวนแผ่น • ความยาว (เมตร) • น้ำหนัก (กก.)
+            สรุปเฉพาะ: จำนวนออเดอร์ • สัดส่วนลอนที่เดิน (กี่ออเดอร์/กี่เมตร) • ประเภท PDR, PDW, PDS • น้ำหนักในการผลิต
           </p>
         </div>
       </div>
 
-      <!-- Navigation & Quick Actions -->
+      <!-- Nav Links & Quick Buttons -->
       <div class="flex flex-wrap items-center gap-2">
         <a href="index.html" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
-          <i class="fa-solid fa-chart-pie text-emerald-600"></i> Waste Dashboard
+          <i class="fa-solid fa-recycle text-emerald-600"></i> Waste Dashboard
         </a>
         <a href="output.html" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
-          <i class="fa-solid fa-industry text-blue-600"></i> Out-put
+          <i class="fa-solid fa-truck-ramp-box text-blue-600"></i> Out-put
         </a>
         <a href="budget.html" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
-          <i class="fa-solid fa-sack-dollar text-rose-600"></i> Budget
+          <i class="fa-solid fa-calculator text-rose-600"></i> Budget
         </a>
         <a href="orders.html" class="px-3.5 py-1.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-xl text-xs font-black shadow-sm flex items-center gap-1.5">
-          <i class="fa-solid fa-boxes-stacked"></i> วิเคราะห์ออเดอร์ผลิต
+          <i class="fa-solid fa-boxes-stacked"></i> วิเคราะห์ออเดอร์
         </a>
-        <button onclick="exportOrderSummaryExcel()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer">
-          <i class="fa-solid fa-file-excel text-emerald-400"></i> โหลด Excel
+        <button onclick="exportToExcel()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs">
+          <i class="fa-solid fa-file-excel"></i> โหลดตาราง Excel
         </button>
         <button onclick="syncLiveFromGoogleSheet(true)" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs">
-          <i id="sync-spin-icon" class="fa-solid fa-arrows-rotate"></i> ซิงค์ข้อมูลสด
+          <i id="sync-spin-icon" class="fa-solid fa-arrows-rotate"></i> ซิงค์สด
         </button>
       </div>
     </div>
   </header>
 
-  <main class="max-w-[1600px] mx-auto px-3 sm:px-6 pt-5 space-y-6">
+  <main class="max-w-[1500px] mx-auto px-4 sm:px-6 pt-5 space-y-6">
 
     <!-- ========================================== -->
-    <!-- 1. แถบตัวกรองหลัก (Instant 0ms Filter Bar) -->
+    <!-- 1. Filter Control Bar (Instant 0ms)        -->
     <!-- ========================================== -->
-    <section class="bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-slate-200/90">
+    <section class="bg-white rounded-3xl p-4 sm:p-5 shadow-sm border border-slate-200/90 space-y-4">
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <!-- Machine Selector Tabs (3 เครื่อง + รวม) -->
+        <!-- Machine Selector -->
         <div class="flex flex-wrap items-center gap-2">
           <span class="text-xs font-black text-slate-600 uppercase tracking-wider mr-1">
-            <i class="fa-solid fa-gears text-indigo-600 mr-1"></i> เลือกเครื่องจักร:
+            <i class="fa-solid fa-industry text-indigo-600 mr-1"></i> เครื่องจักร:
           </span>
-          <button onclick="setMachineFilter('YUELI')" id="mach-btn-YUELI" class="px-4 py-2 rounded-2xl text-xs sm:text-sm font-black transition cursor-pointer bg-indigo-600 text-white shadow-sm flex items-center gap-2">
+          <button onclick="setMachine('YUELI')" id="btn-m-YUELI" class="px-4 py-2 rounded-2xl text-xs sm:text-sm font-black transition cursor-pointer bg-indigo-600 text-white shadow-sm flex items-center gap-2">
             <span>เครื่อง YUELI</span>
-            <span id="mach-badge-YUELI" class="px-2 py-0.5 rounded-full text-[10px] bg-white/20 text-white">51,069 ออเดอร์</span>
+            <span id="badge-cnt-YUELI" class="px-2 py-0.5 rounded-full text-[10px] bg-white/20 text-white">51,069 ออเดอร์</span>
           </button>
-          <button onclick="setMachineFilter('BHS')" id="mach-btn-BHS" class="px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold transition cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-2">
+          <button onclick="setMachine('BHS')" id="btn-m-BHS" class="px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold transition cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-2">
             <span>เครื่อง BHS</span>
-            <span id="mach-badge-BHS" class="px-2 py-0.5 rounded-full text-[10px] bg-slate-200 text-slate-600">รอข้อมูลชีต</span>
+            <span id="badge-cnt-BHS" class="px-2 py-0.5 rounded-full text-[10px] bg-slate-200 text-slate-600">รอข้อมูลชีต</span>
           </button>
-          <button onclick="setMachineFilter('ISOWA')" id="mach-btn-ISOWA" class="px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold transition cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-2">
+          <button onclick="setMachine('ISOWA')" id="btn-m-ISOWA" class="px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold transition cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-2">
             <span>เครื่อง ISOWA</span>
-            <span id="mach-badge-ISOWA" class="px-2 py-0.5 rounded-full text-[10px] bg-slate-200 text-slate-600">รอข้อมูลชีต</span>
+            <span id="badge-cnt-ISOWA" class="px-2 py-0.5 rounded-full text-[10px] bg-slate-200 text-slate-600">รอข้อมูลชีต</span>
           </button>
-          <button onclick="setMachineFilter('ALL')" id="mach-btn-ALL" class="px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold transition cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-2">
+          <button onclick="setMachine('ALL')" id="btn-m-ALL" class="px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold transition cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-2">
             <span>รวม 3 เครื่อง</span>
           </button>
         </div>
 
-        <!-- Period / Shift / Flute Filters -->
+        <!-- Period & Shift Controls -->
         <div class="flex flex-wrap items-center gap-2.5">
-          <!-- Month Filter -->
+          <!-- Month Selector -->
           <div class="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-2xl border border-slate-200">
-            <i class="fa-regular fa-calendar-days text-indigo-600 text-xs"></i>
+            <i class="fa-regular fa-calendar text-indigo-600 text-xs"></i>
             <span class="text-xs font-bold text-slate-600">เดือน:</span>
-            <select id="filterMonth" onchange="onInstantFilterChange()" class="bg-transparent text-xs font-black text-slate-900 focus:outline-none cursor-pointer">
+            <select id="filterMonth" onchange="onFilterChange()" class="bg-transparent text-xs font-black text-slate-900 focus:outline-none cursor-pointer">
               <option value="0">ทั้งปี 2026 (ทุกเดือน)</option>
               <option value="1">มกราคม (1)</option>
               <option value="2">กุมภาพันธ์ (2)</option>
@@ -140,598 +138,296 @@
             </select>
           </div>
 
-          <!-- Day Range Filter -->
-          <div id="dayRangeFilterBox" class="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-2xl border border-slate-200">
-            <i class="fa-solid fa-sliders text-indigo-600 text-xs"></i>
+          <!-- Day Range Selector -->
+          <div id="dayRangeBox" class="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-2xl border border-slate-200">
             <span class="text-xs font-bold text-slate-600">วันที่:</span>
-            <select id="filterDayStart" onchange="onDayRangeChange()" class="bg-white px-2 py-0.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none cursor-pointer">
-              <option value="1">วันที่ 1</option>
+            <select id="filterDayStart" onchange="onDayChange()" class="bg-white px-2 py-0.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none cursor-pointer">
+              <option value="1">1</option>
             </select>
-            <span class="text-xs text-slate-400 font-bold">ถึง</span>
-            <select id="filterDayEnd" onchange="onDayRangeChange()" class="bg-white px-2 py-0.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none cursor-pointer">
-              <option value="31">วันที่ 31</option>
+            <span class="text-xs text-slate-400 font-bold">-</span>
+            <select id="filterDayEnd" onchange="onDayChange()" class="bg-white px-2 py-0.5 rounded-lg border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none cursor-pointer">
+              <option value="31">31</option>
             </select>
-            <button onclick="resetDayRange()" class="text-[11px] font-bold text-indigo-600 hover:underline px-1 cursor-pointer">ทั้งหมด</button>
+            <button onclick="resetDays()" class="text-[11px] font-bold text-indigo-600 hover:underline px-1 cursor-pointer">ทั้งหมด</button>
           </div>
 
-          <!-- Shift Filter -->
+          <!-- Shift Selector -->
           <div class="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200">
-            <button onclick="setShiftFilter('ALL')" id="shift-btn-ALL" class="px-3 py-1 rounded-xl text-xs font-black bg-indigo-600 text-white shadow-2xs transition cursor-pointer">ทุกกะ (A+B)</button>
-            <button onclick="setShiftFilter('A')" id="shift-btn-A" class="px-3 py-1 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer">กะ A</button>
-            <button onclick="setShiftFilter('B')" id="shift-btn-B" class="px-3 py-1 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer">กะ B</button>
-          </div>
-
-          <!-- Flute Filter -->
-          <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-2xl border border-slate-200">
-            <span class="text-[11px] font-bold text-slate-500 pl-2 pr-1">ลอน:</span>
-            <button onclick="setFluteFilter('ALL')" id="flute-btn-ALL" class="px-2.5 py-1 rounded-xl text-xs font-black bg-slate-800 text-white transition cursor-pointer">ทุกลอน</button>
-            <button onclick="setFluteFilter('C')" id="flute-btn-C" class="px-2.5 py-1 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer">C</button>
-            <button onclick="setFluteFilter('CB')" id="flute-btn-CB" class="px-2.5 py-1 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer">CB</button>
-            <button onclick="setFluteFilter('B')" id="flute-btn-B" class="px-2.5 py-1 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer">B</button>
-            <button onclick="setFluteFilter('E')" id="flute-btn-E" class="px-2.5 py-1 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer">E</button>
-            <button onclick="setFluteFilter('BE')" id="flute-btn-BE" class="px-2.5 py-1 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer">BE</button>
+            <button onclick="setShift('ALL')" id="btn-s-ALL" class="px-3 py-1 rounded-xl text-xs font-black bg-indigo-600 text-white shadow-2xs transition cursor-pointer">ทุกกะ</button>
+            <button onclick="setShift('A')" id="btn-s-A" class="px-3 py-1 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer">กะ A</button>
+            <button onclick="setShift('B')" id="btn-s-B" class="px-3 py-1 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer">กะ B</button>
           </div>
         </div>
       </div>
 
-      <!-- Status Bar -->
-      <div class="mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
-        <div class="flex items-center gap-2 flex-wrap">
-          <span id="live-status-pill" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+      <!-- Status Line -->
+      <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-            <span id="live-status-text">เชื่อมต่อฐานข้อมูล Google Sheet สำเร็จ (แสดงผลทันที 0ms)</span>
+            <span id="status-text">พร้อมใช้งาน (คำนวณและกรองตารางทันที 0ms)</span>
           </span>
           <span class="text-slate-500">
-            ชีตข้อมูล: <strong class="text-slate-800">ข้อมูลเครื่อง YUELI • ข้อมูลเครื่อง BHS • ข้อมูลเครื่อง ISOWA</strong>
+            ฐานข้อมูล: <strong class="text-slate-800">ข้อมูลเครื่อง YUELI (Google Sheet)</strong>
           </span>
         </div>
-        <div class="flex items-center gap-2">
-          <button onclick="captureElementAsPng('full-report-capture-area', 'Order_Analysis_Full')" class="px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition cursor-pointer flex items-center gap-1.5">
-            <i class="fa-solid fa-camera"></i> แคปภาพทั้งหน้า (4K)
-          </button>
-        </div>
+        <button onclick="captureElement('all-tables-area', 'Order_Tables_Summary')" class="px-3.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold transition cursor-pointer flex items-center gap-1.5">
+          <i class="fa-solid fa-camera"></i> บันทึกภาพรวมทุกตาราง (PNG)
+        </button>
       </div>
     </section>
 
-    <!-- Notice Banner if selected machine has no order rows in Google Sheet yet -->
-    <div id="empty-machine-banner" class="hidden bg-amber-50 border-2 border-amber-300 rounded-3xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+    <!-- Empty Machine Warning -->
+    <div id="empty-banner" class="hidden bg-amber-50 border-2 border-amber-300 rounded-3xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div class="flex items-start gap-3.5">
-        <div class="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 text-lg shadow-xs">
+        <div class="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 text-lg shadow-xs">
           <i class="fa-solid fa-circle-info"></i>
         </div>
         <div>
-          <h3 class="text-sm sm:text-base font-black text-amber-950">
-            ชีต "<span id="empty-machine-sheet-name">ข้อมูลเครื่อง BHS</span>" ใน Google Sheet ยังไม่มีรายการออเดอร์
+          <h3 class="text-sm font-black text-amber-950">
+            ชีต "<span id="empty-sheet-name">ข้อมูลเครื่อง BHS</span>" ใน Google Sheet ยังไม่มีรายการเดินออเดอร์
           </h3>
           <p class="text-xs text-amber-800 mt-0.5">
-            ตอนนี้มีข้อมูลครบถ้วนในชีต <strong>ข้อมูลเครื่อง YUELI (51,069 ออเดอร์)</strong> ทันทีที่คุณนำข้อมูลออเดอร์มาวางในชีต <strong id="empty-machine-sheet-name-2">ข้อมูลเครื่อง BHS</strong> แล้วกดปุ่ม <strong>"ซิงค์ข้อมูลสด"</strong> ระบบจะวิเคราะห์แยก 2 กะ ลอน ออเดอร์ แผน แผ่น เมตร และน้ำหนักให้อัตโนมัติทันทีครับ
+            ขณะนี้มีข้อมูลพร้อมวิเคราะห์ในชีต <strong>ข้อมูลเครื่อง YUELI (51,069 ออเดอร์)</strong> เรียบร้อยแล้วครับ
           </p>
         </div>
       </div>
-      <div class="flex items-center gap-2 shrink-0">
-        <button onclick="setMachineFilter('YUELI')" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black cursor-pointer shadow-xs">
-          ดูข้อมูลเครื่อง YUELI
-        </button>
-        <button onclick="syncLiveFromGoogleSheet(true)" class="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold cursor-pointer">
-          <i class="fa-solid fa-rotate mr-1"></i> เช็คข้อมูลชีตอีกครั้ง
-        </button>
-      </div>
+      <button onclick="setMachine('YUELI')" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black cursor-pointer shadow-xs">
+        สลับดูเครื่อง YUELI
+      </button>
     </div>
 
-    <div id="full-report-capture-area" class="space-y-6">
+    <div id="all-tables-area" class="space-y-6">
 
       <!-- ========================================== -->
-      <!-- 2. KPI Cards 6 ใบ (ออเดอร์ • แผน • แผ่น • เมตร • น้ำหนัก • ความเร็ว) -->
+      <!-- 2. Core 4 KPI Cards (ตรงกับ 4 สิ่งที่ขอ)    -->
       <!-- ========================================== -->
-      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        <!-- Card 1: จำนวนออเดอร์ -->
-        <div class="bg-gradient-to-br from-indigo-900 via-indigo-800 to-blue-900 text-white rounded-3xl p-4 shadow-md border border-indigo-700/60 relative overflow-hidden">
-          <div class="flex justify-between items-start">
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- 1. จำนวนออเดอร์ -->
+        <div class="bg-gradient-to-br from-indigo-900 via-indigo-800 to-blue-900 text-white rounded-3xl p-5 shadow-md border border-indigo-700/60 flex flex-col justify-between">
+          <div class="flex items-start justify-between">
             <div>
-              <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-200">จำนวนออเดอร์ทั้งหมด</span>
-              <div id="kpi-orders-total" class="text-2xl sm:text-3xl font-black mt-1 tracking-tight">0</div>
-              <span class="text-[11px] text-indigo-200">รายการ (Wo. No.)</span>
+              <span class="text-xs font-bold text-indigo-200 uppercase tracking-wider">1. จำนวนออเดอร์ทั้งหมด</span>
+              <div id="kpi-orders-total" class="text-3xl font-black mt-1 tracking-tight">0</div>
+              <span class="text-xs text-indigo-200">รายการเดินงาน</span>
             </div>
-            <div class="w-10 h-10 rounded-2xl bg-white/15 flex items-center justify-center text-indigo-200 text-lg">
+            <div class="w-11 h-11 rounded-2xl bg-white/15 flex items-center justify-center text-indigo-200 text-xl">
               <i class="fa-solid fa-clipboard-list"></i>
             </div>
           </div>
-          <div class="mt-3 pt-2.5 border-t border-white/15 flex justify-between text-xs font-bold">
+          <div class="mt-4 pt-3 border-t border-white/15 flex justify-between text-xs font-bold">
             <span class="text-sky-300">กะ A: <strong id="kpi-orders-a">0</strong></span>
             <span class="text-amber-300">กะ B: <strong id="kpi-orders-b">0</strong></span>
           </div>
         </div>
 
-        <!-- Card 2: จำนวนแผน (Plans / Width Setups) -->
-        <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-200/90">
-          <div class="flex justify-between items-start">
+        <!-- 2. สรุปประเภท PDR, PDW, PDS -->
+        <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200/90 flex flex-col justify-between">
+          <div class="flex items-start justify-between">
             <div>
-              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">จำนวนแผนผลิต (ชุดหน้ากว้าง)</span>
-              <div id="kpi-plans-total" class="text-2xl sm:text-3xl font-black mt-1 text-slate-900 tracking-tight">0</div>
-              <span id="kpi-orders-per-plan" class="text-[11px] text-indigo-600 font-bold">เฉลี่ย 0 ออเดอร์/แผน</span>
+              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">2. ประเภท PDR • PDW • PDS</span>
+              <div class="mt-2 space-y-1">
+                <div class="flex items-center justify-between gap-3 text-xs">
+                  <span class="font-black text-indigo-700"><span class="px-1.5 py-0.5 rounded bg-indigo-100 mr-1">PDR</span> ผลิตทั่วไป:</span>
+                  <strong id="kpi-cnt-pdr" class="text-slate-900 font-black">0</strong>
+                </div>
+                <div class="flex items-center justify-between gap-3 text-xs">
+                  <span class="font-black text-rose-700"><span class="px-1.5 py-0.5 rounded bg-rose-100 mr-1">PDW</span> งานของเสีย:</span>
+                  <strong id="kpi-cnt-pdw" class="text-slate-900 font-black">0</strong>
+                </div>
+                <div class="flex items-center justify-between gap-3 text-xs">
+                  <span class="font-black text-emerald-700"><span class="px-1.5 py-0.5 rounded bg-emerald-100 mr-1">PDS</span> งานตัวอย่าง:</span>
+                  <strong id="kpi-cnt-pds" class="text-slate-900 font-black">0</strong>
+                </div>
+              </div>
             </div>
-            <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg border border-indigo-100">
-              <i class="fa-solid fa-layer-group"></i>
+            <div class="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl border border-indigo-100">
+              <i class="fa-solid fa-tags"></i>
             </div>
           </div>
-          <div class="mt-3 pt-2.5 border-t border-slate-100 flex justify-between text-xs font-bold text-slate-600">
-            <span class="text-blue-700">กะ A: <strong id="kpi-plans-a">0</strong> แผน</span>
-            <span class="text-amber-700">กะ B: <strong id="kpi-plans-b">0</strong> แผน</span>
+          <div class="mt-3 pt-2.5 border-t border-slate-100 text-[11px] text-slate-500 flex justify-between font-semibold">
+            <span>พิเศษ/อื่นๆ (PDF/PDC): <strong id="kpi-cnt-other" class="text-slate-800">0</strong></span>
           </div>
         </div>
 
-        <!-- Card 3: จำนวนแผ่น (แผ่นใหญ่ดี & แผ่นเล็กดี) -->
-        <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-200/90">
-          <div class="flex justify-between items-start">
+        <!-- 3. ความยาวรวม (กี่เมตร) -->
+        <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200/90 flex flex-col justify-between">
+          <div class="flex items-start justify-between">
             <div>
-              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">จำนวนแผ่นใหญ่ดี (แผ่น)</span>
-              <div id="kpi-big-sheets" class="text-2xl sm:text-3xl font-black mt-1 text-emerald-700 tracking-tight">0</div>
-              <span class="text-[11px] text-slate-500">แผ่นเล็กดี: <strong id="kpi-small-sheets" class="text-slate-800">0</strong> แผ่น</span>
+              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">3. ความยาวที่เดินรวม (เมตร)</span>
+              <div id="kpi-length-m" class="text-3xl font-black mt-1 text-blue-700 tracking-tight">0</div>
+              <span id="kpi-length-km" class="text-xs text-slate-500 font-semibold">คิดเป็น 0.0 กิโลเมตร</span>
             </div>
-            <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg border border-emerald-100">
-              <i class="fa-solid fa-Scroll"></i>
-            </div>
-          </div>
-          <div class="mt-3 pt-2.5 border-t border-slate-100 flex justify-between text-xs font-bold">
-            <span class="text-blue-700">กะ A: <strong id="kpi-sheets-a">0</strong></span>
-            <span class="text-amber-700">กะ B: <strong id="kpi-sheets-b">0</strong></span>
-          </div>
-        </div>
-
-        <!-- Card 4: ความยาวทั้งหมด (เมตร) -->
-        <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-200/90">
-          <div class="flex justify-between items-start">
-            <div>
-              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">ความยาวทั้งหมด (เมตร)</span>
-              <div id="kpi-length-m" class="text-2xl sm:text-3xl font-black mt-1 text-blue-700 tracking-tight">0</div>
-              <span id="kpi-length-km" class="text-[11px] text-slate-500 font-medium">คิดเป็น 0.0 กม.</span>
-            </div>
-            <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg border border-blue-100">
+            <div class="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl border border-blue-100">
               <i class="fa-solid fa-ruler-horizontal"></i>
             </div>
           </div>
-          <div class="mt-3 pt-2.5 border-t border-slate-100 flex justify-between text-xs font-bold">
-            <span class="text-blue-700">กะ A: <strong id="kpi-length-a">0</strong> ม.</span>
-            <span class="text-amber-700">กะ B: <strong id="kpi-length-b">0</strong> ม.</span>
+          <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between text-xs font-bold">
+            <span class="text-blue-700">กะ A: <strong id="kpi-len-a">0</strong> ม.</span>
+            <span class="text-amber-700">กะ B: <strong id="kpi-len-b">0</strong> ม.</span>
           </div>
         </div>
 
-        <!-- Card 5: น้ำหนักทั้งหมด (กิโลกรัม) -->
-        <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-200/90">
-          <div class="flex justify-between items-start">
+        <!-- 4. น้ำหนักให้การผลิต -->
+        <div class="bg-white rounded-3xl p-5 shadow-sm border border-slate-200/90 flex flex-col justify-between">
+          <div class="flex items-start justify-between">
             <div>
-              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">น้ำหนักผลิตรวม (กก.)</span>
-              <div id="kpi-weight-kg" class="text-2xl sm:text-3xl font-black mt-1 text-rose-700 tracking-tight">0</div>
-              <span id="kpi-weight-ton" class="text-[11px] text-slate-500 font-medium">คิดเป็น 0.0 ตัน</span>
+              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">4. น้ำหนักในการผลิตรวม</span>
+              <div id="kpi-weight-kg" class="text-3xl font-black mt-1 text-rose-700 tracking-tight">0</div>
+              <span id="kpi-weight-ton" class="text-xs text-slate-500 font-semibold">คิดเป็น 0.0 ตัน</span>
             </div>
-            <div class="w-10 h-10 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg border border-rose-100">
+            <div class="w-11 h-11 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl border border-rose-100">
               <i class="fa-solid fa-weight-hanging"></i>
             </div>
           </div>
-          <div class="mt-3 pt-2.5 border-t border-slate-100 flex justify-between text-xs font-bold">
-            <span class="text-blue-700">กะ A: <strong id="kpi-weight-a">0</strong> กก.</span>
-            <span class="text-amber-700">กะ B: <strong id="kpi-weight-b">0</strong> กก.</span>
-          </div>
-        </div>
-
-        <!-- Card 6: พื้นที่ & ความเร็วเฉลี่ย -->
-        <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-200/90">
-          <div class="flex justify-between items-start">
-            <div>
-              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">ความเร็วเฉลี่ย (M/min)</span>
-              <div id="kpi-avg-speed" class="text-2xl sm:text-3xl font-black mt-1 text-amber-600 tracking-tight">0</div>
-              <span id="kpi-area-sqm" class="text-[11px] text-slate-500 font-medium">พื้นที่: 0 ตร.ม.</span>
-            </div>
-            <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg border border-amber-100">
-              <i class="fa-solid fa-gauge-high"></i>
-            </div>
-          </div>
-          <div class="mt-3 pt-2.5 border-t border-slate-100 flex justify-between text-xs font-bold">
-            <span class="text-slate-600">เดินงาน: <strong id="kpi-run-days">0</strong> วัน</span>
-            <span class="text-rose-600">แผ่นเสีย: <strong id="kpi-waste-sheets">0</strong></span>
+          <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between text-xs font-bold">
+            <span class="text-blue-700">กะ A: <strong id="kpi-w-a">0</strong> กก.</span>
+            <span class="text-amber-700">กะ B: <strong id="kpi-w-b">0</strong> กก.</span>
           </div>
         </div>
       </section>
 
       <!-- ========================================== -->
-      <!-- 3. เปรียบเทียบ 2 กะ (กะ A vs กะ B) & ใครเดินอะไรบ้าง -->
+      <!-- 3. ตารางที่ 1: ตารางสรุปประเภท PDR, PDW, PDS -->
       <!-- ========================================== -->
-      <section id="shift-comparison-section" class="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200/90">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
-              <i class="fa-solid fa-users-gear"></i>
-            </div>
-            <div>
-              <h2 class="text-base sm:text-lg font-black text-slate-900">
-                สรุปเปรียบเทียบผลงาน 2 กะ (กะ A vs กะ B) — ใครเดินอะไรบ้าง
-              </h2>
-              <p class="text-xs text-slate-500">
-                แสดงผู้รับผิดชอบแต่ละกะ จำนวนออเดอร์ แผน แผ่น ความยาว (เมตร) น้ำหนัก (กก.) และลอนกระดาษที่แต่ละกะเดิน
-              </p>
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <button onclick="captureElementAsPng('shift-comparison-section', 'Shift_A_vs_B_Summary')" class="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition cursor-pointer flex items-center gap-1.5">
-              <i class="fa-solid fa-camera"></i> แคปภาพเปรียบเทียบ 2 กะ
-            </button>
-          </div>
-        </div>
-
-        <!-- 2 Shift Cards (Shift A vs Shift B) -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
-          <!-- Shift A Card -->
-          <div class="rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50/70 via-white to-sky-50/40 p-4 sm:p-5">
-            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-blue-200/70">
-              <div class="flex items-center gap-2.5">
-                <span class="w-9 h-9 rounded-xl bg-blue-600 text-white font-black text-base flex items-center justify-center shadow-xs">A</span>
-                <div>
-                  <h3 class="text-sm sm:text-base font-black text-slate-900">ทีมกะ A (<span class="shift-card-mach-name">YUELI</span>)</h3>
-                  <p id="shift-a-leader-text" class="text-xs font-bold text-blue-700">หัวหน้ากะ: -</p>
-                </div>
-              </div>
-              <span id="shift-a-share-badge" class="px-3 py-1 rounded-full text-xs font-black bg-blue-600 text-white shadow-2xs">
-                สัดส่วน 50.0%
-              </span>
-            </div>
-
-            <!-- Team Members Pills -->
-            <div class="mt-2.5">
-              <div class="text-[11px] font-bold text-slate-500 mb-1.5">ทีมประจำจุด (Station):</div>
-              <div id="shift-a-team-pills" class="flex flex-wrap gap-1.5"></div>
-            </div>
-
-            <!-- Shift A KPI Grid -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mt-4">
-              <div class="bg-white p-3 rounded-xl border border-blue-100 shadow-2xs">
-                <div class="text-[11px] text-slate-500 font-bold">จำนวนออเดอร์</div>
-                <div id="shift-a-orders" class="text-lg font-black text-blue-700">0</div>
-                <div class="text-[10px] text-slate-400">แผนผลิต: <strong id="shift-a-plans" class="text-slate-700">0</strong> แผน</div>
-              </div>
-              <div class="bg-white p-3 rounded-xl border border-blue-100 shadow-2xs">
-                <div class="text-[11px] text-slate-500 font-bold">จำนวนแผ่นใหญ่ดี</div>
-                <div id="shift-a-big-sheets" class="text-lg font-black text-emerald-700">0</div>
-                <div class="text-[10px] text-slate-400">แผ่นเล็กดี: <strong id="shift-a-small-sheets" class="text-slate-700">0</strong></div>
-              </div>
-              <div class="bg-white p-3 rounded-xl border border-blue-100 shadow-2xs">
-                <div class="text-[11px] text-slate-500 font-bold">ความยาว (เมตร)</div>
-                <div id="shift-a-length" class="text-lg font-black text-indigo-700">0</div>
-                <div class="text-[10px] text-slate-400">Speed: <strong id="shift-a-speed" class="text-slate-700">0</strong> m/min</div>
-              </div>
-              <div class="bg-white p-3 rounded-xl border border-blue-100 shadow-2xs col-span-2 sm:col-span-3 flex items-center justify-between">
-                <div>
-                  <div class="text-[11px] text-slate-500 font-bold">น้ำหนักผลิตรวม กะ A (กิโลกรัม)</div>
-                  <div id="shift-a-weight" class="text-xl font-black text-rose-700">0 กก.</div>
-                </div>
-                <div class="text-right">
-                  <div class="text-[11px] text-slate-500 font-bold">พื้นที่รวม</div>
-                  <div id="shift-a-area" class="text-sm font-black text-slate-800">0 ตร.ม.</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Shift A Flute Breakdown mini table -->
-            <div class="mt-4">
-              <div class="text-xs font-black text-slate-700 mb-1.5">กะ A เดินลอนอะไรบ้าง:</div>
-              <div class="overflow-x-auto">
-                <table class="w-full text-xs border-collapse">
-                  <thead>
-                    <tr class="bg-blue-100/80 text-blue-950 font-black">
-                      <th class="p-2 text-left rounded-tl-lg">ลอน</th>
-                      <th class="p-2 text-right">ออเดอร์</th>
-                      <th class="p-2 text-right">แผน</th>
-                      <th class="p-2 text-right">แผ่นใหญ่ดี</th>
-                      <th class="p-2 text-right">เมตร</th>
-                      <th class="p-2 text-right rounded-tr-lg">น้ำหนัก (กก.)</th>
-                    </tr>
-                  </thead>
-                  <tbody id="shift-a-flute-tbody" class="divide-y divide-blue-100 bg-white"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <!-- Shift B Card -->
-          <div class="rounded-2xl border-2 border-amber-200 bg-gradient-to-br from-amber-50/70 via-white to-orange-50/40 p-4 sm:p-5">
-            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-amber-200/70">
-              <div class="flex items-center gap-2.5">
-                <span class="w-9 h-9 rounded-xl bg-amber-500 text-white font-black text-base flex items-center justify-center shadow-xs">B</span>
-                <div>
-                  <h3 class="text-sm sm:text-base font-black text-slate-900">ทีมกะ B (<span class="shift-card-mach-name">YUELI</span>)</h3>
-                  <p id="shift-b-leader-text" class="text-xs font-bold text-amber-800">หัวหน้ากะ: -</p>
-                </div>
-              </div>
-              <span id="shift-b-share-badge" class="px-3 py-1 rounded-full text-xs font-black bg-amber-500 text-white shadow-2xs">
-                สัดส่วน 50.0%
-              </span>
-            </div>
-
-            <!-- Team Members Pills -->
-            <div class="mt-2.5">
-              <div class="text-[11px] font-bold text-slate-500 mb-1.5">ทีมประจำจุด (Station):</div>
-              <div id="shift-b-team-pills" class="flex flex-wrap gap-1.5"></div>
-            </div>
-
-            <!-- Shift B KPI Grid -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mt-4">
-              <div class="bg-white p-3 rounded-xl border border-amber-100 shadow-2xs">
-                <div class="text-[11px] text-slate-500 font-bold">จำนวนออเดอร์</div>
-                <div id="shift-b-orders" class="text-lg font-black text-amber-700">0</div>
-                <div class="text-[10px] text-slate-400">แผนผลิต: <strong id="shift-b-plans" class="text-slate-700">0</strong> แผน</div>
-              </div>
-              <div class="bg-white p-3 rounded-xl border border-amber-100 shadow-2xs">
-                <div class="text-[11px] text-slate-500 font-bold">จำนวนแผ่นใหญ่ดี</div>
-                <div id="shift-b-big-sheets" class="text-lg font-black text-emerald-700">0</div>
-                <div class="text-[10px] text-slate-400">แผ่นเล็กดี: <strong id="shift-b-small-sheets" class="text-slate-700">0</strong></div>
-              </div>
-              <div class="bg-white p-3 rounded-xl border border-amber-100 shadow-2xs">
-                <div class="text-[11px] text-slate-500 font-bold">ความยาว (เมตร)</div>
-                <div id="shift-b-length" class="text-lg font-black text-indigo-700">0</div>
-                <div class="text-[10px] text-slate-400">Speed: <strong id="shift-b-speed" class="text-slate-700">0</strong> m/min</div>
-              </div>
-              <div class="bg-white p-3 rounded-xl border border-amber-100 shadow-2xs col-span-2 sm:col-span-3 flex items-center justify-between">
-                <div>
-                  <div class="text-[11px] text-slate-500 font-bold">น้ำหนักผลิตรวม กะ B (กิโลกรัม)</div>
-                  <div id="shift-b-weight" class="text-xl font-black text-rose-700">0 กก.</div>
-                </div>
-                <div class="text-right">
-                  <div class="text-[11px] text-slate-500 font-bold">พื้นที่รวม</div>
-                  <div id="shift-b-area" class="text-sm font-black text-slate-800">0 ตร.ม.</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Shift B Flute Breakdown mini table -->
-            <div class="mt-4">
-              <div class="text-xs font-black text-slate-700 mb-1.5">กะ B เดินลอนอะไรบ้าง:</div>
-              <div class="overflow-x-auto">
-                <table class="w-full text-xs border-collapse">
-                  <thead>
-                    <tr class="bg-amber-100/80 text-amber-950 font-black">
-                      <th class="p-2 text-left rounded-tl-lg">ลอน</th>
-                      <th class="p-2 text-right">ออเดอร์</th>
-                      <th class="p-2 text-right">แผน</th>
-                      <th class="p-2 text-right">แผ่นใหญ่ดี</th>
-                      <th class="p-2 text-right">เมตร</th>
-                      <th class="p-2 text-right rounded-tr-lg">น้ำหนัก (กก.)</th>
-                    </tr>
-                  </thead>
-                  <tbody id="shift-b-flute-tbody" class="divide-y divide-amber-100 bg-white"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ========================================== -->
-      <!-- 4. ตารางและกราฟวิเคราะห์แยกตามลอนกระดาษ (Flute Breakdown: C, CB, B, E, BE) -->
-      <!-- ========================================== -->
-      <section class="grid grid-cols-1 xl:grid-cols-12 gap-6">
-        <!-- Flute Table (7 cols) -->
-        <div id="flute-table-card" class="xl:col-span-7 bg-white rounded-3xl p-5 shadow-sm border border-slate-200/90 flex flex-col justify-between">
+      <section id="table-type-card" class="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200/90 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
           <div>
-            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-200">
-              <div>
-                <h2 class="text-base font-black text-slate-900">
-                  <i class="fa-solid fa-table-list text-indigo-600 mr-1.5"></i> ตารางสรุปการเดินงานแยกตามลอนกระดาษ (Flute)
-                </h2>
-                <p class="text-xs text-slate-500">เปรียบเทียบ กะ A vs กะ B แยกตามลอน (กี่ออเดอร์ • กี่แผน • กี่แผ่น • กี่เมตร • น้ำหนักเท่าไร)</p>
-              </div>
-              <button onclick="captureElementAsPng('flute-table-card', 'Flute_Summary_Table')" class="px-3 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer">
-                <i class="fa-solid fa-camera mr-1"></i> บันทึกภาพตาราง
-              </button>
-            </div>
-
-            <div class="overflow-x-auto mt-4">
-              <table class="w-full text-xs border-collapse">
-                <thead>
-                  <tr class="bg-slate-900 text-white font-bold">
-                    <th class="p-2.5 text-left rounded-tl-xl">ลอน (Flute)</th>
-                    <th class="p-2.5 text-right bg-blue-900/80">กะ A (ออเดอร์)</th>
-                    <th class="p-2.5 text-right bg-amber-800/80">กะ B (ออเดอร์)</th>
-                    <th class="p-2.5 text-right">รวมออเดอร์</th>
-                    <th class="p-2.5 text-right">รวมแผน</th>
-                    <th class="p-2.5 text-right">แผ่นใหญ่ดี</th>
-                    <th class="p-2.5 text-right">แผ่นเล็กดี</th>
-                    <th class="p-2.5 text-right">ความยาว (เมตร)</th>
-                    <th class="p-2.5 text-right">น้ำหนัก (กก.)</th>
-                    <th class="p-2.5 text-right rounded-tr-xl">% นน.</th>
-                  </tr>
-                </thead>
-                <tbody id="flute-summary-tbody" class="divide-y divide-slate-200"></tbody>
-                <tfoot id="flute-summary-tfoot" class="bg-slate-100 font-black text-slate-900 border-t-2 border-slate-300"></tfoot>
-              </table>
-            </div>
-          </div>
-
-          <!-- Paper Width Summary Strip -->
-          <div class="mt-5 pt-4 border-t border-slate-200">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-black text-slate-800">
-                <i class="fa-solid fa-arrows-left-right text-indigo-600 mr-1"></i> สรุปแยกตามหน้ากว้างกระดาษ (Paper Width มม.):
+            <h2 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+              <span class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-sm">
+                <i class="fa-solid fa-tag"></i>
               </span>
-              <span class="text-[11px] text-slate-500">คลิกที่ลอนด้านบนเพื่อกรองเฉพาะลอนได้</span>
-            </div>
-            <div id="width-summary-badges" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2"></div>
-          </div>
-        </div>
-
-        <!-- Flute Chart (5 cols) -->
-        <div id="flute-chart-card" class="xl:col-span-5 bg-white rounded-3xl p-5 shadow-sm border border-slate-200/90 flex flex-col justify-between">
-          <div>
-            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-200">
-              <div>
-                <h2 class="text-base font-black text-slate-900">
-                  <i class="fa-solid fa-chart-column text-indigo-600 mr-1.5"></i> กราฟเทียบ กะ A vs กะ B แยกตามลอน
-                </h2>
-                <p class="text-xs text-slate-500">เลือกดูตาม จำนวนออเดอร์ / แผ่น / เมตร / น้ำหนัก (กก.)</p>
-              </div>
-              <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
-                <button onclick="setFluteChartMetric('orders')" id="flute-m-orders" class="px-2.5 py-1 rounded-lg text-[11px] font-black bg-indigo-600 text-white cursor-pointer">ออเดอร์</button>
-                <button onclick="setFluteChartMetric('bigGood')" id="flute-m-bigGood" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-slate-600 cursor-pointer">แผ่น</button>
-                <button onclick="setFluteChartMetric('lengthM')" id="flute-m-lengthM" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-slate-600 cursor-pointer">เมตร</button>
-                <button onclick="setFluteChartMetric('weightKg')" id="flute-m-weightKg" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-slate-600 cursor-pointer">น้ำหนัก</button>
-              </div>
-            </div>
-            <div class="h-[340px] mt-4 relative">
-              <canvas id="fluteCompareChart"></canvas>
-            </div>
-          </div>
-          <div class="mt-3 pt-3 border-t border-slate-100 flex justify-end">
-            <button onclick="captureElementAsPng('flute-chart-card', 'Flute_Comparison_Chart')" class="px-3 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer">
-              <i class="fa-solid fa-camera mr-1"></i> บันทึกภาพกราฟลอน
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <!-- ========================================== -->
-      <!-- 5. กราฟและตารางแนวโน้ม รายวัน / รายสัปดาห์ / รายเดือน (แยก กะ A vs กะ B) -->
-      <!-- ========================================== -->
-      <section class="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200/90 space-y-5">
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-4 border-b border-slate-200">
-          <div>
-            <h2 class="text-base sm:text-lg font-black text-slate-900">
-              <i class="fa-solid fa-chart-line text-indigo-600 mr-1.5"></i> กราฟและตารางวิเคราะห์ออเดอร์ผลิต (แยกกะ A vs กะ B)
+              ตารางที่ 1: สรุปประเภทออเดอร์ (PDR • PDW • PDS • อื่นๆ)
             </h2>
-            <p class="text-xs text-slate-500">
-              สลับดูได้ทั้ง รายวัน • ราย Week • รายเดือน และเลือกตัวชี้วัด (จำนวนออเดอร์ • จำนวนแผน • จำนวนแผ่น • ความยาวเมตร • น้ำหนัก กก.)
+            <p class="text-xs text-slate-500 mt-0.5">
+              แสดงจำนวนออเดอร์ สัดส่วน (%) ความยาวที่เดิน (เมตร) และน้ำหนักในการผลิต (กก. / ตัน) แยกตามประเภทออเดอร์
             </p>
           </div>
-
-          <div class="flex flex-wrap items-center gap-2">
-            <!-- Granularity Switcher -->
-            <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
-              <button onclick="setTrendGranularity('daily')" id="gran-btn-daily" class="px-3 py-1 rounded-lg text-xs font-black bg-indigo-600 text-white cursor-pointer">รายวัน</button>
-              <button onclick="setTrendGranularity('weekly')" id="gran-btn-weekly" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-600 cursor-pointer">ราย Week</button>
-              <button onclick="setTrendGranularity('monthly')" id="gran-btn-monthly" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-600 cursor-pointer">รายเดือน</button>
-            </div>
-
-            <!-- Metric Switcher -->
-            <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
-              <button onclick="setTrendMetric('orders')" id="trend-m-orders" class="px-3 py-1 rounded-lg text-xs font-black bg-slate-800 text-white cursor-pointer">ออเดอร์</button>
-              <button onclick="setTrendMetric('plans')" id="trend-m-plans" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-600 cursor-pointer">แผน</button>
-              <button onclick="setTrendMetric('bigGood')" id="trend-m-bigGood" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-600 cursor-pointer">แผ่นใหญ่ดี</button>
-              <button onclick="setTrendMetric('lengthM')" id="trend-m-lengthM" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-600 cursor-pointer">เมตร</button>
-              <button onclick="setTrendMetric('weightKg')" id="trend-m-weightKg" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-600 cursor-pointer">น้ำหนัก (กก.)</button>
-            </div>
-
-            <!-- Separate Capture Buttons -->
-            <button onclick="captureElementAsPng('trend-chart-capture-box', 'Order_Trend_Chart')" class="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold cursor-pointer">
-              <i class="fa-solid fa-camera mr-1"></i> แคปเฉพาะกราฟ
-            </button>
-            <button onclick="captureElementAsPng('trend-table-capture-box', 'Order_Trend_Table')" class="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold cursor-pointer">
-              <i class="fa-solid fa-table mr-1"></i> แคปเฉพาะตาราง
-            </button>
-          </div>
+          <button onclick="captureElement('table-type-card', 'Table_Order_Types_PDR_PDW_PDS')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-camera"></i> แคปตารางประเภท
+          </button>
         </div>
 
-        <!-- Trend Chart Box -->
-        <div id="trend-chart-capture-box" class="bg-slate-50/70 rounded-2xl p-4 border border-slate-200/80">
-          <div class="flex items-center justify-between mb-2">
-            <span id="trend-chart-title" class="text-xs sm:text-sm font-black text-slate-800">กราฟจำนวนออเดอร์แยกกะ A vs กะ B</span>
-            <span id="trend-chart-subtitle" class="text-xs font-bold text-indigo-600">คลิกที่แท่งกราฟหรือแถวตารางเพื่อดูรายการออเดอร์ (Wo. No.) ของวันนั้น</span>
-          </div>
-          <div class="h-[360px] relative">
-            <canvas id="orderTrendChart"></canvas>
-          </div>
-        </div>
-
-        <!-- Trend Table Box -->
-        <div id="trend-table-capture-box" class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-          <div class="px-4 py-3 bg-slate-800 text-white flex items-center justify-between">
-            <span id="trend-table-title" class="text-xs sm:text-sm font-black">ตารางสรุปข้อมูลออเดอร์แยกกะ A และ กะ B</span>
-            <span class="text-[11px] text-amber-300 font-bold">คลิกที่แถวเพื่อดูรายการใบสั่งผลิต (Wo. No.) รายตัวด้านล่าง</span>
-          </div>
-          <div class="overflow-x-auto max-h-[460px] custom-scrollbar">
-            <table class="w-full text-xs border-collapse">
-              <thead class="sticky top-0 z-10">
-                <tr class="bg-slate-900 text-white font-bold">
-                  <th class="p-2.5 text-left">วันที่ / ช่วงเวลา</th>
-                  <th class="p-2.5 text-right bg-blue-900/90">กะ A ออเดอร์</th>
-                  <th class="p-2.5 text-right bg-blue-900/90">กะ A แผ่นดี</th>
-                  <th class="p-2.5 text-right bg-blue-900/90">กะ A เมตร</th>
-                  <th class="p-2.5 text-right bg-blue-900/90">กะ A นน.(กก.)</th>
-                  <th class="p-2.5 text-right bg-amber-800/90">กะ B ออเดอร์</th>
-                  <th class="p-2.5 text-right bg-amber-800/90">กะ B แผ่นดี</th>
-                  <th class="p-2.5 text-right bg-amber-800/90">กะ B เมตร</th>
-                  <th class="p-2.5 text-right bg-amber-800/90">กะ B นน.(กก.)</th>
-                  <th class="p-2.5 text-right bg-slate-800">รวมออเดอร์</th>
-                  <th class="p-2.5 text-right bg-slate-800">รวมแผน</th>
-                  <th class="p-2.5 text-right bg-slate-800">รวมเมตร</th>
-                  <th class="p-2.5 text-right bg-slate-800">รวมน้ำหนัก (กก.)</th>
-                </tr>
-              </thead>
-              <tbody id="trend-breakdown-tbody" class="divide-y divide-slate-200"></tbody>
-              <tfoot id="trend-breakdown-tfoot" class="sticky bottom-0 bg-slate-100 font-black text-slate-900 border-t-2 border-slate-300"></tfoot>
-            </table>
-          </div>
+        <div class="overflow-x-auto rounded-2xl border border-slate-200">
+          <table class="w-full text-xs sm:text-sm border-collapse">
+            <thead>
+              <tr class="bg-slate-900 text-white font-bold">
+                <th class="p-3 text-left">ประเภทออเดอร์ (Order Type)</th>
+                <th class="p-3 text-left">ความหมาย / รายละเอียด</th>
+                <th class="p-3 text-right">จำนวนออเดอร์</th>
+                <th class="p-3 text-right">สัดส่วนออเดอร์ (%)</th>
+                <th class="p-3 text-right">ความยาวที่เดิน (เมตร)</th>
+                <th class="p-3 text-right">สัดส่วนเมตร (%)</th>
+                <th class="p-3 text-right">น้ำหนักการผลิต (กก.)</th>
+                <th class="p-3 text-right">น้ำหนัก (ตัน)</th>
+                <th class="p-3 text-right">สัดส่วนน้ำหนัก (%)</th>
+              </tr>
+            </thead>
+            <tbody id="type-tbody" class="divide-y divide-slate-200 bg-white"></tbody>
+            <tfoot id="type-tfoot" class="bg-slate-100 font-black text-slate-900 border-t-2 border-slate-300"></tfoot>
+          </table>
         </div>
       </section>
 
       <!-- ========================================== -->
-      <!-- 6. ตารางเจาะลึกรายการใบสั่งผลิต (Wo. No. Live Order Explorer) -->
+      <!-- 4. ตารางที่ 2: ตารางสรุปสัดส่วนลอนที่เดิน     -->
       <!-- ========================================== -->
-      <section id="order-detail-explorer-section" class="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200/90 space-y-4">
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-4 border-b border-slate-200">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
-              <i class="fa-solid fa-magnifying-glass-chart"></i>
-            </div>
-            <div>
-              <div class="flex items-center gap-2 flex-wrap">
-                <h2 class="text-base sm:text-lg font-black text-slate-900">
-                  เจาะลึกรายการเดินออเดอร์รายตัว (Wo. No. & เกรดกระดาษ M1-M5)
-                </h2>
-                <span id="detail-explorer-badge" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-100 text-emerald-800">
-                  แสดงรายการล่าสุด
-                </span>
-              </div>
-              <p class="text-xs text-slate-500">
-                ดูรายละเอียดว่าแต่ละกะเดินออเดอร์เลขที่อะไร ใช้กระดาษอะไร ลอนอะไร หน้ากว้างเท่าไร กี่แผ่น กี่เมตร น้ำหนักเท่าไร
-              </p>
-            </div>
+      <section id="table-flute-card" class="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200/90 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
+          <div>
+            <h2 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+              <span class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center text-sm">
+                <i class="fa-solid fa-layer-group"></i>
+              </span>
+              ตารางที่ 2: สรุปสัดส่วนลอนที่เดิน (Flute Breakdown: C • CB • B • E • BE)
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">
+              แสดงสัดส่วนลอนที่เดินจริง กี่ออเดอร์ กี่เมตร และน้ำหนักผลิตเท่าไร พร้อมเทียบสัดส่วนเปอร์เซ็นต์ (%)
+            </p>
           </div>
-
-          <div class="flex flex-wrap items-center gap-2">
-            <!-- Specific Day Selector for Live Query -->
-            <div class="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
-              <span class="text-xs font-bold text-slate-600">ดึงออเดอร์วันที่:</span>
-              <select id="detailDaySelect" onchange="fetchLiveDayOrders()" class="bg-white px-2 py-0.5 rounded-lg border border-slate-300 text-xs font-black text-indigo-700 focus:outline-none cursor-pointer">
-                <option value="0">ล่าสุด (150 ออเดอร์)</option>
-              </select>
-            </div>
-
-            <!-- Search Input -->
-            <div class="relative">
-              <i class="fa-solid fa-search text-slate-400 text-xs absolute left-3 top-1/2 -translate-y-1/2"></i>
-              <input type="text" id="orderSearchInput" oninput="renderOrderDetailTable()" placeholder="ค้นหา Wo. No. / เกรดกระดาษ / หน้ากว้าง..." class="pl-8 pr-3 py-1.5 bg-slate-100 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64" />
-            </div>
-          </div>
+          <button onclick="captureElement('table-flute-card', 'Table_Flute_Proportions')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-camera"></i> แคปตารางลอน
+          </button>
         </div>
 
-        <div class="overflow-x-auto max-h-[520px] custom-scrollbar rounded-2xl border border-slate-200">
-          <table class="w-full text-xs border-collapse">
-            <thead class="sticky top-0 z-10 bg-slate-900 text-white font-bold">
-              <tr>
-                <th class="p-2.5 text-center">#</th>
-                <th class="p-2.5 text-center">กะ</th>
-                <th class="p-2.5 text-left">เวลาเริ่ม - สิ้นสุด</th>
-                <th class="p-2.5 text-left">เลขที่ออเดอร์ (Wo. No.)</th>
-                <th class="p-2.5 text-center">ลอน</th>
-                <th class="p-2.5 text-left">เกรดกระดาษ (M1-M5)</th>
-                <th class="p-2.5 text-right">หน้ากว้างxยาว (มม.)</th>
-                <th class="p-2.5 text-center">ผ่า (Out)</th>
-                <th class="p-2.5 text-right">แผ่นใหญ่ดี</th>
-                <th class="p-2.5 text-right">แผ่นเสีย</th>
-                <th class="p-2.5 text-right">แผ่นเล็กดี</th>
-                <th class="p-2.5 text-right">ความยาว (เมตร)</th>
-                <th class="p-2.5 text-right">น้ำหนัก (กก.)</th>
-                <th class="p-2.5 text-right">Speed (m/min)</th>
+        <div class="overflow-x-auto rounded-2xl border border-slate-200">
+          <table class="w-full text-xs sm:text-sm border-collapse">
+            <thead>
+              <tr class="bg-slate-900 text-white font-bold">
+                <th class="p-3 text-left">ลอนกระดาษ (Flute)</th>
+                <th class="p-3 text-left">โครงสร้างลอน</th>
+                <th class="p-3 text-right">จำนวนออเดอร์</th>
+                <th class="p-3 text-right">สัดส่วนออเดอร์ (%)</th>
+                <th class="p-3 text-right">ความยาวที่เดิน (เมตร)</th>
+                <th class="p-3 text-right">สัดส่วนความยาว (%)</th>
+                <th class="p-3 text-right">น้ำหนักการผลิต (กก.)</th>
+                <th class="p-3 text-right">น้ำหนัก (ตัน)</th>
+                <th class="p-3 text-right">สัดส่วนน้ำหนัก (%)</th>
               </tr>
             </thead>
-            <tbody id="order-detail-tbody" class="divide-y divide-slate-200 bg-white"></tbody>
+            <tbody id="flute-tbody" class="divide-y divide-slate-200 bg-white"></tbody>
+            <tfoot id="flute-tfoot" class="bg-slate-100 font-black text-slate-900 border-t-2 border-slate-300"></tfoot>
+          </table>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- 5. ตารางที่ 3: ตารางเมทริกซ์ไขว้ (ลอน x ประเภท PDR/PDW/PDS) -->
+      <!-- ========================================== -->
+      <section id="table-cross-card" class="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200/90 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
+          <div>
+            <h2 class="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+              <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-sm">
+                <i class="fa-solid fa-table-cells"></i>
+              </span>
+              ตารางที่ 3: ตารางสรุปไขว้ (Matrix: ลอนกระดาษ × ประเภทออเดอร์ PDR / PDW / PDS)
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">
+              ดูพร้อมกันในตารางเดียว: แต่ละลอนมีออเดอร์ PDR (ผลิตทั่วไป), PDW (ของเสีย), PDS (ตัวอย่าง) กี่ออเดอร์ กี่เมตร และน้ำหนักเท่าไร
+            </p>
+          </div>
+          <button onclick="captureElement('table-cross-card', 'Table_Cross_Flute_x_Type')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-camera"></i> แคปตารางเมทริกซ์
+          </button>
+        </div>
+
+        <div class="overflow-x-auto rounded-2xl border border-slate-200 custom-scrollbar">
+          <table class="w-full text-xs sm:text-sm border-collapse min-w-[1000px]">
+            <thead>
+              <tr class="bg-slate-900 text-white font-bold border-b border-slate-700">
+                <th rowspan="2" class="p-3 text-left align-middle border-r border-slate-700 bg-slate-900">ลอน (Flute)</th>
+                <th colspan="3" class="p-2 text-center bg-indigo-900/90 border-r border-slate-700">PDR (ผลิตทั่วไป)</th>
+                <th colspan="3" class="p-2 text-center bg-rose-900/90 border-r border-slate-700">PDW (งานของเสีย/ซ่อม)</th>
+                <th colspan="3" class="p-2 text-center bg-emerald-900/90 border-r border-slate-700">PDS (งานตัวอย่าง)</th>
+                <th colspan="3" class="p-2 text-center bg-slate-800 border-r border-slate-700">อื่นๆ / PDF</th>
+                <th colspan="3" class="p-2 text-center bg-blue-950 font-black">รวมทั้งหมด (Total)</th>
+              </tr>
+              <tr class="bg-slate-800 text-slate-200 font-bold text-[11px] sm:text-xs">
+                <!-- PDR -->
+                <th class="p-2 text-right bg-indigo-950/80">ออเดอร์</th>
+                <th class="p-2 text-right bg-indigo-950/80">เมตร</th>
+                <th class="p-2 text-right bg-indigo-950/80 border-r border-slate-700">น้ำหนัก (กก.)</th>
+                <!-- PDW -->
+                <th class="p-2 text-right bg-rose-950/80">ออเดอร์</th>
+                <th class="p-2 text-right bg-rose-950/80">เมตร</th>
+                <th class="p-2 text-right bg-rose-950/80 border-r border-slate-700">น้ำหนัก (กก.)</th>
+                <!-- PDS -->
+                <th class="p-2 text-right bg-emerald-950/80">ออเดอร์</th>
+                <th class="p-2 text-right bg-emerald-950/80">เมตร</th>
+                <th class="p-2 text-right bg-emerald-950/80 border-r border-slate-700">น้ำหนัก (กก.)</th>
+                <!-- OTHER -->
+                <th class="p-2 text-right bg-slate-900">ออเดอร์</th>
+                <th class="p-2 text-right bg-slate-900">เมตร</th>
+                <th class="p-2 text-right bg-slate-900 border-r border-slate-700">น้ำหนัก (กก.)</th>
+                <!-- TOTAL -->
+                <th class="p-2 text-right bg-blue-900">รวมออเดอร์</th>
+                <th class="p-2 text-right bg-blue-900">รวมเมตร</th>
+                <th class="p-2 text-right bg-blue-900">รวมน้ำหนัก (ตัน)</th>
+              </tr>
+            </thead>
+            <tbody id="cross-tbody" class="divide-y divide-slate-200 bg-white"></tbody>
+            <tfoot id="cross-tfoot" class="bg-slate-100 font-black text-slate-900 border-t-2 border-slate-300"></tfoot>
           </table>
         </div>
       </section>
@@ -739,56 +435,56 @@
     </div>
   </main>
 
+  <!-- ========================================== -->
+  <!-- JavaScript Engine                          -->
+  <!-- ========================================== -->
   <script>
-    if (typeof Chart !== 'undefined' && Chart.defaults) {
-      Chart.defaults.animation = { duration: 120 };
-      Chart.defaults.font.family = "'Prompt', sans-serif";
-    }
-
     const SHEET_ID = '1viioRJ5I3BmqiD7KLwSG9_uNQ_9u_a8LYR-4GaPGuYI';
     const MACHINE_SHEETS = {
       YUELI: 'ข้อมูลเครื่อง YUELI',
       BHS: 'ข้อมูลเครื่อง BHS ',
       ISOWA: 'ข้อมูลเครื่อง ISOWA'
     };
-    const MONTH_NAMES_TH = {
+
+    const MONTH_NAMES = {
       0: 'ทั้งปี 2026 (ทุกเดือน)',
       1: 'มกราคม', 2: 'กุมภาพันธ์', 3: 'มีนาคม', 4: 'เมษายน',
       5: 'พฤษภาคม', 6: 'มิถุนายน', 7: 'กรกฎาคม', 8: 'สิงหาคม',
       9: 'กันยายน', 10: 'ตุลาคม', 11: 'พฤศจิกายน', 12: 'ธันวาคม'
     };
-    const MONTH_SHORT_TH = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+
+    const FLUTE_DESC = {
+      'CB': '5 ชั้น (ลอน C + ลอน B ประกบกัน กล่องหนาแข็งแรงสูง)',
+      'C':  '3 ชั้น (ลอน C กล่องมาตรฐานรับแรงกระแทก)',
+      'B':  '3 ชั้น (ลอน B ลอนเตี้ย กล่องขนาดเล็ก/พิมพ์สวย)',
+      'E':  '3 ชั้น (ลอน E ลอนบางพิเศษ สำหรับกล่องไดคัท/โชว์)',
+      'BE': '5 ชั้น (ลอน B + ลอน E ประกบกัน งานบางแต่แข็งแรง)'
+    };
+
+    const TYPE_DESC = {
+      'PDR': { name: 'PDR', badge: 'bg-indigo-100 text-indigo-900', label: 'คำสั่งผลิตหลัก (Regular Production Order)' },
+      'PDW': { name: 'PDW', badge: 'bg-rose-100 text-rose-900', label: 'งานของเสีย / ซ่อม / รีเวิร์ค (Waste & Rework)' },
+      'PDS': { name: 'PDS', badge: 'bg-emerald-100 text-emerald-900', label: 'งานตัวอย่าง / สั่งทำพิเศษ (Sample / Trial)' },
+      'PDF': { name: 'PDF', badge: 'bg-purple-100 text-purple-900', label: 'งานผลิตเฉพาะกิจ (Special Run)' },
+      'OTHER': { name: 'อื่นๆ', badge: 'bg-slate-100 text-slate-800', label: 'คำสั่งผลิตอื่นๆ (PDC ฯลฯ)' }
+    };
 
     // State
     let ordersDb = {
-      teams: { BHS: { A: [], B: [] }, YUELI: { A: [], B: [] }, ISOWA: { A: [], B: [] } },
       machines: {
-        YUELI: { hasOrderData: false, totalOrders: 0, records: [], widths: [], recentOrders: [] },
-        BHS:   { hasOrderData: false, totalOrders: 0, records: [], widths: [], recentOrders: [] },
-        ISOWA: { hasOrderData: false, totalOrders: 0, records: [], widths: [], recentOrders: [] }
+        YUELI: { hasOrderData: false, totalOrders: 0, typeRecords: [] },
+        BHS:   { hasOrderData: false, totalOrders: 0, typeRecords: [] },
+        ISOWA: { hasOrderData: false, totalOrders: 0, typeRecords: [] }
       }
     };
 
-    let activeMachine = 'YUELI'; // 'YUELI' | 'BHS' | 'ISOWA' | 'ALL'
-    let activeMonth = 10;        // 0 = ทั้งปี, 1..12
+    let activeMachine = 'YUELI';
+    let activeMonth = 10;
     let activeDayStart = 1;
     let activeDayEnd = 31;
-    let activeShift = 'ALL';     // 'ALL' | 'A' | 'B'
-    let activeFlute = 'ALL';     // 'ALL' | 'C' | 'CB' | 'B' | 'E' | 'BE'
-    let fluteChartMetric = 'orders'; // 'orders' | 'bigGood' | 'lengthM' | 'weightKg'
-    let trendGranularity = 'daily';  // 'daily' | 'weekly' | 'monthly'
-    let trendMetric = 'orders';      // 'orders' | 'plans' | 'bigGood' | 'lengthM' | 'weightKg'
+    let activeShift = 'ALL';
 
-    let currentDetailOrders = [];
-    let fluteChartInstance = null;
-    let trendChartInstance = null;
-
-    function safeSetText(id, text) {
-      const el = document.getElementById(id);
-      if (el) el.textContent = text;
-    }
-
-    function fmtNum(n, dec = 0) {
+    function fmt(n, dec = 0) {
       const val = Number(n) || 0;
       return val.toLocaleString('en-US', {
         minimumFractionDigits: dec,
@@ -796,29 +492,25 @@
       });
     }
 
-    // Populate Day Range Selectors
+    function setElText(id, text) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    }
+
     function initDaySelectors() {
       const sEl = document.getElementById('filterDayStart');
       const eEl = document.getElementById('filterDayEnd');
-      const dDetail = document.getElementById('detailDaySelect');
       if (!sEl || !eEl) return;
       sEl.innerHTML = '';
       eEl.innerHTML = '';
       for (let d = 1; d <= 31; d++) {
-        sEl.innerHTML += `<option value="${d}" ${d === 1 ? 'selected' : ''}>วันที่ ${d}</option>`;
-        eEl.innerHTML += `<option value="${d}" ${d === 31 ? 'selected' : ''}>วันที่ ${d}</option>`;
-      }
-      if (dDetail) {
-        let html = '<option value="0">รายการล่าสุด</option>';
-        for (let d = 1; d <= 31; d++) {
-          html += `<option value="${d}">วันที่ ${d}</option>`;
-        }
-        dDetail.innerHTML = html;
+        sEl.innerHTML += `<option value="${d}" ${d === 1 ? 'selected' : ''}>${d}</option>`;
+        eEl.innerHTML += `<option value="${d}" ${d === 31 ? 'selected' : ''}>${d}</option>`;
       }
     }
 
-    // Load Precomputed Cache Immediately (0ms) + Sync Live in Background
-    async function initOrdersPage() {
+    // Load Cache Immediately (0ms)
+    async function initPage() {
       initDaySelectors();
       try {
         const res = await fetch('data/orders_cache_2026.json');
@@ -827,214 +519,48 @@
           if (json && json.machines) {
             ordersDb = json;
             updateMachineBadges();
-            renderAllInstant();
+            renderTablesInstant();
           }
         }
       } catch (e) {
-        console.warn('Could not load precomputed orders cache:', e);
+        console.warn('Cache load warn:', e);
       }
-      // Background live check for all 3 machine sheets
       syncLiveFromGoogleSheet(false);
     }
 
     function updateMachineBadges() {
       ['YUELI', 'BHS', 'ISOWA'].forEach(m => {
-        const badge = document.getElementById(`mach-badge-${m}`);
+        const badge = document.getElementById(`badge-cnt-${m}`);
         if (!badge) return;
-        const mObj = ordersDb.machines?.[m];
-        const cnt = mObj?.totalOrders || 0;
-        if (cnt > 0) {
-          badge.textContent = `${fmtNum(cnt)} ออเดอร์`;
-        } else {
-          badge.textContent = 'รอข้อมูลชีต';
-        }
+        const cnt = ordersDb.machines?.[m]?.totalOrders || 0;
+        badge.textContent = cnt > 0 ? `${fmt(cnt)} ออเดอร์` : 'รอข้อมูลชีต';
       });
     }
 
-    // Query Google Visualization API via JSONP
-    function queryGvizJsonp(sheetName, tq) {
-      return new Promise((resolve) => {
-        const cbName = '__ord_gviz_' + Math.random().toString(36).slice(2) + '_' + Date.now();
-        const script = document.createElement('script');
-        let done = false;
-        const cleanup = () => {
-          try { delete window[cbName]; } catch (e) { window[cbName] = undefined; }
-          if (script.parentNode) script.parentNode.removeChild(script);
-        };
-        const timer = setTimeout(() => {
-          if (done) return;
-          done = true;
-          cleanup();
-          resolve(null);
-        }, 15000);
-
-        window[cbName] = function (resp) {
-          if (done) return;
-          done = true;
-          clearTimeout(timer);
-          cleanup();
-          resolve(resp && resp.table ? resp : null);
-        };
-        script.onerror = function () {
-          if (done) return;
-          done = true;
-          clearTimeout(timer);
-          cleanup();
-          resolve(null);
-        };
-        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:${cbName}&sheet=${encodeURIComponent(sheetName)}&tq=${encodeURIComponent(tq)}`;
-        script.src = url;
-        document.head.appendChild(script);
-      });
-    }
-
-    async function syncLiveFromGoogleSheet(showNotice = false) {
-      const icon = document.getElementById('sync-spin-icon');
-      if (icon) icon.classList.add('fa-spin');
-      if (showNotice) {
-        safeSetText('live-status-text', 'กำลังซิงค์ข้อมูลสดจาก Google Sheet ทั้ง 3 เครื่อง...');
-      }
-
-      const tqGroup = 'select year(AF), month(AF), day(AF), B, F, Q, count(A), sum(T), sum(U), sum(AD), sum(AE), sum(AM), sum(AO), sum(AN), sum(AH), sum(AI), sum(AJ), avg(AL) where A is not null group by year(AF), month(AF), day(AF), B, F, Q';
-
-      try {
-        await Promise.all(['YUELI', 'BHS', 'ISOWA'].map(async (mKey) => {
-          let sName = MACHINE_SHEETS[mKey];
-          let resp = await queryGvizJsonp(sName, tqGroup);
-          if ((!resp || !resp.table || !Array.isArray(resp.table.rows) || resp.table.rows.length === 0) && mKey === 'BHS') {
-            sName = 'ข้อมูลเครื่อง BHS';
-            resp = await queryGvizJsonp(sName, tqGroup);
-          }
-          if (!resp || !resp.table || !Array.isArray(resp.table.rows) || resp.table.cols.length < 10) return;
-
-          const rows = resp.table.rows;
-          if (rows.length === 0) return;
-
-          const dailyMap = {};
-          const widthMap = {};
-          let totalOrders = 0;
-
-          rows.forEach(r => {
-            const c = r.c || [];
-            const yr = parseInt(c[0]?.v ?? 2026, 10);
-            const mo = parseInt(c[1]?.v ?? 0, 10) + 1;
-            const day = parseInt(c[2]?.v ?? 1, 10);
-            const shift = String(c[3]?.v ?? 'A').trim().toUpperCase();
-            const flute = String(c[4]?.v ?? '-').trim().toUpperCase();
-            const widthMm = parseInt(c[5]?.v ?? 0, 10);
-            const ordCnt = parseInt(c[6]?.v ?? 0, 10);
-            if (ordCnt <= 0) return;
-
-            const bigGood = Math.round(Number(c[7]?.v) || 0);
-            const bigWaste = Math.round(Number(c[8]?.v) || 0);
-            const smallAll = Math.round(Number(c[9]?.v) || 0);
-            const smallGood = Math.round(Number(c[10]?.v) || 0);
-            const weightKg = Number(c[11]?.v) || 0;
-            const lengthM = Number(c[12]?.v) || 0;
-            const areaSqm = Number(c[13]?.v) || 0;
-            const runSec = Math.round(Number(c[14]?.v) || 0);
-            const stopCnt = parseInt(c[15]?.v ?? 0, 10);
-            const stopSec = Math.round(Number(c[16]?.v) || 0);
-            const avgSpd = Number(c[17]?.v) || 0;
-
-            totalOrders += ordCnt;
-            const dKey = `${yr}_${mo}_${day}_${shift}_${flute}`;
-            if (!dailyMap[dKey]) {
-              dailyMap[dKey] = {
-                y: yr, m: mo, d: day, s: shift, f: flute,
-                orders: 0, plans: 0, bigGood: 0, bigWaste: 0, smallAll: 0, smallGood: 0,
-                weightKg: 0, lengthM: 0, areaSqm: 0, runSec: 0, stopCnt: 0, stopSec: 0, spdWeighted: 0
-              };
-            }
-            const rec = dailyMap[dKey];
-            rec.orders += ordCnt;
-            rec.plans += 1;
-            rec.bigGood += bigGood;
-            rec.bigWaste += bigWaste;
-            rec.smallAll += smallAll;
-            rec.smallGood += smallGood;
-            rec.weightKg = Math.round((rec.weightKg + weightKg) * 10) / 10;
-            rec.lengthM = Math.round((rec.lengthM + lengthM) * 10) / 10;
-            rec.areaSqm = Math.round((rec.areaSqm + areaSqm) * 10) / 10;
-            rec.runSec += runSec;
-            rec.stopCnt += stopCnt;
-            rec.stopSec += stopSec;
-            rec.spdWeighted += (avgSpd * ordCnt);
-
-            const wKey = `${yr}_${mo}_${shift}_${widthMm}`;
-            if (!widthMap[wKey]) {
-              widthMap[wKey] = { y: yr, m: mo, s: shift, w: widthMm, orders: 0, bigGood: 0, smallGood: 0, weightKg: 0, lengthM: 0 };
-            }
-            widthMap[wKey].orders += ordCnt;
-            widthMap[wKey].bigGood += bigGood;
-            widthMap[wKey].smallGood += smallGood;
-            widthMap[wKey].weightKg = Math.round((widthMap[wKey].weightKg + weightKg) * 10) / 10;
-            widthMap[wKey].lengthM = Math.round((widthMap[wKey].lengthM + lengthM) * 10) / 10;
-          });
-
-          const records = Object.values(dailyMap).map(r => {
-            r.avgSpeed = r.orders > 0 ? Math.round((r.spdWeighted / r.orders) * 10) / 10 : 0;
-            delete r.spdWeighted;
-            return r;
-          });
-
-          const prevRecent = ordersDb.machines[mKey]?.recentOrders || [];
-          ordersDb.machines[mKey] = {
-            sheetName: sName,
-            hasOrderData: totalOrders > 0,
-            totalOrders,
-            records,
-            widths: Object.values(widthMap),
-            recentOrders: prevRecent
-          };
-        }));
-
-        updateMachineBadges();
-        renderAllInstant();
-        safeSetText('live-status-text', 'ข้อมูลสดจาก Google Sheet อัปเดตล่าสุดแล้ว');
-      } catch (e) {
-        console.warn('Live sync warning:', e);
-      } finally {
-        if (icon) icon.classList.remove('fa-spin');
-      }
-    }
-
-    // Filter Handlers (0ms Instant)
-    function setMachineFilter(mach) {
+    // Filter Controls
+    function setMachine(mach) {
       activeMachine = mach;
       ['YUELI', 'BHS', 'ISOWA', 'ALL'].forEach(m => {
-        const btn = document.getElementById(`mach-btn-${m}`);
-        const badge = document.getElementById(`mach-badge-${m}`);
+        const btn = document.getElementById(`btn-m-${m}`);
         if (!btn) return;
-        if (m === mach) {
-          btn.className = 'px-4 py-2 rounded-2xl text-xs sm:text-sm font-black transition cursor-pointer bg-indigo-600 text-white shadow-sm flex items-center gap-2';
-          if (badge) badge.className = 'px-2 py-0.5 rounded-full text-[10px] bg-white/20 text-white';
-        } else {
-          btn.className = 'px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold transition cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-2';
-          if (badge) badge.className = 'px-2 py-0.5 rounded-full text-[10px] bg-slate-200 text-slate-600';
-        }
+        btn.className = (m === mach)
+          ? 'px-4 py-2 rounded-2xl text-xs sm:text-sm font-black transition cursor-pointer bg-indigo-600 text-white shadow-sm flex items-center gap-2'
+          : 'px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold transition cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-2';
       });
-      renderAllInstant();
+      renderTablesInstant();
     }
 
-    function onInstantFilterChange() {
+    function onFilterChange() {
       const mSel = document.getElementById('filterMonth');
       activeMonth = parseInt(mSel?.value ?? '10', 10);
-      const dayBox = document.getElementById('dayRangeFilterBox');
+      const dayBox = document.getElementById('dayRangeBox');
       if (dayBox) {
         dayBox.style.display = activeMonth === 0 ? 'none' : 'flex';
       }
-      if (activeMonth === 0) {
-        trendGranularity = 'monthly';
-        updateGranularityButtons();
-      } else if (trendGranularity === 'monthly') {
-        trendGranularity = 'daily';
-        updateGranularityButtons();
-      }
-      renderAllInstant();
+      renderTablesInstant();
     }
 
-    function onDayRangeChange() {
+    function onDayChange() {
       let s = parseInt(document.getElementById('filterDayStart')?.value || '1', 10);
       let e = parseInt(document.getElementById('filterDayEnd')?.value || '31', 10);
       if (s > e) {
@@ -1044,746 +570,417 @@
       }
       activeDayStart = s;
       activeDayEnd = e;
-      renderAllInstant();
+      renderTablesInstant();
     }
 
-    function resetDayRange() {
+    function resetDays() {
       activeDayStart = 1;
       activeDayEnd = 31;
       const sEl = document.getElementById('filterDayStart');
       const eEl = document.getElementById('filterDayEnd');
       if (sEl) sEl.value = '1';
       if (eEl) eEl.value = '31';
-      renderAllInstant();
+      renderTablesInstant();
     }
 
-    function setShiftFilter(shift) {
+    function setShift(shift) {
       activeShift = shift;
       ['ALL', 'A', 'B'].forEach(s => {
-        const btn = document.getElementById(`shift-btn-${s}`);
+        const btn = document.getElementById(`btn-s-${s}`);
         if (!btn) return;
         btn.className = (s === shift)
           ? 'px-3 py-1 rounded-xl text-xs font-black bg-indigo-600 text-white shadow-2xs transition cursor-pointer'
           : 'px-3 py-1 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer';
       });
-      renderAllInstant();
+      renderTablesInstant();
     }
 
-    function setFluteFilter(flute) {
-      activeFlute = flute;
-      ['ALL', 'C', 'CB', 'B', 'E', 'BE'].forEach(f => {
-        const btn = document.getElementById(`flute-btn-${f}`);
-        if (!btn) return;
-        btn.className = (f === flute)
-          ? 'px-2.5 py-1 rounded-xl text-xs font-black bg-slate-800 text-white transition cursor-pointer'
-          : 'px-2.5 py-1 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 transition cursor-pointer';
-      });
-      renderAllInstant();
-    }
-
-    function setFluteChartMetric(metric) {
-      fluteChartMetric = metric;
-      ['orders', 'bigGood', 'lengthM', 'weightKg'].forEach(m => {
-        const btn = document.getElementById(`flute-m-${m}`);
-        if (!btn) return;
-        btn.className = (m === metric)
-          ? 'px-2.5 py-1 rounded-lg text-[11px] font-black bg-indigo-600 text-white cursor-pointer'
-          : 'px-2.5 py-1 rounded-lg text-[11px] font-bold text-slate-600 cursor-pointer';
-      });
-      renderAllInstant();
-    }
-
-    function updateGranularityButtons() {
-      ['daily', 'weekly', 'monthly'].forEach(g => {
-        const btn = document.getElementById(`gran-btn-${g}`);
-        if (!btn) return;
-        btn.className = (g === trendGranularity)
-          ? 'px-3 py-1 rounded-lg text-xs font-black bg-indigo-600 text-white cursor-pointer'
-          : 'px-3 py-1 rounded-lg text-xs font-bold text-slate-600 cursor-pointer';
-      });
-    }
-
-    function setTrendGranularity(gran) {
-      trendGranularity = gran;
-      updateGranularityButtons();
-      renderAllInstant();
-    }
-
-    function setTrendMetric(metric) {
-      trendMetric = metric;
-      ['orders', 'plans', 'bigGood', 'lengthM', 'weightKg'].forEach(m => {
-        const btn = document.getElementById(`trend-m-${m}`);
-        if (!btn) return;
-        btn.className = (m === metric)
-          ? 'px-3 py-1 rounded-lg text-xs font-black bg-slate-800 text-white cursor-pointer'
-          : 'px-3 py-1 rounded-lg text-xs font-bold text-slate-600 cursor-pointer';
-      });
-      renderAllInstant();
-    }
-
-    // Gather Filtered Records for Current Selection
-    function getActiveMachineRecords() {
+    // Filter Records for current selection
+    function getFilteredRecords() {
       const machKeys = activeMachine === 'ALL' ? ['YUELI', 'BHS', 'ISOWA'] : [activeMachine];
-      let allRecs = [];
-      let allWidths = [];
-      let recentOrders = [];
-      let totalOrdersInMach = 0;
+      let recs = [];
+      let totalMachOrders = 0;
 
       machKeys.forEach(mk => {
         const mObj = ordersDb.machines?.[mk];
         if (!mObj) return;
-        totalOrdersInMach += (mObj.totalOrders || 0);
-        if (Array.isArray(mObj.records)) allRecs = allRecs.concat(mObj.records);
-        if (Array.isArray(mObj.widths)) allWidths = allWidths.concat(mObj.widths);
-        if (Array.isArray(mObj.recentOrders)) recentOrders = recentOrders.concat(mObj.recentOrders);
+        totalMachOrders += (mObj.totalOrders || 0);
+        if (Array.isArray(mObj.typeRecords)) {
+          recs = recs.concat(mObj.typeRecords);
+        }
       });
 
-      const filtered = allRecs.filter(r => {
+      const filtered = recs.filter(r => {
         if (activeMonth > 0 && r.m !== activeMonth) return false;
         if (activeMonth > 0 && (r.d < activeDayStart || r.d > activeDayEnd)) return false;
         if (activeShift !== 'ALL' && r.s !== activeShift) return false;
-        if (activeFlute !== 'ALL' && r.f !== activeFlute) return false;
         return true;
       });
 
-      // Also filter without shift filter so Shift A vs B comparison always shows A vs B side-by-side
-      const filteredBothShifts = allRecs.filter(r => {
+      // Filtered with both shifts preserved for A vs B comparison cards
+      const filteredBothShifts = recs.filter(r => {
         if (activeMonth > 0 && r.m !== activeMonth) return false;
         if (activeMonth > 0 && (r.d < activeDayStart || r.d > activeDayEnd)) return false;
-        if (activeFlute !== 'ALL' && r.f !== activeFlute) return false;
         return true;
       });
 
-      const filteredWidths = allWidths.filter(w => {
-        if (activeMonth > 0 && w.m !== activeMonth) return false;
-        if (activeShift !== 'ALL' && w.s !== activeShift) return false;
-        return true;
-      });
-
-      return { filtered, filteredBothShifts, filteredWidths, recentOrders, totalOrdersInMach };
+      return { filtered, filteredBothShifts, totalMachOrders };
     }
 
-    // Master Instant Render Function
-    function renderAllInstant() {
-      const periodText = activeMonth === 0
+    // Main Render Function (0ms)
+    function renderTablesInstant() {
+      const pText = activeMonth === 0
         ? 'ทั้งปี 2026'
-        : `${MONTH_NAMES_TH[activeMonth]} 2026${(activeDayStart > 1 || activeDayEnd < 31) ? ` (วันที่ ${activeDayStart}-${activeDayEnd})` : ''}`;
+        : `${MONTH_NAMES[activeMonth]} 2026${(activeDayStart > 1 || activeDayEnd < 31) ? ` (${activeDayStart}-${activeDayEnd})` : ''}`;
 
-      safeSetText('header-active-machine-badge', activeMachine === 'ALL' ? 'รวม 3 เครื่อง' : activeMachine);
-      safeSetText('header-active-period-badge', periodText);
+      setElText('badge-mach', activeMachine === 'ALL' ? 'รวม 3 เครื่อง' : activeMachine);
+      setElText('badge-period', pText);
 
-      const { filtered, filteredBothShifts, filteredWidths, recentOrders, totalOrdersInMach } = getActiveMachineRecords();
+      const { filtered, filteredBothShifts, totalMachOrders } = getFilteredRecords();
 
-      // Show/Hide Empty Machine Banner
-      const emptyBanner = document.getElementById('empty-machine-banner');
+      // Empty Machine Banner
+      const emptyBanner = document.getElementById('empty-banner');
       if (emptyBanner) {
-        if (totalOrdersInMach === 0 && activeMachine !== 'YUELI') {
+        if (totalMachOrders === 0 && activeMachine !== 'YUELI') {
           emptyBanner.classList.remove('hidden');
           const sName = MACHINE_SHEETS[activeMachine] || `ข้อมูลเครื่อง ${activeMachine}`;
-          safeSetText('empty-machine-sheet-name', sName.trim());
-          safeSetText('empty-machine-sheet-name-2', sName.trim());
+          setElText('empty-sheet-name', sName.trim());
         } else {
           emptyBanner.classList.add('hidden');
         }
       }
 
-      // 1. Render KPI Cards
-      renderKpiCards(filtered, filteredBothShifts);
+      // Aggregate Totals
+      let totOrders = 0;
+      let totWeight = 0;
+      let totMeters = 0;
 
-      // 2. Render Shift A vs Shift B Comparison & Teams
-      renderShiftComparison(filteredBothShifts);
+      const byType = {};
+      const byFlute = {};
+      const matrix = {};
 
-      // 3. Render Flute Table, Width Badges & Flute Chart
-      renderFluteSection(filteredBothShifts, filteredWidths);
+      filtered.forEach(r => {
+        const t = r.t || 'OTHER';
+        const f = r.f || '-';
+        const cnt = r.orders || 0;
+        const w = r.weightKg || 0;
+        const m = r.lengthM || 0;
 
-      // 4. Render Daily / Weekly / Monthly Trend Chart & Table
-      renderTrendSection(filteredBothShifts);
+        totOrders += cnt;
+        totWeight += w;
+        totMeters += m;
 
-      // 5. Render Order Detail Explorer
-      if (currentDetailOrders.length === 0 && recentOrders.length > 0) {
-        currentDetailOrders = recentOrders;
-      }
-      renderOrderDetailTable();
-    }
+        // By Type
+        if (!byType[t]) byType[t] = { orders: 0, weightKg: 0, lengthM: 0 };
+        byType[t].orders += cnt;
+        byType[t].weightKg += w;
+        byType[t].lengthM += m;
 
-    function aggStats(list) {
-      const res = {
-        orders: 0, plans: 0, bigGood: 0, bigWaste: 0, smallAll: 0, smallGood: 0,
-        weightKg: 0, lengthM: 0, areaSqm: 0, runSec: 0, stopCnt: 0, stopSec: 0,
-        spdWeighted: 0, daysSet: new Set()
-      };
-      list.forEach(r => {
-        res.orders += r.orders || 0;
-        res.plans += r.plans || 0;
-        res.bigGood += r.bigGood || 0;
-        res.bigWaste += r.bigWaste || 0;
-        res.smallAll += r.smallAll || 0;
-        res.smallGood += r.smallGood || 0;
-        res.weightKg += r.weightKg || 0;
-        res.lengthM += r.lengthM || 0;
-        res.areaSqm += r.areaSqm || 0;
-        res.runSec += r.runSec || 0;
-        res.stopCnt += r.stopCnt || 0;
-        res.stopSec += r.stopSec || 0;
-        res.spdWeighted += (r.avgSpeed || 0) * (r.orders || 0);
-        res.daysSet.add(`${r.m}_${r.d}`);
-      });
-      res.avgSpeed = res.orders > 0 ? (res.spdWeighted / res.orders) : 0;
-      res.runDays = res.daysSet.size;
-      return res;
-    }
+        // By Flute
+        if (!byFlute[f]) byFlute[f] = { orders: 0, weightKg: 0, lengthM: 0 };
+        byFlute[f].orders += cnt;
+        byFlute[f].weightKg += w;
+        byFlute[f].lengthM += m;
 
-    function renderKpiCards(filtered, filteredBothShifts) {
-      const tot = aggStats(filtered);
-      const shiftA = aggStats(filteredBothShifts.filter(r => r.s === 'A'));
-      const shiftB = aggStats(filteredBothShifts.filter(r => r.s === 'B'));
-
-      safeSetText('kpi-orders-total', fmtNum(tot.orders));
-      safeSetText('kpi-orders-a', fmtNum(shiftA.orders));
-      safeSetText('kpi-orders-b', fmtNum(shiftB.orders));
-
-      safeSetText('kpi-plans-total', fmtNum(tot.plans));
-      const ordPerPlan = tot.plans > 0 ? (tot.orders / tot.plans).toFixed(1) : '0.0';
-      safeSetText('kpi-orders-per-plan', `เฉลี่ย ${ordPerPlan} ออเดอร์/แผน`);
-      safeSetText('kpi-plans-a', fmtNum(shiftA.plans));
-      safeSetText('kpi-plans-b', fmtNum(shiftB.plans));
-
-      safeSetText('kpi-big-sheets', fmtNum(tot.bigGood));
-      safeSetText('kpi-small-sheets', fmtNum(tot.smallGood));
-      safeSetText('kpi-sheets-a', fmtNum(shiftA.bigGood));
-      safeSetText('kpi-sheets-b', fmtNum(shiftB.bigGood));
-
-      safeSetText('kpi-length-m', fmtNum(Math.round(tot.lengthM)));
-      safeSetText('kpi-length-km', `คิดเป็น ${fmtNum(tot.lengthM / 1000, 1)} กม.`);
-      safeSetText('kpi-length-a', fmtNum(Math.round(shiftA.lengthM)));
-      safeSetText('kpi-length-b', fmtNum(Math.round(shiftB.lengthM)));
-
-      safeSetText('kpi-weight-kg', fmtNum(Math.round(tot.weightKg)));
-      safeSetText('kpi-weight-ton', `คิดเป็น ${fmtNum(tot.weightKg / 1000, 1)} ตัน`);
-      safeSetText('kpi-weight-a', fmtNum(Math.round(shiftA.weightKg)));
-      safeSetText('kpi-weight-b', fmtNum(Math.round(shiftB.weightKg)));
-
-      safeSetText('kpi-avg-speed', fmtNum(tot.avgSpeed, 1));
-      safeSetText('kpi-area-sqm', `พื้นที่: ${fmtNum(Math.round(tot.areaSqm))} ตร.ม.`);
-      safeSetText('kpi-run-days', fmtNum(tot.runDays));
-      safeSetText('kpi-waste-sheets', fmtNum(tot.bigWaste));
-    }
-
-    function renderShiftComparison(filteredBothShifts) {
-      const machLabel = activeMachine === 'ALL' ? 'รวม 3 เครื่อง' : activeMachine;
-      document.querySelectorAll('.shift-card-mach-name').forEach(el => { el.textContent = machLabel; });
-
-      // Render Team Pills from ordersDb.teams
-      const targetMach = activeMachine === 'ALL' ? 'YUELI' : activeMachine;
-      const teamA = ordersDb.teams?.[targetMach]?.A || [];
-      const teamB = ordersDb.teams?.[targetMach]?.B || [];
-
-      const renderTeamBox = (teamArr, leaderElId, pillsElId, colorCls) => {
-        const leader = teamArr.find(t => t.role.includes('หัวหน้า') || t.station.toLowerCase() === 'host') || teamArr[0];
-        safeSetText(leaderElId, leader ? `หัวหน้ากะ/Host: ${leader.name} (${leader.nickname})` : 'หัวหน้ากะ: (ตามตารางเดินเครื่อง)');
-        const pillsEl = document.getElementById(pillsElId);
-        if (!pillsEl) return;
-        if (teamArr.length === 0) {
-          pillsEl.innerHTML = `<span class="text-xs text-slate-400">ทีมเดินเครื่องกะประจำการ</span>`;
-          return;
-        }
-        pillsEl.innerHTML = teamArr.map(emp => `
-          <span class="px-2 py-0.5 rounded-lg text-[11px] font-bold ${colorCls}">
-            <strong>${emp.station}:</strong> ${emp.nickname || emp.name}
-          </span>
-        `).join('');
-      };
-
-      renderTeamBox(teamA, 'shift-a-leader-text', 'shift-a-team-pills', 'bg-blue-100/90 text-blue-900 border border-blue-200');
-      renderTeamBox(teamB, 'shift-b-leader-text', 'shift-b-team-pills', 'bg-amber-100/90 text-amber-900 border border-amber-200');
-
-      const recsA = filteredBothShifts.filter(r => r.s === 'A');
-      const recsB = filteredBothShifts.filter(r => r.s === 'B');
-      const stA = aggStats(recsA);
-      const stB = aggStats(recsB);
-      const totalOrdAB = (stA.orders + stB.orders) || 1;
-
-      safeSetText('shift-a-share-badge', `สัดส่วน ${((stA.orders / totalOrdAB) * 100).toFixed(1)}%`);
-      safeSetText('shift-b-share-badge', `สัดส่วน ${((stB.orders / totalOrdAB) * 100).toFixed(1)}%`);
-
-      safeSetText('shift-a-orders', `${fmtNum(stA.orders)} ออเดอร์`);
-      safeSetText('shift-a-plans', fmtNum(stA.plans));
-      safeSetText('shift-a-big-sheets', `${fmtNum(stA.bigGood)} แผ่น`);
-      safeSetText('shift-a-small-sheets', fmtNum(stA.smallGood));
-      safeSetText('shift-a-length', `${fmtNum(Math.round(stA.lengthM))} ม.`);
-      safeSetText('shift-a-speed', fmtNum(stA.avgSpeed, 1));
-      safeSetText('shift-a-weight', `${fmtNum(Math.round(stA.weightKg))} กก. (${fmtNum(stA.weightKg / 1000, 1)} ตัน)`);
-      safeSetText('shift-a-area', `${fmtNum(Math.round(stA.areaSqm))} ตร.ม.`);
-
-      safeSetText('shift-b-orders', `${fmtNum(stB.orders)} ออเดอร์`);
-      safeSetText('shift-b-plans', fmtNum(stB.plans));
-      safeSetText('shift-b-big-sheets', `${fmtNum(stB.bigGood)} แผ่น`);
-      safeSetText('shift-b-small-sheets', fmtNum(stB.smallGood));
-      safeSetText('shift-b-length', `${fmtNum(Math.round(stB.lengthM))} ม.`);
-      safeSetText('shift-b-speed', fmtNum(stB.avgSpeed, 1));
-      safeSetText('shift-b-weight', `${fmtNum(Math.round(stB.weightKg))} กก. (${fmtNum(stB.weightKg / 1000, 1)} ตัน)`);
-      safeSetText('shift-b-area', `${fmtNum(Math.round(stB.areaSqm))} ตร.ม.`);
-
-      // Flute mini tables inside Shift A & Shift B cards
-      const flutesOrder = ['C', 'CB', 'B', 'E', 'BE'];
-      const buildMiniFluteRows = (recs, tbodyId) => {
-        const tbody = document.getElementById(tbodyId);
-        if (!tbody) return;
-        let html = '';
-        flutesOrder.forEach(fl => {
-          const flRecs = recs.filter(r => r.f === fl);
-          if (flRecs.length === 0) return;
-          const st = aggStats(flRecs);
-          html += `
-            <tr class="hover:bg-slate-50">
-              <td class="p-2 font-black text-slate-900">ลอน ${fl}</td>
-              <td class="p-2 text-right font-bold">${fmtNum(st.orders)}</td>
-              <td class="p-2 text-right text-slate-600">${fmtNum(st.plans)}</td>
-              <td class="p-2 text-right text-emerald-700 font-semibold">${fmtNum(st.bigGood)}</td>
-              <td class="p-2 text-right text-indigo-700 font-semibold">${fmtNum(Math.round(st.lengthM))}</td>
-              <td class="p-2 text-right text-rose-700 font-bold">${fmtNum(Math.round(st.weightKg))}</td>
-            </tr>
-          `;
-        });
-        tbody.innerHTML = html || `<tr><td colspan="6" class="p-3 text-center text-slate-400">ไม่มีข้อมูลในตัวกรองนี้</td></tr>`;
-      };
-
-      buildMiniFluteRows(recsA, 'shift-a-flute-tbody');
-      buildMiniFluteRows(recsB, 'shift-b-flute-tbody');
-    }
-
-    function renderFluteSection(filteredBothShifts, filteredWidths) {
-      const flutesList = ['C', 'CB', 'B', 'E', 'BE'];
-      const tbody = document.getElementById('flute-summary-tbody');
-      const tfoot = document.getElementById('flute-summary-tfoot');
-      const totalAll = aggStats(filteredBothShifts);
-      const totalWeightDenom = totalAll.weightKg || 1;
-
-      const chartLabels = [];
-      const dataShiftA = [];
-      const dataShiftB = [];
-
-      let rowsHtml = '';
-      flutesList.forEach(fl => {
-        const fAll = filteredBothShifts.filter(r => r.f === fl);
-        if (fAll.length === 0 && activeFlute !== 'ALL' && activeFlute !== fl) return;
-        const stAll = aggStats(fAll);
-        const stA = aggStats(fAll.filter(r => r.s === 'A'));
-        const stB = aggStats(fAll.filter(r => r.s === 'B'));
-        const pctW = ((stAll.weightKg / totalWeightDenom) * 100).toFixed(1);
-
-        chartLabels.push(`ลอน ${fl}`);
-        dataShiftA.push(Math.round(stA[fluteChartMetric] || 0));
-        dataShiftB.push(Math.round(stB[fluteChartMetric] || 0));
-
-        rowsHtml += `
-          <tr onclick="setFluteFilter('${activeFlute === fl ? 'ALL' : fl}')" class="hover:bg-indigo-50/60 transition cursor-pointer ${activeFlute === fl ? 'bg-indigo-50 font-bold' : ''}">
-            <td class="p-2.5 font-black text-slate-900">
-              <span class="inline-flex items-center justify-center w-7 h-6 rounded-lg bg-indigo-100 text-indigo-800 font-black mr-1">${fl}</span>
-              ลอน ${fl}
-            </td>
-            <td class="p-2.5 text-right font-bold text-blue-700 bg-blue-50/40">${fmtNum(stA.orders)}</td>
-            <td class="p-2.5 text-right font-bold text-amber-700 bg-amber-50/40">${fmtNum(stB.orders)}</td>
-            <td class="p-2.5 text-right font-black text-slate-900">${fmtNum(stAll.orders)}</td>
-            <td class="p-2.5 text-right font-semibold text-slate-600">${fmtNum(stAll.plans)}</td>
-            <td class="p-2.5 text-right font-bold text-emerald-700">${fmtNum(stAll.bigGood)}</td>
-            <td class="p-2.5 text-right text-slate-600">${fmtNum(stAll.smallGood)}</td>
-            <td class="p-2.5 text-right font-bold text-indigo-700">${fmtNum(Math.round(stAll.lengthM))}</td>
-            <td class="p-2.5 text-right font-black text-rose-700">${fmtNum(Math.round(stAll.weightKg))}</td>
-            <td class="p-2.5 text-right font-bold text-slate-700">${pctW}%</td>
-          </tr>
-        `;
+        // Cross Matrix (Flute x Type)
+        const cKey = `${f}|${t}`;
+        if (!matrix[cKey]) matrix[cKey] = { orders: 0, weightKg: 0, lengthM: 0 };
+        matrix[cKey].orders += cnt;
+        matrix[cKey].weightKg += w;
+        matrix[cKey].lengthM += m;
       });
 
-      if (tbody) tbody.innerHTML = rowsHtml;
+      // KPI Cards
+      const shiftA = filteredBothShifts.filter(r => r.s === 'A');
+      const shiftB = filteredBothShifts.filter(r => r.s === 'B');
+      const sumOrdersA = shiftA.reduce((sum, r) => sum + (r.orders || 0), 0);
+      const sumOrdersB = shiftB.reduce((sum, r) => sum + (r.orders || 0), 0);
+      const sumLenA = shiftA.reduce((sum, r) => sum + (r.lengthM || 0), 0);
+      const sumLenB = shiftB.reduce((sum, r) => sum + (r.lengthM || 0), 0);
+      const sumWA = shiftA.reduce((sum, r) => sum + (r.weightKg || 0), 0);
+      const sumWB = shiftB.reduce((sum, r) => sum + (r.weightKg || 0), 0);
 
-      const totA = aggStats(filteredBothShifts.filter(r => r.s === 'A'));
-      const totB = aggStats(filteredBothShifts.filter(r => r.s === 'B'));
-      if (tfoot) {
-        tfoot.innerHTML = `
-          <tr>
-            <td class="p-2.5">รวมทั้งหมด</td>
-            <td class="p-2.5 text-right text-blue-800">${fmtNum(totA.orders)}</td>
-            <td class="p-2.5 text-right text-amber-800">${fmtNum(totB.orders)}</td>
-            <td class="p-2.5 text-right">${fmtNum(totalAll.orders)}</td>
-            <td class="p-2.5 text-right">${fmtNum(totalAll.plans)}</td>
-            <td class="p-2.5 text-right text-emerald-800">${fmtNum(totalAll.bigGood)}</td>
-            <td class="p-2.5 text-right">${fmtNum(totalAll.smallGood)}</td>
-            <td class="p-2.5 text-right text-indigo-800">${fmtNum(Math.round(totalAll.lengthM))}</td>
-            <td class="p-2.5 text-right text-rose-800">${fmtNum(Math.round(totalAll.weightKg))}</td>
-            <td class="p-2.5 text-right">100%</td>
-          </tr>
-        `;
-      }
+      setElText('kpi-orders-total', fmt(totOrders));
+      setElText('kpi-orders-a', fmt(sumOrdersA));
+      setElText('kpi-orders-b', fmt(sumOrdersB));
 
-      // Render Paper Width Badges
-      const widthBox = document.getElementById('width-summary-badges');
-      if (widthBox) {
-        const wAgg = {};
-        filteredWidths.forEach(w => {
-          if (!w.w) return;
-          if (!wAgg[w.w]) wAgg[w.w] = { width: w.w, orders: 0, weightKg: 0, lengthM: 0 };
-          wAgg[w.w].orders += w.orders || 0;
-          wAgg[w.w].weightKg += w.weightKg || 0;
-          wAgg[w.w].lengthM += w.lengthM || 0;
-        });
-        const sortedWidths = Object.values(wAgg).sort((a, b) => b.width - a.width);
-        widthBox.innerHTML = sortedWidths.map(item => `
-          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-black text-indigo-900">${item.width} มม.</span>
-              <span class="text-[11px] font-bold px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-800">${fmtNum(item.orders)} ออเดอร์</span>
-            </div>
-            <div class="mt-1.5 text-[10.5px] text-slate-600 flex justify-between">
-              <span>${fmtNum(Math.round(item.lengthM))} ม.</span>
-              <strong class="text-rose-700">${fmtNum(item.weightKg / 1000, 1)} ตัน</strong>
-            </div>
-          </div>
-        `).join('');
-      }
+      setElText('kpi-cnt-pdr', `${fmt(byType['PDR']?.orders || 0)} ออเดอร์`);
+      setElText('kpi-cnt-pdw', `${fmt(byType['PDW']?.orders || 0)} ออเดอร์`);
+      setElText('kpi-cnt-pds', `${fmt(byType['PDS']?.orders || 0)} ออเดอร์`);
+      const otherCnt = (byType['PDF']?.orders || 0) + (byType['OTHER']?.orders || 0);
+      setElText('kpi-cnt-other', `${fmt(otherCnt)} ออเดอร์`);
 
-      // Render Flute Comparison Bar Chart
-      const ctx = document.getElementById('fluteCompareChart');
-      if (!ctx || typeof Chart === 'undefined') return;
-      if (fluteChartInstance) {
-        try { fluteChartInstance.destroy(); } catch (e) {}
-      }
-      const metricLabels = {
-        orders: 'จำนวนออเดอร์',
-        bigGood: 'แผ่นใหญ่ดี (แผ่น)',
-        lengthM: 'ความยาว (เมตร)',
-        weightKg: 'น้ำหนัก (กก.)'
-      };
-      fluteChartInstance = new Chart(ctx, {
-        type: 'bar',
-        plugins: typeof ChartDataLabels !== 'undefined' ? [ChartDataLabels] : [],
-        data: {
-          labels: chartLabels,
-          datasets: [
-            {
-              label: `กะ A (${metricLabels[fluteChartMetric]})`,
-              data: dataShiftA,
-              backgroundColor: '#2563eb',
-              borderRadius: 6
-            },
-            {
-              label: `กะ B (${metricLabels[fluteChartMetric]})`,
-              data: dataShiftB,
-              backgroundColor: '#f59e0b',
-              borderRadius: 6
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          layout: { padding: { top: 24 } },
-          plugins: {
-            legend: { position: 'top', labels: { font: { weight: 'bold', size: 11 } } },
-            datalabels: {
-              anchor: 'end',
-              align: 'top',
-              font: { size: 9.5, weight: 'bold' },
-              color: '#1e293b',
-              formatter: (v) => v > 0 ? fmtNum(v) : ''
-            }
-          },
-          scales: {
-            y: { beginAtZero: true, ticks: { callback: v => fmtNum(v) } }
-          }
-        }
-      });
+      setElText('kpi-length-m', fmt(Math.round(totMeters)));
+      setElText('kpi-length-km', `คิดเป็น ${fmt(totMeters / 1000, 1)} กิโลเมตร`);
+      setElText('kpi-len-a', fmt(Math.round(sumLenA)));
+      setElText('kpi-len-b', fmt(Math.round(sumLenB)));
+
+      setElText('kpi-weight-kg', `${fmt(Math.round(totWeight))} กก.`);
+      setElText('kpi-weight-ton', `คิดเป็น ${fmt(totWeight / 1000, 1)} ตัน`);
+      setElText('kpi-w-a', fmt(Math.round(sumWA)));
+      setElText('kpi-w-b', fmt(Math.round(sumWB)));
+
+      // 1. Render Table 1: Type Breakdown
+      renderTypeTable(byType, totOrders, totMeters, totWeight);
+
+      // 2. Render Table 2: Flute Breakdown
+      renderFluteTable(byFlute, totOrders, totMeters, totWeight);
+
+      // 3. Render Table 3: Cross Matrix Table (Flute x Type)
+      renderCrossTable(byFlute, matrix, totOrders, totMeters, totWeight);
     }
 
-    function renderTrendSection(filteredBothShifts) {
-      const metricNames = {
-        orders: 'จำนวนออเดอร์ (รายการ)',
-        plans: 'จำนวนแผนผลิต (แผน)',
-        bigGood: 'จำนวนแผ่นใหญ่ดี (แผ่น)',
-        lengthM: 'ความยาวกระดาษ (เมตร)',
-        weightKg: 'น้ำหนักผลิตรวม (กก.)'
-      };
-      safeSetText('trend-chart-title', `กราฟเปรียบเทียบ กะ A vs กะ B — ${metricNames[trendMetric]}`);
-
-      let buckets = [];
-      if (trendGranularity === 'monthly' || activeMonth === 0) {
-        for (let m = 1; m <= 12; m++) {
-          const mRecs = filteredBothShifts.filter(r => r.m === m);
-          if (mRecs.length === 0) continue;
-          buckets.push({
-            key: `m_${m}`,
-            dayNum: 0,
-            monthNum: m,
-            label: `${MONTH_SHORT_TH[m]} 2026`,
-            recsA: mRecs.filter(r => r.s === 'A'),
-            recsB: mRecs.filter(r => r.s === 'B'),
-            recsAll: mRecs
-          });
-        }
-      } else if (trendGranularity === 'weekly') {
-        const weekDefs = [
-          { label: 'Week 1 (1-7)', s: 1, e: 7 },
-          { label: 'Week 2 (8-14)', s: 8, e: 14 },
-          { label: 'Week 3 (15-21)', s: 15, e: 21 },
-          { label: 'Week 4 (22-28)', s: 22, e: 28 },
-          { label: 'Week 5 (29-31)', s: 29, e: 31 }
-        ];
-        weekDefs.forEach(w => {
-          const wRecs = filteredBothShifts.filter(r => r.d >= w.s && r.d <= w.e);
-          if (wRecs.length === 0) return;
-          buckets.push({
-            key: w.label,
-            dayNum: w.s,
-            monthNum: activeMonth,
-            label: w.label,
-            recsA: wRecs.filter(r => r.s === 'A'),
-            recsB: wRecs.filter(r => r.s === 'B'),
-            recsAll: wRecs
-          });
-        });
-      } else {
-        for (let d = activeDayStart; d <= activeDayEnd; d++) {
-          const dRecs = filteredBothShifts.filter(r => r.d === d);
-          if (dRecs.length === 0) continue;
-          buckets.push({
-            key: `d_${d}`,
-            dayNum: d,
-            monthNum: activeMonth,
-            label: `${d}/${activeMonth}/2026`,
-            recsA: dRecs.filter(r => r.s === 'A'),
-            recsB: dRecs.filter(r => r.s === 'B'),
-            recsAll: dRecs
-          });
-        }
-      }
-
-      const labels = [];
-      const valsA = [];
-      const valsB = [];
-      let tbodyHtml = '';
-
-      buckets.forEach(b => {
-        const stA = aggStats(b.recsA);
-        const stB = aggStats(b.recsB);
-        const stAll = aggStats(b.recsAll);
-
-        labels.push(b.label);
-        valsA.push(Math.round(stA[trendMetric] || 0));
-        valsB.push(Math.round(stB[trendMetric] || 0));
-
-        const clickAction = b.dayNum > 0
-          ? `onclick="selectDayForDetail(${b.dayNum})"`
-          : `onclick="document.getElementById('filterMonth').value='${b.monthNum}'; onInstantFilterChange();"`;
-
-        tbodyHtml += `
-          <tr ${clickAction} class="hover:bg-indigo-50/70 transition cursor-pointer">
-            <td class="p-2.5 font-black text-slate-900 whitespace-nowrap">
-              <i class="fa-regular fa-calendar-check text-indigo-600 mr-1"></i> ${b.label}
-            </td>
-            <td class="p-2.5 text-right font-bold text-blue-700 bg-blue-50/30">${fmtNum(stA.orders)}</td>
-            <td class="p-2.5 text-right text-blue-900 bg-blue-50/30">${fmtNum(stA.bigGood)}</td>
-            <td class="p-2.5 text-right text-blue-900 bg-blue-50/30">${fmtNum(Math.round(stA.lengthM))}</td>
-            <td class="p-2.5 text-right font-bold text-blue-800 bg-blue-50/30">${fmtNum(Math.round(stA.weightKg))}</td>
-            <td class="p-2.5 text-right font-bold text-amber-700 bg-amber-50/30">${fmtNum(stB.orders)}</td>
-            <td class="p-2.5 text-right text-amber-900 bg-amber-50/30">${fmtNum(stB.bigGood)}</td>
-            <td class="p-2.5 text-right text-amber-900 bg-amber-50/30">${fmtNum(Math.round(stB.lengthM))}</td>
-            <td class="p-2.5 text-right font-bold text-amber-800 bg-amber-50/30">${fmtNum(Math.round(stB.weightKg))}</td>
-            <td class="p-2.5 text-right font-black text-slate-900 bg-slate-50">${fmtNum(stAll.orders)}</td>
-            <td class="p-2.5 text-right font-semibold text-slate-700 bg-slate-50">${fmtNum(stAll.plans)}</td>
-            <td class="p-2.5 text-right font-bold text-indigo-700 bg-slate-50">${fmtNum(Math.round(stAll.lengthM))}</td>
-            <td class="p-2.5 text-right font-black text-rose-700 bg-slate-50">${fmtNum(Math.round(stAll.weightKg))}</td>
-          </tr>
-        `;
-      });
-
-      const tbody = document.getElementById('trend-breakdown-tbody');
-      if (tbody) {
-        tbody.innerHTML = tbodyHtml || `<tr><td colspan="13" class="p-6 text-center text-slate-400">ไม่พบข้อมูลในช่วงที่เลือก</td></tr>`;
-      }
-
-      const totA = aggStats(filteredBothShifts.filter(r => r.s === 'A'));
-      const totB = aggStats(filteredBothShifts.filter(r => r.s === 'B'));
-      const totAll = aggStats(filteredBothShifts);
-      const tfoot = document.getElementById('trend-breakdown-tfoot');
-      if (tfoot) {
-        tfoot.innerHTML = `
-          <tr>
-            <td class="p-2.5">รวมทั้งสิ้น (${buckets.length} ช่วงข้อมูล)</td>
-            <td class="p-2.5 text-right text-blue-800">${fmtNum(totA.orders)}</td>
-            <td class="p-2.5 text-right text-blue-900">${fmtNum(totA.bigGood)}</td>
-            <td class="p-2.5 text-right text-blue-900">${fmtNum(Math.round(totA.lengthM))}</td>
-            <td class="p-2.5 text-right text-blue-800">${fmtNum(Math.round(totA.weightKg))}</td>
-            <td class="p-2.5 text-right text-amber-800">${fmtNum(totB.orders)}</td>
-            <td class="p-2.5 text-right text-amber-900">${fmtNum(totB.bigGood)}</td>
-            <td class="p-2.5 text-right text-amber-900">${fmtNum(Math.round(totB.lengthM))}</td>
-            <td class="p-2.5 text-right text-amber-800">${fmtNum(Math.round(totB.weightKg))}</td>
-            <td class="p-2.5 text-right text-slate-900">${fmtNum(totAll.orders)}</td>
-            <td class="p-2.5 text-right text-slate-800">${fmtNum(totAll.plans)}</td>
-            <td class="p-2.5 text-right text-indigo-800">${fmtNum(Math.round(totAll.lengthM))}</td>
-            <td class="p-2.5 text-right text-rose-800">${fmtNum(Math.round(totAll.weightKg))}</td>
-          </tr>
-        `;
-      }
-
-      // Render Trend Chart
-      const ctx = document.getElementById('orderTrendChart');
-      if (!ctx || typeof Chart === 'undefined') return;
-      if (trendChartInstance) {
-        try { trendChartInstance.destroy(); } catch (e) {}
-      }
-      trendChartInstance = new Chart(ctx, {
-        type: 'bar',
-        plugins: typeof ChartDataLabels !== 'undefined' ? [ChartDataLabels] : [],
-        data: {
-          labels,
-          datasets: [
-            {
-              label: `กะ A (${metricNames[trendMetric]})`,
-              data: valsA,
-              backgroundColor: '#2563eb',
-              borderRadius: 5
-            },
-            {
-              label: `กะ B (${metricNames[trendMetric]})`,
-              data: valsB,
-              backgroundColor: '#f59e0b',
-              borderRadius: 5
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          layout: { padding: { top: 24 } },
-          onClick: (evt, elements) => {
-            if (elements && elements.length > 0) {
-              const idx = elements[0].index;
-              const b = buckets[idx];
-              if (b && b.dayNum > 0) selectDayForDetail(b.dayNum);
-            }
-          },
-          plugins: {
-            legend: { position: 'top', labels: { font: { weight: 'bold', size: 11 } } },
-            datalabels: {
-              anchor: 'end',
-              align: 'top',
-              font: { size: 9, weight: 'bold' },
-              color: '#1e293b',
-              formatter: (v) => v > 0 ? fmtNum(v) : ''
-            }
-          },
-          scales: {
-            y: { beginAtZero: true, ticks: { callback: v => fmtNum(v) } }
-          }
-        }
-      });
-    }
-
-    async function selectDayForDetail(dayNum) {
-      const dSel = document.getElementById('detailDaySelect');
-      if (dSel) dSel.value = String(dayNum);
-      const sec = document.getElementById('order-detail-explorer-section');
-      if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      await fetchLiveDayOrders();
-    }
-
-    async function fetchLiveDayOrders() {
-      const dayVal = parseInt(document.getElementById('detailDaySelect')?.value || '0', 10);
-      const mach = activeMachine === 'ALL' ? 'YUELI' : activeMachine;
-      const sheetName = MACHINE_SHEETS[mach] || 'ข้อมูลเครื่อง YUELI';
-
-      if (dayVal === 0) {
-        currentDetailOrders = ordersDb.machines?.[mach]?.recentOrders || [];
-        renderOrderDetailTable();
-        return;
-      }
-
-      const mo0 = (activeMonth > 0 ? activeMonth : 10) - 1;
-      safeSetText('detail-explorer-badge', `กำลังดึงออเดอร์วันที่ ${dayVal}/${mo0 + 1}/2026...`);
-
-      const tq = `select A, B, D, E, F, L, M, N, O, P, Q, R, S, T, U, V, AD, AE, AF, AG, AH, AI, AJ, AL, AM, AN, AO where year(AF)=2026 and month(AF)=${mo0} and day(AF)=${dayVal} order by A desc limit 400`;
-      const resp = await queryGvizJsonp(sheetName, tq);
-      if (resp && resp.table && Array.isArray(resp.table.rows)) {
-        currentDetailOrders = resp.table.rows.map(r => {
-          const c = r.c || [];
-          const papers = [c[5]?.v, c[6]?.v, c[7]?.v, c[8]?.v, c[9]?.v].filter(Boolean).join(' / ');
-          return {
-            seq: parseInt(c[0]?.v ?? 0, 10),
-            shift: String(c[1]?.v ?? 'A').trim(),
-            orderSeq: parseInt(c[2]?.v ?? 0, 10),
-            woNo: String(c[3]?.v ?? '').trim(),
-            flute: String(c[4]?.v ?? '').trim(),
-            paperSpec: papers,
-            widthMm: parseInt(c[10]?.v ?? 0, 10),
-            lengthMm: parseInt(c[11]?.v ?? 0, 10),
-            weightPerSheet: Number(c[12]?.v) || 0,
-            bigGood: parseInt(c[13]?.v ?? 0, 10),
-            bigWaste: parseInt(c[14]?.v ?? 0, 10),
-            outCut: parseInt(c[15]?.v ?? 1, 10),
-            smallAll: parseInt(c[16]?.v ?? 0, 10),
-            smallGood: parseInt(c[17]?.v ?? 0, 10),
-            startTime: String(c[18]?.f || c[18]?.v || ''),
-            endTime: String(c[19]?.f || c[19]?.v || ''),
-            runSec: parseInt(c[20]?.v ?? 0, 10),
-            stopCnt: parseInt(c[21]?.v ?? 0, 10),
-            stopSec: parseInt(c[22]?.v ?? 0, 10),
-            avgSpeed: Number(c[23]?.v) || 0,
-            weightKg: Number(c[24]?.v) || 0,
-            areaSqm: Number(c[25]?.v) || 0,
-            lengthM: Number(c[26]?.v) || 0
-          };
-        });
-      }
-      renderOrderDetailTable();
-    }
-
-    function renderOrderDetailTable() {
-      const tbody = document.getElementById('order-detail-tbody');
+    function renderTypeTable(byType, totOrders, totMeters, totWeight) {
+      const tbody = document.getElementById('type-tbody');
+      const tfoot = document.getElementById('type-tfoot');
       if (!tbody) return;
-      const q = (document.getElementById('orderSearchInput')?.value || '').trim().toLowerCase();
 
-      const filtered = currentDetailOrders.filter(o => {
-        if (activeShift !== 'ALL' && o.shift !== activeShift) return false;
-        if (activeFlute !== 'ALL' && o.flute !== activeFlute) return false;
-        if (q) {
-          const hay = `${o.woNo} ${o.paperSpec} ${o.flute} ${o.widthMm} ${o.shift}`.toLowerCase();
-          if (!hay.includes(q)) return false;
-        }
-        return true;
+      const orderTypes = ['PDR', 'PDW', 'PDS', 'PDF', 'OTHER'];
+      const denomO = totOrders || 1;
+      const denomM = totMeters || 1;
+      const denomW = totWeight || 1;
+
+      let html = '';
+      orderTypes.forEach(t => {
+        const item = byType[t] || { orders: 0, weightKg: 0, lengthM: 0 };
+        const meta = TYPE_DESC[t] || { name: t, badge: 'bg-slate-100 text-slate-800', label: 'คำสั่งผลิต' };
+        const pctO = ((item.orders / denomO) * 100).toFixed(2);
+        const pctM = ((item.lengthM / denomM) * 100).toFixed(2);
+        const pctW = ((item.weightKg / denomW) * 100).toFixed(2);
+
+        html += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-3 font-black text-slate-900 whitespace-nowrap">
+              <span class="px-2.5 py-1 rounded-lg text-xs font-black ${meta.badge} mr-1.5 shadow-2xs">${meta.name}</span>
+            </td>
+            <td class="p-3 text-slate-600 font-medium">${meta.label}</td>
+            <td class="p-3 text-right font-black text-slate-900 text-sm">${fmt(item.orders)}</td>
+            <td class="p-3 text-right font-bold text-indigo-700">
+              <div class="flex items-center justify-end gap-1.5">
+                <span>${pctO}%</span>
+                <div class="w-12 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                  <div class="bg-indigo-600 h-1.5 rounded-full" style="width: ${pctO}%"></div>
+                </div>
+              </div>
+            </td>
+            <td class="p-3 text-right font-bold text-blue-700">${fmt(Math.round(item.lengthM))}</td>
+            <td class="p-3 text-right font-semibold text-slate-600">${pctM}%</td>
+            <td class="p-3 text-right font-bold text-rose-700">${fmt(Math.round(item.weightKg))}</td>
+            <td class="p-3 text-right font-black text-slate-900">${fmt(item.weightKg / 1000, 1)}</td>
+            <td class="p-3 text-right font-bold text-slate-800">
+              <div class="flex items-center justify-end gap-1.5">
+                <span>${pctW}%</span>
+                <div class="w-12 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                  <div class="bg-rose-600 h-1.5 rounded-full" style="width: ${pctW}%"></div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        `;
       });
 
-      safeSetText('detail-explorer-badge', `แสดง ${fmtNum(filtered.length)} ออเดอร์`);
+      tbody.innerHTML = html || `<tr><td colspan="9" class="p-6 text-center text-slate-400">ไม่พบข้อมูล</td></tr>`;
 
-      if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="14" class="p-6 text-center text-slate-400">ไม่พบรายการออเดอร์ที่ค้นหา</td></tr>`;
-        return;
+      if (tfoot) {
+        tfoot.innerHTML = `
+          <tr>
+            <td class="p-3" colspan="2">รวมทุกประเภทออเดอร์</td>
+            <td class="p-3 text-right font-black text-slate-900 text-sm">${fmt(totOrders)}</td>
+            <td class="p-3 text-right text-indigo-900">100.0%</td>
+            <td class="p-3 text-right text-blue-900">${fmt(Math.round(totMeters))}</td>
+            <td class="p-3 text-right text-slate-800">100.0%</td>
+            <td class="p-3 text-right text-rose-900">${fmt(Math.round(totWeight))}</td>
+            <td class="p-3 text-right font-black text-slate-900">${fmt(totWeight / 1000, 1)}</td>
+            <td class="p-3 text-right text-slate-900">100.0%</td>
+          </tr>
+        `;
       }
-
-      tbody.innerHTML = filtered.slice(0, 250).map((o, idx) => `
-        <tr class="hover:bg-slate-50">
-          <td class="p-2 text-center text-slate-400 font-semibold">${idx + 1}</td>
-          <td class="p-2 text-center">
-            <span class="px-2 py-0.5 rounded-md font-black text-[11px] ${o.shift === 'A' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'}">
-              กะ ${o.shift}
-            </span>
-          </td>
-          <td class="p-2 text-slate-600 whitespace-nowrap">${o.startTime}</td>
-          <td class="p-2 font-black text-indigo-900 whitespace-nowrap">${o.woNo}</td>
-          <td class="p-2 text-center font-black text-slate-800">${o.flute}</td>
-          <td class="p-2 font-semibold text-slate-700 whitespace-nowrap">${o.paperSpec}</td>
-          <td class="p-2 text-right font-semibold text-slate-700 whitespace-nowrap">${o.widthMm} × ${o.lengthMm}</td>
-          <td class="p-2 text-center text-slate-600">${o.outCut}</td>
-          <td class="p-2 text-right font-bold text-emerald-700">${fmtNum(o.bigGood)}</td>
-          <td class="p-2 text-right font-bold ${o.bigWaste > 0 ? 'text-rose-600' : 'text-slate-300'}">${fmtNum(o.bigWaste)}</td>
-          <td class="p-2 text-right text-slate-700">${fmtNum(o.smallGood)}</td>
-          <td class="p-2 text-right font-bold text-indigo-700">${fmtNum(o.lengthM, 1)}</td>
-          <td class="p-2 text-right font-black text-rose-700">${fmtNum(o.weightKg, 1)}</td>
-          <td class="p-2 text-right font-semibold text-amber-700">${fmtNum(o.avgSpeed, 0)}</td>
-        </tr>
-      `).join('');
     }
 
-    async function captureElementAsPng(elementId, filePrefix) {
+    function renderFluteTable(byFlute, totOrders, totMeters, totWeight) {
+      const tbody = document.getElementById('flute-tbody');
+      const tfoot = document.getElementById('flute-tfoot');
+      if (!tbody) return;
+
+      const flutesList = ['CB', 'C', 'B', 'E', 'BE'];
+      const denomO = totOrders || 1;
+      const denomM = totMeters || 1;
+      const denomW = totWeight || 1;
+
+      let html = '';
+      flutesList.forEach(f => {
+        const item = byFlute[f] || { orders: 0, weightKg: 0, lengthM: 0 };
+        const desc = FLUTE_DESC[f] || `ลอน ${f}`;
+        const pctO = ((item.orders / denomO) * 100).toFixed(2);
+        const pctM = ((item.lengthM / denomM) * 100).toFixed(2);
+        const pctW = ((item.weightKg / denomW) * 100).toFixed(2);
+
+        html += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-3 font-black text-slate-900 whitespace-nowrap">
+              <span class="inline-flex items-center justify-center w-8 h-7 rounded-lg bg-blue-100 text-blue-900 font-black mr-2 shadow-2xs">${f}</span>
+              ลอน ${f}
+            </td>
+            <td class="p-3 text-slate-600 font-medium">${desc}</td>
+            <td class="p-3 text-right font-black text-slate-900 text-sm">${fmt(item.orders)}</td>
+            <td class="p-3 text-right font-bold text-indigo-700">
+              <div class="flex items-center justify-end gap-1.5">
+                <span>${pctO}%</span>
+                <div class="w-12 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                  <div class="bg-indigo-600 h-1.5 rounded-full" style="width: ${pctO}%"></div>
+                </div>
+              </div>
+            </td>
+            <td class="p-3 text-right font-bold text-blue-700">${fmt(Math.round(item.lengthM))}</td>
+            <td class="p-3 text-right font-semibold text-slate-600">${pctM}%</td>
+            <td class="p-3 text-right font-bold text-rose-700">${fmt(Math.round(item.weightKg))}</td>
+            <td class="p-3 text-right font-black text-slate-900">${fmt(item.weightKg / 1000, 1)}</td>
+            <td class="p-3 text-right font-bold text-slate-800">
+              <div class="flex items-center justify-end gap-1.5">
+                <span>${pctW}%</span>
+                <div class="w-12 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                  <div class="bg-rose-600 h-1.5 rounded-full" style="width: ${pctW}%"></div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html || `<tr><td colspan="9" class="p-6 text-center text-slate-400">ไม่พบข้อมูล</td></tr>`;
+
+      if (tfoot) {
+        tfoot.innerHTML = `
+          <tr>
+            <td class="p-3" colspan="2">รวมทุกลอนกระดาษ</td>
+            <td class="p-3 text-right font-black text-slate-900 text-sm">${fmt(totOrders)}</td>
+            <td class="p-3 text-right text-indigo-900">100.0%</td>
+            <td class="p-3 text-right text-blue-900">${fmt(Math.round(totMeters))}</td>
+            <td class="p-3 text-right text-slate-800">100.0%</td>
+            <td class="p-3 text-right text-rose-900">${fmt(Math.round(totWeight))}</td>
+            <td class="p-3 text-right font-black text-slate-900">${fmt(totWeight / 1000, 1)}</td>
+            <td class="p-3 text-right text-slate-900">100.0%</td>
+          </tr>
+        `;
+      }
+    }
+
+    function renderCrossTable(byFlute, matrix, totOrders, totMeters, totWeight) {
+      const tbody = document.getElementById('cross-tbody');
+      const tfoot = document.getElementById('cross-tfoot');
+      if (!tbody) return;
+
+      const flutesList = ['CB', 'C', 'B', 'E', 'BE'];
+      let html = '';
+
+      const colSums = {
+        PDR: { orders: 0, lengthM: 0, weightKg: 0 },
+        PDW: { orders: 0, lengthM: 0, weightKg: 0 },
+        PDS: { orders: 0, lengthM: 0, weightKg: 0 },
+        OTHER: { orders: 0, lengthM: 0, weightKg: 0 }
+      };
+
+      flutesList.forEach(f => {
+        const pdr = matrix[`${f}|PDR`] || { orders: 0, lengthM: 0, weightKg: 0 };
+        const pdw = matrix[`${f}|PDW`] || { orders: 0, lengthM: 0, weightKg: 0 };
+        const pds = matrix[`${f}|PDS`] || { orders: 0, lengthM: 0, weightKg: 0 };
+        const pdf = matrix[`${f}|PDF`] || { orders: 0, lengthM: 0, weightKg: 0 };
+        const oth = matrix[`${f}|OTHER`] || { orders: 0, lengthM: 0, weightKg: 0 };
+
+        const otherCombined = {
+          orders: pdf.orders + oth.orders,
+          lengthM: pdf.lengthM + oth.lengthM,
+          weightKg: pdf.weightKg + oth.weightKg
+        };
+
+        const fTotal = byFlute[f] || { orders: 0, lengthM: 0, weightKg: 0 };
+
+        // Col sums
+        colSums.PDR.orders += pdr.orders;
+        colSums.PDR.lengthM += pdr.lengthM;
+        colSums.PDR.weightKg += pdr.weightKg;
+
+        colSums.PDW.orders += pdw.orders;
+        colSums.PDW.lengthM += pdw.lengthM;
+        colSums.PDW.weightKg += pdw.weightKg;
+
+        colSums.PDS.orders += pds.orders;
+        colSums.PDS.lengthM += pds.lengthM;
+        colSums.PDS.weightKg += pds.weightKg;
+
+        colSums.OTHER.orders += otherCombined.orders;
+        colSums.OTHER.lengthM += otherCombined.lengthM;
+        colSums.OTHER.weightKg += otherCombined.weightKg;
+
+        html += `
+          <tr class="hover:bg-slate-50 transition">
+            <!-- Flute -->
+            <td class="p-2.5 font-black text-slate-900 border-r border-slate-200 whitespace-nowrap bg-slate-50/50">
+              <span class="inline-flex items-center justify-center w-7 h-6 rounded bg-slate-800 text-white font-black text-xs mr-1">${f}</span>
+              ลอน ${f}
+            </td>
+
+            <!-- PDR -->
+            <td class="p-2 text-right font-bold text-indigo-900 bg-indigo-50/30">${fmt(pdr.orders)}</td>
+            <td class="p-2 text-right text-slate-700 bg-indigo-50/30">${fmt(Math.round(pdr.lengthM))}</td>
+            <td class="p-2 text-right font-bold text-rose-700 bg-indigo-50/30 border-r border-slate-200">${fmt(Math.round(pdr.weightKg))}</td>
+
+            <!-- PDW -->
+            <td class="p-2 text-right font-bold text-rose-900 bg-rose-50/30">${fmt(pdw.orders)}</td>
+            <td class="p-2 text-right text-slate-700 bg-rose-50/30">${fmt(Math.round(pdw.lengthM))}</td>
+            <td class="p-2 text-right font-bold text-rose-700 bg-rose-50/30 border-r border-slate-200">${fmt(Math.round(pdw.weightKg))}</td>
+
+            <!-- PDS -->
+            <td class="p-2 text-right font-bold text-emerald-900 bg-emerald-50/30">${fmt(pds.orders)}</td>
+            <td class="p-2 text-right text-slate-700 bg-emerald-50/30">${fmt(Math.round(pds.lengthM))}</td>
+            <td class="p-2 text-right font-bold text-emerald-700 bg-emerald-50/30 border-r border-slate-200">${fmt(Math.round(pds.weightKg))}</td>
+
+            <!-- OTHER -->
+            <td class="p-2 text-right font-bold text-slate-800 bg-slate-50">${fmt(otherCombined.orders)}</td>
+            <td class="p-2 text-right text-slate-700 bg-slate-50">${fmt(Math.round(otherCombined.lengthM))}</td>
+            <td class="p-2 text-right font-bold text-slate-800 bg-slate-50 border-r border-slate-200">${fmt(Math.round(otherCombined.weightKg))}</td>
+
+            <!-- Total Flute -->
+            <td class="p-2 text-right font-black text-slate-900 bg-blue-50/40">${fmt(fTotal.orders)}</td>
+            <td class="p-2 text-right font-bold text-blue-800 bg-blue-50/40">${fmt(Math.round(fTotal.lengthM))}</td>
+            <td class="p-2 text-right font-black text-rose-800 bg-blue-50/40">${fmt(fTotal.weightKg / 1000, 1)} ตัน</td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html || `<tr><td colspan="16" class="p-6 text-center text-slate-400">ไม่พบข้อมูล</td></tr>`;
+
+      if (tfoot) {
+        tfoot.innerHTML = `
+          <tr>
+            <td class="p-2.5 border-r border-slate-300">รวมทุกประเภท</td>
+            <!-- PDR Sum -->
+            <td class="p-2 text-right font-black text-indigo-900 bg-indigo-100/60">${fmt(colSums.PDR.orders)}</td>
+            <td class="p-2 text-right font-bold text-slate-800 bg-indigo-100/60">${fmt(Math.round(colSums.PDR.lengthM))}</td>
+            <td class="p-2 text-right font-black text-rose-900 bg-indigo-100/60 border-r border-slate-300">${fmt(Math.round(colSums.PDR.weightKg))}</td>
+            <!-- PDW Sum -->
+            <td class="p-2 text-right font-black text-rose-900 bg-rose-100/60">${fmt(colSums.PDW.orders)}</td>
+            <td class="p-2 text-right font-bold text-slate-800 bg-rose-100/60">${fmt(Math.round(colSums.PDW.lengthM))}</td>
+            <td class="p-2 text-right font-black text-rose-900 bg-rose-100/60 border-r border-slate-300">${fmt(Math.round(colSums.PDW.weightKg))}</td>
+            <!-- PDS Sum -->
+            <td class="p-2 text-right font-black text-emerald-900 bg-emerald-100/60">${fmt(colSums.PDS.orders)}</td>
+            <td class="p-2 text-right font-bold text-slate-800 bg-emerald-100/60">${fmt(Math.round(colSums.PDS.lengthM))}</td>
+            <td class="p-2 text-right font-black text-emerald-900 bg-emerald-100/60 border-r border-slate-300">${fmt(Math.round(colSums.PDS.weightKg))}</td>
+            <!-- OTHER Sum -->
+            <td class="p-2 text-right font-black text-slate-900 bg-slate-200/60">${fmt(colSums.OTHER.orders)}</td>
+            <td class="p-2 text-right font-bold text-slate-800 bg-slate-200/60">${fmt(Math.round(colSums.OTHER.lengthM))}</td>
+            <td class="p-2 text-right font-black text-slate-900 bg-slate-200/60 border-r border-slate-300">${fmt(Math.round(colSums.OTHER.weightKg))}</td>
+            <!-- TOTAL -->
+            <td class="p-2 text-right font-black text-slate-950 bg-blue-100">${fmt(totOrders)}</td>
+            <td class="p-2 text-right font-black text-blue-950 bg-blue-100">${fmt(Math.round(totMeters))}</td>
+            <td class="p-2 text-right font-black text-rose-950 bg-blue-100">${fmt(totWeight / 1000, 1)} ตัน</td>
+          </tr>
+        `;
+      }
+    }
+
+    // Capture Image (PNG)
+    async function captureElement(elementId, filePrefix) {
       const el = document.getElementById(elementId);
       if (!el || typeof htmlToImage === 'undefined') return;
       try {
@@ -1796,38 +993,165 @@
         a.download = `${filePrefix}_${activeMachine}_M${activeMonth}.png`;
         a.click();
       } catch (e) {
-        alert('เกิดข้อผิดพลาดในการบันทึกภาพ กรุณาลองอีกครั้ง');
+        alert('เกิดข้อผิดพลาดในการบันทึกภาพ กรุณาลองใหม่อีกครั้ง');
       }
     }
 
-    function exportOrderSummaryExcel() {
+    // Export Excel (3 Sheets in One Workbook)
+    function exportToExcel() {
       if (typeof XLSX === 'undefined') return;
-      const { filteredBothShifts } = getActiveMachineRecords();
-      const rows = filteredBothShifts.map(r => ({
-        'เครื่องจักร': activeMachine,
-        'ปี': r.y,
-        'เดือน': r.m,
-        'วันที่': `${r.d}/${r.m}/${r.y}`,
-        'กะ': r.s,
-        'ลอน (Flute)': r.f,
-        'จำนวนออเดอร์': r.orders,
-        'จำนวนแผน': r.plans,
-        'แผ่นใหญ่ดี': r.bigGood,
-        'แผ่นใหญ่เสีย': r.bigWaste,
-        'แผ่นเล็กทั้งหมด': r.smallAll,
-        'แผ่นเล็กดี': r.smallGood,
-        'ความยาวรวม (เมตร)': r.lengthM,
-        'น้ำหนักรวม (กก.)': r.weightKg,
-        'พื้นที่รวม (ตร.ม.)': r.areaSqm,
-        'ความเร็วเฉลี่ย (M/min)': r.avgSpeed
-      }));
-      const ws = XLSX.utils.json_to_sheet(rows);
+      const { filtered } = getFilteredRecords();
+
+      // Aggregate Type
+      const byType = {};
+      const byFlute = {};
+      const matrix = {};
+      let totOrders = 0; let totM = 0; let totW = 0;
+
+      filtered.forEach(r => {
+        const t = r.t || 'OTHER';
+        const f = r.f || '-';
+        totOrders += r.orders || 0;
+        totM += r.lengthM || 0;
+        totW += r.weightKg || 0;
+
+        if (!byType[t]) byType[t] = { orders: 0, lengthM: 0, weightKg: 0 };
+        byType[t].orders += r.orders || 0;
+        byType[t].lengthM += r.lengthM || 0;
+        byType[t].weightKg += r.weightKg || 0;
+
+        if (!byFlute[f]) byFlute[f] = { orders: 0, lengthM: 0, weightKg: 0 };
+        byFlute[f].orders += r.orders || 0;
+        byFlute[f].lengthM += r.lengthM || 0;
+        byFlute[f].weightKg += r.weightKg || 0;
+
+        const k = `${f}|${t}`;
+        if (!matrix[k]) matrix[k] = { orders: 0, lengthM: 0, weightKg: 0 };
+        matrix[k].orders += r.orders || 0;
+        matrix[k].lengthM += r.lengthM || 0;
+        matrix[k].weightKg += r.weightKg || 0;
+      });
+
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Order_Analysis');
-      XLSX.writeFile(wb, `วิเคราะห์ออเดอร์ผลิต_${activeMachine}_M${activeMonth}.xlsx`);
+
+      // Sheet 1: Type
+      const rowsType = Object.keys(byType).map(t => ({
+        'ประเภทออเดอร์': t,
+        'รายละเอียด': TYPE_DESC[t]?.label || '',
+        'จำนวนออเดอร์': byType[t].orders,
+        'สัดส่วนออเดอร์ (%)': ((byType[t].orders / (totOrders || 1)) * 100).toFixed(2) + '%',
+        'ความยาว (เมตร)': Math.round(byType[t].lengthM),
+        'น้ำหนัก (กก.)': Math.round(byType[t].weightKg),
+        'น้ำหนัก (ตัน)': (byType[t].weightKg / 1000).toFixed(1)
+      }));
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rowsType), 'ประเภท_PDR_PDW_PDS');
+
+      // Sheet 2: Flute
+      const rowsFlute = Object.keys(byFlute).map(f => ({
+        'ลอน (Flute)': f,
+        'โครงสร้างลอน': FLUTE_DESC[f] || '',
+        'จำนวนออเดอร์': byFlute[f].orders,
+        'สัดส่วนออเดอร์ (%)': ((byFlute[f].orders / (totOrders || 1)) * 100).toFixed(2) + '%',
+        'ความยาว (เมตร)': Math.round(byFlute[f].lengthM),
+        'น้ำหนัก (กก.)': Math.round(byFlute[f].weightKg),
+        'น้ำหนัก (ตัน)': (byFlute[f].weightKg / 1000).toFixed(1)
+      }));
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rowsFlute), 'สัดส่วนลอนที่เดิน');
+
+      // Sheet 3: Matrix
+      const rowsMatrix = ['CB', 'C', 'B', 'E', 'BE'].map(f => {
+        const pdr = matrix[`${f}|PDR`] || { orders: 0, lengthM: 0, weightKg: 0 };
+        const pdw = matrix[`${f}|PDW`] || { orders: 0, lengthM: 0, weightKg: 0 };
+        const pds = matrix[`${f}|PDS`] || { orders: 0, lengthM: 0, weightKg: 0 };
+        const oth = (matrix[`${f}|PDF`]?.orders || 0) + (matrix[`${f}|OTHER`]?.orders || 0);
+        const fTot = byFlute[f] || { orders: 0, lengthM: 0, weightKg: 0 };
+        return {
+          'ลอน': f,
+          'PDR ออเดอร์': pdr.orders,
+          'PDR เมตร': Math.round(pdr.lengthM),
+          'PDR นน.(กก.)': Math.round(pdr.weightKg),
+          'PDW ออเดอร์': pdw.orders,
+          'PDW เมตร': Math.round(pdw.lengthM),
+          'PDW นน.(กก.)': Math.round(pdw.weightKg),
+          'PDS ออเดอร์': pds.orders,
+          'PDS เมตร': Math.round(pds.lengthM),
+          'PDS นน.(กก.)': Math.round(pds.weightKg),
+          'อื่นๆ ออเดอร์': oth,
+          'รวมออเดอร์': fTot.orders,
+          'รวมเมตร': Math.round(fTot.lengthM),
+          'รวมน้ำหนัก (ตัน)': (fTot.weightKg / 1000).toFixed(1)
+        };
+      });
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rowsMatrix), 'ตารางสรุปไขว้');
+
+      XLSX.writeFile(wb, `ตารางวิเคราะห์ออเดอร์_${activeMachine}_M${activeMonth}.xlsx`);
     }
 
-    window.addEventListener('DOMContentLoaded', initOrdersPage);
+    // Background live check via JSONP
+    function queryGvizJsonp(sheetName, tq) {
+      return new Promise((resolve) => {
+        const cbName = '__gviz_type_' + Math.random().toString(36).slice(2) + '_' + Date.now();
+        const script = document.createElement('script');
+        let done = false;
+        const cleanup = () => {
+          try { delete window[cbName]; } catch (e) { window[cbName] = undefined; }
+          if (script.parentNode) script.parentNode.removeChild(script);
+        };
+        const timer = setTimeout(() => {
+          if (done) return;
+          done = true; cleanup(); resolve(null);
+        }, 15000);
+
+        window[cbName] = function (resp) {
+          if (done) return;
+          done = true; clearTimeout(timer); cleanup();
+          resolve(resp && resp.table ? resp : null);
+        };
+        script.onerror = function () {
+          if (done) return;
+          done = true; clearTimeout(timer); cleanup();
+          resolve(null);
+        };
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:${cbName}&sheet=${encodeURIComponent(sheetName)}&tq=${encodeURIComponent(tq)}`;
+        script.src = url;
+        document.head.appendChild(script);
+      });
+    }
+
+    async function syncLiveFromGoogleSheet(showNotice = false) {
+      const icon = document.getElementById('sync-spin-icon');
+      if (icon) icon.classList.add('fa-spin');
+      if (showNotice) {
+        setElText('status-text', 'กำลังเช็คข้อมูลชีตสดทั้ง 3 เครื่อง...');
+      }
+
+      try {
+        // Quick check for BHS / ISOWA
+        await Promise.all(['BHS', 'ISOWA'].map(async (mKey) => {
+          let sName = MACHINE_SHEETS[mKey];
+          let resp = await queryGvizJsonp(sName, 'select count(A) where A is not null');
+          if ((!resp || !resp.table) && mKey === 'BHS') {
+            sName = 'ข้อมูลเครื่อง BHS';
+            resp = await queryGvizJsonp(sName, 'select count(A) where A is not null');
+          }
+          if (resp && resp.table && resp.table.rows && resp.table.rows.length > 0) {
+            const cnt = parseInt(resp.table.rows[0]?.c?.[0]?.v ?? 0, 10);
+            if (cnt > 0) {
+              ordersDb.machines[mKey].totalOrders = cnt;
+              ordersDb.machines[mKey].hasOrderData = true;
+            }
+          }
+        }));
+        updateMachineBadges();
+        setElText('status-text', 'เชื่อมต่อฐานข้อมูล Google Sheet ล่าสุดแล้ว');
+      } catch (e) {
+        console.warn('Sync live warn:', e);
+      } finally {
+        if (icon) icon.classList.remove('fa-spin');
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', initPage);
   </script>
 </body>
 </html>
