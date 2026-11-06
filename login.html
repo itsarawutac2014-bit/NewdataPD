@@ -185,12 +185,19 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+  function getSafeRedirectUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const raw = (urlParams.get('redirect') || 'index.html').trim();
+    if (!raw || /^(dashboard|employees|attendance|chart|kpi|users)\.html/i.test(raw)) {
+      return 'index.html';
+    }
+    return raw;
+  }
+
   // Check if already logged in
   document.addEventListener('DOMContentLoaded', () => {
     if (Auth.isLoggedIn()) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const redirectUrl = urlParams.get('redirect') || 'index.html';
-      window.location.replace(redirectUrl);
+      window.location.replace(getSafeRedirectUrl());
     }
   });
 
@@ -217,9 +224,7 @@
 
     const res = Auth.login(u, p);
     if (res.success) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const redirectUrl = urlParams.get('redirect') || 'index.html';
-      window.location.replace(redirectUrl);
+      window.location.replace(getSafeRedirectUrl());
     } else {
       alertText.textContent = res.message;
       alertBox.classList.remove('d-none');

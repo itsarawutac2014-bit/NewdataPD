@@ -9,16 +9,10 @@
 
   // Standard Page Modules Definition
   const MODULES = [
-    { key: 'dashboard',   label: 'แดชบอร์ดภาพรวม',  icon: 'fa-chart-pie',        file: 'dashboard.html' },
-    { key: 'employees',   label: 'ทะเบียนพนักงาน',   icon: 'fa-users',            file: 'employees.html' },
-    { key: 'chart',       label: 'ผังประจำจุด',      icon: 'fa-sitemap',          file: 'chart.html' },
-    { key: 'attendance',  label: 'บันทึกเวลาทำงาน',  icon: 'fa-calendar-check',   file: 'attendance.html' },
-    { key: 'kpi',         label: 'สรุป KPI ฝ่ายผลิต', icon: 'fa-chart-line',       file: 'kpi.html' },
-    { key: 'output',      label: 'ติดตาม Output',    icon: 'fa-truck-ramp-box',   file: 'output.html' },
     { key: 'waste',       label: 'Waste Dashboard',  icon: 'fa-recycle',          file: 'index.html' },
+    { key: 'output',      label: 'ติดตาม Output',    icon: 'fa-truck-ramp-box',   file: 'output.html' },
     { key: 'budget',      label: 'Budget Control',   icon: 'fa-calculator',       file: 'budget.html' },
-    { key: 'targets',     label: 'ตั้งค่าเป้าหมาย',  icon: 'fa-bullseye',         file: 'targets.html' },
-    { key: 'users',       label: 'จัดการผู้ใช้งาน',   icon: 'fa-user-shield',      file: 'users.html' }
+    { key: 'targets',     label: 'ตั้งค่าเป้าหมาย',  icon: 'fa-bullseye',         file: 'targets.html' }
   ];
 
   // Default Seed Users (Admin: 12345, Staff: staff, Art: 12345)
@@ -165,7 +159,8 @@
    */
   function requireAuth(pageKey) {
     const u = getAuthUser();
-    const currentPath = window.location.pathname.split('/').pop() || 'dashboard.html';
+    const rawPop = window.location.pathname.split('/').pop();
+    const currentPath = (!rawPop || rawPop === 'dashboard.html') ? 'index.html' : rawPop;
 
     if (!u) {
       // Not logged in -> Redirect to login.html with return url
