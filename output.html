@@ -241,7 +241,7 @@
         </a>
 
         <!-- ปุ่มรีเฟรช -->
-        <button onclick="loadOutputData()" class="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition cursor-pointer">
+        <button onclick="loadOutputData(true)" class="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition cursor-pointer">
           <i class="fa-solid fa-arrows-rotate" id="refresh-icon"></i> รีเฟรช
         </button>
 
@@ -1871,12 +1871,14 @@
     // ==========================================
     // ฟังก์ชันโหลดข้อมูลหลักจาก API (ดึงข้อมูลล่าสุดอัตโนมัติ)
     // ==========================================
-    async function loadOutputData() {
+    async function loadOutputData(forceRefresh = false) {
       const refreshIcon = document.getElementById('refresh-icon');
       if (refreshIcon) refreshIcon.classList.add('fa-spin');
 
       try {
-        const url = `api.php?machine=${currentMachine}&month=${currentMonth}&_t=${Date.now()}`;
+        const isCurrentMonth = currentMonth === (new Date().getMonth() + 1);
+        const refreshParam = (forceRefresh || isCurrentMonth) ? '&refresh=1' : '';
+        const url = `api.php?machine=${currentMachine}&month=${currentMonth}${refreshParam}&_t=${Date.now()}`;
         const res = await fetch(url);
         const json = await res.json();
         applyLiveOutputPayload(json);

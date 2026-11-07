@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>กำลังไปยังหน้าหลัก Dashboard...</title>
+  <meta http-equiv="refresh" content="0; url=index.html">
+  <script>
+    (function() {
+      var path = window.location.pathname;
+      var search = window.location.search || '';
+      var hash = window.location.hash || '';
+      if (path.indexOf('output') !== -1) {
+        window.location.replace('output.html' + search + hash);
+      } else if (path.indexOf('orders') !== -1) {
+        window.location.replace('orders.html' + search + hash);
+      } else {
+        window.location.replace('index.html' + search + hash);
+      }
+    })();
+  </script>
+</head>
+<body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background-color: #0f172a; color: #f8fafc;">
+  <div style="text-align: center;">
+    <h2>กำลังเปิด Dashboard...</h2>
+    <p style="color: #94a3b8;">หากไม่เปลี่ยนหน้าอัตโนมัติ <a href="index.html" style="color: #38bdf8; text-decoration: underline;">คลิกที่นี่</a></p>
+  </div>
+</body>
+</html>

@@ -2414,7 +2414,7 @@
       const defaultRealtimeMonth = String(new Date().getMonth() + 1);
       const machine = document.getElementById('selectedMachine')?.value || 'BHS';
       const month = document.getElementById('selectedMonth')?.value || defaultRealtimeMonth;
-      fetchGoogleSheetData(savedUrl, machine, month);
+      fetchGoogleSheetData(savedUrl, machine, month, true);
     });
 
     // รับสัญญาณ Event จาก static-api.js เมื่อข้อมูลสดจาก Google Sheet ถูกดึงและคำนวณเสร็จแล้ว (อัปเดตหน้าจออัตโนมัติทันที)
@@ -2556,12 +2556,14 @@
 
         // ถ้าเปิดผ่าน localhost หรือ http ให้ใช้ api.php ดึงหน้า Waste และ Summary รวม
         if (window.location.protocol.startsWith('http')) {
-          const refreshParam = forceRefresh ? '&refresh=1' : '';
+          const isCurrentMonth = monthNum === (new Date().getMonth() + 1);
+          const refreshParam = (forceRefresh || isCurrentMonth) ? '&refresh=1' : '';
           fetch(`api.php?sheetId=${sheetId}&machine=${machine}&month=${monthNum}${refreshParam}&_t=${Date.now()}`)
             .then(res => res.json())
             .then(res => {
               finishLoading();
               if (applyApiResponseToDashboard(res, machine, monthNum, monthName)) {
+                updateStatusBadge(`ข้อมูลเครื่อง ${machine} (${monthName}) จาก Google Sheet ล่าสุด (อัปเดตอัตโนมัติ)`, 'emerald');
                 return;
               } else if (res && res.table) {
                 parseAndTransformGvizTable(res.table);
