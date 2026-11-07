@@ -32,7 +32,7 @@
   const computedApiCache = {};
   let precomputedSnapshot = null;
   let precomputedSnapshotPromise = null;
-  const CACHE_TTL_MS = 120 * 1000;
+  const CACHE_TTL_MS = 10 * 1000;
 
   function fetchGvizJsonp(sheetId, queryParam, forceRefresh = false) {
     const cacheKey = `${sheetId}__${queryParam}`;
@@ -89,7 +89,7 @@
         resolve(gvizCache[cacheKey] ? gvizCache[cacheKey].data : null);
       };
 
-      script.src = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=responseHandler:${cbName}&${queryParam}`;
+      script.src = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=responseHandler:${cbName}&${queryParam}&_t=${Date.now()}`;
       document.head.appendChild(script);
     });
 
@@ -260,10 +260,19 @@
     const gvizKey2 = `${sheetId}__sheet=${encodeURIComponent('Waste ')}`;
     const hasLiveGvizInMemory = Boolean(gvizCache[gvizKey1]?.data && gvizCache[gvizKey2]?.data);
 
-    // ถ้ายังไม่ได้โหลด Google Sheet สดเข้าหน่วยความจำ ให้ส่งข้อมูลจาก Precomputed Snapshot ทันที (0ms) พร้อมดึงสดเบื้องหลัง
+    // ถ้ายังไม่ได้โหลด Google Sheet สดเข้าหน่วยความจำ ให้ส่งข้อมูลจาก Precomputed Snapshot ทันที (0ms) พร้อมดึงสดเบื้องหลังทันที
     if (!forceRefresh && !hasLiveGvizInMemory && sheetId === DEFAULT_SHEET_ID) {
-      fetchGvizJsonp(sheetId, 'gid=0');
-      fetchGvizJsonp(sheetId, 'sheet=' + encodeURIComponent('Waste '));
+      // ดึงข้อมูลสดเบื้องหลังทันที และเมื่อเสร็จแล้วจะคำนวณและส่ง staticApi:dataUpdated ให้หน้าเว็บอัปเดตอัตโนมัติ (Stale-While-Revalidate)
+      setTimeout(async () => {
+        try {
+          const freshUrl = new URL(urlObj.href);
+          freshUrl.searchParams.set('refresh', '1');
+          await handleApiPhp(freshUrl);
+        } catch (e) {
+          console.warn('Background auto-sync warn:', e);
+        }
+      }, 30);
+
       const snap = precomputedSnapshot || (await loadPrecomputedSnapshot());
       const snapItem = snap ? snap[`${machine}_${month}`] : null;
       if (snapItem) {
@@ -979,6 +988,19 @@
       machineSummaries
     };
     computedApiCache[apiCacheKey] = finalPayload;
+
+    // ส่งสัญญาณ Event แจ้งเตือนหน้าเว็บ (index.html, output.html) ให้อัปเดตข้อมูลสดอัตโนมัติทันที
+    try {
+      window.dispatchEvent(new CustomEvent('staticApi:dataUpdated', {
+        detail: {
+          endpoint: 'api.php',
+          machine,
+          month,
+          data: finalPayload
+        }
+      }));
+    } catch (e) {}
+
     return makeJsonResponse(finalPayload);
   }
 

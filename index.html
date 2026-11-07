@@ -2417,6 +2417,23 @@
       fetchGoogleSheetData(savedUrl, machine, month);
     });
 
+    // รับสัญญาณ Event จาก static-api.js เมื่อข้อมูลสดจาก Google Sheet ถูกดึงและคำนวณเสร็จแล้ว (อัปเดตหน้าจออัตโนมัติทันที)
+    window.addEventListener('staticApi:dataUpdated', (e) => {
+      const d = e.detail;
+      if (!d || !d.data) return;
+      const curMach = (document.getElementById('selectedMachine')?.value || 'BHS').toUpperCase();
+      const curMo = parseInt(document.getElementById('selectedMonth')?.value || '11', 10);
+      if (d.endpoint === 'api.php' && d.machine === curMach && d.month === curMo) {
+        const monthNames = {
+          '1': 'มกราคม', '2': 'กุมภาพันธ์', '3': 'มีนาคม', '4': 'เมษายน',
+          '5': 'พฤษภาคม', '6': 'มิถุนายน', '7': 'กรกฎาคม', '8': 'สิงหาคม',
+          '9': 'กันยายน', '10': 'ตุลาคม', '11': 'พฤศจิกายน', '12': 'ธันวาคม'
+        };
+        applyApiResponseToDashboard(d.data, d.machine, d.month, monthNames[d.month] || `เดือน ${d.month}`);
+        updateStatusBadge(`ข้อมูลเครื่อง ${d.machine} (${monthNames[d.month] || d.month}) จาก Google Sheet ล่าสุด (อัปเดตอัตโนมัติ)`, 'emerald');
+      }
+    });
+
     // แสดง/ซ่อน Modal ตั้งค่า
     function toggleConfigModal() {
       const modal = document.getElementById('configModal');
@@ -2503,20 +2520,25 @@
       const monthName = monthNames[monthNum] || `เดือน ${monthNum}`;
       const cacheKey = `${machine}_${monthNum}`;
 
-      // ถ้ามีข้อมูลในหน่วยความจำแล้ว และไม่ได้กดบังคับรีเฟรช ให้แสดงผลทันที (0ms) โดยไม่ต้องรอโหลดใหม่
-      if (!forceRefresh && fullDashboardApiCache[cacheKey]) {
+      // 1. ถ้ามีข้อมูลแคชในหน่วยความจำ ให้แสดงผลทันที (0ms) เพื่อให้หน้าเว็บพร้อมใช้งานทันที ไม่ค้าง ไม่หมุนติ้ว
+      if (fullDashboardApiCache[cacheKey]) {
         applyApiResponseToDashboard(fullDashboardApiCache[cacheKey], machine, monthNum, monthName);
-        return;
+        if (!forceRefresh) {
+          updateStatusBadge(`ข้อมูลแสดงผลทันที (กำลังซิงค์สดล่าสุดจาก Google Sheet...)`, 'blue');
+        }
+      } else {
+        updateStatusBadge(`กำลังโหลดข้อมูล ${machine} (${monthName}) จาก Google Sheet...`, 'blue');
       }
 
-      updateStatusBadge(`กำลังโหลด ${machine} (${monthName})...`, 'blue');
       const spinIcon = document.getElementById('refresh-spin-icon');
       if (spinIcon) spinIcon.classList.add('animate-spin');
 
       // ป้องกันค้าง ถ้าเกิน 8 วินาทีให้แจ้งเตือนและปลดสถานะ
       const timeoutTimer = setTimeout(() => {
         if (spinIcon) spinIcon.classList.remove('animate-spin');
-        updateStatusBadge('การเชื่อมต่อใช้เวลานาน กรุณากดลองใหม่', 'amber');
+        if (!fullDashboardApiCache[cacheKey]) {
+          updateStatusBadge('การเชื่อมต่อใช้เวลานาน กรุณากดลองใหม่', 'amber');
+        }
       }, 8000);
 
       const finishLoading = () => {
@@ -2535,7 +2557,7 @@
         // ถ้าเปิดผ่าน localhost หรือ http ให้ใช้ api.php ดึงหน้า Waste และ Summary รวม
         if (window.location.protocol.startsWith('http')) {
           const refreshParam = forceRefresh ? '&refresh=1' : '';
-          fetch(`api.php?sheetId=${sheetId}&machine=${machine}&month=${monthNum}${refreshParam}`)
+          fetch(`api.php?sheetId=${sheetId}&machine=${machine}&month=${monthNum}${refreshParam}&_t=${Date.now()}`)
             .then(res => res.json())
             .then(res => {
               finishLoading();
@@ -2543,7 +2565,7 @@
                 return;
               } else if (res && res.table) {
                 parseAndTransformGvizTable(res.table);
-                updateStatusBadge('เชื่อมต่อ Google Sheet สำเร็จ', 'emerald');
+                updateStatusBadge('เชื่อมต่อ Google Sheet สำเร็จ (อัปเดตอัตโนมัติ)', 'emerald');
               } else {
                 fetchViaJsonp(sheetId, gid, finishLoading);
               }

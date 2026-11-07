@@ -1847,47 +1847,39 @@
 
     // ==========================================
     // ดึงข้อมูล Output รายวันจาก api.php
+    function applyLiveOutputPayload(json) {
+      if (!json || !json.success || !Array.isArray(json.data)) return;
+      currentRawData = json.data.filter(row => {
+        if (!row.date) return false;
+        if (Number(row.output) < 0) row.output = 0;
+        return true;
+      });
+      if (json.summary) currentApiSummary = json.summary;
+      if (json.machineSummaries) {
+        currentMachineSummaries = json.machineSummaries;
+        try {
+          localStorage.setItem(`output_overview_cache_${currentMonth}`, JSON.stringify(json.machineSummaries));
+        } catch (e) {}
+        renderOverviewTableFromData(json.machineSummaries);
+      }
+      if (Array.isArray(json.yearlyTrend) && json.yearlyTrend.length > 0) {
+        currentYearlyTrend = json.yearlyTrend;
+      }
+      renderDashboard();
+    }
+
+    // ==========================================
+    // ฟังก์ชันโหลดข้อมูลหลักจาก API (ดึงข้อมูลล่าสุดอัตโนมัติ)
     // ==========================================
     async function loadOutputData() {
       const refreshIcon = document.getElementById('refresh-icon');
       if (refreshIcon) refreshIcon.classList.add('fa-spin');
 
       try {
-        const url = `api.php?machine=${currentMachine}&month=${currentMonth}`;
+        const url = `api.php?machine=${currentMachine}&month=${currentMonth}&_t=${Date.now()}`;
         const res = await fetch(url);
         const json = await res.json();
-        
-        if (json && json.success && Array.isArray(json.data)) {
-          // กรองเฉพาะ row รายวันที่มี field 'date' และ output ไม่ติดลบอย่างมีนัยสำคัญ
-          currentRawData = json.data.filter(row => {
-            // ต้องมี field date และเป็น daily row (ไม่ใช่ summary/weekly)
-            if (!row.date) return false;
-            // output ติดลบมากๆ (เช่น -723) ถือเป็น idle จริงๆ แต่ยังเก็บไว้ แค่ทำให้ค่าเป็น 0
-            if (Number(row.output) < 0) row.output = 0;
-            return true;
-          });
-          // ถ้า API ส่ง summary รวม ให้เก็บ summary ไว้ใช้เสริม KPI
-          if (json.summary) currentApiSummary = json.summary;
-
-          // ถ้า API มี machineSummaries ครบทุกเครื่อง ให้บันทึกและเรนเดอร์ตารางทันที
-          if (json.machineSummaries) {
-            currentMachineSummaries = json.machineSummaries;
-            try {
-              localStorage.setItem(`output_overview_cache_${currentMonth}`, JSON.stringify(json.machineSummaries));
-            } catch (e) {}
-            renderOverviewTableFromData(json.machineSummaries);
-          }
-
-          // เก็บข้อมูล 12 เดือนสำหรับกราฟแนวโน้มรายเดือน
-          if (Array.isArray(json.yearlyTrend) && json.yearlyTrend.length > 0) {
-            currentYearlyTrend = json.yearlyTrend;
-          } else {
-            currentYearlyTrend = generateFallbackYearlyTrend();
-          }
-        } else {
-          currentRawData = generateFallbackOutputData();
-          currentYearlyTrend = generateFallbackYearlyTrend();
-        }
+        applyLiveOutputPayload(json);
       } catch (e) {
         console.warn('API error, using fallback output data', e);
         currentRawData = generateFallbackOutputData();
@@ -1902,6 +1894,15 @@
         }
       }
     }
+
+    // อัปเดตข้อมูลอัตโนมัติเมื่อ Background Live Sync จาก Google Sheet ทำงานเสร็จ
+    window.addEventListener('staticApi:dataUpdated', (e) => {
+      const d = e.detail;
+      if (!d || !d.data) return;
+      if (d.endpoint === 'api.php' && d.machine === currentMachine && d.month === currentMonth) {
+        applyLiveOutputPayload(d.data);
+      }
+    });
 
     // ข้อมูลสำรองกรณี API ออฟไลน์
     function generateFallbackOutputData() {

@@ -1112,7 +1112,7 @@
           done = true; clearTimeout(timer); cleanup();
           resolve(null);
         };
-        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:${cbName}&sheet=${encodeURIComponent(sheetName)}&tq=${encodeURIComponent(tq)}`;
+        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:${cbName}&sheet=${encodeURIComponent(sheetName)}&tq=${encodeURIComponent(tq)}&_t=${Date.now()}`;
         script.src = url;
         document.head.appendChild(script);
       });
@@ -1126,24 +1126,58 @@
       }
 
       try {
-        // Quick check for BHS / ISOWA
-        await Promise.all(['BHS', 'ISOWA'].map(async (mKey) => {
+        let hasChanges = false;
+        await Promise.all(['YUELI', 'BHS', 'ISOWA'].map(async (mKey) => {
           let sName = MACHINE_SHEETS[mKey];
-          let resp = await queryGvizJsonp(sName, 'select count(A) where A is not null');
-          if ((!resp || !resp.table) && mKey === 'BHS') {
+          let resp = await queryGvizJsonp(sName, 'select count(A), sum(AM), sum(AO) where A is not null');
+          if ((!resp || !resp.table || !resp.table.rows || resp.table.rows.length === 0) && mKey === 'BHS') {
             sName = 'ข้อมูลเครื่อง BHS';
-            resp = await queryGvizJsonp(sName, 'select count(A) where A is not null');
+            resp = await queryGvizJsonp(sName, 'select count(A), sum(AM), sum(AO) where A is not null');
           }
           if (resp && resp.table && resp.table.rows && resp.table.rows.length > 0) {
             const cnt = parseInt(resp.table.rows[0]?.c?.[0]?.v ?? 0, 10);
-            if (cnt > 0) {
+            const w = Number(resp.table.rows[0]?.c?.[1]?.v) || 0;
+            const m = Number(resp.table.rows[0]?.c?.[2]?.v) || 0;
+            const prevCnt = ordersDb.machines[mKey]?.totalOrders || 0;
+
+            if (cnt > 0 && (cnt !== prevCnt || !ordersDb.machines[mKey]?.hasOrderData)) {
+              hasChanges = true;
               ordersDb.machines[mKey].totalOrders = cnt;
+              ordersDb.machines[mKey].totalWeightKg = Math.round(w * 10) / 10;
+              ordersDb.machines[mKey].totalLengthM = Math.round(m * 10) / 10;
               ordersDb.machines[mKey].hasOrderData = true;
+
+              // ถ้าจำนวนออเดอร์ในชีตเพิ่มขึ้นหรือเปลี่ยนไป ดึง grouped data ล่าสุดมาอัปเดตตารางทันที
+              const tqGroup = 'select year(AF), month(AF), day(AF), B, F, count(A), sum(AM), sum(AO) where A is not null group by year(AF), month(AF), day(AF), B, F';
+              const gResp = await queryGvizJsonp(sName, tqGroup);
+              if (gResp && gResp.table && Array.isArray(gResp.table.rows) && gResp.table.rows.length > 0) {
+                const newRecs = gResp.table.rows.map(r => {
+                  const c = r.c || [];
+                  return {
+                    y: parseInt(c[0]?.v ?? 2026, 10),
+                    m: parseInt(c[1]?.v ?? 0, 10) + 1,
+                    d: parseInt(c[2]?.v ?? 1, 10),
+                    s: String(c[3]?.v ?? 'A').trim().toUpperCase(),
+                    f: String(c[4]?.v ?? '-').trim().toUpperCase(),
+                    t: 'PDR', // Default type unless prefix query
+                    orders: parseInt(c[5]?.v ?? 0, 10),
+                    weightKg: Math.round((Number(c[6]?.v) || 0) * 10) / 10,
+                    lengthM: Math.round((Number(c[7]?.v) || 0) * 10) / 10
+                  };
+                });
+                if (newRecs.length > 0) {
+                  ordersDb.machines[mKey].typeRecords = newRecs;
+                }
+              }
             }
           }
         }));
+
         updateMachineBadges();
-        setElText('status-text', 'เชื่อมต่อฐานข้อมูล Google Sheet ล่าสุดแล้ว');
+        if (hasChanges) {
+          renderTablesInstant();
+        }
+        setElText('status-text', 'เชื่อมต่อฐานข้อมูล Google Sheet ล่าสุดสำเร็จ (ข้อมูลสดอัตโนมัติ)');
       } catch (e) {
         console.warn('Sync live warn:', e);
       } finally {
