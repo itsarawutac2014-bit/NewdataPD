@@ -2078,6 +2078,71 @@
     let monthlyBreakdownCache = {};
 
     // ========================================================
+    // Helper function ป้องกันกราฟหาย / Canvas is already in use เมื่อกดสลับตัวเลือกไปมาอย่างรวดเร็ว
+    // ========================================================
+    function safeDestroyChart(instance, canvasEl) {
+      if (instance) {
+        try { if (typeof instance.stop === 'function') instance.stop(); } catch (e) {}
+        try { if (typeof instance.destroy === 'function') instance.destroy(); } catch (e) {}
+      }
+      if (canvasEl && typeof Chart !== 'undefined' && typeof Chart.getChart === 'function') {
+        try {
+          const existing = Chart.getChart(canvasEl);
+          if (existing) {
+            try { if (typeof existing.stop === 'function') existing.stop(); } catch (e) {}
+            try { if (typeof existing.destroy === 'function') existing.destroy(); } catch (e) {}
+          }
+        } catch (e) {}
+      }
+    }
+
+    function safeCreateChart(canvasOrId, config, currentInstance) {
+      if (typeof Chart === 'undefined') return null;
+      let canvasEl = typeof canvasOrId === 'string' ? document.getElementById(canvasOrId) : canvasOrId;
+      if (!canvasEl) return null;
+
+      // 1. สั่งหยุดแอนิเมชันและทำลายกราฟเดิมก่อน
+      safeDestroyChart(currentInstance, canvasEl);
+
+      // 2. ตรวจสอบว่า Chart.js ยังจำว่า canvas กำลังถูกใช้งานอยู่หรือไม่
+      if (typeof Chart.getChart === 'function') {
+        try {
+          const stillAttached = Chart.getChart(canvasEl);
+          if (stillAttached) {
+            try { if (typeof stillAttached.stop === 'function') stillAttached.stop(); } catch (e) {}
+            try { if (typeof stillAttached.destroy === 'function') stillAttached.destroy(); } catch (e) {}
+            // ถ้า canvas ยังค้างใน Registry ให้ Clone node เพื่อเคลียร์ State สะอาด 100%
+            if (canvasEl.parentNode && Chart.getChart(canvasEl)) {
+              const freshCanvas = canvasEl.cloneNode(false);
+              canvasEl.parentNode.replaceChild(freshCanvas, canvasEl);
+              canvasEl = freshCanvas;
+            }
+          }
+        } catch (e) {}
+      }
+
+      // 3. สร้างอินสแตนซ์กราฟใหม่ พร้อมระบบกู้คืน canvas อัตโนมัติหากมีข้อผิดพลาด
+      try {
+        const ctx = canvasEl.getContext('2d');
+        return new Chart(ctx, config);
+      } catch (err) {
+        console.warn('safeCreateChart error, recreating canvas node:', err);
+        try {
+          if (canvasEl && canvasEl.parentNode) {
+            const freshCanvas = canvasEl.cloneNode(false);
+            canvasEl.parentNode.replaceChild(freshCanvas, canvasEl);
+            canvasEl = freshCanvas;
+            const ctx = canvasEl.getContext('2d');
+            return new Chart(ctx, config);
+          }
+        } catch (retryErr) {
+          console.error('safeCreateChart recovery failed:', retryErr);
+        }
+        return null;
+      }
+    }
+
+    // ========================================================
     // ระบบเป้าหมาย Output & Consumption (เชื่อมโยง output_targets_api.php)
     // ========================================================
     let OUTPUT_TARGETS = {
@@ -3355,20 +3420,12 @@
         return '#047857';
       });
 
-      if (dailyWasteChartInstance) {
-        try {
-          dailyWasteChartInstance.destroy();
-        } catch(e) {}
-        dailyWasteChartInstance = null;
-      }
-
       const chartPlugins = [];
       if (typeof ChartDataLabels !== 'undefined') {
         chartPlugins.push(ChartDataLabels);
       }
 
-      const ctx = chartEl.getContext('2d');
-      dailyWasteChartInstance = new Chart(ctx, {
+      dailyWasteChartInstance = safeCreateChart(chartEl, {
         type: 'bar',
         plugins: chartPlugins,
         data: {
@@ -3523,14 +3580,8 @@
 
       // 1. กราฟเปรียบเทียบ Category vs Target
       if (catEl) {
-        if (categoryWasteChartInstance) {
-          try { categoryWasteChartInstance.destroy(); } catch(e) {}
-          categoryWasteChartInstance = null;
-        }
-
         const catPlugins = (typeof ChartDataLabels !== 'undefined') ? [ChartDataLabels] : [];
-        const ctxCat = catEl.getContext('2d');
-        categoryWasteChartInstance = new Chart(ctxCat, {
+        categoryWasteChartInstance = safeCreateChart(catEl, {
           type: 'bar',
           plugins: catPlugins,
           data: {
@@ -3607,11 +3658,6 @@
 
       // 2. กราฟโดนัทสัดส่วนของเสีย (ดึงข้อมูลจริงจาก 11 หมวดหมู่)
       if (donutEl) {
-        if (categoryDonutChartInstance) {
-          try { categoryDonutChartInstance.destroy(); } catch(e) {}
-          categoryDonutChartInstance = null;
-        }
-
         const catItems = WASTE_COLUMNS.map((col, idx) => ({
           label: col.label,
           val: actuals[idx] || 0,
@@ -3622,8 +3668,7 @@
         const donutData = catItems.map(c => c.val);
         const donutColors = catItems.map(c => c.color);
 
-        const ctxDonut = donutEl.getContext('2d');
-        categoryDonutChartInstance = new Chart(ctxDonut, {
+        categoryDonutChartInstance = safeCreateChart(donutEl, {
           type: 'doughnut',
           data: {
             labels: donutLabels.length > 0 ? donutLabels : ['.NCP', '.DEF', 'ของเหลือ Control', 'อื่นๆ'],
@@ -4064,100 +4109,107 @@
       // ==========================================
       // 1. เรนเดอร์ Bar Chart ตัวบน
       // ==========================================
-      if (filterWasteChartInstance) {
-        try { filterWasteChartInstance.destroy(); } catch (e) {}
-        filterWasteChartInstance = null;
-      }
+      try {
+        const barPlugins = [];
+        if (typeof ChartDataLabels !== 'undefined') barPlugins.push(ChartDataLabels);
 
-      const barPlugins = [];
-      if (typeof ChartDataLabels !== 'undefined') barPlugins.push(ChartDataLabels);
-
-      const ctxBar = chartEl.getContext('2d');
-      filterWasteChartInstance = new Chart(ctxBar, {
-        type: 'bar',
-        plugins: barPlugins,
-        data: {
-          labels: chartLabels,
-          datasets: barDatasets
-        },
-        options: {
-          devicePixelRatio: Math.max(window.devicePixelRatio || 1, 2.5),
-          responsive: true,
-          maintainAspectRatio: false,
-          layout: { padding: { top: 35, left: 10, right: 25, bottom: 10 } },
-          plugins: {
-            legend: {
-              display: isAll,
-              position: 'top',
-              labels: { font: { family: "'Prompt', sans-serif", size: 10, weight: 'bold' }, boxWidth: 12, padding: 8 }
-            },
-            tooltip: {
-              backgroundColor: '#0f172a',
-              titleFont: { family: "'Prompt', sans-serif", size: 12, weight: 'bold' },
-              bodyFont: { family: "'Prompt', sans-serif", size: 11 },
-              padding: 10,
-              cornerRadius: 8,
-              callbacks: {
-                label: function(ctx) {
-                  const val = ctx.raw || 0;
-                  const lbl = ctx.dataset.label || '';
-                  return isPct ? ` ${lbl}: ${Number(val).toFixed(2)}%` : ` ${lbl}: ${Number(Math.round(val)).toLocaleString()} กก.`;
-                }
-              }
-            },
-            datalabels: {
-              clip: false,
-              display: function(ctx) {
-                if (isAll) return ctx.datasetIndex === barDatasets.length - 1;
-                return ctx.dataset.data[ctx.dataIndex] > 0;
-              },
-              anchor: 'end',
-              align: 'top',
-              offset: 3,
-              font: { family: "'Prompt', sans-serif", size: 9.5, weight: 'bold' },
-              color: function(ctx) {
-                const val = ctx.dataset.data[ctx.dataIndex];
-                return (isPct && val > tgtVal) ? '#b91c1c' : '#1e293b';
-              },
-              formatter: function(val, ctx) {
-                if (isAll) {
-                  let sum = 0;
-                  for (let i = 0; i < barDatasets.length; i++) sum += Number(barDatasets[i].data[ctx.dataIndex]) || 0;
-                  return isPct ? `${sum.toFixed(2)}%` : `${Number(Math.round(sum)).toLocaleString()}`;
-                }
-                return isPct ? `${Number(val).toFixed(2)}%` : `${Number(Math.round(val)).toLocaleString()}`;
-              }
-            }
+        filterWasteChartInstance = safeCreateChart(chartEl, {
+          type: 'bar',
+          plugins: barPlugins,
+          data: {
+            labels: chartLabels,
+            datasets: barDatasets
           },
-          scales: {
-            x: {
-              stacked: isAll,
-              grid: { display: false },
-              ticks: { font: { family: "'Prompt', sans-serif", size: 10, weight: 'bold' } }
+          options: {
+            devicePixelRatio: Math.max(window.devicePixelRatio || 1, 2.5),
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: { padding: { top: 35, left: 10, right: 25, bottom: 10 } },
+            plugins: {
+              legend: {
+                display: isAll,
+                position: 'top',
+                labels: { font: { family: "'Prompt', sans-serif", size: 10, weight: 'bold' }, boxWidth: 12, padding: 8 }
+              },
+              tooltip: {
+                backgroundColor: '#0f172a',
+                titleFont: { family: "'Prompt', sans-serif", size: 12, weight: 'bold' },
+                bodyFont: { family: "'Prompt', sans-serif", size: 11 },
+                padding: 10,
+                cornerRadius: 8,
+                callbacks: {
+                  label: function(ctx) {
+                    const val = Number(ctx.raw) || 0;
+                    const lbl = ctx.dataset.label || '';
+                    return isPct ? ` ${lbl}: ${val.toFixed(2)}%` : ` ${lbl}: ${Number(Math.round(val)).toLocaleString()} กก.`;
+                  }
+                }
+              },
+              datalabels: {
+                clip: false,
+                display: function(ctx) {
+                  if (isAll) return ctx.datasetIndex === barDatasets.length - 1;
+                  return Number(ctx.dataset.data[ctx.dataIndex]) > 0;
+                },
+                anchor: 'end',
+                align: 'top',
+                offset: 3,
+                font: { family: "'Prompt', sans-serif", size: 9.5, weight: 'bold' },
+                color: function(ctx) {
+                  const val = Number(ctx.dataset.data[ctx.dataIndex]) || 0;
+                  return (isPct && val > tgtVal) ? '#b91c1c' : '#1e293b';
+                },
+                formatter: function(val, ctx) {
+                  if (isAll) {
+                    let sum = 0;
+                    for (let i = 0; i < barDatasets.length; i++) sum += Number(barDatasets[i].data[ctx.dataIndex]) || 0;
+                    return isPct ? `${sum.toFixed(2)}%` : `${Number(Math.round(sum)).toLocaleString()}`;
+                  }
+                  const num = Number(val) || 0;
+                  return isPct ? `${num.toFixed(2)}%` : `${Number(Math.round(num)).toLocaleString()}`;
+                }
+              }
             },
-            y: {
-              stacked: isAll,
-              beginAtZero: true,
-              grid: { color: '#f1f5f9' },
-              ticks: {
-                font: { family: "'Prompt', sans-serif", size: 10 },
-                callback: function(v) { return isPct ? `${v}%` : `${Number(v).toLocaleString()}`; }
+            scales: {
+              x: {
+                stacked: isAll,
+                grid: { display: false },
+                ticks: { font: { family: "'Prompt', sans-serif", size: 10, weight: 'bold' } }
+              },
+              y: {
+                stacked: isAll,
+                beginAtZero: true,
+                grid: { color: '#f1f5f9' },
+                ticks: {
+                  font: { family: "'Prompt', sans-serif", size: 10 },
+                  callback: function(v) { 
+                    const num = Number(v);
+                    if (isNaN(num)) return v;
+                    return isPct ? `${num}%` : `${num.toLocaleString()}`; 
+                  }
+                }
               }
             }
           }
-        }
-      });
+        }, filterWasteChartInstance);
+      } catch (errBar) {
+        console.error('Error rendering filter bar chart:', errBar);
+      }
 
       // ==========================================
       // 2. เรนเดอร์ Trend Line Chart ตัวล่าง (ใหญ่ขึ้น ตัวเลขชัดเจน เลือกสีได้)
       // ==========================================
-      renderAreaTrendChartMatchingScreenshot({
-        points: trendPoints,
-        isPct: isPct,
-        targetVal: tgtVal,
-        itemLabel: isAll ? 'Actual % ทั้งหมด 11 รายการ' : `Actual % ${colDef.label}`,
-        color: currentTrendLineColor || (colDef ? colDef.color : '#2563eb')
-      });
+      try {
+        renderAreaTrendChartMatchingScreenshot({
+          points: trendPoints,
+          isPct: isPct,
+          targetVal: tgtVal,
+          itemLabel: isAll ? 'Actual % ทั้งหมด 11 รายการ' : `Actual % ${colDef.label}`,
+          color: currentTrendLineColor || (colDef ? colDef.color : '#2563eb')
+        });
+      } catch (errTrend) {
+        console.error('Error rendering filter trend chart:', errTrend);
+      }
     }
 
     // ========================================================
@@ -4179,30 +4231,40 @@
     // กราฟแนวโน้มเส้นสไตล์ตามรูปตัวอย่าง: ใหญ่ขึ้น ตัวเลขชัดเจน เปลี่ยนสีได้
     // ========================================================
     function renderAreaTrendChartMatchingScreenshot(params) {
+      if (!params || !Array.isArray(params.points)) return;
       const chartEl = document.getElementById('filterWasteTrendChart');
       if (!chartEl || typeof Chart === 'undefined') return;
 
-      if (filterWasteTrendChartInstance) {
-        try { filterWasteTrendChartInstance.destroy(); } catch (e) {}
-        filterWasteTrendChartInstance = null;
+      const chosenColor = params.color || currentTrendLineColor || '#2563eb';
+      const ctx = chartEl.getContext('2d');
+
+      let grad = null;
+      try {
+        grad = ctx.createLinearGradient(0, 0, 0, 480);
+        grad.addColorStop(0, hexToRgba(chosenColor, 0.45));
+        grad.addColorStop(0.5, hexToRgba(chosenColor, 0.15));
+        grad.addColorStop(1, hexToRgba(chosenColor, 0.00));
+      } catch (e) {
+        grad = hexToRgba(chosenColor, 0.15);
       }
 
-      const ctx = chartEl.getContext('2d');
-      const chosenColor = params.color || currentTrendLineColor || '#2563eb';
+      const validPoints = (params.points || []).map(p => {
+        const pNum = Number(p.pct);
+        const kNum = Number(p.kg);
+        return {
+          label: p.label || '',
+          pct: isNaN(pNum) ? 0 : pNum,
+          kg: isNaN(kNum) ? 0 : kNum
+        };
+      });
 
-      // Gradient Fill ตามสีที่เลือก
-      const grad = ctx.createLinearGradient(0, 0, 0, 480);
-      grad.addColorStop(0, hexToRgba(chosenColor, 0.45));
-      grad.addColorStop(0.5, hexToRgba(chosenColor, 0.15));
-      grad.addColorStop(1, hexToRgba(chosenColor, 0.00));
-
-      const xLabels = params.points.map(p => p.label);
-      const yValues = params.points.map(p => params.isPct ? p.pct : p.kg);
-      const kgList = params.points.map(p => p.kg);
+      const xLabels = validPoints.map(p => p.label);
+      const yValues = validPoints.map(p => params.isPct ? p.pct : p.kg);
+      const kgList = validPoints.map(p => p.kg);
 
       const datasets = [
         {
-          label: params.itemLabel,
+          label: params.itemLabel || 'Actual %',
           data: yValues,
           weightKgList: kgList,
           borderColor: chosenColor,
@@ -4219,10 +4281,11 @@
       ];
 
       // Target Dashed Line
-      if (params.isPct && params.targetVal > 0) {
+      const targetVal = (typeof params.targetVal === 'number' && !isNaN(params.targetVal) && isFinite(params.targetVal)) ? params.targetVal : 0;
+      if (params.isPct && targetVal > 0) {
         datasets.push({
-          label: `Target (${params.targetVal.toFixed(2)}%)`,
-          data: Array(xLabels.length).fill(params.targetVal),
+          label: `Target (${targetVal.toFixed(2)}%)`,
+          data: Array(xLabels.length).fill(targetVal),
           borderColor: '#94a3b8',
           borderWidth: 1.8,
           borderDash: [5, 4],
@@ -4234,10 +4297,11 @@
       const plugins = [];
       if (typeof ChartDataLabels !== 'undefined') plugins.push(ChartDataLabels);
 
-      const maxVal = Math.max(...yValues, params.targetVal || 0);
-      const suggestedMax = params.isPct ? Math.max(2.5, Math.ceil(maxVal * 1.35 * 10) / 10) : Math.ceil(maxVal * 1.3);
+      const numList = yValues.filter(v => typeof v === 'number' && !isNaN(v) && isFinite(v));
+      const maxVal = numList.length > 0 ? Math.max(...numList, targetVal) : (targetVal > 0 ? targetVal : 5);
+      const suggestedMax = params.isPct ? Math.max(2.5, Math.ceil(maxVal * 1.35 * 10) / 10) : Math.max(100, Math.ceil(maxVal * 1.3));
 
-      filterWasteTrendChartInstance = new Chart(ctx, {
+      filterWasteTrendChartInstance = safeCreateChart(chartEl, {
         type: 'line',
         plugins: plugins,
         data: {
@@ -4271,8 +4335,8 @@
               cornerRadius: 8,
               callbacks: {
                 label: function(ctx) {
-                  const val = ctx.raw || 0;
-                  const kg = ctx.dataset.weightKgList ? ctx.dataset.weightKgList[ctx.dataIndex] : 0;
+                  const val = Number(ctx.raw) || 0;
+                  const kg = ctx.dataset.weightKgList ? (Number(ctx.dataset.weightKgList[ctx.dataIndex]) || 0) : 0;
                   if (params.isPct) {
                     return ` ${ctx.dataset.label}: ${val.toFixed(2)}% (${Number(Math.round(kg)).toLocaleString()} กก.)`;
                   }
@@ -4291,25 +4355,26 @@
               font: { family: "'Prompt', sans-serif", size: 10.5, weight: 'bold' },
               textAlign: 'center',
               color: function(context) {
-                const val = context.dataset.data[context.dataIndex];
-                return (params.isPct && val > params.targetVal) ? '#b91c1c' : '#0f172a';
+                const val = Number(context.dataset.data[context.dataIndex]) || 0;
+                return (params.isPct && val > targetVal) ? '#b91c1c' : '#0f172a';
               },
               backgroundColor: 'rgba(255, 255, 255, 0.95)',
               borderColor: function(context) {
-                const val = context.dataset.data[context.dataIndex];
-                return (params.isPct && val > params.targetVal) ? '#fca5a5' : '#cbd5e1';
+                const val = Number(context.dataset.data[context.dataIndex]) || 0;
+                return (params.isPct && val > targetVal) ? '#fca5a5' : '#cbd5e1';
               },
               borderWidth: 1,
               borderRadius: 6,
               padding: { top: 3, bottom: 3, left: 6, right: 6 },
               formatter: function(value, context) {
-                const kg = context.dataset.weightKgList ? context.dataset.weightKgList[context.dataIndex] : 0;
+                const val = Number(value) || 0;
+                const kg = context.dataset.weightKgList ? (Number(context.dataset.weightKgList[context.dataIndex]) || 0) : 0;
                 if (params.isPct) {
-                  const pStr = `${Number(value).toFixed(2)}%`;
+                  const pStr = `${val.toFixed(2)}%`;
                   const kStr = kg > 0 ? `${Number(Math.round(kg)).toLocaleString()}kg` : '';
                   return kStr ? `${pStr}\n${kStr}` : pStr;
                 } else {
-                  return `${Number(Math.round(value)).toLocaleString()}kg`;
+                  return `${Number(Math.round(val)).toLocaleString()}kg`;
                 }
               }
             }
@@ -4330,13 +4395,15 @@
               ticks: {
                 font: { family: "'Prompt', sans-serif", size: 11 },
                 callback: function(v) {
-                  return params.isPct ? `${v.toFixed(1)}%` : `${Number(v).toLocaleString()}`;
+                  const num = Number(v);
+                  if (isNaN(num)) return v;
+                  return params.isPct ? `${num.toFixed(1)}%` : `${Math.round(num).toLocaleString()}`;
                 }
               }
             }
           }
         }
-      });
+      }, filterWasteTrendChartInstance);
     }
 
     async function downloadFilterTrendChartImage() {
@@ -4954,18 +5021,12 @@
         return (v <= TARGETS.allWaste) ? '#16a34a' : '#dc2626';
       });
 
-      if (yearlyWasteChartInstance) {
-        try { yearlyWasteChartInstance.destroy(); } catch (e) {}
-        yearlyWasteChartInstance = null;
-      }
-
       const chartPlugins = [];
       if (typeof ChartDataLabels !== 'undefined') {
         chartPlugins.push(ChartDataLabels);
       }
 
-      const ctx = chartEl.getContext('2d');
-      yearlyWasteChartInstance = new Chart(ctx, {
+      yearlyWasteChartInstance = safeCreateChart(chartEl, {
         type: 'bar',
         plugins: chartPlugins,
         data: {
@@ -6029,19 +6090,14 @@
       const chartEl = document.getElementById('wasteAllDailyChart');
       if (!chartEl || typeof Chart === 'undefined') return;
 
-      if (wasteAllDailyChartInstance) {
-        try { wasteAllDailyChartInstance.destroy(); } catch (e) {}
-        wasteAllDailyChartInstance = null;
-      }
-
-      const barColors = barValues.map(v => v <= TARGET_WASTE_ALL ? '#10b981' : '#ef4444');
-      const maxVal = Math.max(...barValues, TARGET_WASTE_ALL, 15);
+      const barColors = (barValues || []).map(v => Number(v) <= TARGET_WASTE_ALL ? '#10b981' : '#ef4444');
+      const numList = (barValues || []).map(Number).filter(v => typeof v === 'number' && !isNaN(v) && isFinite(v));
+      const maxVal = numList.length > 0 ? Math.max(...numList, TARGET_WASTE_ALL, 15) : 15;
       const ySuggestedMax = Math.ceil(maxVal * 1.25);
 
       const chartPlugins = (typeof ChartDataLabels !== 'undefined') ? [ChartDataLabels] : [];
-      const ctx = chartEl.getContext('2d');
 
-      wasteAllDailyChartInstance = new Chart(ctx, {
+      wasteAllDailyChartInstance = safeCreateChart(chartEl, {
         type: 'bar',
         plugins: chartPlugins,
         data: {
@@ -6135,23 +6191,29 @@
       const chartEl = document.getElementById('wasteAllTrendLineChart');
       if (!chartEl || typeof Chart === 'undefined') return;
 
-      if (wasteAllTrendLineChartInstance) {
-        try { wasteAllTrendLineChartInstance.destroy(); } catch (e) {}
-        wasteAllTrendLineChartInstance = null;
-      }
-
-      const ctx = chartEl.getContext('2d');
       const chosenColor = currentWasteAllTrendColor || '#e11d48';
+      const ctx = chartEl.getContext('2d');
 
       // Gradient Fill
-      const grad = ctx.createLinearGradient(0, 0, 0, 480);
-      grad.addColorStop(0, hexToRgba(chosenColor, 0.45));
-      grad.addColorStop(0.5, hexToRgba(chosenColor, 0.15));
-      grad.addColorStop(1, hexToRgba(chosenColor, 0.00));
+      let grad = null;
+      try {
+        grad = ctx.createLinearGradient(0, 0, 0, 480);
+        grad.addColorStop(0, hexToRgba(chosenColor, 0.45));
+        grad.addColorStop(0.5, hexToRgba(chosenColor, 0.15));
+        grad.addColorStop(1, hexToRgba(chosenColor, 0.00));
+      } catch (e) {
+        grad = hexToRgba(chosenColor, 0.15);
+      }
 
-      const xLabels = points.map(p => p.label);
-      const yValues = points.map(p => p.pct);
-      const kgList = points.map(p => p.kg);
+      const safePoints = (points || []).map(p => ({
+        label: p.label || '',
+        pct: Number(p.pct) || 0,
+        kg: Number(p.kg) || 0
+      }));
+
+      const xLabels = safePoints.map(p => p.label);
+      const yValues = safePoints.map(p => p.pct);
+      const kgList = safePoints.map(p => p.kg);
 
       const datasets = [
         {
@@ -6181,10 +6243,11 @@
       ];
 
       const plugins = (typeof ChartDataLabels !== 'undefined') ? [ChartDataLabels] : [];
-      const maxVal = Math.max(...yValues, TARGET_WASTE_ALL, 15);
+      const numList = yValues.filter(v => typeof v === 'number' && !isNaN(v) && isFinite(v));
+      const maxVal = numList.length > 0 ? Math.max(...numList, TARGET_WASTE_ALL, 15) : 15;
       const suggestedMax = Math.ceil(maxVal * 1.3);
 
-      wasteAllTrendLineChartInstance = new Chart(ctx, {
+      wasteAllTrendLineChartInstance = safeCreateChart(chartEl, {
         type: 'line',
         plugins: plugins,
         data: {
@@ -7063,10 +7126,6 @@
       // วาดกราฟเปรียบเทียบแผนก (Target vs Actual)
       const canvas = document.getElementById('deptComparisonChart');
       if (!canvas || typeof Chart === 'undefined') return;
-      if (deptComparisonChartInstance) {
-        try { deptComparisonChartInstance.destroy(); } catch (e) {}
-        deptComparisonChartInstance = null;
-      }
 
       const labels = compList.map(c => c.code);
       const targetVals = compList.map(c => Number(c.target || 0));
@@ -7074,10 +7133,11 @@
       const actualBgColors = compList.map(c => (Number(c.actualPct || 0) <= Number(c.target || 0)) ? '#10b981' : '#ef4444');
       const actualBorderColors = compList.map(c => (Number(c.actualPct || 0) <= Number(c.target || 0)) ? '#047857' : '#b91c1c');
 
-      const maxVal = Math.max(...targetVals, ...actualVals, 5.5);
+      const numList = [...targetVals, ...actualVals].filter(v => typeof v === 'number' && !isNaN(v) && isFinite(v));
+      const maxVal = numList.length > 0 ? Math.max(...numList, 5.5) : 5.5;
       const plugins = (typeof ChartDataLabels !== 'undefined') ? [ChartDataLabels] : [];
 
-      deptComparisonChartInstance = new Chart(canvas.getContext('2d'), {
+      deptComparisonChartInstance = safeCreateChart(canvas, {
         type: 'bar',
         plugins: plugins,
         data: {
@@ -7437,16 +7497,12 @@
         return val > targetVal ? '#b91c1c' : '#047857';
       });
 
-      if (deptDailyWasteChartInstance) {
-        try { deptDailyWasteChartInstance.destroy(); } catch (e) {}
-        deptDailyWasteChartInstance = null;
-      }
-
-      const maxDataVal = Math.max(...values, targetVal * 1.4, 0.5);
+      const numList = values.filter(v => typeof v === 'number' && !isNaN(v) && isFinite(v));
+      const maxDataVal = numList.length > 0 ? Math.max(...numList, targetVal * 1.4, 0.5) : Math.max(targetVal * 1.4, 0.5);
       const yMax = parseFloat((maxDataVal * 1.28).toFixed(2));
       const chartPlugins = (typeof ChartDataLabels !== 'undefined') ? [ChartDataLabels] : [];
 
-      deptDailyWasteChartInstance = new Chart(chartEl.getContext('2d'), {
+      deptDailyWasteChartInstance = safeCreateChart(chartEl, {
         type: 'bar',
         plugins: chartPlugins,
         data: {
