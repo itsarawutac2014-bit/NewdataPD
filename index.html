@@ -2621,8 +2621,7 @@
 
         // ถ้าเปิดผ่าน localhost หรือ http ให้ใช้ api.php ดึงหน้า Waste และ Summary รวม
         if (window.location.protocol.startsWith('http')) {
-          const isCurrentMonth = monthNum === (new Date().getMonth() + 1);
-          const refreshParam = (forceRefresh || isCurrentMonth) ? '&refresh=1' : '';
+          const refreshParam = forceRefresh ? '&refresh=1' : '';
           fetch(`api.php?sheetId=${sheetId}&machine=${machine}&month=${monthNum}${refreshParam}&_t=${Date.now()}`)
             .then(res => res.json())
             .then(res => {
@@ -6331,12 +6330,71 @@
               grid: { color: '#f1f5f9' },
               ticks: {
                 font: { family: "'Prompt', sans-serif", size: 11 },
-                callback: function(v) { return `${v.toFixed(1)}%`; }
+                callback: function(v) {
+                  const num = Number(v);
+                  return isNaN(num) ? v : `${num.toFixed(1)}%`;
+                }
               }
             }
           }
         }
       });
+    }
+
+    // ========================================================
+    // เรนเดอร์ตารางรายละเอียด % Waste ALL รายวัน (Collapsible Table)
+    // ========================================================
+    function renderWasteAllTable(data, sumCon, sumOut, wasteKg, wastePct, diffPct) {
+      const tbody = document.getElementById('wasteAllTableBody');
+      if (!tbody) return;
+
+      safeSetText('waste-all-table-days-badge', `${(data || []).length} วัน`);
+      safeSetText('waste-all-foot-con', `${Number(Math.round(sumCon)).toLocaleString()}`);
+      safeSetText('waste-all-foot-out', `${Number(Math.round(sumOut)).toLocaleString()}`);
+      safeSetText('waste-all-foot-waste-kg', `${Number(Math.round(wasteKg)).toLocaleString()}`);
+      safeSetText('waste-all-foot-pct', `${Number(wastePct).toFixed(2)}%`);
+      const diffStr = diffPct <= 0 ? `${diffPct.toFixed(2)}%` : `+${diffPct.toFixed(2)}%`;
+      safeSetText('waste-all-foot-diff', diffStr);
+
+      const footStatus = document.getElementById('waste-all-foot-status');
+      if (footStatus) {
+        const pass = wastePct <= TARGET_WASTE_ALL;
+        footStatus.innerHTML = pass
+          ? `<span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-500 text-white">ได้เป้า ✅</span>`
+          : `<span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-500 text-white">เกินเป้า ❌</span>`;
+      }
+
+      let rowsHtml = '';
+      (data || []).forEach(d => {
+        const c = Number(d.consumption) || 0;
+        const o = Number(d.output) || 0;
+        const wKg = c - o;
+        const p = c > 0 ? Number(((wKg / c) * 100).toFixed(2)) : 0;
+        const diff = parseFloat((p - TARGET_WASTE_ALL).toFixed(2));
+        const pass = p <= TARGET_WASTE_ALL;
+        const diffText = diff > 0 ? `+${diff.toFixed(2)}%` : `${diff.toFixed(2)}%`;
+        const diffColor = pass ? 'text-emerald-700 font-bold' : 'text-rose-600 font-bold';
+        const badge = (c === 0 && o === 0)
+          ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500">ไม่เดินเครื่อง</span>`
+          : (pass
+            ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">ได้เป้า ✅</span>`
+            : `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-800">เกินเป้า ❌</span>`);
+
+        rowsHtml += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-2 text-left font-bold border-r border-slate-200">${d.date}</td>
+            <td class="p-2 border-r border-slate-200">${Number(Math.round(c)).toLocaleString()}</td>
+            <td class="p-2 border-r border-slate-200">${Number(Math.round(o)).toLocaleString()}</td>
+            <td class="p-2 border-r border-slate-200 font-bold text-amber-900 bg-amber-50/40">${Number(Math.round(wKg)).toLocaleString()}</td>
+            <td class="p-2 border-r border-slate-200 font-black ${p > TARGET_WASTE_ALL ? 'text-rose-600 bg-rose-50/50' : 'text-emerald-700'}">${p.toFixed(2)}%</td>
+            <td class="p-2 border-r border-slate-200 text-slate-600 font-semibold">${TARGET_WASTE_ALL.toFixed(2)}%</td>
+            <td class="p-2 border-r border-slate-200 ${diffColor}">${diffText}</td>
+            <td class="p-2">${badge}</td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = rowsHtml;
     }
 
     async function downloadWasteAllBarChartImage() {
