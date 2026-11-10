@@ -12,8 +12,8 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js CDN + Annotation Plugin + DataLabels Plugin -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.2.1/dist/chartjs-plugin-annotation.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
   <!-- html2canvas for High Resolution DOM Image Export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -35,8 +35,11 @@
       top: 0;
       z-index: 10;
     }
-    /* ล็อคหัวข้อตารางทุกตาราง (Sticky Multi-Row Table Header) */
-    table thead {
+    /* ล็อคหัวข้อตารางสำหรับตารางที่มี Scrollbar แนวตั้ง (Sticky Multi-Row Table Header) */
+    #waste-table-scroll-container thead,
+    #dept-detail-table-scroll thead,
+    #weight-table-scroll-container thead,
+    #waste-all-table-container thead {
       position: sticky;
       top: 0;
       z-index: 30;
@@ -958,9 +961,9 @@
               </div>
             </div>
 
-            <div class="overflow-auto max-h-[520px]">
+            <div id="dept-comp-table-scroll" class="overflow-x-auto">
               <table class="data-table w-full text-xs sm:text-sm border-collapse">
-                <thead id="deptComparisonTableHead" class="sticky top-0 z-30">
+                <thead id="deptComparisonTableHead">
                   <!-- แถวที่ 1: Target Row (แถวสีเหลือง) -->
                   <tr class="bg-[#fcd34d] text-slate-900 font-bold border-b border-slate-300 text-xs">
                     <th class="p-2 text-left border-r border-slate-300 font-extrabold sticky left-0 bg-[#fcd34d] z-20">Target</th>
@@ -2281,46 +2284,46 @@
 
     function safeCreateChart(canvasOrId, config, currentInstance) {
       if (typeof Chart === 'undefined') return null;
-      let canvasEl = typeof canvasOrId === 'string' ? document.getElementById(canvasOrId) : canvasOrId;
+      const canvasId = typeof canvasOrId === 'string' ? canvasOrId : (canvasOrId ? canvasOrId.id : '');
+      let canvasEl = canvasId ? document.getElementById(canvasId) : canvasOrId;
       if (!canvasEl) return null;
+
+      // ปิด animation เพื่อให้กราฟแสดงผลทันที (0ms) และไม่ค้างหรือหายเมื่อมีการอัปเดตข้อมูลซ้อนกัน
+      if (!config.options) config.options = {};
+      config.options.animation = false;
+      if (config.options.animations) delete config.options.animations;
+      config.options.transitions = { active: { animation: { duration: 0 } }, resize: { animation: { duration: 0 } } };
 
       // 1. สั่งหยุดแอนิเมชันและทำลายกราฟเดิมก่อน
       safeDestroyChart(currentInstance, canvasEl);
 
-      // 2. ตรวจสอบว่า Chart.js ยังจำว่า canvas กำลังถูกใช้งานอยู่หรือไม่
-      if (typeof Chart.getChart === 'function') {
-        try {
-          const stillAttached = Chart.getChart(canvasEl);
-          if (stillAttached) {
-            try { if (typeof stillAttached.stop === 'function') stillAttached.stop(); } catch (e) {}
-            try { if (typeof stillAttached.destroy === 'function') stillAttached.destroy(); } catch (e) {}
-            // ถ้า canvas ยังค้างใน Registry ให้ Clone node เพื่อเคลียร์ State สะอาด 100%
-            if (canvasEl.parentNode && Chart.getChart(canvasEl)) {
-              const freshCanvas = canvasEl.cloneNode(false);
-              canvasEl.parentNode.replaceChild(freshCanvas, canvasEl);
-              canvasEl = freshCanvas;
-            }
-          }
-        } catch (e) {}
+      // 2. สร้าง DOM <canvas> ใหม่ที่สะอาด 100% เพื่อล้าง inline width/height=0 หรือ ResizeObserver ที่ค้างจาก Chart.js
+      if (canvasEl.parentNode) {
+        const freshCanvas = document.createElement('canvas');
+        if (canvasEl.id) freshCanvas.id = canvasEl.id;
+        if (canvasEl.className) freshCanvas.className = canvasEl.className;
+        freshCanvas.style.width = '100%';
+        freshCanvas.style.height = '100%';
+        freshCanvas.style.display = 'block';
+        canvasEl.parentNode.replaceChild(freshCanvas, canvasEl);
+        canvasEl = freshCanvas;
       }
 
-      // 3. สร้างอินสแตนซ์กราฟใหม่ พร้อมระบบกู้คืน canvas อัตโนมัติหากมีข้อผิดพลาด
+      // 3. สร้างอินสแตนซ์กราฟใหม่ทันที
       try {
         const ctx = canvasEl.getContext('2d');
-        return new Chart(ctx, config);
+        const chart = new Chart(ctx, config);
+        requestAnimationFrame(() => {
+          try {
+            if (chart && chart.canvas && chart.canvas.isConnected) {
+              chart.resize();
+              chart.update('none');
+            }
+          } catch (e) {}
+        });
+        return chart;
       } catch (err) {
-        console.warn('safeCreateChart error, recreating canvas node:', err);
-        try {
-          if (canvasEl && canvasEl.parentNode) {
-            const freshCanvas = canvasEl.cloneNode(false);
-            canvasEl.parentNode.replaceChild(freshCanvas, canvasEl);
-            canvasEl = freshCanvas;
-            const ctx = canvasEl.getContext('2d');
-            return new Chart(ctx, config);
-          }
-        } catch (retryErr) {
-          console.error('safeCreateChart recovery failed:', retryErr);
-        }
+        console.error('safeCreateChart error:', err);
         return null;
       }
     }
@@ -3204,6 +3207,12 @@
       } catch (err) {
         console.error('Error rendering Waste ALL section:', err);
       }
+
+      // รีเซ็ตตำแหน่ง Scroll แนวตั้งของกล่องตารางให้เริ่มที่แถวแรกเสมอ (ป้องกันแถวที่ 1 เช่น Waste Production หรือ 1/11/2026 มุดหายใต้หัวตาราง)
+      ['dept-comp-table-scroll', 'waste-table-scroll-container', 'dept-detail-table-scroll', 'weight-table-scroll-container', 'waste-all-table-container'].forEach(id => {
+        const sc = document.getElementById(id);
+        if (sc) sc.scrollTop = 0;
+      });
     }
 
     // คำนวณสรุป KPI Cards
@@ -3791,10 +3800,8 @@
             }
           }
         }
-      });
+      }, dailyWasteChartInstance);
     }
-
-    // เรนเดอร์กราฟจำแนกตามประเภทของเสีย
     function renderCategoryCharts(data, summary = currentSummary) {
       if (typeof Chart === 'undefined') return;
 
@@ -3891,10 +3898,8 @@
               }
             }
           }
-        });
+        }, categoryWasteChartInstance);
       }
-
-      // 2. กราฟโดนัทสัดส่วนของเสีย (ดึงข้อมูลจริงจาก 11 หมวดหมู่)
       if (donutEl) {
         const catItems = WASTE_COLUMNS.map((col, idx) => ({
           label: col.label,
@@ -3934,12 +3939,9 @@
             },
             cutout: '52%'
           }
-        });
+        }, categoryDonutChartInstance);
       }
     }
-
-    // ========================================================
-    // ฟังก์ชันจัดการกราฟวิเคราะห์แยกของเสีย 11 รายการ (Filtered Breakdown Chart)
     // ========================================================
     let currentGranularityView = 'daily'; // 'daily' | 'weekly' | 'monthly'
     let currentTrendLineColor = localStorage.getItem('waste_trend_custom_color') || '#2563eb';
@@ -5382,11 +5384,8 @@
             }
           }
         }
-      });
+      }, yearlyWasteChartInstance);
     }
-
-    // ========================================================
-    // ฟังก์ชันดาวน์โหลด/บันทึกภาพเฉพาะกราฟรายเดือน (ความละเอียดระดับ 4K Ultra HD คมชัดสูงสุด)
     // ========================================================
     function downloadYearlyChartImage() {
       const chartEl = document.getElementById('yearlyWasteChart');
@@ -6556,11 +6555,8 @@
             }
           }
         }
-      });
+      }, wasteAllDailyChartInstance);
     }
-
-    // ========================================================
-    // เรนเดอร์กราฟแนวโน้มเส้น % Waste ALL (Area Trend Line Chart)
     // ใหญ่ขึ้น ชัดเจน เปลี่ยนสีเส้นได้ ป้าย 2 บรรทัด (% และ kg)
     // ========================================================
     function renderWasteAllTrendLineChart(points) {
@@ -6715,11 +6711,8 @@
             }
           }
         }
-      });
+      }, wasteAllTrendLineChartInstance);
     }
-
-    // ========================================================
-    // เรนเดอร์ตารางรายละเอียด % Waste ALL รายวัน (Collapsible Table)
     // ========================================================
     function renderWasteAllTable(data, sumCon, sumOut, wasteKg, wastePct, diffPct) {
       const tbody = document.getElementById('wasteAllTableBody');
@@ -7764,7 +7757,7 @@
             }
           }
         }
-      });
+      }, deptComparisonChartInstance);
     }
 
     function renderDeptDailyTable(dw) {
@@ -8163,7 +8156,7 @@
             }
           }
         }
-      });
+      }, deptDailyWasteChartInstance);
     }
 
     function getDeptRangeFileSlug() {
