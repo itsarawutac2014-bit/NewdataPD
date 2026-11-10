@@ -41,6 +41,12 @@
       background-color: #f8fafc;
       color: #1e293b;
     }
+    table thead {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+    }
     
     /* ซ่อน Scrollbar ที่ไม่จำเป็น */
     .no-scrollbar::-webkit-scrollbar {
@@ -966,18 +972,41 @@
         </div>
 
         <!-- Table Content -->
-        <div class="overflow-x-auto">
+        <div class="overflow-auto max-h-[600px]">
           <table class="output-table w-full text-center text-xs border-collapse">
-            <thead>
-              <tr class="bg-indigo-900 text-white font-bold border-b border-indigo-950">
-                <th class="p-3 text-left min-w-[120px]">วันที่ (Date)</th>
-                <th class="p-3 min-w-[130px] bg-amber-500/20 text-amber-300">Target Output (กก.)</th>
-                <th class="p-3 min-w-[140px] bg-indigo-800">ผลิตจริง Actual Output (กก.)</th>
-                <th class="p-3 min-w-[130px]">ผลต่าง Diff (กก.)</th>
-                <th class="p-3 min-w-[110px]">% บรรลุเป้า</th>
-                <th class="p-3 min-w-[110px]">สถานะ</th>
-                <th class="p-3 min-w-[130px] text-slate-300">Consumption (กก.)</th>
-                <th class="p-3 min-w-[100px] text-slate-300">% Waste จริง</th>
+            <thead class="sticky top-0 z-30">
+              <!-- แถวที่ 1: Target Row (แถวสีเหลือง) -->
+              <tr class="bg-[#fcd34d] text-slate-900 font-bold border-b border-slate-300">
+                <th class="p-2 border-r border-slate-300 text-center font-extrabold text-slate-900 sticky left-0 bg-[#fcd34d] z-20 min-w-[120px]">Target</th>
+                <th class="p-2 border-r border-slate-300 font-bold text-slate-900 min-w-[130px]" id="head-target-daily-label">Target/วัน</th>
+                <th class="p-2 border-r border-slate-300 bg-[#fbbf24] text-red-700 font-black text-sm min-w-[140px]" id="head-target-mtd-label">100.0%</th>
+                <th class="p-2 border-r border-slate-300 bg-amber-100 text-amber-950 font-bold min-w-[130px]">&plusmn;0 กก.</th>
+                <th class="p-2 border-r border-slate-300 bg-amber-100 text-amber-950 font-bold min-w-[110px]">&ge; 100.0%</th>
+                <th class="p-2 border-r border-slate-300 bg-emerald-100 text-emerald-950 font-bold min-w-[110px]">ได้เป้า</th>
+                <th class="p-2 border-r border-slate-300 bg-blue-100 text-blue-950 font-extrabold min-w-[130px]">Consumption</th>
+                <th class="p-2 bg-indigo-100 text-indigo-950 font-extrabold min-w-[100px]">&le; 5.00%</th>
+              </tr>
+              <!-- แถวที่ 2: Column Header Row (แถวสีเขียวมินต์) -->
+              <tr class="bg-[#a7f3d0] text-slate-900 font-bold border-b-2 border-emerald-500 shadow-2xs">
+                <th class="p-2.5 border-r border-emerald-300 text-left sticky left-0 bg-[#a7f3d0] z-20 min-w-[120px]">วันที่ (Date)</th>
+                <th class="p-2.5 border-r border-emerald-300 min-w-[130px]">Target Output (กก.)</th>
+                <th class="p-2.5 border-r border-emerald-400 min-w-[140px] bg-[#6ee7b7] text-slate-900 font-extrabold">ผลิตจริง Actual Output (กก.)</th>
+                <th class="p-2.5 border-r border-emerald-300 min-w-[130px]">ผลต่าง Diff (กก.)</th>
+                <th class="p-2.5 border-r border-emerald-300 min-w-[110px]">% บรรลุเป้า</th>
+                <th class="p-2.5 border-r border-emerald-300 min-w-[110px]">สถานะ</th>
+                <th class="p-2.5 border-r border-emerald-300 min-w-[130px] bg-[#bbf7d0]">Consumption (กก.)</th>
+                <th class="p-2.5 min-w-[100px] bg-[#bbf7d0]">% Waste จริง</th>
+              </tr>
+              <!-- แถวที่ 3: แถวสรุปผลรวมสะสมด้านบน (ล็อคติดกับหัวตาราง) -->
+              <tr class="bg-emerald-700 text-white font-extrabold border-b-2 border-emerald-900 shadow-xs text-xs">
+                <td class="p-2 border-r border-emerald-500 text-left font-black sticky left-0 bg-emerald-700 text-white z-20 whitespace-nowrap">ผลรวมสะสม</td>
+                <td class="p-2 border-r border-emerald-500 text-amber-200 font-black text-sm" id="head-target-sum">2,200,000</td>
+                <td class="p-2 border-r border-emerald-500 bg-emerald-300 text-emerald-950 font-black text-sm" id="head-actual-sum">2,231,397</td>
+                <td class="p-2 border-r border-emerald-500 bg-emerald-800 text-amber-200 font-bold" id="head-diff-sum">+31,397</td>
+                <td class="p-2 border-r border-emerald-500 text-white font-black" id="head-achieved-sum">101.4%</td>
+                <td class="p-2 border-r border-emerald-500 bg-emerald-800 text-white font-bold text-center" id="head-status-sum">ได้เป้า</td>
+                <td class="p-2 border-r border-emerald-500 bg-emerald-800/90 text-white font-black" id="head-consum-sum">2,495,498</td>
+                <td class="p-2 bg-emerald-800/90 text-amber-200 font-black" id="head-waste-avg">4.50%</td>
               </tr>
             </thead>
             <tbody id="outputTableBody" class="divide-y divide-slate-200 font-medium">
@@ -985,17 +1014,17 @@
             </tbody>
             <tfoot>
               <!-- แถวสรุปผลรวมท้ายตาราง -->
-              <tr class="bg-slate-900 text-white font-black text-xs border-t-2 border-indigo-500">
-                <td class="p-3 text-left tracking-wide">ผลรวมสะสม (Total MTD)</td>
-                <td class="p-3 text-amber-300 text-sm font-black" id="foot-target-sum">2,200,000</td>
-                <td class="p-3 text-cyan-300 text-sm font-black" id="foot-actual-sum">2,231,397</td>
-                <td class="p-3 text-sm font-black" id="foot-diff-sum">+31,397</td>
-                <td class="p-3 text-sm font-black text-emerald-400" id="foot-achieved-sum">101.4%</td>
-                <td class="p-3 text-center" id="foot-status-sum">
+              <tr class="bg-slate-100 text-slate-900 font-black text-xs border-t-2 border-slate-400">
+                <td class="p-3 border-r border-slate-300 text-left tracking-wide sticky left-0 bg-slate-100 z-10">ผลรวมทั้งหมด (Total MTD)</td>
+                <td class="p-3 border-r border-slate-300 text-slate-900 text-sm font-black" id="foot-target-sum">2,200,000</td>
+                <td class="p-3 border-r border-slate-300 bg-emerald-200 text-emerald-950 text-sm font-black" id="foot-actual-sum">2,231,397</td>
+                <td class="p-3 border-r border-slate-300 text-sm font-black text-emerald-700" id="foot-diff-sum">+31,397</td>
+                <td class="p-3 border-r border-slate-300 text-sm font-black text-emerald-700" id="foot-achieved-sum">101.4%</td>
+                <td class="p-3 border-r border-slate-300 text-center" id="foot-status-sum">
                   <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-500 text-white">ได้เป้า ✅</span>
                 </td>
-                <td class="p-3 text-slate-300 font-bold" id="foot-consum-sum">2,495,498</td>
-                <td class="p-3 text-emerald-400 font-bold" id="foot-waste-avg">4.50%</td>
+                <td class="p-3 border-r border-slate-300 text-slate-900 font-black" id="foot-consum-sum">2,495,498</td>
+                <td class="p-3 text-emerald-700 font-black" id="foot-waste-avg">4.50%</td>
               </tr>
             </tfoot>
           </table>
@@ -3188,15 +3217,35 @@
         tbody.appendChild(tr);
       });
 
-      // แถวผลรวมท้ายตาราง
+      // แถวผลรวมด้านบน (thead) และท้ายตาราง (tfoot)
       safeSetText('foot-target-sum', totalTarget.toLocaleString());
       safeSetText('foot-actual-sum', totalActual.toLocaleString());
+      safeSetText('head-target-sum', totalTarget.toLocaleString());
+      safeSetText('head-actual-sum', totalActual.toLocaleString());
       const diffSign = totalDiff >= 0 ? '+' : '';
       safeSetText('foot-diff-sum', `${diffSign}${totalDiff.toLocaleString()}`);
+      safeSetText('head-diff-sum', `${diffSign}${totalDiff.toLocaleString()}`);
       safeSetText('foot-achieved-sum', `${overallAchievedPct.toFixed(1)}%`);
+      safeSetText('head-achieved-sum', `${overallAchievedPct.toFixed(1)}%`);
       safeSetText('foot-consum-sum', totalConsum.toLocaleString());
+      safeSetText('head-consum-sum', totalConsum.toLocaleString());
       safeSetText('foot-waste-avg', `${avgWastePct.toFixed(2)}%`);
-      
+      safeSetText('head-waste-avg', `${avgWastePct.toFixed(2)}%`);
+
+      const headStatus = document.getElementById('head-status-sum');
+      const headActual = document.getElementById('head-actual-sum');
+      if (headStatus) {
+        headStatus.textContent = overallAchievedPct >= 100 ? 'ได้เป้า' : 'ต่ำกว่าเป้า';
+        headStatus.className = overallAchievedPct >= 100
+          ? 'p-2 border-r border-emerald-500 bg-emerald-800 text-white font-bold text-center'
+          : 'p-2 border-r border-emerald-500 bg-rose-700 text-white font-bold text-center';
+      }
+      if (headActual) {
+        headActual.className = overallAchievedPct >= 100
+          ? 'p-2 border-r border-emerald-500 bg-emerald-300 text-emerald-950 font-black text-sm'
+          : 'p-2 border-r border-emerald-500 bg-rose-300 text-rose-950 font-black text-sm';
+      }
+
       const footStatus = document.getElementById('foot-status-sum');
       if (footStatus) {
         if (overallAchievedPct >= 100) {

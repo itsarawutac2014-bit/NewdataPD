@@ -35,12 +35,21 @@
       top: 0;
       z-index: 10;
     }
+    /* ล็อคหัวข้อตารางทุกตาราง (Sticky Multi-Row Table Header) */
+    table thead {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+    }
     /* เส้นตารางเข้มขึ้น ชัดเจนแบบ Excel */
-    table.waste-table {
+    table.waste-table, table.weight-table, table.data-table {
       border-collapse: collapse !important;
       border: 2px solid #64748b !important;
     }
-    table.waste-table th, table.waste-table td {
+    table.waste-table th, table.waste-table td,
+    table.weight-table th, table.weight-table td,
+    table.data-table th, table.data-table td {
       border: 1px solid #94a3b8 !important;
     }
     .badge-target-pass {
@@ -663,84 +672,136 @@
         </div>
       </div>
 
-      <div id="waste-table-scroll-container" class="overflow-x-auto w-full">
+      <!-- แถบหัวตารางดีไซน์เดียวกับตารางสรุปแผนก (สีเขียวเข้ม-ดำ พร้อมป้าย Target และสะสมจริง) -->
+      <div class="px-5 py-3.5 bg-gradient-to-r from-emerald-950 via-teal-900 to-slate-900 text-white flex flex-wrap justify-between items-center gap-3">
+        <div class="flex items-center gap-2.5">
+          <span class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 flex items-center justify-center text-sm font-black">
+            <i class="fa-solid fa-table"></i>
+          </span>
+          <div>
+            <h3 class="text-sm sm:text-base font-black tracking-wide flex items-center gap-2 flex-wrap">
+              <span id="main-waste-table-title">ตารางติดตามของเสีย (รายวัน) — แผนกผลิต Production 11 รายการ (หน่วย: % Waste)</span>
+              <span id="main-waste-table-target-pill" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-300 text-slate-950">Target 5.00%</span>
+            </h3>
+            <p class="text-[11px] text-emerald-200/90 mt-0.5">
+              เปรียบเทียบค่า Target และผลรวมสะสมตามช่วงข้อมูลที่เลือก (ล็อคหัวตารางและแสดงผลรวมทั้งด้านบนและด้านล่าง)
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2.5 text-xs flex-wrap">
+          <div class="bg-white/10 border border-white/15 rounded-xl px-3 py-1.5">
+            <span class="text-emerald-200">สะสมจริง (Actual):</span>
+            <strong id="main-banner-actual-pct" class="text-amber-300 font-black ml-1 text-sm">4.61%</strong>
+            <span id="main-banner-actual-kg" class="text-white/80 ml-1">(115,526 กก.)</span>
+          </div>
+          <span id="main-banner-status-badge" class="px-3 py-1.5 rounded-xl font-black bg-emerald-400 text-emerald-950 shadow-xs">
+            ได้เป้า ✅
+          </span>
+          <button type="button" data-html2canvas-ignore="true" onclick="saveHighResReport()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-xl text-xs font-black shadow-xs transition cursor-pointer">
+            <i class="fa-solid fa-download"></i> บันทึกภาพตาราง
+          </button>
+        </div>
+      </div>
+
+      <div id="waste-table-scroll-container" class="overflow-auto max-h-[600px] w-full">
         <table class="waste-table w-full text-center text-xs border-collapse">
-          <thead>
-            <!-- Target Row (แถวสีเหลือง) -->
-            <tr class="bg-amber-200 text-slate-900 font-bold border-b border-amber-300">
-              <th class="p-2 border-r border-amber-300 text-left">Target</th>
-              <th id="th-target-ncp" class="p-2 border-r border-amber-300">2.00%</th>
-              <th id="th-target-def" class="p-2 border-r border-amber-300">1.10%</th>
-              <th id="th-target-web" class="p-2 border-r border-amber-300">0.15%</th>
-              <th id="th-target-control" class="p-2 border-r border-amber-300">1.01%</th>
-              <th id="th-target-om" class="p-2 border-r border-amber-300">0.05%</th>
-              <th id="th-target-order" class="p-2 border-r border-amber-300">0.20%</th>
-              <th id="th-target-core" class="p-2 border-r border-amber-300">0.15%</th>
-              <th id="th-target-spec" class="p-2 border-r border-amber-300">0.15%</th>
-              <th id="th-target-conveyor" class="p-2 border-r border-amber-300">0.03%</th>
-              <th id="th-target-qc" class="p-2 border-r border-amber-300">0.07%</th>
-              <th id="th-target-reject" class="p-2 border-r border-amber-300">0.09%</th>
-              <th id="th-target-allWaste" class="p-2 border-r border-amber-300 bg-amber-300 font-black text-amber-950">5.00%</th>
-              <th class="p-2 border-r border-amber-300 bg-amber-100 text-[10px] text-amber-950 font-bold">เป้า 5%</th>
-              <th class="p-2 border-r border-amber-300 bg-amber-100 text-[10px] text-amber-950 font-bold">&plusmn;ส่วนต่าง</th>
-              <th class="p-2 border-r border-amber-300 bg-amber-300 text-slate-900 font-bold text-xs" id="th-target-con-daily">Target Con</th>
-              <th class="p-2 bg-amber-300 text-slate-900 font-bold text-xs" id="th-target-out-daily">Target Out</th>
+          <thead class="sticky top-0 z-30">
+            <!-- แถวที่ 1: Target Row (แถวสีเหลือง) -->
+            <tr class="bg-[#fcd34d] text-slate-900 font-bold border-b border-slate-300">
+              <th class="p-2 border-r border-slate-300 text-center font-extrabold text-slate-900 sticky left-0 bg-[#fcd34d] z-20 min-w-[110px]">Target</th>
+              <th id="th-target-ncp" class="p-2 border-r border-slate-300 font-bold text-slate-900">2.00%</th>
+              <th id="th-target-def" class="p-2 border-r border-slate-300 font-bold text-slate-900">1.10%</th>
+              <th id="th-target-web" class="p-2 border-r border-slate-300 font-bold text-slate-900">0.15%</th>
+              <th id="th-target-control" class="p-2 border-r border-slate-300 font-bold text-slate-900">1.01%</th>
+              <th id="th-target-om" class="p-2 border-r border-slate-300 font-bold text-slate-900">0.05%</th>
+              <th id="th-target-order" class="p-2 border-r border-slate-300 font-bold text-slate-900">0.20%</th>
+              <th id="th-target-core" class="p-2 border-r border-slate-300 font-bold text-slate-900">0.15%</th>
+              <th id="th-target-spec" class="p-2 border-r border-slate-300 font-bold text-slate-900">0.15%</th>
+              <th id="th-target-conveyor" class="p-2 border-r border-slate-300 font-bold text-slate-900">0.03%</th>
+              <th id="th-target-qc" class="p-2 border-r border-slate-300 font-bold text-slate-900">0.07%</th>
+              <th id="th-target-reject" class="p-2 border-r border-slate-300 font-bold text-slate-900">0.09%</th>
+              <th id="th-target-allWaste" class="p-2 border-r border-slate-300 bg-[#fbbf24] text-red-700 font-black text-sm min-w-[95px]">5.00%</th>
+              <th class="p-2 border-r border-slate-300 bg-amber-100 text-amber-950 font-bold text-xs min-w-[85px]">&plusmn;0.00%</th>
+              <th class="p-2 border-r border-slate-300 bg-emerald-100 text-emerald-950 font-bold text-xs min-w-[85px]">ได้เป้า</th>
+              <th class="p-2 border-r border-slate-300 bg-blue-100 text-blue-950 font-extrabold text-xs min-w-[105px]" id="th-target-con-daily">Consumption</th>
+              <th class="p-2 bg-indigo-100 text-indigo-950 font-extrabold text-xs min-w-[105px]" id="th-target-out-daily">Out-put</th>
             </tr>
-            <!-- Header Column Row (แถวสีเขียวอ่อน) -->
-            <tr class="bg-emerald-100 text-slate-900 font-bold border-b border-emerald-200">
-              <th class="p-2.5 border-r border-emerald-200 text-left min-w-[120px]">ป้ายชื่อแถว</th>
-              <th class="p-2.5 border-r border-emerald-200 min-w-[70px]">.NCP</th>
-              <th class="p-2.5 border-r border-emerald-200 min-w-[70px]">.DEF</th>
-              <th class="p-2.5 border-r border-emerald-200 min-w-[70px]">.WEB</th>
-              <th class="p-2.5 border-r border-emerald-200 min-w-[110px]">ของเหลือ Control</th>
-              <th class="p-2.5 border-r border-emerald-200 min-w-[100px]">ของเหลือ O.M.</th>
-              <th class="p-2.5 border-r border-emerald-200 min-w-[95px]">.รอยต่อออเดอร์</th>
-              <th class="p-2.5 border-r border-emerald-200 min-w-[95px]">.เศษติดแกนผลิต</th>
-              <th class="p-2.5 border-r border-emerald-200 min-w-[95px]">.สันนูนตรงสเปค</th>
-              <th class="p-2.5 border-r border-emerald-200 min-w-[80px]">.Conveyor</th>
-              <th class="p-2.5 border-r border-emerald-200 min-w-[75px]">.QC Test</th>
-              <th class="p-2.5 border-r border-emerald-200 min-w-[75px]">.Reject</th>
-              <th class="p-2.5 border-r border-emerald-200 min-w-[95px] bg-amber-200 text-amber-900 font-black">ALL Waste</th>
-              <th class="p-2.5 border-r border-emerald-200 min-w-[85px] bg-white text-center align-middle font-bold">สถานะ</th>
-              <th class="p-2.5 border-r border-emerald-200 min-w-[85px] bg-white text-center align-middle font-bold">Diff Target</th>
-              <th class="p-2.5 border-r border-emerald-200 min-w-[110px] bg-amber-400 text-slate-900 font-bold">Consumtion</th>
-              <th class="p-2.5 min-w-[110px] bg-amber-400 text-slate-900 font-bold">Out Put</th>
+            <!-- แถวที่ 2: Header Column Row (แถวสีเขียวมินต์) -->
+            <tr class="bg-[#a7f3d0] text-slate-900 font-bold border-b-2 border-emerald-500 shadow-2xs">
+              <th class="p-2.5 border-r border-emerald-300 text-left font-bold sticky left-0 bg-[#a7f3d0] z-20 min-w-[110px]">วันที่</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[70px]">.NCP</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[70px]">.DEF</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[70px]">.WEB</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[110px]">ของเหลือ Control</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[100px]">ของเหลือ O.M.</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[95px]">.รอยต่อออเดอร์</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[95px]">.เศษติดแกนผลิต</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[95px]">.สันนูนตรงสเปค</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[80px]">.Conveyor</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[75px]">.QC Test</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[75px]">.Reject</th>
+              <th class="p-2.5 border-r border-emerald-400 min-w-[95px] bg-[#6ee7b7] text-slate-900 font-extrabold">รวม 11 รายการ</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[85px] bg-[#a7f3d0] text-slate-900 font-bold">Diff เทียบเป้า</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[85px] bg-[#a7f3d0] text-slate-900 font-bold">สถานะ</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[105px] bg-[#bbf7d0] text-slate-900 font-bold">Consumption</th>
+              <th class="p-2.5 min-w-[105px] bg-[#bbf7d0] text-slate-900 font-bold">Out-put</th>
+            </tr>
+            <!-- แถวที่ 3: แถวสรุปผลรวมสะสมด้านบน (ล็อคติดกับหัวตาราง) -->
+            <tr class="bg-emerald-700 text-white font-extrabold border-b-2 border-emerald-900 shadow-xs text-xs">
+              <td class="p-2 border-r border-emerald-500 text-left font-black sticky left-0 bg-emerald-700 text-white z-20 whitespace-nowrap">ผลรวมสะสม</td>
+              <td class="p-2 border-r border-emerald-500" id="head-row-ncp">1.86%</td>
+              <td class="p-2 border-r border-emerald-500" id="head-row-def">1.05%</td>
+              <td class="p-2 border-r border-emerald-500" id="head-row-web">0.06%</td>
+              <td class="p-2 border-r border-emerald-500 bg-rose-600 text-white font-black" id="head-row-control">1.38%</td>
+              <td class="p-2 border-r border-emerald-500" id="head-row-om">0.00%</td>
+              <td class="p-2 border-r border-emerald-500" id="head-row-order">0.07%</td>
+              <td class="p-2 border-r border-emerald-500" id="head-row-core">0.04%</td>
+              <td class="p-2 border-r border-emerald-500" id="head-row-spec">0.02%</td>
+              <td class="p-2 border-r border-emerald-500" id="head-row-conveyor">0.01%</td>
+              <td class="p-2 border-r border-emerald-500" id="head-row-qc">0.01%</td>
+              <td class="p-2 border-r border-emerald-500 bg-rose-600 text-white font-black" id="head-row-reject">0.13%</td>
+              <td class="p-2 border-r border-emerald-500 bg-emerald-300 text-emerald-950 font-black text-sm" id="head-row-all-waste">4.61%</td>
+              <td class="p-2 border-r border-emerald-500 bg-emerald-800 text-amber-200 font-bold text-center align-middle" id="head-row-diff">+0.39%</td>
+              <td class="p-2 border-r border-emerald-500 bg-emerald-800 text-white font-bold text-center align-middle" id="head-row-status">ได้เป้า</td>
+              <td class="p-2 border-r border-emerald-500 bg-emerald-800/90 text-white font-black text-right pr-3" id="head-row-consumption">1,587,701</td>
+              <td class="p-2 bg-emerald-800/90 text-white font-black text-right pr-3" id="head-row-output">1,415,766</td>
             </tr>
           </thead>
           <tbody id="wasteTableBody" class="divide-y divide-slate-200">
             <!-- Rows injected by JavaScript -->
           </tbody>
           <tfoot>
-            <!-- แถวสรุปผลรวมทั้งหมด (ยกมาไว้ด้านล่างแทนที่แถวเดิมตามที่ผู้ใช้ขอ) -->
-            <tr class="bg-emerald-600 text-white font-bold border-t-2 border-emerald-700 text-xs">
-              <td class="p-2.5 text-left font-black tracking-wide whitespace-nowrap bg-emerald-700">
-                <i class="fa-solid fa-calculator text-amber-300 mr-1"></i> ผลรวมทั้งหมด
+            <!-- แถวสรุปผลรวมทั้งหมดด้านล่าง (มีทั้งด้านบนและด้านล่าง) -->
+            <tr class="bg-slate-100 text-slate-900 font-black border-t-2 border-slate-400 text-xs">
+              <td class="p-2.5 border-r border-slate-300 text-left font-black tracking-wide whitespace-nowrap sticky left-0 bg-slate-100 z-10">
+                ผลรวมทั้งหมด
               </td>
-              <td class="p-2 border-r border-emerald-500" id="top-row-ncp">1.86%</td>
-              <td class="p-2 border-r border-emerald-500" id="top-row-def">1.05%</td>
-              <td class="p-2 border-r border-emerald-500" id="top-row-web">0.06%</td>
-              <td class="p-2 border-r border-emerald-500" id="top-row-control">1.38%</td>
-              <td class="p-2 border-r border-emerald-500" id="top-row-om">0.00%</td>
-              <td class="p-2 border-r border-emerald-500" id="top-row-order">0.07%</td>
-              <td class="p-2 border-r border-emerald-500" id="top-row-core">0.04%</td>
-              <td class="p-2 border-r border-emerald-500" id="top-row-spec">0.02%</td>
-              <td class="p-2 border-r border-emerald-500" id="top-row-conveyor">0.01%</td>
-              <td class="p-2 border-r border-emerald-500" id="top-row-qc">0.01%</td>
-              <td class="p-2 border-r border-emerald-500" id="top-row-reject">0.13%</td>
-              <td class="p-2 border-r border-emerald-500 bg-amber-300 text-slate-900 font-black text-sm" id="top-row-all-waste">4.61%</td>
-              <td class="p-2 border-r border-emerald-500 bg-emerald-800 text-white font-bold text-center align-middle" id="top-row-status">ได้เป้า</td>
-              <td class="p-2 border-r border-emerald-500 text-emerald-100 font-bold text-center align-middle" id="top-row-diff">+0.39%</td>
-              <td class="p-2 border-r border-emerald-500 bg-amber-400 text-slate-900 font-black text-sm" id="top-row-consumption">1,587,701</td>
-              <td class="p-2 bg-amber-400 text-slate-900 font-black text-sm" id="top-row-output">1,415,766</td>
+              <td class="p-2.5 border-r border-slate-300" id="top-row-ncp">1.86%</td>
+              <td class="p-2.5 border-r border-slate-300" id="top-row-def">1.05%</td>
+              <td class="p-2.5 border-r border-slate-300" id="top-row-web">0.06%</td>
+              <td class="p-2.5 border-r border-slate-300" id="top-row-control">1.38%</td>
+              <td class="p-2.5 border-r border-slate-300" id="top-row-om">0.00%</td>
+              <td class="p-2.5 border-r border-slate-300" id="top-row-order">0.07%</td>
+              <td class="p-2.5 border-r border-slate-300" id="top-row-core">0.04%</td>
+              <td class="p-2.5 border-r border-slate-300" id="top-row-spec">0.02%</td>
+              <td class="p-2.5 border-r border-slate-300" id="top-row-conveyor">0.01%</td>
+              <td class="p-2.5 border-r border-slate-300" id="top-row-qc">0.01%</td>
+              <td class="p-2.5 border-r border-slate-300" id="top-row-reject">0.13%</td>
+              <td class="p-2.5 border-r border-slate-300 bg-emerald-200 text-emerald-950 font-black text-sm" id="top-row-all-waste">4.61%</td>
+              <td class="p-2.5 border-r border-slate-300 text-emerald-700 font-black text-center align-middle" id="top-row-diff">+0.39%</td>
+              <td class="p-2.5 border-r border-slate-300 font-black text-center align-middle" id="top-row-status">ได้เป้า ✅</td>
+              <td class="p-2.5 border-r border-slate-300 text-right pr-3 font-black text-slate-900" id="top-row-consumption">1,587,701</td>
+              <td class="p-2.5 text-right pr-3 font-black text-slate-900" id="top-row-output">1,415,766</td>
             </tr>
             <!-- แถวค่าเฉลี่ยต่อวัน -->
             <tr class="bg-emerald-50 text-emerald-950 font-semibold border-b-2 border-emerald-300 text-[11px]">
-              <td class="p-2 text-left font-bold text-emerald-800 bg-emerald-100">ค่าเฉลี่ย / วัน</td>
+              <td class="p-2 border-r border-emerald-200 text-left font-bold text-emerald-800 sticky left-0 bg-emerald-100 z-10">ค่าเฉลี่ย / วัน</td>
               <td colspan="11" class="text-right pr-4 text-emerald-800 font-medium" id="foot-running-days-label">ค่าเฉลี่ยรายวัน (เดินเครื่องจริง):</td>
               <td class="p-2 bg-amber-100 font-black text-emerald-800" id="foot-all-waste">Actual 4.61%</td>
               <td colspan="2" class="text-right pr-2 text-slate-600 font-medium">เฉลี่ย/วัน:</td>
-              <td class="p-2 font-black text-slate-900 bg-amber-100" id="top-row-avg-consumption">88,206</td>
-              <td class="p-2 font-black text-slate-900 bg-amber-100" id="top-row-avg-output">78,654</td>
+              <td class="p-2 font-black text-slate-900 bg-amber-100 text-right pr-3" id="top-row-avg-consumption">88,206</td>
+              <td class="p-2 font-black text-slate-900 bg-amber-100 text-right pr-3" id="top-row-avg-output">78,654</td>
             </tr>
           </tfoot>
         </table>
@@ -870,34 +931,62 @@
         <!-- 2.1 ตารางสรุปเทียบ Waste แยกตามแผนก (Target / Actual / Diff) -->
         <div id="dept-comp-table-card" class="xl:col-span-6 bg-slate-50/70 rounded-2xl border border-slate-200 overflow-hidden shadow-xs flex flex-col justify-between">
           <div>
-            <div class="px-4 py-3 bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white flex items-center justify-between gap-2 flex-wrap">
+            <div class="px-4 py-3 bg-gradient-to-r from-emerald-950 via-teal-900 to-slate-900 text-white flex items-center justify-between gap-2 flex-wrap">
               <div class="flex items-center gap-2">
-                <i class="fa-solid fa-scale-balanced text-amber-400"></i>
+                <span class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 flex items-center justify-center text-sm font-black">
+                  <i class="fa-solid fa-scale-balanced"></i>
+                </span>
                 <div>
-                  <h3 class="text-sm sm:text-base font-black tracking-wide">
-                    ตารางสรุปเทียบ Waste <span id="dept-comp-table-machine" class="text-amber-300">BHS</span> (Target vs Actual)
+                  <h3 class="text-sm sm:text-base font-black tracking-wide flex items-center gap-2 flex-wrap">
+                    <span>ตารางสรุปเทียบ Waste <span id="dept-comp-table-machine" class="text-amber-300">BHS</span> (Target vs Actual)</span>
+                    <span id="dept-comp-target-pill" class="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-300 text-slate-950">Target 11.00%</span>
                   </h3>
-                  <p class="text-[10px] text-amber-200/90 font-semibold" id="dept-comp-range-subtitle">ช่วงข้อมูล: ทั้งเดือน</p>
+                  <p class="text-[10px] text-emerald-200/90 font-semibold" id="dept-comp-range-subtitle">ช่วงข้อมูล: ทั้งเดือน (คลิกแถวเพื่อดูแผนกนั้น)</p>
                 </div>
               </div>
-              <div class="flex items-center gap-2" data-html2canvas-ignore="true">
-                <span class="text-[11px] text-slate-300 font-medium hidden sm:inline">คลิกแถวเพื่อดูแผนกนั้น</span>
-                <button type="button" onclick="downloadDeptCompTableImage()" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-lg text-xs font-black shadow-xs transition cursor-pointer">
+              <div class="flex items-center gap-2 flex-wrap">
+                <div class="bg-white/10 border border-white/15 rounded-xl px-2.5 py-1 text-xs">
+                  <span class="text-emerald-200">สะสมจริง:</span>
+                  <strong id="dept-comp-banner-actual" class="text-amber-300 font-black ml-1">11.42%</strong>
+                </div>
+                <span id="dept-comp-banner-status" class="px-2.5 py-1 rounded-xl text-xs font-black bg-emerald-400 text-emerald-950 shadow-xs">
+                  ได้เป้า ✅
+                </span>
+                <button type="button" data-html2canvas-ignore="true" onclick="downloadDeptCompTableImage()" class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-lg text-xs font-black shadow-xs transition cursor-pointer">
                   <i class="fa-solid fa-download"></i> บันทึกตารางสรุป
                 </button>
               </div>
             </div>
 
-            <div class="overflow-x-auto">
-              <table class="w-full text-xs sm:text-sm border-collapse">
-                <thead>
-                  <tr class="bg-[#fcd34d] text-slate-950 font-black border-b-2 border-slate-400">
-                    <th class="p-2.5 text-left border-r border-slate-400">Waste <span id="dept-comp-th-machine">BHS</span></th>
-                    <th class="p-2.5 text-center border-r border-slate-400 w-24">Target</th>
-                    <th class="p-2.5 text-center border-r border-slate-400 w-24">Actual</th>
-                    <th class="p-2.5 text-center border-r border-slate-400 w-28">น้ำหนัก (kg)</th>
-                    <th class="p-2.5 text-center border-r border-slate-400 w-24">Diff</th>
+            <div class="overflow-auto max-h-[520px]">
+              <table class="data-table w-full text-xs sm:text-sm border-collapse">
+                <thead id="deptComparisonTableHead" class="sticky top-0 z-30">
+                  <!-- แถวที่ 1: Target Row (แถวสีเหลือง) -->
+                  <tr class="bg-[#fcd34d] text-slate-900 font-bold border-b border-slate-300 text-xs">
+                    <th class="p-2 text-left border-r border-slate-300 font-extrabold sticky left-0 bg-[#fcd34d] z-20">Target</th>
+                    <th class="p-2 text-center border-r border-slate-300 font-black text-slate-900" id="dept-comp-head-target-col">11.00%</th>
+                    <th class="p-2 text-center border-r border-slate-300 bg-[#fbbf24] text-red-700 font-black" id="dept-comp-head-actual-target">11.00%</th>
+                    <th class="p-2 text-center border-r border-slate-300 bg-blue-100 text-blue-950 font-extrabold">น้ำหนักรวม</th>
+                    <th class="p-2 text-center border-r border-slate-300 bg-amber-100 text-amber-950 font-bold">&plusmn;0.00%</th>
+                    <th class="p-2 text-center bg-emerald-100 text-emerald-950 font-bold">ได้เป้า</th>
+                  </tr>
+                  <!-- แถวที่ 2: Column Header Row (แถวสีเขียวมินต์) -->
+                  <tr class="bg-[#a7f3d0] text-slate-900 font-bold border-b-2 border-emerald-500 shadow-2xs text-xs">
+                    <th class="p-2.5 text-left border-r border-emerald-300 sticky left-0 bg-[#a7f3d0] z-20">Waste <span id="dept-comp-th-machine">BHS</span> (7 หัวข้อหลัก)</th>
+                    <th class="p-2.5 text-center border-r border-emerald-300 w-24">Target</th>
+                    <th class="p-2.5 text-center border-r border-emerald-400 bg-[#6ee7b7] font-extrabold w-24">Actual</th>
+                    <th class="p-2.5 text-center border-r border-emerald-300 bg-[#bbf7d0] w-28">น้ำหนัก (kg)</th>
+                    <th class="p-2.5 text-center border-r border-emerald-300 w-24">Diff เทียบเป้า</th>
                     <th class="p-2.5 text-center w-24">สถานะ</th>
+                  </tr>
+                  <!-- แถวที่ 3: ผลรวมสะสมด้านบน -->
+                  <tr id="deptComparisonTableTopSumRow" class="bg-emerald-700 text-white font-extrabold border-b-2 border-emerald-900 shadow-xs text-xs">
+                    <td class="p-2 text-left border-r border-emerald-500 font-black sticky left-0 bg-emerald-700 text-white z-20">ผลรวมสะสม (7 หัวข้อหลัก)</td>
+                    <td class="p-2 text-center border-r border-emerald-500 text-amber-200 font-black">11.00%</td>
+                    <td class="p-2 text-center border-r border-emerald-500 bg-emerald-300 text-emerald-950 font-black text-sm">0.00%</td>
+                    <td class="p-2 text-center border-r border-emerald-500 bg-emerald-800/90 text-white font-black">0</td>
+                    <td class="p-2 text-center border-r border-emerald-500 bg-emerald-800 text-amber-200 font-bold">0.00%</td>
+                    <td class="p-2 text-center bg-emerald-800 text-white font-bold">ได้เป้า</td>
                   </tr>
                 </thead>
                 <tbody id="deptComparisonTableBody" class="divide-y divide-slate-200 bg-white">
@@ -1034,9 +1123,9 @@
           </div>
         </div>
 
-        <div id="dept-detail-table-scroll" class="overflow-x-auto max-h-[560px]">
+        <div id="dept-detail-table-scroll" class="overflow-auto max-h-[580px]">
           <table class="data-table w-full text-center border-collapse" id="deptDailyTable">
-            <thead id="deptDailyTableHead">
+            <thead id="deptDailyTableHead" class="sticky top-0 z-30">
               <!-- Injected by JS -->
             </thead>
             <tbody id="deptDailyTableBody" class="divide-y divide-slate-200 text-slate-700">
@@ -1437,85 +1526,134 @@
 
     </section>
 
-    <!-- New Section: ตารางแยกน้ำหนัก 11 รายการ (Waste ชั่งจริง) ตามรูปภาพ -->
+    <!-- New Section: ตารางแยกน้ำหนัก 11 รายการ (Waste ชั่งจริง) ดีไซน์หัวตารางแบบเดียวกับตารางสรุปแผนก -->
     <section id="weight-table-card" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mt-6 transition-colors">
       <!-- Top banner of weight table -->
-      <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex flex-wrap justify-between items-center gap-3">
-        <div class="flex items-center gap-3">
-          <div class="flex items-center bg-white border border-slate-300 rounded-lg px-3 py-1 shadow-xs">
-            <span class="text-xs text-slate-500 font-semibold mr-1.5">เดือน:</span>
-            <span id="weight-banner-month" class="text-xs font-black text-slate-800">10</span>
-          </div>
-          <div class="flex items-center bg-white border border-slate-300 rounded-lg px-3 py-1 shadow-xs">
-            <span class="text-xs text-slate-500 font-semibold mr-1.5">เครื่อง:</span>
-            <span id="weight-banner-machine" class="text-xs font-black text-blue-700">BHS</span>
-          </div>
-        </div>
-
-        <div class="text-center">
-          <div class="inline-block bg-amber-300 border-2 border-red-500 px-6 py-1 rounded shadow-xs">
-            <span class="text-base sm:text-lg font-black text-slate-900 tracking-wider">Waste ชั่งจริง (kg)</span>
+      <div class="px-5 py-3.5 bg-gradient-to-r from-emerald-950 via-teal-900 to-slate-900 text-white flex flex-wrap justify-between items-center gap-3">
+        <div class="flex items-center gap-2.5">
+          <span class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 flex items-center justify-center text-sm font-black">
+            <i class="fa-solid fa-weight-hanging"></i>
+          </span>
+          <div>
+            <h3 class="text-sm sm:text-base font-black tracking-wide flex items-center gap-2 flex-wrap">
+              <span>ตารางติดตามของเสีย (รายวัน) — แยกน้ำหนัก 11 รายการ Waste ชั่งจริง (หน่วย: กิโลกรัม kg)</span>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-300 text-slate-950">Target 5.00%</span>
+            </h3>
+            <p class="text-[11px] text-emerald-200/90 mt-0.5">
+              เครื่อง <strong id="weight-banner-machine" class="text-amber-300">BHS</strong> • เดือนที่ <strong id="weight-banner-month" class="text-amber-300">11</strong> • เปรียบเทียบค่า Target และผลรวมน้ำหนักสะสม (ล็อคหัวตาราง)
+            </p>
           </div>
         </div>
 
-        <div>
-          <button onclick="refreshData()" class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-black shadow-sm transition cursor-pointer">
-            <i class="fa-solid fa-arrows-rotate"></i> รีเฟรชด้วย
+        <div class="flex items-center gap-2.5 text-xs flex-wrap">
+          <div class="bg-white/10 border border-white/15 rounded-xl px-3 py-1.5">
+            <span class="text-emerald-200">สะสมจริง (Actual):</span>
+            <strong id="weight-banner-actual-pct" class="text-amber-300 font-black ml-1 text-sm">4.61%</strong>
+            <span id="weight-banner-actual-kg" class="text-white/80 ml-1">(<span id="weight-box-total">73,151</span> กก.)</span>
+          </div>
+          <span id="weight-banner-status-badge" class="px-3 py-1.5 rounded-xl font-black bg-emerald-400 text-emerald-950 shadow-xs">
+            ได้เป้า ✅
+          </span>
+          <button type="button" data-html2canvas-ignore="true" onclick="downloadWeightTableImage()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-xl text-xs font-black shadow-xs transition cursor-pointer">
+            <i class="fa-solid fa-download"></i> บันทึกภาพตาราง
+          </button>
+          <button type="button" data-html2canvas-ignore="true" onclick="refreshData()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/15 hover:bg-white/25 text-white rounded-xl text-xs font-bold shadow-xs transition cursor-pointer">
+            <i class="fa-solid fa-arrows-rotate"></i> รีเฟรช
           </button>
         </div>
       </div>
 
       <!-- Table Content -->
-      <div class="overflow-x-auto">
+      <div id="weight-table-scroll-container" class="overflow-auto max-h-[580px]">
         <table class="weight-table w-full text-center text-xs border-collapse">
-          <thead>
-            <!-- Header Row with light green background and red vertical separators matching image -->
-            <tr class="bg-[#bbf7d0] text-slate-900 font-bold border-b border-rose-400">
-              <th class="p-2.5 border-r border-rose-400 text-left min-w-[110px]">ป้ายชื่อแถว</th>
-              <th class="p-2.5 border-r border-rose-400 min-w-[70px]">.NCP</th>
-              <th class="p-2.5 border-r border-rose-400 min-w-[70px]">.DEF</th>
-              <th class="p-2.5 border-r border-rose-400 min-w-[70px]">.WEB</th>
-              <th class="p-2.5 border-r border-rose-400 min-w-[110px]">.ของเหลือ Control</th>
-              <th class="p-2.5 border-r border-rose-400 min-w-[95px]">.ของเหลือ O.M.</th>
-              <th class="p-2.5 border-r border-rose-400 min-w-[95px]">.รอยต่อออเดอร์</th>
-              <th class="p-2.5 border-r border-rose-400 min-w-[95px]">.เศษติดแกนผลิต</th>
-              <th class="p-2.5 border-r border-rose-400 min-w-[95px]">.สันนูนตรงสเปค</th>
-              <th class="p-2.5 border-r border-rose-400 min-w-[80px]">.Conveyor</th>
-              <th class="p-2.5 border-r border-rose-400 min-w-[75px]">.QC Test</th>
-              <th class="p-2.5 border-r border-rose-400 min-w-[75px] text-red-600 font-extrabold">.Reject</th>
-              <th class="p-2.5 min-w-[110px] font-black text-slate-900 bg-[#86efac]">รวมน้ำหนัก/วัน</th>
+          <thead class="sticky top-0 z-30">
+            <!-- แถวที่ 1: Target Row (แถวสีเหลือง) -->
+            <tr class="bg-[#fcd34d] text-slate-900 font-bold border-b border-slate-300">
+              <th class="p-2 border-r border-slate-300 text-center font-extrabold text-slate-900 sticky left-0 bg-[#fcd34d] z-20 min-w-[110px]">Target</th>
+              <th class="p-2 border-r border-slate-300 font-bold text-slate-900" id="weight-th-target-ncp">2.00%</th>
+              <th class="p-2 border-r border-slate-300 font-bold text-slate-900" id="weight-th-target-def">1.10%</th>
+              <th class="p-2 border-r border-slate-300 font-bold text-slate-900" id="weight-th-target-web">0.15%</th>
+              <th class="p-2 border-r border-slate-300 font-bold text-slate-900" id="weight-th-target-control">1.01%</th>
+              <th class="p-2 border-r border-slate-300 font-bold text-slate-900" id="weight-th-target-om">0.05%</th>
+              <th class="p-2 border-r border-slate-300 font-bold text-slate-900" id="weight-th-target-order">0.20%</th>
+              <th class="p-2 border-r border-slate-300 font-bold text-slate-900" id="weight-th-target-core">0.15%</th>
+              <th class="p-2 border-r border-slate-300 font-bold text-slate-900" id="weight-th-target-spec">0.15%</th>
+              <th class="p-2 border-r border-slate-300 font-bold text-slate-900" id="weight-th-target-conveyor">0.03%</th>
+              <th class="p-2 border-r border-slate-300 font-bold text-slate-900" id="weight-th-target-qc">0.07%</th>
+              <th class="p-2 border-r border-slate-300 font-bold text-slate-900" id="weight-th-target-reject">0.09%</th>
+              <th class="p-2 border-r border-slate-300 bg-[#fbbf24] text-red-700 font-black text-sm min-w-[110px]" id="weight-th-target-all">5.00%</th>
+              <th class="p-2 border-r border-slate-300 bg-amber-100 text-amber-950 font-bold text-xs min-w-[85px]">&plusmn;0.00%</th>
+              <th class="p-2 border-r border-slate-300 bg-emerald-100 text-emerald-950 font-bold text-xs min-w-[85px]">ได้เป้า</th>
+              <th class="p-2 border-r border-slate-300 bg-blue-100 text-blue-950 font-extrabold text-xs min-w-[100px]">Consumption</th>
+              <th class="p-2 bg-indigo-100 text-indigo-950 font-extrabold text-xs min-w-[100px]">Out-put</th>
+            </tr>
+            <!-- แถวที่ 2: Header Row (แถวสีเขียวมินต์) -->
+            <tr class="bg-[#a7f3d0] text-slate-900 font-bold border-b-2 border-emerald-500 shadow-2xs">
+              <th class="p-2.5 border-r border-emerald-300 text-left font-bold sticky left-0 bg-[#a7f3d0] z-20 min-w-[110px]">วันที่</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[70px]">.NCP</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[70px]">.DEF</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[70px]">.WEB</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[110px]">.ของเหลือ Control</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[95px]">.ของเหลือ O.M.</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[95px]">.รอยต่อออเดอร์</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[95px]">.เศษติดแกนผลิต</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[95px]">.สันนูนตรงสเปค</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[80px]">.Conveyor</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[75px]">.QC Test</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[75px]">.Reject</th>
+              <th class="p-2.5 border-r border-emerald-400 min-w-[110px] font-extrabold text-slate-900 bg-[#6ee7b7]">รวมน้ำหนัก/วัน</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[85px] bg-[#a7f3d0] text-slate-900 font-bold">Diff เทียบเป้า</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[85px] bg-[#a7f3d0] text-slate-900 font-bold">สถานะ</th>
+              <th class="p-2.5 border-r border-emerald-300 min-w-[100px] bg-[#bbf7d0] text-slate-900 font-bold">Consumption</th>
+              <th class="p-2.5 min-w-[100px] bg-[#bbf7d0] text-slate-900 font-bold">Out-put</th>
+            </tr>
+            <!-- แถวที่ 3: ผลรวมสะสมด้านบน (ล็อคติดกับหัวตาราง) -->
+            <tr class="bg-emerald-700 text-white font-extrabold border-b-2 border-emerald-900 shadow-xs text-xs">
+              <td class="p-2 border-r border-emerald-500 text-left font-black sticky left-0 bg-emerald-700 text-white z-20 whitespace-nowrap">ผลรวมสะสม</td>
+              <td class="p-2 border-r border-emerald-500" id="weight-head-ncp">29,508</td>
+              <td class="p-2 border-r border-emerald-500" id="weight-head-def">16,711</td>
+              <td class="p-2 border-r border-emerald-500" id="weight-head-web">875</td>
+              <td class="p-2 border-r border-emerald-500" id="weight-head-control">21,922</td>
+              <td class="p-2 border-r border-emerald-500" id="weight-head-om">0</td>
+              <td class="p-2 border-r border-emerald-500" id="weight-head-order">1,045</td>
+              <td class="p-2 border-r border-emerald-500" id="weight-head-core">592</td>
+              <td class="p-2 border-r border-emerald-500" id="weight-head-spec">289</td>
+              <td class="p-2 border-r border-emerald-500" id="weight-head-conveyor">128</td>
+              <td class="p-2 border-r border-emerald-500" id="weight-head-qc">90</td>
+              <td class="p-2 border-r border-emerald-500" id="weight-head-reject">1,991</td>
+              <td class="p-2 border-r border-emerald-500 bg-emerald-300 text-emerald-950 font-black text-sm" id="weight-head-sum">73,151</td>
+              <td class="p-2 border-r border-emerald-500 bg-emerald-800 text-amber-200 font-bold text-center" id="weight-head-diff">+0.39%</td>
+              <td class="p-2 border-r border-emerald-500 bg-emerald-800 text-white font-bold text-center" id="weight-head-status">ได้เป้า</td>
+              <td class="p-2 border-r border-emerald-500 bg-emerald-800/90 text-white font-black text-right pr-3" id="weight-head-con">1,587,701</td>
+              <td class="p-2 bg-emerald-800/90 text-white font-black text-right pr-3" id="weight-head-out">1,415,766</td>
             </tr>
           </thead>
           <tbody id="weightTableBody" class="divide-y divide-slate-200">
             <!-- Injected by JavaScript -->
           </tbody>
           <tfoot>
-            <!-- Total Row at bottom -->
-            <tr class="bg-white text-slate-900 font-black border-t-2 border-slate-400 text-xs">
-              <td class="p-2.5 text-left font-black tracking-wide whitespace-nowrap">ผลรวมทั้งหมด</td>
-              <td class="p-2 border-r border-slate-200" id="weight-total-ncp">29,508</td>
-              <td class="p-2 border-r border-slate-200" id="weight-total-def">16,711</td>
-              <td class="p-2 border-r border-slate-200" id="weight-total-web">875</td>
-              <td class="p-2 border-r border-slate-200" id="weight-total-control">21,922</td>
-              <td class="p-2 border-r border-slate-200" id="weight-total-om">0</td>
-              <td class="p-2 border-r border-slate-200" id="weight-total-order">1,045</td>
-              <td class="p-2 border-r border-slate-200" id="weight-total-core">592</td>
-              <td class="p-2 border-r border-slate-200" id="weight-total-spec">289</td>
-              <td class="p-2 border-r border-slate-200" id="weight-total-conveyor">128</td>
-              <td class="p-2 border-r border-slate-200" id="weight-total-qc">90</td>
-              <td class="p-2 border-r border-slate-200 text-red-600" id="weight-total-reject">1,991</td>
-              <td class="p-2 bg-slate-100 font-black text-slate-950" id="weight-total-sum">73,151</td>
+            <!-- Total Row at bottom (แสดงผลรวมทั้งด้านบนและด้านล่าง) -->
+            <tr class="bg-slate-100 text-slate-900 font-black border-t-2 border-slate-400 text-xs">
+              <td class="p-2.5 border-r border-slate-300 text-left font-black tracking-wide whitespace-nowrap sticky left-0 bg-slate-100 z-10">ผลรวมทั้งหมด</td>
+              <td class="p-2.5 border-r border-slate-300" id="weight-total-ncp">29,508</td>
+              <td class="p-2.5 border-r border-slate-300" id="weight-total-def">16,711</td>
+              <td class="p-2.5 border-r border-slate-300" id="weight-total-web">875</td>
+              <td class="p-2.5 border-r border-slate-300" id="weight-total-control">21,922</td>
+              <td class="p-2.5 border-r border-slate-300" id="weight-total-om">0</td>
+              <td class="p-2.5 border-r border-slate-300" id="weight-total-order">1,045</td>
+              <td class="p-2.5 border-r border-slate-300" id="weight-total-core">592</td>
+              <td class="p-2.5 border-r border-slate-300" id="weight-total-spec">289</td>
+              <td class="p-2.5 border-r border-slate-300" id="weight-total-conveyor">128</td>
+              <td class="p-2.5 border-r border-slate-300" id="weight-total-qc">90</td>
+              <td class="p-2.5 border-r border-slate-300 text-red-600" id="weight-total-reject">1,991</td>
+              <td class="p-2.5 border-r border-slate-300 bg-emerald-200 font-black text-emerald-950" id="weight-total-sum">73,151</td>
+              <td class="p-2.5 border-r border-slate-300 font-black text-emerald-700" id="weight-total-diff">+0.39%</td>
+              <td class="p-2.5 border-r border-slate-300 font-black" id="weight-total-status">ได้เป้า ✅</td>
+              <td class="p-2.5 border-r border-slate-300 text-right pr-3 font-black text-slate-900" id="weight-total-con">1,587,701</td>
+              <td class="p-2.5 text-right pr-3 font-black text-slate-900" id="weight-total-out">1,415,766</td>
             </tr>
           </tfoot>
         </table>
-      </div>
-
-      <!-- Bottom Right Summary Box (ตรงตามรูปภาพเป๊ะๆ) -->
-      <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
-        <div class="border-2 border-red-500 bg-amber-300 rounded text-center overflow-hidden shadow-xs min-w-[130px]">
-          <div class="py-1 px-3 text-sm font-black text-slate-950 border-b border-red-400" id="weight-box-total">73151</div>
-          <div class="py-0.5 px-3 text-xs font-black text-red-700">รวมน้ำหนัก</div>
-        </div>
       </div>
     </section>
 
@@ -1819,51 +1957,96 @@
       </div>
 
       <!-- 5. Collapsible Daily Table -->
-      <div class="mt-6 border border-slate-200 rounded-2xl overflow-hidden bg-white">
-        <div class="p-3.5 bg-slate-100/80 border-b border-slate-200 flex justify-between items-center cursor-pointer select-none" onclick="toggleWasteAllTable()">
-          <div class="flex items-center gap-2">
-            <i class="fa-solid fa-table text-indigo-600 text-sm"></i>
-            <h4 class="text-xs sm:text-sm font-black text-slate-800">
-              ตารางรายละเอียด % Waste ALL รายวัน (Con, Out, Waste All kg, % จริง)
-            </h4>
-            <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-indigo-100 text-indigo-800" id="waste-all-table-days-badge">
-              31 วัน
+      <div id="waste-all-table-card" class="mt-6 border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-xs">
+        <div class="px-5 py-3.5 bg-gradient-to-r from-emerald-950 via-teal-900 to-slate-900 text-white flex flex-wrap justify-between items-center gap-3">
+          <div class="flex items-center gap-2.5 cursor-pointer select-none" onclick="toggleWasteAllTable()">
+            <span class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 flex items-center justify-center text-sm font-black">
+              <i class="fa-solid fa-table"></i>
             </span>
+            <div>
+              <h4 class="text-sm sm:text-base font-black tracking-wide flex items-center gap-2 flex-wrap">
+                <span>ตารางติดตามของเสียรวมทุกแผนก (รายวัน) — % Waste ALL [Con - Out]</span>
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-300 text-slate-950">Target 11.00%</span>
+                <span class="px-2 py-0.5 text-[11px] font-bold rounded-full bg-emerald-500/30 text-emerald-200 border border-emerald-400/40" id="waste-all-table-days-badge">
+                  31 วัน
+                </span>
+              </h4>
+              <p class="text-[11px] text-emerald-200/90 mt-0.5">
+                เปรียบเทียบค่า Target 11.00% และผลรวมสะสม Consumption, Out-put, Waste ALL (ล็อคหัวตารางและแสดงผลรวมทั้งด้านบนและด้านล่าง)
+              </p>
+            </div>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-bold text-slate-500" id="waste-all-table-toggle-label">ซ่อนตาราง</span>
-            <i class="fa-solid fa-chevron-up text-slate-400 text-xs transition-transform" id="waste-all-table-chevron"></i>
+
+          <div class="flex items-center gap-2.5 text-xs flex-wrap">
+            <div class="bg-white/10 border border-white/15 rounded-xl px-3 py-1.5">
+              <span class="text-emerald-200">สะสมจริง (Actual):</span>
+              <strong id="waste-all-banner-pct" class="text-amber-300 font-black ml-1 text-sm">10.58%</strong>
+              <span id="waste-all-banner-kg" class="text-white/80 ml-1">(264,101 กก.)</span>
+            </div>
+            <span id="waste-all-banner-status" class="px-3 py-1.5 rounded-xl font-black bg-emerald-400 text-emerald-950 shadow-xs">
+              ได้เป้า ✅
+            </span>
+            <button type="button" data-html2canvas-ignore="true" onclick="downloadWasteAllTableImage()" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-xl text-xs font-black shadow-xs transition cursor-pointer">
+              <i class="fa-solid fa-download"></i> บันทึกภาพตาราง
+            </button>
+            <button type="button" data-html2canvas-ignore="true" onclick="toggleWasteAllTable()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition cursor-pointer">
+              <span id="waste-all-table-toggle-label">ซ่อนตาราง</span>
+              <i class="fa-solid fa-chevron-up text-emerald-300 text-xs transition-transform" id="waste-all-table-chevron"></i>
+            </button>
           </div>
         </div>
 
-        <div id="waste-all-table-container" class="overflow-x-auto">
-          <table class="w-full text-center text-xs border-collapse">
-            <thead>
-              <tr class="bg-slate-900 text-white font-bold text-xs">
-                <th class="p-2.5 text-left min-w-[100px]">วันที่ (Date)</th>
-                <th class="p-2.5 min-w-[120px] bg-slate-800">Consumption (กก.)</th>
-                <th class="p-2.5 min-w-[120px] bg-indigo-950">Output (กก.)</th>
-                <th class="p-2.5 min-w-[125px] bg-amber-950 text-amber-300">Waste ALL (กก.) [Con - Out]</th>
-                <th class="p-2.5 min-w-[110px] bg-rose-950 text-rose-300">% Waste ALL</th>
-                <th class="p-2.5 min-w-[95px] bg-amber-900/60 text-amber-200">Target</th>
-                <th class="p-2.5 min-w-[95px]">ส่วนต่าง</th>
-                <th class="p-2.5 min-w-[110px]">สถานะ</th>
+        <div id="waste-all-table-container" class="overflow-auto max-h-[580px]">
+          <table class="data-table w-full text-center text-xs border-collapse">
+            <thead class="sticky top-0 z-30">
+              <!-- แถวที่ 1: Target Row (แถวสีเหลือง) -->
+              <tr class="bg-[#fcd34d] text-slate-900 font-bold border-b border-slate-300">
+                <th class="p-2 border-r border-slate-300 text-center font-extrabold text-slate-900 sticky left-0 bg-[#fcd34d] z-20 min-w-[110px]">Target</th>
+                <th class="p-2 border-r border-slate-300 bg-blue-100 text-blue-950 font-extrabold min-w-[120px]">Consumption</th>
+                <th class="p-2 border-r border-slate-300 bg-indigo-100 text-indigo-950 font-extrabold min-w-[120px]">Out-put</th>
+                <th class="p-2 border-r border-slate-300 bg-amber-200 text-slate-900 font-bold min-w-[125px]">Con - Out (kg)</th>
+                <th class="p-2 border-r border-slate-300 bg-[#fbbf24] text-red-700 font-black text-sm min-w-[110px]">11.00%</th>
+                <th class="p-2 border-r border-slate-300 font-bold text-slate-900 min-w-[95px]">11.00%</th>
+                <th class="p-2 border-r border-slate-300 bg-amber-100 text-amber-950 font-bold min-w-[95px]">&plusmn;0.00%</th>
+                <th class="p-2 bg-emerald-100 text-emerald-950 font-bold min-w-[110px]">ได้เป้า</th>
+              </tr>
+              <!-- แถวที่ 2: Column Header Row (แถวสีเขียวมินต์) -->
+              <tr class="bg-[#a7f3d0] text-slate-900 font-bold border-b-2 border-emerald-500 shadow-2xs">
+                <th class="p-2.5 border-r border-emerald-300 text-left font-bold sticky left-0 bg-[#a7f3d0] z-20 min-w-[110px]">วันที่</th>
+                <th class="p-2.5 border-r border-emerald-300 min-w-[120px] bg-[#bbf7d0] text-slate-900 font-bold">Consumption (กก.)</th>
+                <th class="p-2.5 border-r border-emerald-300 min-w-[120px] bg-[#bbf7d0] text-slate-900 font-bold">Out-put (กก.)</th>
+                <th class="p-2.5 border-r border-emerald-300 min-w-[125px] text-slate-900 font-bold">Waste ALL (กก.) [Con - Out]</th>
+                <th class="p-2.5 border-r border-emerald-400 min-w-[110px] bg-[#6ee7b7] text-slate-900 font-extrabold">รวม % Waste ALL</th>
+                <th class="p-2.5 border-r border-emerald-300 min-w-[95px] text-slate-900 font-bold">Target</th>
+                <th class="p-2.5 border-r border-emerald-300 min-w-[95px] text-slate-900 font-bold">Diff เทียบเป้า</th>
+                <th class="p-2.5 min-w-[110px] text-slate-900 font-bold">สถานะ</th>
+              </tr>
+              <!-- แถวที่ 3: แถวสรุปผลรวมสะสมด้านบน (ล็อคติดกับหัวตาราง) -->
+              <tr class="bg-emerald-700 text-white font-extrabold border-b-2 border-emerald-900 shadow-xs text-xs">
+                <td class="p-2 border-r border-emerald-500 text-left font-black sticky left-0 bg-emerald-700 text-white z-20 whitespace-nowrap">ผลรวมสะสม</td>
+                <td class="p-2 border-r border-emerald-500 bg-emerald-800/90 text-white font-black" id="waste-all-head-con">2,495,498</td>
+                <td class="p-2 border-r border-emerald-500 bg-emerald-800/90 text-white font-black" id="waste-all-head-out">2,231,397</td>
+                <td class="p-2 border-r border-emerald-500 text-amber-200 font-black text-sm" id="waste-all-head-waste-kg">264,101</td>
+                <td class="p-2 border-r border-emerald-500 bg-emerald-300 text-emerald-950 font-black text-sm" id="waste-all-head-pct">10.58%</td>
+                <td class="p-2 border-r border-emerald-500 text-amber-200 font-bold">11.00%</td>
+                <td class="p-2 border-r border-emerald-500 bg-emerald-800 text-amber-200 font-bold" id="waste-all-head-diff">-0.42%</td>
+                <td class="p-2 bg-emerald-800 text-white font-bold text-center" id="waste-all-head-status">ได้เป้า</td>
               </tr>
             </thead>
             <tbody id="wasteAllTableBody" class="divide-y divide-slate-200 font-medium text-slate-800">
               <!-- Rendered via JS -->
             </tbody>
             <tfoot>
-              <tr class="bg-slate-900 text-white font-black text-xs border-t-2 border-rose-500">
-                <td class="p-3 text-left">ผลรวมทั้งหมด (Total MTD)</td>
-                <td class="p-3 text-amber-300" id="waste-all-foot-con">2,495,498</td>
-                <td class="p-3 text-cyan-300" id="waste-all-foot-out">2,231,397</td>
-                <td class="p-3 text-amber-200 font-black text-sm" id="waste-all-foot-waste-kg">264,101</td>
-                <td class="p-3 text-sm font-black" id="waste-all-foot-pct">10.58%</td>
-                <td class="p-3 text-amber-300">11.00%</td>
-                <td class="p-3 font-bold" id="waste-all-foot-diff">-0.42%</td>
-                <td class="p-3 text-center" id="waste-all-foot-status">
-                  <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-500 text-white">ได้เป้า ✅</span>
+              <tr class="bg-slate-100 text-slate-900 font-black text-xs border-t-2 border-slate-400">
+                <td class="p-2.5 border-r border-slate-300 text-left font-black sticky left-0 bg-slate-100 z-10">ผลรวมทั้งหมด</td>
+                <td class="p-2.5 border-r border-slate-300 text-slate-900 font-black" id="waste-all-foot-con">2,495,498</td>
+                <td class="p-2.5 border-r border-slate-300 text-slate-900 font-black" id="waste-all-foot-out">2,231,397</td>
+                <td class="p-2.5 border-r border-slate-300 text-amber-900 bg-amber-100/70 font-black text-sm" id="waste-all-foot-waste-kg">264,101</td>
+                <td class="p-2.5 border-r border-slate-300 bg-emerald-200 text-emerald-950 text-sm font-black" id="waste-all-foot-pct">10.58%</td>
+                <td class="p-2.5 border-r border-slate-300 text-slate-700 font-bold">11.00%</td>
+                <td class="p-2.5 border-r border-slate-300 font-black text-emerald-700" id="waste-all-foot-diff">-0.42%</td>
+                <td class="p-2.5 text-center" id="waste-all-foot-status">
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300">ได้เป้า ✅</span>
                 </td>
               </tr>
             </tfoot>
@@ -3113,34 +3296,74 @@
         }
       }
 
-      // อัปเดตแถวสรุปผลรวมบนตาราง
+      // อัปเดตแถวสรุปผลรวมบนตาราง (ทั้งด้านบน head-row-* และด้านล่าง top-row-*)
       if (summary) {
         WASTE_COLUMNS.forEach(col => {
           if (summary[col.key] !== undefined) {
-            safeSetText(`top-row-${col.key}`, summary[col.key].toFixed(2) + '%');
+            const valPct = Number(summary[col.key]) || 0;
+            const valStr = valPct.toFixed(2) + '%';
+            safeSetText(`top-row-${col.key}`, valStr);
+            safeSetText(`head-row-${col.key}`, valStr);
+
+            const headCell = document.getElementById(`head-row-${col.key}`);
+            if (headCell) {
+              const isOver = valPct > (TARGETS[col.key] || 0) && valPct > 0;
+              headCell.className = isOver
+                ? 'p-2 border-r border-emerald-500 bg-rose-600 text-white font-black'
+                : 'p-2 border-r border-emerald-500 text-white font-bold';
+            }
           }
         });
       }
 
       const diffTarget = TARGETS.allWaste - actualWasteMTD;
       const diffSign = diffTarget >= 0 ? '+' : '';
-      safeSetText('top-row-diff', `${diffSign}${diffTarget.toFixed(2)}%`);
+      const diffFormatted = `${diffSign}${diffTarget.toFixed(2)}%`;
+      safeSetText('top-row-diff', diffFormatted);
+      safeSetText('head-row-diff', diffFormatted);
+      safeSetText('head-row-all-waste', formattedWaste);
 
       const topRowStatus = document.getElementById('top-row-status');
       const topRowAllWaste = document.getElementById('top-row-all-waste');
-      if (topRowStatus) {
-        if (actualWasteMTD <= TARGETS.allWaste) {
-          topRowStatus.textContent = 'ได้เป้า';
-          topRowStatus.className = 'p-2 border-r border-emerald-500 bg-emerald-800 text-white font-bold text-center align-middle';
-          if (topRowAllWaste) {
-            topRowAllWaste.className = 'p-2 border-r border-emerald-500 bg-emerald-300 text-emerald-950 font-black text-sm';
-          }
-        } else {
-          topRowStatus.textContent = 'เกินเป้า';
-          topRowStatus.className = 'p-2 border-r border-emerald-500 bg-rose-700 text-white font-bold text-center align-middle';
-          if (topRowAllWaste) {
-            topRowAllWaste.className = 'p-2 border-r border-emerald-500 bg-rose-300 text-rose-950 font-black text-sm';
-          }
+      const topRowDiff = document.getElementById('top-row-diff');
+      const headRowStatus = document.getElementById('head-row-status');
+      const headRowAllWaste = document.getElementById('head-row-all-waste');
+
+      if (actualWasteMTD <= TARGETS.allWaste) {
+        if (topRowStatus) {
+          topRowStatus.textContent = 'ได้เป้า ✅';
+          topRowStatus.className = 'p-2.5 border-r border-slate-300 font-black text-center align-middle text-emerald-800';
+        }
+        if (topRowAllWaste) {
+          topRowAllWaste.className = 'p-2.5 border-r border-slate-300 bg-emerald-200 text-emerald-950 font-black text-sm';
+        }
+        if (topRowDiff) {
+          topRowDiff.className = 'p-2.5 border-r border-slate-300 text-emerald-700 font-black text-center align-middle';
+        }
+        if (headRowStatus) {
+          headRowStatus.textContent = 'ได้เป้า';
+          headRowStatus.className = 'p-2 border-r border-emerald-500 bg-emerald-800 text-white font-bold text-center align-middle';
+        }
+        if (headRowAllWaste) {
+          headRowAllWaste.className = 'p-2 border-r border-emerald-500 bg-emerald-300 text-emerald-950 font-black text-sm';
+        }
+      } else {
+        if (topRowStatus) {
+          topRowStatus.textContent = 'เกินเป้า ❌';
+          topRowStatus.className = 'p-2.5 border-r border-slate-300 font-black text-center align-middle text-rose-700';
+        }
+        if (topRowAllWaste) {
+          topRowAllWaste.className = 'p-2.5 border-r border-slate-300 bg-rose-200 text-rose-950 font-black text-sm';
+        }
+        if (topRowDiff) {
+          topRowDiff.className = 'p-2.5 border-r border-slate-300 text-rose-600 font-black text-center align-middle';
+        }
+        if (headRowStatus) {
+          headRowStatus.textContent = 'เกินเป้า';
+          headRowStatus.className = 'p-2 border-r border-emerald-500 bg-rose-700 text-white font-bold text-center align-middle';
+        }
+        if (headRowAllWaste) {
+          headRowAllWaste.className = 'p-2 border-r border-emerald-500 bg-rose-300 text-rose-950 font-black text-sm';
         }
       }
 
@@ -3153,6 +3376,8 @@
       safeSetText('top-summary-output', formattedOutput);
       safeSetText('top-row-consumption', formattedConsum);
       safeSetText('top-row-output', formattedOutput);
+      safeSetText('head-row-consumption', formattedConsum);
+      safeSetText('head-row-output', formattedOutput);
       
       const avgConsumption = runningDays > 0 ? Math.round(totalConsumption / runningDays).toLocaleString() : '88,206';
       const avgOutput = runningDays > 0 ? Math.round(totalOutput / runningDays).toLocaleString() : '78,654';
@@ -3257,6 +3482,20 @@
       safeSetText('top-card-waste-pct', actualWasteMTD.toFixed(2) + '%');
       safeSetText('top-card-waste-kg', `(${actualWasteKg.toLocaleString()} กก.)`);
       safeSetText('top-card-waste-target-kg', `${targetAllowedWasteKg.toLocaleString()} กก.`);
+
+      safeSetText('main-banner-actual-pct', actualWasteMTD.toFixed(2) + '%');
+      safeSetText('main-banner-actual-kg', `(${actualWasteKg.toLocaleString()} กก.)`);
+      safeSetText('main-waste-table-target-pill', `Target ${targetWastePct.toFixed(2)}%`);
+      const mainBannerStatusBadge = document.getElementById('main-banner-status-badge');
+      if (mainBannerStatusBadge) {
+        if (actualWasteMTD <= targetWastePct) {
+          mainBannerStatusBadge.className = 'px-3 py-1.5 rounded-xl font-black bg-emerald-400 text-emerald-950 shadow-xs';
+          mainBannerStatusBadge.textContent = 'ได้เป้า ✅';
+        } else {
+          mainBannerStatusBadge.className = 'px-3 py-1.5 rounded-xl font-black bg-rose-500 text-white shadow-xs';
+          mainBannerStatusBadge.textContent = 'เกินเป้า ❌';
+        }
+      }
 
       const cardWasteBox = document.getElementById('card-waste-box');
       const cardWasteBadge = document.getElementById('top-card-waste-badge');
@@ -5459,7 +5698,7 @@
         tr.className = 'hover:bg-slate-50 transition border-b border-slate-300';
 
         tr.innerHTML = `
-          <td class="p-2 text-left font-semibold text-slate-800 whitespace-nowrap">${row.date || ''}</td>
+          <td class="p-2 text-left font-bold text-slate-800 whitespace-nowrap sticky left-0 bg-white z-10">${row.date || ''}</td>
           <td class="p-2 ${cellClass(ncp, TARGETS.ncp)}">${ncp.toFixed(2)}%</td>
           <td class="p-2 ${cellClass(def, TARGETS.def)}">${def.toFixed(2)}%</td>
           <td class="p-2 ${cellClass(web, TARGETS.web)}">${web.toFixed(2)}%</td>
@@ -5472,10 +5711,10 @@
           <td class="p-2 ${cellClass(qc, TARGETS.qc)}">${qc.toFixed(2)}%</td>
           <td class="p-2 ${cellClass(reject, TARGETS.reject)}">${reject.toFixed(2)}%</td>
           <td class="p-2 font-bold ${allWasteClass}">${allWaste.toFixed(2)}%</td>
-          <td class="p-1.5 text-center align-middle whitespace-nowrap">${statusBadge}</td>
           <td class="p-2 text-center align-middle text-slate-700 font-bold">${diffVal}</td>
-          <td class="p-2 text-slate-900 font-semibold">${Math.round(consumption).toLocaleString()}</td>
-          <td class="p-2 text-slate-900 font-semibold">${Math.round(output).toLocaleString()}</td>
+          <td class="p-1.5 text-center align-middle whitespace-nowrap">${statusBadge}</td>
+          <td class="p-2 text-right pr-3 text-slate-900 font-semibold">${Math.round(consumption).toLocaleString()}</td>
+          <td class="p-2 text-right pr-3 text-slate-900 font-semibold">${Math.round(output).toLocaleString()}</td>
         `;
 
         tbody.appendChild(tr);
@@ -5490,55 +5729,190 @@
 
       const items = (weightData && weightData.length > 0) ? weightData : initialWeightData;
       const summary = weightSummary || currentWeightSummary || initialWeightSummary;
+      const pctRows = (currentData && currentData.length > 0) ? currentData : initialRawData;
 
       const formatNum = (v) => {
         const num = Math.round(Number(v) || 0);
         return num.toLocaleString();
       };
 
-      items.forEach(row => {
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-amber-50/50 transition border-b border-rose-200 text-xs text-slate-800';
+      // อัปเดต Target บนแถวที่ 1 ของตารางน้ำหนัก
+      WASTE_COLUMNS.forEach(col => {
+        safeSetText(`weight-th-target-${col.key}`, (TARGETS[col.key] || 0).toFixed(2) + '%');
+      });
+      safeSetText('weight-th-target-all', (TARGETS.allWaste || 5.00).toFixed(2) + '%');
 
-        const rejectVal = Math.round(row.reject || 0);
-        const rejectClass = rejectVal > 0 ? 'text-red-600 font-bold' : 'text-slate-600';
+      let sumCon = 0;
+      let sumOut = 0;
+
+      items.forEach((row, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition border-b border-slate-200 text-xs text-slate-800';
+
+        const pRow = pctRows.find(r => r.date === row.date) || pctRows[idx] || {};
+        const c = Number(pRow.consumption || row.consumption || 0);
+        const o = Number(pRow.output || row.output || 0);
+        sumCon += c;
+        sumOut += o;
+
+        const dayTotalKg = Number(row.totalWeight) || 0;
+        const dayWastePct = c > 0 ? Number(pRow.allWaste ?? ((dayTotalKg / c) * 100)) : 0;
+        const isRunning = c > 0 || dayTotalKg > 0;
+        const dayPass = dayWastePct <= (TARGETS.allWaste || 5.00);
+
+        const cellCls = (key) => {
+          const valKg = Number(row[key]) || 0;
+          const pctVal = Number(pRow[key] ?? (c > 0 ? (valKg / c) * 100 : 0));
+          const isOver = isRunning && pctVal > (TARGETS[key] || 0) && valKg > 0;
+          if (isOver) return 'text-rose-600 font-black bg-rose-50/70';
+          return valKg > 0 ? 'text-slate-800 font-semibold' : 'text-slate-400';
+        };
+
+        const totalCls = !isRunning
+          ? 'text-slate-400 bg-slate-50'
+          : (dayPass ? 'bg-emerald-50 text-emerald-800 font-black' : 'bg-rose-100 text-rose-700 font-black');
+
+        const dayDiff = parseFloat(((TARGETS.allWaste || 5.00) - dayWastePct).toFixed(2));
+        const dayDiffSign = dayDiff >= 0 ? '+' : '';
+        const diffDisplay = !isRunning ? '-' : `${dayDiffSign}${dayDiff.toFixed(2)}%`;
+        const diffCls = !isRunning ? 'text-slate-400' : (dayPass ? 'text-emerald-700 font-bold' : 'text-rose-600 font-bold');
+
+        let statusHtml = `<span class="px-2 py-0.5 rounded text-[11px] bg-slate-100 text-slate-400 font-semibold">ไม่เดิน</span>`;
+        if (isRunning) {
+          statusHtml = dayPass
+            ? `<span class="px-2 py-0.5 rounded text-[11px] bg-emerald-100 text-emerald-800 font-black">ได้เป้า</span>`
+            : `<span class="px-2 py-0.5 rounded text-[11px] bg-rose-100 text-rose-700 font-black">เกินเป้า</span>`;
+        }
 
         tr.innerHTML = `
-          <td class="p-2 border-r border-rose-300 text-left font-semibold text-slate-800 whitespace-nowrap">${row.date || ''}</td>
-          <td class="p-2 border-r border-rose-300">${formatNum(row.ncp)}</td>
-          <td class="p-2 border-r border-rose-300">${formatNum(row.def)}</td>
-          <td class="p-2 border-r border-rose-300">${formatNum(row.web)}</td>
-          <td class="p-2 border-r border-rose-300">${formatNum(row.control)}</td>
-          <td class="p-2 border-r border-rose-300">${formatNum(row.om)}</td>
-          <td class="p-2 border-r border-rose-300">${formatNum(row.order)}</td>
-          <td class="p-2 border-r border-rose-300">${formatNum(row.core)}</td>
-          <td class="p-2 border-r border-rose-300">${formatNum(row.spec)}</td>
-          <td class="p-2 border-r border-rose-300">${formatNum(row.conveyor)}</td>
-          <td class="p-2 border-r border-rose-300">${formatNum(row.qc)}</td>
-          <td class="p-2 border-r border-rose-300 ${rejectClass}">${formatNum(row.reject)}</td>
-          <td class="p-2 font-bold text-slate-900 bg-emerald-50">${formatNum(row.totalWeight)}</td>
+          <td class="p-2 border-r border-slate-200 text-left font-bold text-slate-800 whitespace-nowrap sticky left-0 bg-white z-10">${row.date || ''}</td>
+          <td class="p-2 border-r border-slate-200 ${cellCls('ncp')}">${formatNum(row.ncp)}</td>
+          <td class="p-2 border-r border-slate-200 ${cellCls('def')}">${formatNum(row.def)}</td>
+          <td class="p-2 border-r border-slate-200 ${cellCls('web')}">${formatNum(row.web)}</td>
+          <td class="p-2 border-r border-slate-200 ${cellCls('control')}">${formatNum(row.control)}</td>
+          <td class="p-2 border-r border-slate-200 ${cellCls('om')}">${formatNum(row.om)}</td>
+          <td class="p-2 border-r border-slate-200 ${cellCls('order')}">${formatNum(row.order)}</td>
+          <td class="p-2 border-r border-slate-200 ${cellCls('core')}">${formatNum(row.core)}</td>
+          <td class="p-2 border-r border-slate-200 ${cellCls('spec')}">${formatNum(row.spec)}</td>
+          <td class="p-2 border-r border-slate-200 ${cellCls('conveyor')}">${formatNum(row.conveyor)}</td>
+          <td class="p-2 border-r border-slate-200 ${cellCls('qc')}">${formatNum(row.qc)}</td>
+          <td class="p-2 border-r border-slate-200 ${cellCls('reject')}">${formatNum(row.reject)}</td>
+          <td class="p-2 border-r border-slate-200 ${totalCls}">${formatNum(row.totalWeight)}</td>
+          <td class="p-2 border-r border-slate-200 ${diffCls}">${diffDisplay}</td>
+          <td class="p-2 border-r border-slate-200">${statusHtml}</td>
+          <td class="p-2 border-r border-slate-200 text-right pr-3 font-medium text-slate-700">${c > 0 ? formatNum(c) : '0'}</td>
+          <td class="p-2 text-right pr-3 font-medium text-slate-700">${o > 0 ? formatNum(o) : '0'}</td>
         `;
 
         tbody.appendChild(tr);
       });
 
-      // อัปเดตแถวผลรวมด้านล่าง (tfoot)
-      if (summary) {
-        safeSetText('weight-total-ncp', formatNum(summary.ncp));
-        safeSetText('weight-total-def', formatNum(summary.def));
-        safeSetText('weight-total-web', formatNum(summary.web));
-        safeSetText('weight-total-control', formatNum(summary.control));
-        safeSetText('weight-total-om', formatNum(summary.om));
-        safeSetText('weight-total-order', formatNum(summary.order));
-        safeSetText('weight-total-core', formatNum(summary.core));
-        safeSetText('weight-total-spec', formatNum(summary.spec));
-        safeSetText('weight-total-conveyor', formatNum(summary.conveyor));
-        safeSetText('weight-total-qc', formatNum(summary.qc));
-        safeSetText('weight-total-reject', formatNum(summary.reject));
-        safeSetText('weight-total-sum', formatNum(summary.totalAll));
+      if (currentSummary && currentSummary.consumption > 0) sumCon = currentSummary.consumption;
+      if (currentSummary && currentSummary.output > 0) sumOut = currentSummary.output;
 
-        // กล่องสีเหลืองขวาล่าง
-        safeSetText('weight-box-total', formatNum(summary.totalAll).replace(/,/g, ''));
+      // อัปเดตแถวผลรวมด้านบน (thead) และด้านล่าง (tfoot)
+      if (summary) {
+        const totalKgAll = Number(summary.totalAll || summary.total || 0);
+        const mtdWastePct = (currentSummary && currentSummary.allWaste > 0)
+          ? Number(currentSummary.allWaste)
+          : (sumCon > 0 ? Number(((totalKgAll / sumCon) * 100).toFixed(2)) : 0);
+        const isPassMtd = mtdWastePct <= (TARGETS.allWaste || 5.00);
+        const diffMtd = parseFloat(((TARGETS.allWaste || 5.00) - mtdWastePct).toFixed(2));
+        const diffSign = diffMtd >= 0 ? '+' : '';
+        const diffStr = `${diffSign}${diffMtd.toFixed(2)}%`;
+
+        WASTE_COLUMNS.forEach(col => {
+          const k = col.key;
+          const kgVal = Number(summary[k]) || 0;
+          const pctVal = (currentSummary && currentSummary[k] !== undefined)
+            ? Number(currentSummary[k])
+            : (sumCon > 0 ? (kgVal / sumCon) * 100 : 0);
+          const isOver = pctVal > (TARGETS[k] || 0) && kgVal > 0;
+
+          safeSetText(`weight-total-${k}`, formatNum(kgVal));
+          safeSetText(`weight-head-${k}`, formatNum(kgVal));
+
+          const headEl = document.getElementById(`weight-head-${k}`);
+          if (headEl) {
+            headEl.className = isOver
+              ? 'p-2 border-r border-emerald-500 bg-rose-600 text-white font-black'
+              : 'p-2 border-r border-emerald-500 text-white font-bold';
+          }
+        });
+
+        safeSetText('weight-total-sum', formatNum(totalKgAll));
+        safeSetText('weight-head-sum', formatNum(totalKgAll));
+        safeSetText('weight-total-diff', diffStr);
+        safeSetText('weight-head-diff', diffStr);
+        safeSetText('weight-total-status', isPassMtd ? 'ได้เป้า ✅' : 'เกินเป้า ❌');
+        safeSetText('weight-head-status', isPassMtd ? 'ได้เป้า' : 'เกินเป้า');
+        safeSetText('weight-total-con', formatNum(sumCon));
+        safeSetText('weight-head-con', formatNum(sumCon));
+        safeSetText('weight-total-out', formatNum(sumOut));
+        safeSetText('weight-head-out', formatNum(sumOut));
+
+        const headSumEl = document.getElementById('weight-head-sum');
+        if (headSumEl) {
+          headSumEl.className = isPassMtd
+            ? 'p-2 border-r border-emerald-500 bg-emerald-300 text-emerald-950 font-black text-sm'
+            : 'p-2 border-r border-emerald-500 bg-rose-300 text-rose-950 font-black text-sm';
+        }
+        const headStatusEl = document.getElementById('weight-head-status');
+        if (headStatusEl) {
+          headStatusEl.className = isPassMtd
+            ? 'p-2 border-r border-emerald-500 bg-emerald-800 text-white font-bold text-center'
+            : 'p-2 border-r border-emerald-500 bg-rose-700 text-white font-bold text-center';
+        }
+        const footSumEl = document.getElementById('weight-total-sum');
+        if (footSumEl) {
+          footSumEl.className = isPassMtd
+            ? 'p-2.5 border-r border-slate-300 bg-emerald-200 font-black text-emerald-950'
+            : 'p-2.5 border-r border-slate-300 bg-rose-200 font-black text-rose-950';
+        }
+
+        safeSetText('weight-banner-actual-pct', `${mtdWastePct.toFixed(2)}%`);
+        safeSetText('weight-box-total', formatNum(totalKgAll));
+        const wbBadge = document.getElementById('weight-banner-status-badge');
+        if (wbBadge) {
+          wbBadge.className = isPassMtd
+            ? 'px-3 py-1.5 rounded-xl font-black bg-emerald-400 text-emerald-950 shadow-xs'
+            : 'px-3 py-1.5 rounded-xl font-black bg-rose-500 text-white shadow-xs';
+          wbBadge.textContent = isPassMtd ? 'ได้เป้า ✅' : 'เกินเป้า ❌';
+        }
+      }
+    }
+
+    async function downloadWeightTableImage() {
+      const card = document.getElementById('weight-table-card');
+      const scrollBox = document.getElementById('weight-table-scroll-container');
+      if (!card || typeof html2canvas === 'undefined') return;
+      const prevMaxH = scrollBox ? scrollBox.style.maxHeight : '';
+      const prevOverflow = scrollBox ? scrollBox.style.overflow : '';
+      try {
+        if (scrollBox) {
+          scrollBox.style.maxHeight = 'none';
+          scrollBox.style.overflow = 'visible';
+        }
+        const canvas = await html2canvas(card, {
+          scale: 2.2,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          logging: false,
+          windowWidth: Math.max(card.scrollWidth + 80, 1400),
+          ignoreElements: el => el.getAttribute('data-html2canvas-ignore') === 'true'
+        });
+        const machine = (document.getElementById('selectedMachine')?.value || 'BHS').toUpperCase();
+        const link = document.createElement('a');
+        link.download = `Waste_Weight_Table_${machine}.png`;
+        link.href = canvas.toDataURL('image/png', 1.0);
+        link.click();
+      } catch (e) {
+        console.error('Error downloading weight table:', e);
+      } finally {
+        if (scrollBox) {
+          scrollBox.style.maxHeight = prevMaxH;
+          scrollBox.style.overflow = prevOverflow;
+        }
       }
     }
 
@@ -5576,6 +5950,7 @@
       const origAreaOverflow = area.style.overflow;
       const scrollContainer = document.getElementById('waste-table-scroll-container');
       const origScrollOverflow = scrollContainer ? scrollContainer.style.overflow : '';
+      const origScrollMaxHeight = scrollContainer ? scrollContainer.style.maxHeight : '';
       const origScrollWidth = scrollContainer ? scrollContainer.style.width : '';
       const origScrollMinWidth = scrollContainer ? scrollContainer.style.minWidth : '';
 
@@ -5591,6 +5966,7 @@
         area.style.overflow = 'visible';
         if (scrollContainer) {
           scrollContainer.style.overflow = 'visible';
+          scrollContainer.style.maxHeight = 'none';
           scrollContainer.style.width = '100%';
           scrollContainer.style.minWidth = minReqWidth + 'px';
         }
@@ -5679,6 +6055,7 @@
         area.style.overflow = origAreaOverflow;
         if (scrollContainer) {
           scrollContainer.style.overflow = origScrollOverflow;
+          scrollContainer.style.maxHeight = origScrollMaxHeight;
           scrollContainer.style.width = origScrollWidth;
           scrollContainer.style.minWidth = origScrollMinWidth;
         }
@@ -6348,20 +6725,69 @@
       const tbody = document.getElementById('wasteAllTableBody');
       if (!tbody) return;
 
-      safeSetText('waste-all-table-days-badge', `${(data || []).length} วัน`);
-      safeSetText('waste-all-foot-con', `${Number(Math.round(sumCon)).toLocaleString()}`);
-      safeSetText('waste-all-foot-out', `${Number(Math.round(sumOut)).toLocaleString()}`);
-      safeSetText('waste-all-foot-waste-kg', `${Number(Math.round(wasteKg)).toLocaleString()}`);
-      safeSetText('waste-all-foot-pct', `${Number(wastePct).toFixed(2)}%`);
+      const fmtCon = `${Number(Math.round(sumCon)).toLocaleString()}`;
+      const fmtOut = `${Number(Math.round(sumOut)).toLocaleString()}`;
+      const fmtWasteKg = `${Number(Math.round(wasteKg)).toLocaleString()}`;
+      const fmtPct = `${Number(wastePct).toFixed(2)}%`;
       const diffStr = diffPct <= 0 ? `${diffPct.toFixed(2)}%` : `+${diffPct.toFixed(2)}%`;
+      const pass = wastePct <= TARGET_WASTE_ALL;
+
+      safeSetText('waste-all-table-days-badge', `${(data || []).length} วัน`);
+      safeSetText('waste-all-banner-pct', fmtPct);
+      safeSetText('waste-all-banner-kg', `(${fmtWasteKg} กก.)`);
+      const bannerStatus = document.getElementById('waste-all-banner-status');
+      if (bannerStatus) {
+        bannerStatus.className = pass
+          ? 'px-3 py-1.5 rounded-xl font-black bg-emerald-400 text-emerald-950 shadow-xs'
+          : 'px-3 py-1.5 rounded-xl font-black bg-rose-500 text-white shadow-xs';
+        bannerStatus.textContent = pass ? 'ได้เป้า ✅' : 'เกินเป้า ❌';
+      }
+
+      // อัปเดตแถวผลรวมด้านบน (thead)
+      safeSetText('waste-all-head-con', fmtCon);
+      safeSetText('waste-all-head-out', fmtOut);
+      safeSetText('waste-all-head-waste-kg', fmtWasteKg);
+      safeSetText('waste-all-head-pct', fmtPct);
+      safeSetText('waste-all-head-diff', diffStr);
+      safeSetText('waste-all-head-status', pass ? 'ได้เป้า' : 'เกินเป้า');
+
+      const headPctEl = document.getElementById('waste-all-head-pct');
+      if (headPctEl) {
+        headPctEl.className = pass
+          ? 'p-2 border-r border-emerald-500 bg-emerald-300 text-emerald-950 font-black text-sm'
+          : 'p-2 border-r border-emerald-500 bg-rose-300 text-rose-950 font-black text-sm';
+      }
+      const headStatusEl = document.getElementById('waste-all-head-status');
+      if (headStatusEl) {
+        headStatusEl.className = pass
+          ? 'p-2 bg-emerald-800 text-white font-bold text-center'
+          : 'p-2 bg-rose-700 text-white font-bold text-center';
+      }
+
+      // อัปเดตแถวผลรวมด้านล่าง (tfoot)
+      safeSetText('waste-all-foot-con', fmtCon);
+      safeSetText('waste-all-foot-out', fmtOut);
+      safeSetText('waste-all-foot-waste-kg', fmtWasteKg);
+      safeSetText('waste-all-foot-pct', fmtPct);
       safeSetText('waste-all-foot-diff', diffStr);
 
+      const footPctEl = document.getElementById('waste-all-foot-pct');
+      if (footPctEl) {
+        footPctEl.className = pass
+          ? 'p-2.5 border-r border-slate-300 bg-emerald-200 text-emerald-950 text-sm font-black'
+          : 'p-2.5 border-r border-slate-300 bg-rose-200 text-rose-950 text-sm font-black';
+      }
+      const footDiffEl = document.getElementById('waste-all-foot-diff');
+      if (footDiffEl) {
+        footDiffEl.className = pass
+          ? 'p-2.5 border-r border-slate-300 font-black text-emerald-700'
+          : 'p-2.5 border-r border-slate-300 font-black text-rose-600';
+      }
       const footStatus = document.getElementById('waste-all-foot-status');
       if (footStatus) {
-        const pass = wastePct <= TARGET_WASTE_ALL;
         footStatus.innerHTML = pass
-          ? `<span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-500 text-white">ได้เป้า ✅</span>`
-          : `<span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-500 text-white">เกินเป้า ❌</span>`;
+          ? `<span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-300">ได้เป้า ✅</span>`
+          : `<span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-100 text-rose-800 border border-rose-300">เกินเป้า ❌</span>`;
       }
 
       let rowsHtml = '';
@@ -6371,22 +6797,27 @@
         const wKg = c - o;
         const p = c > 0 ? Number(((wKg / c) * 100).toFixed(2)) : 0;
         const diff = parseFloat((p - TARGET_WASTE_ALL).toFixed(2));
-        const pass = p <= TARGET_WASTE_ALL;
-        const diffText = diff > 0 ? `+${diff.toFixed(2)}%` : `${diff.toFixed(2)}%`;
-        const diffColor = pass ? 'text-emerald-700 font-bold' : 'text-rose-600 font-bold';
-        const badge = (c === 0 && o === 0)
-          ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500">ไม่เดินเครื่อง</span>`
-          : (pass
-            ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">ได้เป้า ✅</span>`
-            : `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-800">เกินเป้า ❌</span>`);
+        const dayPass = p <= TARGET_WASTE_ALL;
+        const isIdle = (c === 0 && o === 0);
+        const diffText = isIdle ? '-' : (diff > 0 ? `+${diff.toFixed(2)}%` : `${diff.toFixed(2)}%`);
+        const diffColor = isIdle ? 'text-slate-400' : (dayPass ? 'text-emerald-700 font-bold' : 'text-rose-600 font-bold');
+        const badge = isIdle
+          ? `<span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-400">ไม่เดิน</span>`
+          : (dayPass
+            ? `<span class="px-2 py-0.5 rounded text-[11px] font-black bg-emerald-100 text-emerald-800">ได้เป้า</span>`
+            : `<span class="px-2 py-0.5 rounded text-[11px] font-black bg-rose-100 text-rose-700">เกินเป้า</span>`);
+
+        const pctCls = isIdle
+          ? 'text-slate-400 bg-slate-50'
+          : (dayPass ? 'bg-emerald-50 text-emerald-800 font-black' : 'bg-rose-100 text-rose-700 font-black');
 
         rowsHtml += `
           <tr class="hover:bg-slate-50 transition">
-            <td class="p-2 text-left font-bold border-r border-slate-200">${d.date}</td>
-            <td class="p-2 border-r border-slate-200">${Number(Math.round(c)).toLocaleString()}</td>
-            <td class="p-2 border-r border-slate-200">${Number(Math.round(o)).toLocaleString()}</td>
+            <td class="p-2 text-left font-bold text-slate-800 border-r border-slate-200 sticky left-0 bg-white z-10">${d.date}</td>
+            <td class="p-2 border-r border-slate-200 text-right pr-3 font-medium">${Number(Math.round(c)).toLocaleString()}</td>
+            <td class="p-2 border-r border-slate-200 text-right pr-3 font-medium">${Number(Math.round(o)).toLocaleString()}</td>
             <td class="p-2 border-r border-slate-200 font-bold text-amber-900 bg-amber-50/40">${Number(Math.round(wKg)).toLocaleString()}</td>
-            <td class="p-2 border-r border-slate-200 font-black ${p > TARGET_WASTE_ALL ? 'text-rose-600 bg-rose-50/50' : 'text-emerald-700'}">${p.toFixed(2)}%</td>
+            <td class="p-2 border-r border-slate-200 ${pctCls}">${p.toFixed(2)}%</td>
             <td class="p-2 border-r border-slate-200 text-slate-600 font-semibold">${TARGET_WASTE_ALL.toFixed(2)}%</td>
             <td class="p-2 border-r border-slate-200 ${diffColor}">${diffText}</td>
             <td class="p-2">${badge}</td>
@@ -6395,6 +6826,39 @@
       });
 
       tbody.innerHTML = rowsHtml;
+    }
+
+    async function downloadWasteAllTableImage() {
+      const card = document.getElementById('waste-all-table-card');
+      const scrollBox = document.getElementById('waste-all-table-container');
+      if (!card || typeof html2canvas === 'undefined') return;
+      const prevMaxH = scrollBox ? scrollBox.style.maxHeight : '';
+      const prevOverflow = scrollBox ? scrollBox.style.overflow : '';
+      try {
+        if (scrollBox) {
+          scrollBox.style.maxHeight = 'none';
+          scrollBox.style.overflow = 'visible';
+        }
+        const canvas = await html2canvas(card, {
+          scale: 2.2,
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          logging: false,
+          windowWidth: Math.max(card.scrollWidth + 80, 1400),
+          ignoreElements: el => el.getAttribute('data-html2canvas-ignore') === 'true'
+        });
+        const link = document.createElement('a');
+        link.download = `Waste_ALL_Daily_Table_${wasteAllActiveMachine}.png`;
+        link.href = canvas.toDataURL('image/png', 1.0);
+        link.click();
+      } catch (e) {
+        console.error('Error downloading waste all table:', e);
+      } finally {
+        if (scrollBox) {
+          scrollBox.style.maxHeight = prevMaxH;
+          scrollBox.style.overflow = prevOverflow;
+        }
+      }
     }
 
     async function downloadWasteAllBarChartImage() {
@@ -7161,19 +7625,44 @@
 
       tbody.innerHTML = rowsHtml;
 
+      const totalDiff = parseFloat((sumActualPct - sumTarget).toFixed(2));
+      const totalPass = sumActualPct <= sumTarget;
+      const totalDiffStr = totalDiff > 0 ? `+${totalDiff.toFixed(2)}%` : `${totalDiff.toFixed(2)}%`;
+
+      safeSetText('dept-comp-target-pill', `Target ${sumTarget.toFixed(2)}%`);
+      safeSetText('dept-comp-head-target-col', `${sumTarget.toFixed(2)}%`);
+      safeSetText('dept-comp-head-actual-target', `${sumTarget.toFixed(2)}%`);
+      safeSetText('dept-comp-banner-actual', `${sumActualPct.toFixed(2)}% (${Math.round(sumActualKg).toLocaleString()} กก.)`);
+      const compBannerStatus = document.getElementById('dept-comp-banner-status');
+      if (compBannerStatus) {
+        compBannerStatus.className = totalPass
+          ? 'px-2.5 py-1 rounded-xl text-xs font-black bg-emerald-400 text-emerald-950 shadow-xs'
+          : 'px-2.5 py-1 rounded-xl text-xs font-black bg-rose-500 text-white shadow-xs';
+        compBannerStatus.textContent = totalPass ? 'ได้เป้า ✅' : 'เกินเป้า ❌';
+      }
+
+      const topSumRow = document.getElementById('deptComparisonTableTopSumRow');
+      if (topSumRow) {
+        topSumRow.innerHTML = `
+          <td class="p-2 text-left border-r border-emerald-500 font-black sticky left-0 bg-emerald-700 text-white z-20">ผลรวมสะสม (7 หัวข้อหลัก)</td>
+          <td class="p-2 text-center border-r border-emerald-500 text-amber-200 font-black">${sumTarget.toFixed(2)}%</td>
+          <td class="p-2 text-center border-r border-emerald-500 ${totalPass ? 'bg-emerald-300 text-emerald-950' : 'bg-rose-300 text-rose-950'} font-black text-sm">${sumActualPct.toFixed(2)}%</td>
+          <td class="p-2 text-center border-r border-emerald-500 bg-emerald-800/90 text-white font-black">${Math.round(sumActualKg).toLocaleString()}</td>
+          <td class="p-2 text-center border-r border-emerald-500 bg-emerald-800 text-amber-200 font-bold">${totalDiffStr}</td>
+          <td class="p-2 text-center ${totalPass ? 'bg-emerald-800' : 'bg-rose-700'} text-white font-bold">${totalPass ? 'ได้เป้า' : 'เกินเป้า'}</td>
+        `;
+      }
+
       if (tfoot) {
-        const totalDiff = parseFloat((sumActualPct - sumTarget).toFixed(2));
-        const totalPass = sumActualPct <= sumTarget;
-        const totalDiffStr = totalDiff > 0 ? `+${totalDiff.toFixed(2)}%` : `${totalDiff.toFixed(2)}%`;
         tfoot.innerHTML = `
-          <tr class="bg-slate-900 text-white font-black text-xs sm:text-sm border-t-2 border-slate-700">
-            <td class="p-2.5 text-left border-r border-slate-700">รวมทั้งหมด (7 หัวข้อหลัก)</td>
-            <td class="p-2.5 text-center border-r border-slate-700 text-amber-300">${sumTarget.toFixed(2)}%</td>
-            <td class="p-2.5 text-center border-r border-slate-700 ${totalPass ? 'text-emerald-300' : 'text-rose-300'}">${sumActualPct.toFixed(2)}%</td>
-            <td class="p-2.5 text-center border-r border-slate-700 text-slate-200">${Math.round(sumActualKg).toLocaleString()}</td>
-            <td class="p-2.5 text-center border-r border-slate-700 ${totalPass ? 'text-emerald-300' : 'text-rose-300'}">${totalDiffStr}</td>
+          <tr class="bg-slate-100 text-slate-900 font-black text-xs sm:text-sm border-t-2 border-slate-400">
+            <td class="p-2.5 text-left border-r border-slate-300 sticky left-0 bg-slate-100 z-10">ผลรวมทั้งหมด (7 หัวข้อหลัก)</td>
+            <td class="p-2.5 text-center border-r border-slate-300 text-slate-800">${sumTarget.toFixed(2)}%</td>
+            <td class="p-2.5 text-center border-r border-slate-300 ${totalPass ? 'bg-emerald-200 text-emerald-950' : 'bg-rose-200 text-rose-950'}">${sumActualPct.toFixed(2)}%</td>
+            <td class="p-2.5 text-center border-r border-slate-300 text-slate-900">${Math.round(sumActualKg).toLocaleString()}</td>
+            <td class="p-2.5 text-center border-r border-slate-300 ${totalPass ? 'text-emerald-700' : 'text-rose-600'}">${totalDiffStr}</td>
             <td class="p-2.5 text-center">
-              <span class="px-2 py-0.5 rounded-full text-[11px] font-black ${totalPass ? 'bg-emerald-400 text-emerald-950' : 'bg-rose-500 text-white'}">
+              <span class="px-2 py-0.5 rounded-full text-[11px] font-black ${totalPass ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300'}">
                 ${totalPass ? 'ได้เป้า ✅' : 'เกินเป้า ❌'}
               </span>
             </td>
